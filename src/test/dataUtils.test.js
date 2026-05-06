@@ -4,6 +4,7 @@ import {
   filterIncidents,
   mergeMatchingIncidents,
   buildIncidentsByDay,
+  computeSummaryStats,
 } from '../lib/dataUtils.js';
 
 // ---------------------------------------------------------------------------
@@ -233,5 +234,66 @@ describe('buildIncidentsByDay', () => {
     const alert2 = { kind: 'train', routes: ['g'], first_seen_ts: base + 60 * 60_000, resolved_ts: base + 90 * 60_000 };
     const result = buildIncidentsByDay([alert1, alert2], [], 7, NOW);
     expect(result.g[2]).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeSummaryStats
+// ---------------------------------------------------------------------------
+describe('computeSummaryStats', () => {
+  it('returns zeros and null leader for empty data', () => {
+    const r = computeSummaryStats([], [], NOW);
+    expect(r).toEqual({
+      activeCount: 0,
+      weeklyCount: 0,
+      mostAffectedKind: null,
+      mostAffectedId: null,
+      mostAffectedCount: 0,
+    });
+  });
+
+  it('counts active incidents across alerts and observations', () => {
+    const alerts = [makeAlert({ active: true })];
+    const obs = [makeObs({ active: true, id: 99 })];
+    // Alert and obs are both red and close in time → merge into one incident.
+    expect(computeSummaryStats(alerts, obs, NOW).activeCount).toBe(1);
+  });
+
+  it('counts incidents within the last 7 days', () => {
+    const recent = makeAlert({ first_seen_ts: NOW - DAY });
+    const old = makeAlert({ alert_id: 2, first_seen_ts: NOW - 30 * DAY });
+    expect(computeSummaryStats([recent, old], [], NOW).weeklyCount).toBe(1);
+  });
+
+  it('picks the train line with the most incidents in the last 30 days', () => {
+    const alerts = [
+      makeAlert({ alert_id: 1, routes: ['red'], first_seen_ts: NOW - 1 * DAY }),
+      makeAlert({ alert_id: 2, routes: ['red'], first_seen_ts: NOW - 5 * DAY }),
+      makeAlert({ alert_id: 3, routes: ['blue'], first_seen_ts: NOW - 10 * DAY }),
+      makeAlert({ alert_id: 4, routes: ['red'], first_seen_ts: NOW - 60 * DAY }), // outside 30d
+    ];
+    const r = computeSummaryStats(alerts, [], NOW);
+    expect(r.mostAffectedKind).toBe('train');
+    expect(r.mostAffectedId).toBe('red');
+    expect(r.mostAffectedCount).toBe(2);
+  });
+
+  it('picks a bus route when it outpaces every train line', () => {
+    const alerts = [
+      makeAlert({ alert_id: 1, kind: 'bus', routes: ['66'], first_seen_ts: NOW - 1 * DAY }),
+      makeAlert({ alert_id: 2, kind: 'bus', routes: ['66'], first_seen_ts: NOW - 2 * DAY }),
+      makeAlert({ alert_id: 3, kind: 'bus', routes: ['66'], first_seen_ts: NOW - 3 * DAY }),
+      makeAlert({ alert_id: 4, kind: 'train', routes: ['red'], first_seen_ts: NOW - 4 * DAY }),
+    ];
+    const r = computeSummaryStats(alerts, [], NOW);
+    expect(r.mostAffectedKind).toBe('bus');
+    expect(r.mostAffectedId).toBe('66');
+    expect(r.mostAffectedCount).toBe(3);
+  });
+
+  it('does not double-count a merged alert+observation in weeklyCount', () => {
+    const alert = makeAlert({ first_seen_ts: NOW - DAY, routes: ['red'] });
+    const obs = makeObs({ ts: NOW - DAY + 30 * 60_000, line: 'red' });
+    expect(computeSummaryStats([alert], [obs], NOW).weeklyCount).toBe(1);
   });
 });

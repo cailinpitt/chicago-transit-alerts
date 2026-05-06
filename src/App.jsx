@@ -3,9 +3,10 @@ import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 import ActiveAlerts from './components/ActiveAlerts.jsx';
 import Filters from './components/Filters.jsx';
+import SummaryStats from './components/SummaryStats.jsx';
 import Timeline from './components/Timeline.jsx';
 import IncidentList from './components/IncidentList.jsx';
-import { filterIncidents } from './lib/dataUtils.js';
+import { computeSummaryStats, filterIncidents } from './lib/dataUtils.js';
 import { parseUrlState, buildSearch } from './lib/urlState.js';
 import { useDarkMode } from './hooks/useDarkMode.js';
 
@@ -87,6 +88,11 @@ export default function App() {
     return [...routes].sort((a, b) => +a - +b);
   }, [data]);
 
+  const summaryStats = useMemo(() => {
+    if (!data) return null;
+    return computeSummaryStats(data.alerts, data.observations);
+  }, [data]);
+
   const filtered = useMemo(() => {
     if (!data) return { alerts: [], observations: [] };
     const startTs = dateRange ? Date.now() - dateRange * DAY_MS : null;
@@ -135,6 +141,7 @@ export default function App() {
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
             />
+            {summaryStats && <SummaryStats {...summaryStats} />}
             <Timeline
               alerts={data.alerts}
               observations={data.observations}
