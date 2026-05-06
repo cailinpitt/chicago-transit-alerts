@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { TRAIN_LINES, TRAIN_LINE_ORDER } from '../lib/ctaLines.js';
 import { buildIncidentsByDay, hexToRgba } from '../lib/dataUtils.js';
 
@@ -13,6 +13,14 @@ function cellBg(count, lineColor) {
 
 export default function Timeline({ alerts, observations, selectedLines, numDays, onLineClick }) {
   const now = useMemo(() => Date.now(), []);
+  const scrollRef = useRef(null);
+
+  // Scroll to the right (today) on mount and whenever numDays changes.
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [numDays]);
 
   const incidentsByDay = useMemo(
     () => buildIncidentsByDay(alerts, observations, numDays, now),
@@ -41,7 +49,7 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
         {numDays}-Day Timeline
       </h2>
       <div className="bg-white rounded-lg border border-slate-200 p-4">
-        <div className="overflow-x-auto pb-4">
+        <div ref={scrollRef} className="overflow-x-auto pb-4">
           <table className="border-collapse">
             <thead>
               <tr>

@@ -4,7 +4,7 @@ import {
   filterIncidents,
   mergeMatchingIncidents,
   buildIncidentsByDay,
-} from './dataUtils.js';
+} from '../lib/dataUtils.js';
 
 // ---------------------------------------------------------------------------
 // formatDuration
