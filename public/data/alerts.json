@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778072402548,
+  "generated_at": 1778074202254,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -84,11 +84,39 @@
       "from_station": "Central (Purple)",
       "to_station": "Main",
       "ts": 1778072104786,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778073304034,
+      "duration_ms": 1199248,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml6qq4qhpd2g",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml6rtucdwv2s"
+    },
+    {
+      "id": 8,
+      "kind": "train",
+      "line": "blue",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "ts": 1778040542023,
+      "resolved_ts": 1778042942263,
+      "duration_ms": 2400240,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5tdivmgk2h",
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5vl26bkq2c"
+    },
+    {
+      "id": 7,
+      "kind": "bus",
+      "line": "9",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "ts": 1778036942077,
+      "resolved_ts": 1778040242154,
+      "duration_ms": 3300077,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5py7p67m2u",
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5t2l2d622g"
     },
     {
       "id": 288,
@@ -103,6 +131,62 @@
       "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5irna3k32s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5k6cc3le2l"
+    },
+    {
+      "id": 6,
+      "kind": "bus",
+      "line": "147",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "ts": 1778026141805,
+      "resolved_ts": 1778028542173,
+      "duration_ms": 2400368,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5fwdryjd2u",
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5i5v54kr2u"
+    },
+    {
+      "id": 5,
+      "kind": "bus",
+      "line": "8",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "ts": 1778023141978,
+      "resolved_ts": 1778024941377,
+      "duration_ms": 1799399,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5d4wvs3y2a",
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5esl7t2m2a"
+    },
+    {
+      "id": 4,
+      "kind": "bus",
+      "line": "66",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "ts": 1777990140451,
+      "resolved_ts": 1777994941609,
+      "duration_ms": 4801158,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml4efgapxx2x",
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml4iuj3rih2g"
+    },
+    {
+      "id": 3,
+      "kind": "bus",
+      "line": "66",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "ts": 1777934341348,
+      "resolved_ts": 1777938241329,
+      "duration_ms": 3899981,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml2qghyjhd2a",
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml2u2pisoy2c"
     },
     {
       "id": 285,
@@ -131,6 +215,20 @@
       "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml23sr5qri24",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml24njn6km2s"
+    },
+    {
+      "id": 2,
+      "kind": "bus",
+      "line": "66",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "ts": 1777904641559,
+      "resolved_ts": 1777906741592,
+      "duration_ms": 2100033,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkzure447v2h",
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkzwpx22w32s"
     },
     {
       "id": 270,
