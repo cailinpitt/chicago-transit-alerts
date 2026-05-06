@@ -93,8 +93,12 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
                     </td>
                     {/* One cell per day */}
                     {days.map(({ col, dayIdx, date }) => {
-                      const dayStart = now - (dayIdx + 1) * DAY_MS;
-                      const noData = dataStartTs != null && dayStart < dataStartTs;
+                      // A cell is "no data" only if its entire window predates the data start.
+                      // Using dayEnd (the recent edge of the window) avoids hiding a cell that
+                      // has real data later in the same day (e.g. the Yellow Line alert on Apr 26
+                      // started at 8pm but the rolling window for that dayIdx opens at noon).
+                      const dayEnd = now - dayIdx * DAY_MS;
+                      const noData = dataStartTs != null && dayEnd <= dataStartTs;
                       const count = incidents[dayIdx] || 0;
                       const label = noData
                         ? `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: no data`
