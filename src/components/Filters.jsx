@@ -22,8 +22,8 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
           onClick={() => onLinesChange([])}
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
             selectedLines.length === 0
-              ? 'bg-slate-800 text-white'
-              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+              : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
           }`}
         >
           All lines
@@ -36,11 +36,10 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
             <button
               key={key}
               onClick={() => toggleLine(key)}
-              className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
-              style={{
-                backgroundColor: dimmed ? '#e2e8f0' : info.color,
-                color: dimmed ? '#94a3b8' : info.textColor,
-              }}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                dimmed ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500' : ''
+              }`}
+              style={dimmed ? {} : { backgroundColor: info.color, color: info.textColor }}
             >
               {info.label}
             </button>
@@ -48,19 +47,21 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
         })}
       </div>
 
-      <div className="hidden sm:block w-px h-4 bg-slate-200" />
+      <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
 
       {/* Bus toggle */}
       <button
         onClick={() => onShowBusChange((prev) => !prev)}
         className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-          showBus ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+          showBus
+            ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+            : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
         }`}
       >
         Bus
       </button>
 
-      <div className="hidden sm:block w-px h-4 bg-slate-200" />
+      <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
 
       {/* Date range filter */}
       <div className="flex gap-1">
@@ -70,8 +71,8 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
             onClick={() => onDateRangeChange(value)}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
               dateRange === value
-                ? 'bg-slate-800 text-white'
-                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
             }`}
           >
             {label}

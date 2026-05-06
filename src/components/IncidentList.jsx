@@ -48,10 +48,10 @@ function IncidentRow({ incident }) {
       'Service disruption detected';
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-slate-100 last:border-0">
+    <div className="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-slate-700 last:border-0">
       <div className="flex-shrink-0 w-20 text-right">
-        <p className="text-xs text-slate-500">{formatDate(startTs)}</p>
-        <p className="text-xs text-slate-400">{formatTime(startTs)}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(startTs)}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(startTs)}</p>
       </div>
 
       <div className="flex-1 min-w-0">
@@ -59,36 +59,36 @@ function IncidentRow({ incident }) {
           <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
           {isMerged && (
             <>
-              <span className="text-xs text-slate-400 italic">via CTA</span>
-              <span className="text-xs text-slate-300">·</span>
-              <span className="text-xs text-slate-400 italic">via auto-detection</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
+              <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 italic">via auto-detection</span>
             </>
           )}
           {!isMerged && isAlert && (
-            <span className="text-xs text-slate-400 italic">via CTA</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
           )}
           {!isMerged && !isAlert && (
-            <span className="text-xs text-slate-400 italic">via auto-detection</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 italic">via auto-detection</span>
           )}
           {duration && (
             <>
-              <span className="text-xs text-slate-300">·</span>
-              <span className="text-xs text-slate-400">{duration} duration</span>
+              <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">{duration} duration</span>
             </>
           )}
           {!endTs && !incident.active && (
-            <span className="text-xs text-slate-400">duration unknown</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">duration unknown</span>
           )}
           {incident.active && (
             <span className="text-xs font-semibold text-red-500">ongoing</span>
           )}
         </div>
 
-        <p className="text-sm text-slate-700 leading-snug">{description}</p>
+        <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">{description}</p>
 
         {/* Merged: show the specific segment from the bot observation */}
         {isMerged && incident.from_station && incident.to_station && (
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
             {incident.from_station} → {incident.to_station}
           </p>
         )}
@@ -100,7 +100,7 @@ function IncidentRow({ incident }) {
               href={incident.post_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
+              className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
             >
               {isMerged ? 'Via CTA →' : 'View on Bluesky →'}
             </a>
@@ -110,7 +110,7 @@ function IncidentRow({ incident }) {
               href={incident.obs_post_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
+              className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
             >
               Bot detection →
             </a>
@@ -143,10 +143,10 @@ export default function IncidentList({ alerts, observations }) {
   if (total === 0) {
     return (
       <section>
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+        <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
           Incident History
         </h2>
-        <div className="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-400 text-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
           No incidents in this range.
         </div>
       </section>
@@ -155,11 +155,11 @@ export default function IncidentList({ alerts, observations }) {
 
   return (
     <section>
-      <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+      <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
         Incident History{' '}
-        <span className="normal-case font-normal text-slate-400">({total})</span>
+        <span className="normal-case font-normal text-slate-400 dark:text-slate-500">({total})</span>
       </h2>
-      <div className="bg-white rounded-lg border border-slate-200 px-4">
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 px-4">
         {visible.map((incident) => (
           <IncidentRow
             key={incident.alert_id ?? `obs-${incident.id ?? incident.obs_id}`}
@@ -171,7 +171,7 @@ export default function IncidentList({ alerts, observations }) {
         <div className="mt-3 text-center">
           <button
             onClick={() => setPage((p) => p + 1)}
-            className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             Load more ({total - visible.length} remaining)
           </button>

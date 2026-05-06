@@ -6,10 +6,12 @@ import Filters from './components/Filters.jsx';
 import Timeline from './components/Timeline.jsx';
 import IncidentList from './components/IncidentList.jsx';
 import { filterIncidents } from './lib/dataUtils.js';
+import { useDarkMode } from './hooks/useDarkMode.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export default function App() {
+  const [dark, toggleDark] = useDarkMode();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [selectedLines, setSelectedLines] = useState([]);
@@ -47,22 +49,22 @@ export default function App() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <p className="text-red-600 text-sm">Failed to load alert data.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Header generatedAt={data?.generated_at} />
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
+      <Header generatedAt={data?.generated_at} dark={dark} onToggleDark={toggleDark} />
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         {!data && (
           <div className="space-y-4 animate-pulse">
-            <div className="h-16 bg-white rounded-lg border border-slate-200" />
-            <div className="h-10 bg-white rounded-lg border border-slate-200" />
-            <div className="h-48 bg-white rounded-lg border border-slate-200" />
-            <div className="h-64 bg-white rounded-lg border border-slate-200" />
+            <div className="h-16 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" />
+            <div className="h-10 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" />
+            <div className="h-48 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" />
+            <div className="h-64 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" />
           </div>
         )}
         {data && (
@@ -81,6 +83,7 @@ export default function App() {
               observations={data.observations}
               selectedLines={selectedLines}
               numDays={dateRange ?? 90}
+              dataStartTs={data.data_start_ts ?? null}
               onLineClick={(line) =>
                 setSelectedLines((prev) =>
                   prev.includes(line) ? prev.filter((l) => l !== line) : [line],

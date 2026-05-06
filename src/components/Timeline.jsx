@@ -6,12 +6,16 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Cell background color based on incident count.
 function cellBg(count, lineColor) {
-  if (count === 0) return '#f1f5f9'; // slate-100
+  if (count === 0) return 'var(--timeline-empty)';
   if (count === 1) return hexToRgba(lineColor, 0.4);
   return lineColor;
 }
 
-export default function Timeline({ alerts, observations, selectedLines, numDays, onLineClick }) {
+const NO_DATA_STYLE = {
+  backgroundImage: 'repeating-linear-gradient(-45deg, var(--no-data-stripe1) 0px, var(--no-data-stripe1) 1px, var(--no-data-stripe2) 1px, var(--no-data-stripe2) 4px)',
+};
+
+export default function Timeline({ alerts, observations, selectedLines, numDays, dataStartTs, onLineClick }) {
   const now = useMemo(() => Date.now(), []);
   const scrollRef = useRef(null);
 
@@ -45,16 +49,16 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
 
   return (
     <section>
-      <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+      <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
         {numDays}-Day Timeline
       </h2>
-      <div className="bg-white rounded-lg border border-slate-200 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
         <div ref={scrollRef} className="overflow-x-auto pb-4">
           <table className="border-collapse">
             <thead>
               <tr>
                 {/* Corner spacer — matches the width of line label cells */}
-                <th className="sticky left-0 bg-white z-10 w-16 min-w-[4rem]" />
+                <th className="sticky left-0 bg-white dark:bg-slate-800 z-10 w-16 min-w-[4rem]" />
                 {/* Month label: only render text on the 1st of each month */}
                 {days.map(({ col, date }) => (
                   <th
@@ -63,7 +67,7 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
                     style={{ width: 11 }}
                   >
                     {date.getDate() === 1 && (
-                      <span className="text-slate-400 whitespace-nowrap" style={{ fontSize: 10 }}>
+                      <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap" style={{ fontSize: 10 }}>
                         {date.toLocaleString('en-US', { month: 'short' })}
                       </span>
                     )}
@@ -78,7 +82,7 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
                 return (
                   <tr key={lineKey}>
                     {/* Line label — sticky so it stays visible while scrolling horizontally */}
-                    <td className="sticky left-0 bg-white z-10 pr-3 align-middle min-w-[4rem]">
+                    <td className="sticky left-0 bg-white dark:bg-slate-800 z-10 pr-3 align-middle min-w-[4rem]">
                       <button
                         onClick={() => onLineClick(lineKey)}
                         className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
@@ -89,14 +93,18 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
                     </td>
                     {/* One cell per day */}
                     {days.map(({ col, dayIdx, date }) => {
+                      const dayStart = now - (dayIdx + 1) * DAY_MS;
+                      const noData = dataStartTs != null && dayStart < dataStartTs;
                       const count = incidents[dayIdx] || 0;
-                      const label = `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${count} incident${count !== 1 ? 's' : ''}`;
+                      const label = noData
+                        ? `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: no data`
+                        : `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${count} incident${count !== 1 ? 's' : ''}`;
                       return (
                         <td key={col} className="p-0 pr-px pb-px">
                           <div
                             title={label}
                             className="w-2.5 h-2.5 rounded-sm"
-                            style={{ backgroundColor: cellBg(count, info.color) }}
+                            style={noData ? NO_DATA_STYLE : { backgroundColor: cellBg(count, info.color) }}
                           />
                         </td>
                       );
@@ -109,18 +117,24 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
-          <span className="text-xs text-slate-400">Less</span>
-          <div className="flex gap-0.5">
-            <div className="w-2.5 h-2.5 rounded-sm bg-slate-100" />
-            <div
-              className="w-2.5 h-2.5 rounded-sm"
-              style={{ backgroundColor: hexToRgba('#64748b', 0.4) }}
-            />
-            <div className="w-2.5 h-2.5 rounded-sm bg-slate-500" />
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
+            <div className="flex gap-0.5">
+              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--timeline-empty)' }} />
+              <div
+                className="w-2.5 h-2.5 rounded-sm"
+                style={{ backgroundColor: hexToRgba('#64748b', 0.4) }}
+              />
+              <div className="w-2.5 h-2.5 rounded-sm bg-slate-500" />
+            </div>
+            <span className="text-xs text-slate-400 dark:text-slate-500">More</span>
           </div>
-          <span className="text-xs text-slate-400">More</span>
-          <span className="text-xs text-slate-300 ml-2">· Click a line name to filter</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={NO_DATA_STYLE} />
+            <span className="text-xs text-slate-400 dark:text-slate-500">No data</span>
+          </div>
+          <span className="text-xs text-slate-300 dark:text-slate-600">· Click a line name to filter</span>
         </div>
       </div>
     </section>

@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* CSS variables for inline-styled timeline cells so they adapt to dark mode */
+:root {
+  --timeline-empty: #f1f5f9;
+  --no-data-stripe1: #e2e8f0;
+  --no-data-stripe2: #f8fafc;
+}
+.dark {
+  --timeline-empty: #334155;
+  --no-data-stripe1: #374151;
+  --no-data-stripe2: #1f2937;
+}

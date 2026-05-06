@@ -40,7 +40,7 @@ function ActiveCard({ incident }) {
       'Service disruption detected';
 
   return (
-    <div className="bg-white rounded-lg border border-red-200 p-4 flex items-start gap-3">
+    <div className="bg-white dark:bg-slate-800 rounded-lg border border-red-200 dark:border-red-900 p-4 flex items-start gap-3">
       {/* Pulsing dot */}
       <div className="relative mt-1.5 flex-shrink-0 h-2.5 w-2.5">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
@@ -50,15 +50,15 @@ function ActiveCard({ incident }) {
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
           <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
-          <span className="text-xs text-slate-400">{elapsedMin}m ongoing</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">{elapsedMin}m ongoing</span>
         </div>
-        <p className="text-sm font-medium text-slate-800 leading-snug">{description}</p>
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">{description}</p>
         {incident.post_url && (
           <a
             href={incident.post_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block mt-1.5 text-xs text-blue-500 hover:text-blue-700 hover:underline"
+            className="inline-block mt-1.5 text-xs text-blue-500 hover:text-blue-400 hover:underline"
           >
             View on Bluesky →
           </a>
