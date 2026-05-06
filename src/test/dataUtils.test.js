@@ -16,16 +16,16 @@ describe('formatDuration', () => {
   });
 
   it('formats minutes only', () => {
-    expect(formatDuration(5 * 60_000)).toBe('5m');
-    expect(formatDuration(59 * 60_000)).toBe('59m');
+    expect(formatDuration(5 * 60_000)).toBe('~5m');
+    expect(formatDuration(59 * 60_000)).toBe('~59m');
   });
 
   it('formats whole hours', () => {
-    expect(formatDuration(2 * 60 * 60_000)).toBe('2h');
+    expect(formatDuration(2 * 60 * 60_000)).toBe('~2h');
   });
 
   it('formats hours and minutes', () => {
-    expect(formatDuration(90 * 60_000)).toBe('1h 30m');
+    expect(formatDuration(90 * 60_000)).toBe('~1h 30m');
   });
 });
 

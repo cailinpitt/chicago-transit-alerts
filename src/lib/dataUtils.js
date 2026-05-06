@@ -132,10 +132,10 @@ export function mergeMatchingIncidents(alerts, observations) {
 export function formatDuration(ms) {
   if (!ms || ms < 0) return null;
   const totalMin = Math.round(ms / 60_000);
-  if (totalMin < 60) return `${totalMin}m`;
+  if (totalMin < 60) return `~${totalMin}m`;
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  return m > 0 ? `~${h}h ${m}m` : `~${h}h`;
 }
 
 export function formatDate(ts) {
