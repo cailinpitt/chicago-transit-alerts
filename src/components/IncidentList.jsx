@@ -71,7 +71,7 @@ function IncidentRow({ incident }) {
             <span className="text-xs text-slate-400 italic">via auto-detection</span>
           )}
           {duration && (
-            <span className="text-xs text-slate-400">{duration}</span>
+            <span className="text-xs text-slate-400">{duration} duration</span>
           )}
           {!endTs && !incident.active && (
             <span className="text-xs text-slate-400">duration unknown</span>
