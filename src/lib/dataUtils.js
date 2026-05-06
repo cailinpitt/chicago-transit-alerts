@@ -201,6 +201,67 @@ export function mergeMatchingIncidents(alerts, observations) {
   };
 }
 
+// Headline stats for the at-a-glance summary line. Always computed against
+// the full dataset (not the filtered view) so the answer to "how's the CTA
+// doing right now" doesn't change based on whatever the user has narrowed to.
+// Uses merged incidents so a CTA alert and a matching bot observation count
+// once, not twice. Most-affected uses a 30-day window for stability — a
+// 7-day window flips around too much when one bad day dominates.
+export function computeSummaryStats(alerts, observations, now = Date.now()) {
+  const weekAgo = now - 7 * DAY_MS;
+  const monthAgo = now - 30 * DAY_MS;
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  const incidents = [
+    ...merged.map((m) => ({ ts: m.first_seen_ts, kind: m.kind, lines: m.routes, active: m.active })),
+    ...standaloneAlerts.map((a) => ({ ts: a.first_seen_ts, kind: a.kind, lines: a.routes, active: a.active })),
+    ...standaloneObs.map((o) => ({ ts: o.first_seen_ts || o.ts, kind: o.kind, lines: [o.line], active: o.active })),
+  ];
+
+  const activeCount = incidents.filter((i) => i.active).length;
+  const weeklyCount = incidents.filter((i) => i.ts >= weekAgo).length;
+
+  // Count last-30-day incidents per (kind, key) — train line key (e.g. "red")
+  // or bus route number ("66"). Bus routes are included so the "most
+  // affected" answer reflects reality even when a chronically-troubled bus
+  // route outpaces every train line.
+  const counts = new Map(); // key: `${kind}:${id}` -> { kind, id, count }
+  for (const inc of incidents) {
+    if (inc.ts < monthAgo) continue;
+    if (inc.kind !== 'train' && inc.kind !== 'bus') continue;
+    if (inc.kind === 'train') {
+      for (const line of inc.lines || []) {
+        if (!TRAIN_LINE_ORDER.includes(line)) continue;
+        const key = `train:${line}`;
+        const cur = counts.get(key) || { kind: 'train', id: line, count: 0 };
+        cur.count++;
+        counts.set(key, cur);
+      }
+    } else {
+      for (const route of inc.lines || []) {
+        const id = String(route);
+        const key = `bus:${id}`;
+        const cur = counts.get(key) || { kind: 'bus', id, count: 0 };
+        cur.count++;
+        counts.set(key, cur);
+      }
+    }
+  }
+  let mostAffected = null;
+  for (const entry of counts.values()) {
+    if (!mostAffected || entry.count > mostAffected.count) mostAffected = entry;
+  }
+
+  return {
+    activeCount,
+    weeklyCount,
+    mostAffectedKind: mostAffected?.kind ?? null,
+    mostAffectedId: mostAffected?.id ?? null,
+    mostAffectedCount: mostAffected?.count ?? 0,
+  };
+}
+
 export function formatDuration(ms) {
   if (!ms || ms < 0) return null;
   const totalMin = Math.round(ms / 60_000);
