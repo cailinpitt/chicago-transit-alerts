@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778094002825,
+  "generated_at": 1778093745800,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -84,10 +84,7 @@
       "from_station": null,
       "to_station": null,
       "detection_source": "roundup",
-      "signals": [
-        "gap",
-        "ghost"
-      ],
+      "signals": null,
       "ts": 1778090941503,
       "resolved_ts": 1778093341674,
       "duration_ms": 2400171,
@@ -119,10 +116,7 @@
       "from_station": null,
       "to_station": null,
       "detection_source": "roundup",
-      "signals": [
-        "ghost",
-        "bunching"
-      ],
+      "signals": null,
       "ts": 1778077141583,
       "resolved_ts": 1778081342187,
       "duration_ms": 4200604,
@@ -154,10 +148,7 @@
       "from_station": null,
       "to_station": null,
       "detection_source": "roundup",
-      "signals": [
-        "gap",
-        "ghost"
-      ],
+      "signals": null,
       "ts": 1778040542023,
       "resolved_ts": 1778042942263,
       "duration_ms": 2400240,
@@ -173,10 +164,7 @@
       "from_station": null,
       "to_station": null,
       "detection_source": "roundup",
-      "signals": [
-        "gap",
-        "ghost"
-      ],
+      "signals": null,
       "ts": 1778036942077,
       "resolved_ts": 1778040242154,
       "duration_ms": 3300077,
@@ -208,10 +196,7 @@
       "from_station": null,
       "to_station": null,
       "detection_source": "roundup",
-      "signals": [
-        "gap",
-        "ghost"
-      ],
+      "signals": null,
       "ts": 1778026141805,
       "resolved_ts": 1778028542173,
       "duration_ms": 2400368,
@@ -227,10 +212,7 @@
       "from_station": null,
       "to_station": null,
       "detection_source": "roundup",
-      "signals": [
-        "bunching",
-        "ghost"
-      ],
+      "signals": null,
       "ts": 1778023141978,
       "resolved_ts": 1778024941377,
       "duration_ms": 1799399,
@@ -246,10 +228,7 @@
       "from_station": null,
       "to_station": null,
       "detection_source": "roundup",
-      "signals": [
-        "bunching",
-        "ghost"
-      ],
+      "signals": null,
       "ts": 1777990140451,
       "resolved_ts": 1777994941609,
       "duration_ms": 4801158,
@@ -265,11 +244,7 @@
       "from_station": null,
       "to_station": null,
       "detection_source": "roundup",
-      "signals": [
-        "bunching",
-        "gap",
-        "ghost"
-      ],
+      "signals": null,
       "ts": 1777934341348,
       "resolved_ts": 1777938241329,
       "duration_ms": 3899981,

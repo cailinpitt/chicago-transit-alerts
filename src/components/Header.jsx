@@ -18,7 +18,7 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
   return (
     <header className="bg-white dark:bg-gh-surface border-b border-slate-200 dark:border-gh-border">
       <div className="max-w-5xl mx-auto px-4 py-4 flex items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             CTA Alert History
           </h1>
@@ -41,6 +41,12 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
               </a>
             ))}
           </div>
+          {/* Last updated — below bots on mobile, hidden on sm+ (shown in right column) */}
+          {updatedStr && (
+            <p className="sm:hidden text-xs text-slate-400 dark:text-slate-500 mt-2">
+              Last updated {updatedStr}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-3 pt-1 flex-shrink-0">
           <button
@@ -50,8 +56,9 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
           >
             {dark ? '☀️' : '🌙'}
           </button>
+          {/* Last updated — right of toggle on sm+, hidden on mobile */}
           {updatedStr && (
-            <p className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+            <p className="hidden sm:block text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
               Last updated {updatedStr}
             </p>
           )}

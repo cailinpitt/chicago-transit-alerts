@@ -122,6 +122,13 @@ export default function App() {
                   prev !== null && prev.includes(line) ? prev.filter((l) => l !== line) : [line],
                 )
               }
+              showBus={showBus}
+              selectedBusRoutes={selectedBusRoutes}
+              onBusRouteClick={(route) =>
+                setSelectedBusRoutes((prev) =>
+                  prev.includes(route) ? prev.filter((r) => r !== route) : [...prev, route],
+                )
+              }
             />
             <IncidentList alerts={filtered.alerts} observations={filtered.observations} />
           </>

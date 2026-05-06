@@ -58,6 +58,44 @@ export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Da
   return result;
 }
 
+// Build bus incident counts for the timeline grid.
+// Returns { aggregate: { dayIdx: distinctRouteCount }, byRoute: { routeId: { dayIdx: count } } }
+// The aggregate counts how many distinct routes had incidents on each day, so the
+// color reflects breadth of impact rather than raw event count.
+export function buildBusIncidentsByDay(alerts, observations, numDays = 90, now = Date.now()) {
+  const byRoute = {};
+  const routesPerDay = {}; // { dayIdx: Set<routeId> } — for dedup in aggregate
+
+  function addSpan(routeId, startTs, endTs) {
+    const key = String(routeId);
+    if (!byRoute[key]) byRoute[key] = {};
+    const end = endTs || now;
+    const startDayIdx = Math.floor((now - startTs) / DAY_MS);
+    const endDayIdx = Math.floor((now - end) / DAY_MS);
+    const lo = Math.max(0, endDayIdx);
+    const hi = Math.min(numDays - 1, startDayIdx);
+    for (let d = lo; d <= hi; d++) {
+      byRoute[key][d] = (byRoute[key][d] || 0) + 1;
+      if (!routesPerDay[d]) routesPerDay[d] = new Set();
+      routesPerDay[d].add(key);
+    }
+  }
+
+  for (const a of alerts.filter((a) => a.kind === 'bus')) {
+    for (const route of a.routes) addSpan(route, a.first_seen_ts, a.resolved_ts);
+  }
+  for (const o of observations.filter((o) => o.kind === 'bus')) {
+    addSpan(o.line, o.ts, o.resolved_ts);
+  }
+
+  const aggregate = {};
+  for (const [d, routes] of Object.entries(routesPerDay)) {
+    aggregate[Number(d)] = routes.size;
+  }
+
+  return { aggregate, byRoute };
+}
+
 // Filter alerts and observations by selected train lines, bus toggle, and a
 // start timestamp. Active incidents bypass the timestamp filter so they always
 // appear. Bus observations are controlled independently of the train line
