@@ -23,7 +23,7 @@ export default function App() {
     const url = `${import.meta.env.BASE_URL}data/alerts.json`;
 
     function fetchData() {
-      fetch(url)
+      fetch(url, { cache: 'no-store' })
         .then((r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json();
@@ -42,7 +42,7 @@ export default function App() {
     }
 
     fetchData();
-    const id = setInterval(fetchData, 2 * 60 * 1000); // poll every 2 minutes
+    const id = setInterval(fetchData, 5 * 60 * 1000); // poll every 5 minutes
     return () => clearInterval(id);
   }, []);
 
