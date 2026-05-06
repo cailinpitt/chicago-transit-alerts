@@ -24,7 +24,7 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
             Major CTA alerts and service observations &middot;{' '}
-            <span className="text-xs">Unofficial, not affiliated with the CTA</span>
+            <span className="text-xs">Unofficial, not affiliated with the Chicago Transit Authority</span>
           </p>
           <div className="flex flex-wrap items-center gap-1.5 mt-2">
             <span className="text-xs text-slate-400 dark:text-slate-500 mr-1">Bluesky bots</span>
