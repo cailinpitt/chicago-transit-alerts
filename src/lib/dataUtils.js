@@ -2,6 +2,26 @@ import { TRAIN_LINE_ORDER } from './ctaLines.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Returns a stable epoch (UTC midnight) representing the Chicago calendar day
+// that contains `ts`. Used to bucket incidents by calendar day rather than by
+// sliding 24-hour windows from `now`, which would otherwise smear an evening
+// incident across two columns depending on the current wall time.
+const chicagoDayParts = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Chicago',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+export function chicagoDayUTC(ts) {
+  let y, m, d;
+  for (const p of chicagoDayParts.formatToParts(new Date(ts))) {
+    if (p.type === 'year') y = +p.value;
+    else if (p.type === 'month') m = +p.value;
+    else if (p.type === 'day') d = +p.value;
+  }
+  return Date.UTC(y, m - 1, d);
+}
+
 // Convert a hex color string to an rgba() string.
 export function hexToRgba(hex, alpha) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -15,15 +35,15 @@ export function hexToRgba(hex, alpha) {
 // Only includes train lines (bus incidents appear in the list but not the grid).
 export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Date.now()) {
   const result = {};
+  const todayUTC = chicagoDayUTC(now);
 
   function addSpan(lineId, startTs, endTs) {
     if (!TRAIN_LINE_ORDER.includes(lineId)) return;
     if (!result[lineId]) result[lineId] = {};
 
     const end = endTs || now;
-    // dayIdx: how many full days ago did this event start/end?
-    const startDayIdx = Math.floor((now - startTs) / DAY_MS); // larger = further in past
-    const endDayIdx = Math.floor((now - end) / DAY_MS);       // smaller = more recent
+    const startDayIdx = Math.round((todayUTC - chicagoDayUTC(startTs)) / DAY_MS);
+    const endDayIdx = Math.round((todayUTC - chicagoDayUTC(end)) / DAY_MS);
 
     const lo = Math.max(0, endDayIdx);
     const hi = Math.min(numDays - 1, startDayIdx);
@@ -65,13 +85,14 @@ export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Da
 export function buildBusIncidentsByDay(alerts, observations, numDays = 90, now = Date.now()) {
   const byRoute = {};
   const routesPerDay = {}; // { dayIdx: Set<routeId> } — for dedup in aggregate
+  const todayUTC = chicagoDayUTC(now);
 
   function addSpan(routeId, startTs, endTs) {
     const key = String(routeId);
     if (!byRoute[key]) byRoute[key] = {};
     const end = endTs || now;
-    const startDayIdx = Math.floor((now - startTs) / DAY_MS);
-    const endDayIdx = Math.floor((now - end) / DAY_MS);
+    const startDayIdx = Math.round((todayUTC - chicagoDayUTC(startTs)) / DAY_MS);
+    const endDayIdx = Math.round((todayUTC - chicagoDayUTC(end)) / DAY_MS);
     const lo = Math.max(0, endDayIdx);
     const hi = Math.min(numDays - 1, startDayIdx);
     for (let d = lo; d <= hi; d++) {
