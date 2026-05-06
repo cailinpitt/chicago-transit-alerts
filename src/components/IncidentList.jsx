@@ -57,8 +57,17 @@ function IncidentRow({ incident }) {
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
+          {isMerged && (
+            <>
+              <span className="text-xs text-slate-400 italic">via CTA</span>
+              <span className="text-xs text-slate-400 italic">auto-detected</span>
+            </>
+          )}
+          {!isMerged && isAlert && (
+            <span className="text-xs text-slate-400 italic">via CTA</span>
+          )}
           {!isMerged && !isAlert && (
-            <span className="text-xs text-slate-400 italic">bot-detected</span>
+            <span className="text-xs text-slate-400 italic">auto-detected</span>
           )}
           {duration && (
             <span className="text-xs text-slate-400">{duration}</span>
@@ -89,7 +98,7 @@ function IncidentRow({ incident }) {
               rel="noopener noreferrer"
               className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
             >
-              {isMerged ? 'Official alert →' : 'View on Bluesky →'}
+              {isMerged ? 'Via CTA →' : 'View on Bluesky →'}
             </a>
           )}
           {isMerged && incident.obs_post_url && (
