@@ -1,8 +1,9 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { TRAIN_LINES, TRAIN_LINE_ORDER } from '../lib/ctaLines.js';
-import { buildIncidentsByDay, hexToRgba } from '../lib/dataUtils.js';
+import { buildIncidentsByDay, buildBusIncidentsByDay, hexToRgba } from '../lib/dataUtils.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const BUS_COLOR = '#64748b'; // slate-500
 
 // Cell background color based on incident count.
 function cellBg(count, lineColor) {
@@ -15,7 +16,35 @@ const NO_DATA_STYLE = {
   backgroundImage: 'repeating-linear-gradient(-45deg, var(--no-data-stripe1) 0px, var(--no-data-stripe1) 1px, var(--no-data-stripe2) 1px, var(--no-data-stripe2) 4px)',
 };
 
-export default function Timeline({ alerts, observations, selectedLines, numDays, dataStartTs, onLineClick }) {
+function DayCell({ col, dayIdx, date, incidents, color, dataStartTs, now }) {
+  const dayEnd = now - dayIdx * DAY_MS;
+  const noData = dataStartTs != null && dayEnd <= dataStartTs;
+  const count = incidents[dayIdx] || 0;
+  const label = noData
+    ? `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: no data`
+    : `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${count} incident${count !== 1 ? 's' : ''}`;
+  return (
+    <td key={col} className="p-0 pr-px pb-px">
+      <div
+        title={label}
+        className="w-2.5 h-2.5 rounded-sm"
+        style={noData ? NO_DATA_STYLE : { backgroundColor: cellBg(count, color) }}
+      />
+    </td>
+  );
+}
+
+export default function Timeline({
+  alerts,
+  observations,
+  selectedLines,
+  numDays,
+  dataStartTs,
+  onLineClick,
+  showBus,
+  selectedBusRoutes,
+  onBusRouteClick,
+}) {
   const now = useMemo(() => Date.now(), []);
   const scrollRef = useRef(null);
 
@@ -28,6 +57,11 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
 
   const incidentsByDay = useMemo(
     () => buildIncidentsByDay(alerts, observations, numDays, now),
+    [alerts, observations, numDays, now],
+  );
+
+  const busIncidentsByDay = useMemo(
+    () => buildBusIncidentsByDay(alerts, observations, numDays, now),
     [alerts, observations, numDays, now],
   );
 
@@ -48,6 +82,16 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
       : selectedLines !== null && selectedLines.length === 0
         ? []
         : TRAIN_LINE_ORDER;
+
+  // Bus rows: per-route when routes are selected, aggregate otherwise.
+  const busRowsToShow = showBus
+    ? selectedBusRoutes && selectedBusRoutes.length > 0
+      ? selectedBusRoutes.map((r) => ({ key: r, label: `#${r}`, incidents: busIncidentsByDay.byRoute[r] || {} }))
+      : [{ key: '_agg', label: 'Bus', incidents: busIncidentsByDay.aggregate }]
+    : [];
+
+  const hasBusRows = busRowsToShow.length > 0;
+  const hasTrainRows = linesToShow.length > 0;
 
   return (
     <section>
@@ -78,12 +122,12 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
               </tr>
             </thead>
             <tbody>
+              {/* Train rows */}
               {linesToShow.map((lineKey) => {
                 const info = TRAIN_LINES[lineKey];
                 const incidents = incidentsByDay[lineKey] || {};
                 return (
                   <tr key={lineKey}>
-                    {/* Line label — sticky so it stays visible while scrolling horizontally */}
                     <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
                       <button
                         onClick={() => onLineClick(lineKey)}
@@ -93,31 +137,64 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
                         {info.label}
                       </button>
                     </td>
-                    {/* One cell per day */}
-                    {days.map(({ col, dayIdx, date }) => {
-                      // A cell is "no data" only if its entire window predates the data start.
-                      // Using dayEnd (the recent edge of the window) avoids hiding a cell that
-                      // has real data later in the same day (e.g. the Yellow Line alert on Apr 26
-                      // started at 8pm but the rolling window for that dayIdx opens at noon).
-                      const dayEnd = now - dayIdx * DAY_MS;
-                      const noData = dataStartTs != null && dayEnd <= dataStartTs;
-                      const count = incidents[dayIdx] || 0;
-                      const label = noData
-                        ? `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: no data`
-                        : `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${count} incident${count !== 1 ? 's' : ''}`;
-                      return (
-                        <td key={col} className="p-0 pr-px pb-px">
-                          <div
-                            title={label}
-                            className="w-2.5 h-2.5 rounded-sm"
-                            style={noData ? NO_DATA_STYLE : { backgroundColor: cellBg(count, info.color) }}
-                          />
-                        </td>
-                      );
-                    })}
+                    {days.map(({ col, dayIdx, date }) => (
+                      <DayCell
+                        key={col}
+                        col={col}
+                        dayIdx={dayIdx}
+                        date={date}
+                        incidents={incidents}
+                        color={info.color}
+                        dataStartTs={dataStartTs}
+                        now={now}
+                      />
+                    ))}
                   </tr>
                 );
               })}
+
+              {/* Thin separator between trains and bus */}
+              {hasTrainRows && hasBusRows && (
+                <tr aria-hidden="true">
+                  <td colSpan={numDays + 1} className="py-1" />
+                </tr>
+              )}
+
+              {/* Bus rows */}
+              {busRowsToShow.map(({ key, label, incidents }) => (
+                <tr key={key}>
+                  <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
+                    {key !== '_agg' && onBusRouteClick ? (
+                      <button
+                        onClick={() => onBusRouteClick(key)}
+                        className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
+                        style={{ color: BUS_COLOR }}
+                      >
+                        {label}
+                      </button>
+                    ) : (
+                      <span
+                        className="text-xs font-semibold w-full block text-right"
+                        style={{ color: BUS_COLOR }}
+                      >
+                        {label}
+                      </span>
+                    )}
+                  </td>
+                  {days.map(({ col, dayIdx, date }) => (
+                    <DayCell
+                      key={col}
+                      col={col}
+                      dayIdx={dayIdx}
+                      date={date}
+                      incidents={incidents}
+                      color={BUS_COLOR}
+                      dataStartTs={dataStartTs}
+                      now={now}
+                    />
+                  ))}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
