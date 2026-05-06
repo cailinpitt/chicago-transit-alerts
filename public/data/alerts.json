@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778036800135,
+  "generated_at": 1778036968042,
   "alerts": [
     {
       "alert_id": "114735",
@@ -156,20 +156,6 @@
       "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5irna3k32s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5k6cc3le2l"
-    },
-    {
-      "id": 287,
-      "kind": "train",
-      "line": "p",
-      "direction": "branch-0-outbound",
-      "from_station": "South Boulevard",
-      "to_station": "Howard",
-      "ts": 1777949704407,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml36qcjp2f2i",
-      "resolved_post_url": null
     },
     {
       "id": 285,
