@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778077262645,
+  "generated_at": 1778081702028,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -84,11 +84,11 @@
       "from_station": null,
       "to_station": null,
       "ts": 1778077141583,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778081342187,
+      "duration_ms": 4200604,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml6vgayded2x",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml6zdh7l2q2u"
     },
     {
       "id": 292,
