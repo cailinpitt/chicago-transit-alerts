@@ -15,7 +15,7 @@ export default function Header({ generatedAt }) {
             CTA Alert History
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            The Chicago transit history CTA&rsquo;s own site doesn&rsquo;t show
+            Historical CTA alerts and service observations
           </p>
         </div>
         {updatedStr && (
