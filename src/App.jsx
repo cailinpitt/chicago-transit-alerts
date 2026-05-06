@@ -79,6 +79,13 @@ export default function App() {
     ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
   }, [data]);
 
+  // Surface the active count in the tab title so a pinned tab tells the user
+  // something is wrong without them having to switch to it.
+  useEffect(() => {
+    const base = 'CTA Alert History';
+    document.title = activeIncidents.length > 0 ? `(${activeIncidents.length}) ${base}` : base;
+  }, [activeIncidents.length]);
+
   const availableBusRoutes = useMemo(() => {
     if (!data) return [];
     const routes = new Set([
