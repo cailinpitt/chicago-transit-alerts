@@ -32,15 +32,26 @@ export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Da
     }
   }
 
-  for (const a of alerts) {
-    if (a.kind !== 'train') continue;
+  // Use merge logic to avoid double-counting incidents that have both an alert
+  // and a matching observation (e.g. a combined Green line incident).
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+    alerts.filter((a) => a.kind === 'train'),
+    observations.filter((o) => o.kind === 'train'),
+  );
+
+  for (const m of merged) {
+    for (const route of m.routes) {
+      addSpan(route, m.first_seen_ts, m.resolved_ts);
+    }
+  }
+
+  for (const a of standaloneAlerts) {
     for (const route of a.routes) {
       addSpan(route, a.first_seen_ts, a.resolved_ts);
     }
   }
 
-  for (const o of observations) {
-    if (o.kind !== 'train') continue;
+  for (const o of standaloneObs) {
     addSpan(o.line, o.ts, o.resolved_ts);
   }
 
