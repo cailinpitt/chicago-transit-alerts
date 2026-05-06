@@ -23,7 +23,7 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
             selectedLines.length === 0
               ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-              : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+              : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
           }`}
         >
           All lines
@@ -37,7 +37,7 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
               key={key}
               onClick={() => toggleLine(key)}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                dimmed ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500' : ''
+                dimmed ? 'bg-slate-200 dark:bg-gh-subtle text-slate-400 dark:text-slate-500' : ''
               }`}
               style={dimmed ? {} : { backgroundColor: info.color, color: info.textColor }}
             >
@@ -55,7 +55,7 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
         className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
           showBus
             ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-            : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+            : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
         }`}
       >
         Bus
@@ -72,7 +72,7 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
               dateRange === value
                 ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
             }`}
           >
             {label}

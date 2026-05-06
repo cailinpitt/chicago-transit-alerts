@@ -49,22 +49,22 @@ export default function App() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gh-canvas">
         <p className="text-red-600 text-sm">Failed to load alert data.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
       <Header generatedAt={data?.generated_at} dark={dark} onToggleDark={toggleDark} />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         {!data && (
           <div className="space-y-4 animate-pulse">
-            <div className="h-16 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" />
-            <div className="h-10 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" />
-            <div className="h-48 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" />
-            <div className="h-64 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" />
+            <div className="h-16 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
+            <div className="h-10 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
+            <div className="h-48 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
+            <div className="h-64 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
           </div>
         )}
         {data && (

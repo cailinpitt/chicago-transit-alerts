@@ -48,7 +48,7 @@ function IncidentRow({ incident }) {
       'Service disruption detected';
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-slate-700 last:border-0">
+    <div className="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0">
       <div className="flex-shrink-0 w-20 text-right">
         <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(startTs)}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(startTs)}</p>
@@ -146,7 +146,7 @@ export default function IncidentList({ alerts, observations }) {
         <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
           Incident History
         </h2>
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+        <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
           No incidents in this range.
         </div>
       </section>
@@ -159,7 +159,7 @@ export default function IncidentList({ alerts, observations }) {
         Incident History{' '}
         <span className="normal-case font-normal text-slate-400 dark:text-slate-500">({total})</span>
       </h2>
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 px-4">
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border px-4">
         {visible.map((incident) => (
           <IncidentRow
             key={incident.alert_id ?? `obs-${incident.id ?? incident.obs_id}`}
@@ -171,7 +171,7 @@ export default function IncidentList({ alerts, observations }) {
         <div className="mt-3 text-center">
           <button
             onClick={() => setPage((p) => p + 1)}
-            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg hover:bg-slate-50 dark:hover:bg-gh-border transition-colors"
           >
             Load more ({total - visible.length} remaining)
           </button>

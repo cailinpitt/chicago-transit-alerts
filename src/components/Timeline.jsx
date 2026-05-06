@@ -52,13 +52,13 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
         {numDays}-Day Timeline
       </h2>
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
         <div ref={scrollRef} className="overflow-x-auto pb-4">
           <table className="border-collapse">
             <thead>
               <tr>
                 {/* Corner spacer — matches the width of line label cells */}
-                <th className="sticky left-0 bg-white dark:bg-slate-800 z-10 w-16 min-w-[4rem]" />
+                <th className="sticky left-0 bg-white dark:bg-gh-surface z-10 w-16 min-w-[4rem]" />
                 {/* Month label: only render text on the 1st of each month */}
                 {days.map(({ col, date }) => (
                   <th
@@ -82,7 +82,7 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
                 return (
                   <tr key={lineKey}>
                     {/* Line label — sticky so it stays visible while scrolling horizontally */}
-                    <td className="sticky left-0 bg-white dark:bg-slate-800 z-10 pr-3 align-middle min-w-[4rem]">
+                    <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
                       <button
                         onClick={() => onLineClick(lineKey)}
                         className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
@@ -117,7 +117,7 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-slate-100 dark:border-gh-border">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
             <div className="flex gap-0.5">

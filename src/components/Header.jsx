@@ -16,7 +16,7 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
     : null;
 
   return (
-    <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+    <header className="bg-white dark:bg-gh-surface border-b border-slate-200 dark:border-gh-border">
       <div className="max-w-5xl mx-auto px-4 py-4 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -33,7 +33,7 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
                 href={bot.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
               >
                 <span>{bot.emoji}</span>
                 {bot.label}
