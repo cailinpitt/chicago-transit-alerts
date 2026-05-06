@@ -1,6 +1,8 @@
 export default function Header({ generatedAt }) {
   const updatedStr = generatedAt
-    ? new Date(generatedAt).toLocaleTimeString('en-US', {
+    ? new Date(generatedAt).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
         timeZone: 'America/Chicago',
