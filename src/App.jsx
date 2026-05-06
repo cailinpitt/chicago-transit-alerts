@@ -6,6 +6,7 @@ import Filters from './components/Filters.jsx';
 import Timeline from './components/Timeline.jsx';
 import IncidentList from './components/IncidentList.jsx';
 import { filterIncidents } from './lib/dataUtils.js';
+import { parseUrlState, buildSearch } from './lib/urlState.js';
 import { useDarkMode } from './hooks/useDarkMode.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -14,10 +15,33 @@ export default function App() {
   const [dark, toggleDark] = useDarkMode();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [selectedLines, setSelectedLines] = useState(null); // null = all lines; [] = no lines
-  const [showBus, setShowBus] = useState(true);
-  const [selectedBusRoutes, setSelectedBusRoutes] = useState([]);
-  const [dateRange, setDateRange] = useState(90); // days; null = all time
+  const initial = useMemo(() => parseUrlState(), []);
+  const [selectedLines, setSelectedLines] = useState(initial.selectedLines); // null = all lines; [] = no lines
+  const [showBus, setShowBus] = useState(initial.showBus);
+  const [selectedBusRoutes, setSelectedBusRoutes] = useState(initial.selectedBusRoutes);
+  const [dateRange, setDateRange] = useState(initial.dateRange); // days; null = all time
+
+  // Auto-flip bus visibility on transitions in/out of a positive train-line
+  // selection. So clicking "Red" hides buses (a Red Line view almost never
+  // wants unrelated bus disruptions); clicking it off restores them. The
+  // "Buses" button still lets the user override.
+  function handleLinesChange(next) {
+    const resolved = typeof next === 'function' ? next(selectedLines) : next;
+    setSelectedLines(resolved);
+    const wasNarrowed = selectedLines !== null && selectedLines.length > 0;
+    const willBeNarrowed = resolved !== null && resolved.length > 0;
+    if (wasNarrowed !== willBeNarrowed) setShowBus(!willBeNarrowed);
+  }
+
+  // Mirror filter state to the URL so views are shareable. replaceState (not
+  // pushState) so the back button doesn't traverse every filter toggle.
+  useEffect(() => {
+    const search = buildSearch({ selectedLines, showBus, selectedBusRoutes, dateRange });
+    const next = `${window.location.pathname}${search}${window.location.hash}`;
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.replaceState(null, '', next);
+    }
+  }, [selectedLines, showBus, selectedBusRoutes, dateRange]);
 
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/alerts.json`;
@@ -99,7 +123,7 @@ export default function App() {
             {activeIncidents.length > 0 && <ActiveAlerts incidents={activeIncidents} />}
             <Filters
               selectedLines={selectedLines}
-              onLinesChange={setSelectedLines}
+              onLinesChange={handleLinesChange}
               showBus={showBus}
               onShowBusChange={(val) => {
                 setShowBus(val);
@@ -118,7 +142,7 @@ export default function App() {
               numDays={dateRange ?? 90}
               dataStartTs={data.data_start_ts ?? null}
               onLineClick={(line) =>
-                setSelectedLines((prev) =>
+                handleLinesChange((prev) =>
                   prev !== null && prev.includes(line) ? prev.filter((l) => l !== line) : [line],
                 )
               }
