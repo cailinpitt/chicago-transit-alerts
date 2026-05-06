@@ -42,7 +42,7 @@ function ActiveCard({ incident }) {
   return (
     <div className="bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 p-4 flex items-start gap-3">
       {/* Pulsing dot */}
-      <div className="relative mt-1.5 flex-shrink-0 h-2.5 w-2.5">
+      <div className="relative mt-1.5 flex-shrink-0 flex h-2.5 w-2.5">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
       </div>
