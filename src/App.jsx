@@ -14,8 +14,9 @@ export default function App() {
   const [dark, toggleDark] = useDarkMode();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [selectedLines, setSelectedLines] = useState([]);
+  const [selectedLines, setSelectedLines] = useState(null); // null = all lines; [] = no lines
   const [showBus, setShowBus] = useState(true);
+  const [selectedBusRoutes, setSelectedBusRoutes] = useState([]);
   const [dateRange, setDateRange] = useState(90); // days; null = all time
 
   useEffect(() => {
@@ -37,15 +38,25 @@ export default function App() {
     ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
   }, [data]);
 
+  const availableBusRoutes = useMemo(() => {
+    if (!data) return [];
+    const routes = new Set([
+      ...data.observations.filter((o) => o.kind === 'bus').map((o) => o.line),
+      ...data.alerts.filter((a) => a.kind === 'bus').flatMap((a) => a.routes),
+    ]);
+    return [...routes].sort((a, b) => +a - +b);
+  }, [data]);
+
   const filtered = useMemo(() => {
     if (!data) return { alerts: [], observations: [] };
     const startTs = dateRange ? Date.now() - dateRange * DAY_MS : null;
     return filterIncidents(data.alerts, data.observations, {
-      lines: selectedLines.length > 0 ? selectedLines : null,
+      lines: selectedLines,
       startTs,
       showBus,
+      busRoutes: selectedBusRoutes.length > 0 ? selectedBusRoutes : null,
     });
-  }, [data, selectedLines, showBus, dateRange]);
+  }, [data, selectedLines, showBus, selectedBusRoutes, dateRange]);
 
   if (error) {
     return (
@@ -74,7 +85,13 @@ export default function App() {
               selectedLines={selectedLines}
               onLinesChange={setSelectedLines}
               showBus={showBus}
-              onShowBusChange={setShowBus}
+              onShowBusChange={(val) => {
+                setShowBus(val);
+                if (!val) setSelectedBusRoutes([]);
+              }}
+              availableBusRoutes={availableBusRoutes}
+              selectedBusRoutes={selectedBusRoutes}
+              onBusRoutesChange={setSelectedBusRoutes}
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
             />
@@ -86,7 +103,7 @@ export default function App() {
               dataStartTs={data.data_start_ts ?? null}
               onLineClick={(line) =>
                 setSelectedLines((prev) =>
-                  prev.includes(line) ? prev.filter((l) => l !== line) : [line],
+                  prev !== null && prev.includes(line) ? prev.filter((l) => l !== line) : [line],
                 )
               }
             />

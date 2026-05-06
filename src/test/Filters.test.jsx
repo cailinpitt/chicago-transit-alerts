@@ -4,10 +4,13 @@ import userEvent from '@testing-library/user-event';
 import Filters from '../components/Filters.jsx';
 
 const defaultProps = {
-  selectedLines: [],
+  selectedLines: null,
   onLinesChange: vi.fn(),
   showBus: true,
   onShowBusChange: vi.fn(),
+  availableBusRoutes: [],
+  selectedBusRoutes: [],
+  onBusRoutesChange: vi.fn(),
   dateRange: 90,
   onDateRangeChange: vi.fn(),
 };
@@ -26,17 +29,24 @@ describe('Filters', () => {
     expect(onLinesChange).toHaveBeenCalled();
   });
 
-  it('calls onLinesChange with [] when All lines is clicked', async () => {
+  it('hides all trains when Trains is clicked while trains are visible', async () => {
     const onLinesChange = vi.fn();
-    render(<Filters {...defaultProps} selectedLines={['red']} onLinesChange={onLinesChange} />);
-    await userEvent.click(screen.getByText('All lines'));
+    render(<Filters {...defaultProps} selectedLines={null} onLinesChange={onLinesChange} />);
+    await userEvent.click(screen.getByText('Trains'));
     expect(onLinesChange).toHaveBeenCalledWith([]);
+  });
+
+  it('shows all trains when Trains is clicked while trains are hidden', async () => {
+    const onLinesChange = vi.fn();
+    render(<Filters {...defaultProps} selectedLines={[]} onLinesChange={onLinesChange} />);
+    await userEvent.click(screen.getByText('Trains'));
+    expect(onLinesChange).toHaveBeenCalledWith(null);
   });
 
   it('calls onShowBusChange when Bus is clicked', async () => {
     const onShowBusChange = vi.fn();
     render(<Filters {...defaultProps} onShowBusChange={onShowBusChange} />);
-    await userEvent.click(screen.getByText('Bus'));
+    await userEvent.click(screen.getByText('Buses'));
     expect(onShowBusChange).toHaveBeenCalled();
   });
 
