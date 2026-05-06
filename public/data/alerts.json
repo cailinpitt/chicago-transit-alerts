@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778094842712,
+  "generated_at": 1778104656000,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -94,22 +94,6 @@
       "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml7cbjnm6c2c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml7ej2szpv2q"
-    },
-    {
-      "id": 294,
-      "kind": "train",
-      "line": "p",
-      "direction": "branch-0-outbound",
-      "from_station": "Sedgwick (Brown/Purple)",
-      "to_station": "Quincy",
-      "detection_source": "pulse",
-      "signals": null,
-      "ts": 1778083806505,
-      "resolved_ts": 1778084703554,
-      "duration_ms": 897049,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml73mu2we32c",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml74hm4jmm2q"
     },
     {
       "id": 9,
