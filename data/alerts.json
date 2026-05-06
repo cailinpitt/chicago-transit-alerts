@@ -1,1 +1,131 @@
-{"generated_at":0,"alerts":[]}
+{
+  "generated_at": 1778030224304,
+  "alerts": [
+    {
+      "alert_id": "114735",
+      "kind": "train",
+      "routes": [
+        "g"
+      ],
+      "headline": "Green Line Service Delayed near Ridgeland",
+      "first_seen_ts": 1778028722645,
+      "last_seen_ts": 1778029922374,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5idb536d2c",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114661",
+      "kind": "train",
+      "routes": [
+        "g"
+      ],
+      "headline": "Green Line Delays, Limited Service Between Garfield & Cottage Grove",
+      "first_seen_ts": 1777781524697,
+      "last_seen_ts": 1777791722506,
+      "resolved_ts": 1777792923878,
+      "duration_ms": 11399181,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkwc46ydph2s",
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkwmpuutv72c",
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114651",
+      "kind": "train",
+      "routes": [
+        "brn"
+      ],
+      "headline": "Brown Line Service Experiencing Significant Delays Due to Raised Bridge",
+      "first_seen_ts": 1777732922818,
+      "last_seen_ts": 1777733522449,
+      "resolved_ts": 1777734723844,
+      "duration_ms": 1801026,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkuutqcneg2h",
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkuwjeoszq2g",
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114493",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "headline": "Boarding Change, Delays Between LaSalle and Grand",
+      "first_seen_ts": 1777518123500,
+      "last_seen_ts": 1777539121836,
+      "resolved_ts": 1777540323801,
+      "duration_ms": 22200301,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkomsa7xhv2i",
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkpbhsdmu72q",
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114492",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "headline": "Boarding Change, Delays Between LaSalle and Grand",
+      "first_seen_ts": 1777431722307,
+      "last_seen_ts": 1777452722555,
+      "resolved_ts": 1777453923534,
+      "duration_ms": 22201227,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkm4dbutkg2s",
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkmqyujml52l",
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114491",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "headline": "Boarding Change, Delays Between LaSalle and Grand",
+      "first_seen_ts": 1777345323941,
+      "last_seen_ts": 1777366322365,
+      "resolved_ts": 1777367523638,
+      "duration_ms": 22199697,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkjlufry2j2s",
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkkajxe6sg2a",
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114344",
+      "kind": "train",
+      "routes": [
+        "y"
+      ],
+      "headline": "Bus Substitution Between Dempster-Skokie and Howard Stations",
+      "first_seen_ts": 1777234323058,
+      "last_seen_ts": 1777263722308,
+      "resolved_ts": 1777264924056,
+      "duration_ms": 30600998,
+      "active": false,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkgeicysyd2x",
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkhaya7hf52i",
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    }
+  ]
+}
