@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { formatDate, formatTime, formatDuration } from '../lib/dataUtils.js';
+import { formatDate, formatTime, formatDuration, mergeMatchingIncidents } from '../lib/dataUtils.js';
 
 const PAGE_SIZE = 25;
 
@@ -35,12 +35,14 @@ function LinePill({ kind, line, routes }) {
 }
 
 function IncidentRow({ incident }) {
-  const isAlert = !!incident.alert_id;
+  const isMerged = incident._type === 'merged';
+  const isAlert = !isMerged && !!incident.alert_id;
+
   const startTs = incident.first_seen_ts || incident.ts;
-  const endTs = incident.resolved_ts ?? incident.clear_ts ?? null;
+  const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
 
-  const description = isAlert
+  const description = isMerged || isAlert
     ? incident.headline
     : [incident.from_station, incident.to_station].filter(Boolean).join(' → ') ||
       'Service disruption detected';
@@ -55,7 +57,7 @@ function IncidentRow({ incident }) {
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
           <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
-          {!isAlert && (
+          {!isMerged && !isAlert && (
             <span className="text-xs text-slate-400 italic">bot-detected</span>
           )}
           {duration && (
@@ -68,17 +70,39 @@ function IncidentRow({ incident }) {
             <span className="text-xs font-semibold text-red-500">ongoing</span>
           )}
         </div>
+
         <p className="text-sm text-slate-700 leading-snug">{description}</p>
-        {incident.post_url && (
-          <a
-            href={incident.post_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block mt-1 text-xs text-blue-500 hover:text-blue-700 hover:underline"
-          >
-            View on Bluesky →
-          </a>
+
+        {/* Merged: show the specific segment from the bot observation */}
+        {isMerged && incident.from_station && incident.to_station && (
+          <p className="text-xs text-slate-400 mt-0.5">
+            {incident.from_station} → {incident.to_station}
+          </p>
         )}
+
+        {/* Links */}
+        <div className="flex flex-wrap gap-3 mt-1.5">
+          {incident.post_url && (
+            <a
+              href={incident.post_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
+            >
+              {isMerged ? 'Official alert →' : 'View on Bluesky →'}
+            </a>
+          )}
+          {isMerged && incident.obs_post_url && (
+            <a
+              href={incident.obs_post_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
+            >
+              Bot detection →
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -88,9 +112,12 @@ export default function IncidentList({ alerts, observations }) {
   const [page, setPage] = useState(1);
 
   const combined = useMemo(() => {
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
     const all = [
-      ...alerts.map((a) => ({ ...a, _sortTs: a.first_seen_ts || a.ts })),
-      ...observations.map((o) => ({ ...o, _sortTs: o.first_seen_ts || o.ts })),
+      ...merged,
+      ...standaloneAlerts.map((a) => ({ ...a, _sortTs: a.first_seen_ts || a.ts })),
+      ...standaloneObs.map((o) => ({ ...o, _sortTs: o.first_seen_ts || o.ts })),
     ];
     all.sort((a, b) => b._sortTs - a._sortTs);
     return all;
@@ -122,7 +149,7 @@ export default function IncidentList({ alerts, observations }) {
       <div className="bg-white rounded-lg border border-slate-200 px-4">
         {visible.map((incident) => (
           <IncidentRow
-            key={incident.alert_id ?? `obs-${incident.id}`}
+            key={incident.alert_id ?? `obs-${incident.id ?? incident.obs_id}`}
             incident={incident}
           />
         ))}
