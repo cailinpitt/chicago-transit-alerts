@@ -51,7 +51,7 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
           </button>
           {updatedStr && (
             <p className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
-              Updated {updatedStr}
+              Last updated {updatedStr}
             </p>
           )}
         </div>
