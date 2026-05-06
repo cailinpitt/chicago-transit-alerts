@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { TRAIN_LINES, TRAIN_LINE_ORDER } from '../lib/ctaLines.js';
 
 const DATE_OPTIONS = [
+  { label: '7d', value: 7 },
   { label: '30d', value: 30 },
   { label: '60d', value: 60 },
   { label: '90d', value: 90 },

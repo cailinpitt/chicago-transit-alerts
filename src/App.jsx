@@ -153,7 +153,8 @@ export default function App() {
               alerts={data.alerts}
               observations={data.observations}
               selectedLines={selectedLines}
-              numDays={dateRange ?? 90}
+              numDays={90}
+              selectedRangeDays={dateRange}
               dataStartTs={data.data_start_ts ?? null}
               onLineClick={(line) =>
                 handleLinesChange((prev) =>

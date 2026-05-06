@@ -31,7 +31,7 @@ const NO_DATA_STYLE = {
   backgroundImage: 'repeating-linear-gradient(-45deg, var(--no-data-stripe1) 0px, var(--no-data-stripe1) 1px, var(--no-data-stripe2) 1px, var(--no-data-stripe2) 4px)',
 };
 
-function DayCell({ col, dayIdx, dayUTC, incidents, color, dataStartTs }) {
+function DayCell({ col, dayIdx, dayUTC, incidents, color, dataStartTs, inRange }) {
   // dayUTC marks the start of this Chicago calendar day (as a UTC midnight).
   // Treat the day as "no data" if it ended on/before the cutoff.
   const dayEnd = dayUTC + DAY_MS;
@@ -41,11 +41,12 @@ function DayCell({ col, dayIdx, dayUTC, incidents, color, dataStartTs }) {
   const label = noData
     ? `${dateStr}: no data`
     : `${dateStr}: ${count} incident${count !== 1 ? 's' : ''}`;
+  const dimClass = inRange ? '' : 'opacity-30';
   return (
     <td key={col} className="p-0 pr-px pb-px">
       <div
         title={label}
-        className="w-2.5 h-2.5 rounded-sm"
+        className={`w-2.5 h-2.5 rounded-sm ${dimClass}`}
         style={noData ? NO_DATA_STYLE : { backgroundColor: cellBg(count, color) }}
       />
     </td>
@@ -57,6 +58,7 @@ export default function Timeline({
   observations,
   selectedLines,
   numDays,
+  selectedRangeDays,
   dataStartTs,
   onLineClick,
   showBus,
@@ -163,6 +165,7 @@ export default function Timeline({
                         incidents={incidents}
                         color={info.color}
                         dataStartTs={dataStartTs}
+                        inRange={selectedRangeDays == null || dayIdx < selectedRangeDays}
                       />
                     ))}
                   </tr>
@@ -206,6 +209,7 @@ export default function Timeline({
                       incidents={incidents}
                       color={BUS_COLOR}
                       dataStartTs={dataStartTs}
+                      inRange={selectedRangeDays == null || dayIdx < selectedRangeDays}
                     />
                   ))}
                 </tr>

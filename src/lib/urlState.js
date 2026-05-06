@@ -22,7 +22,7 @@ export function parseUrlState(search = window.location.search) {
     selectedLines: null,
     showBus: true,
     selectedBusRoutes: [],
-    dateRange: 90,
+    dateRange: 7,
   };
 
   const linesParam = params.get('lines');
@@ -79,7 +79,7 @@ export function buildSearch({ selectedLines, showBus, selectedBusRoutes, dateRan
   if (selectedBusRoutes && selectedBusRoutes.length > 0) {
     params.set('routes', selectedBusRoutes.join(','));
   }
-  if (dateRange !== 90) {
+  if (dateRange !== 7) {
     params.set('range', dateRange === null ? 'all' : String(dateRange));
   }
 
