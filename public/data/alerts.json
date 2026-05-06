@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778039415639,
+  "generated_at": 1778072402548,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -76,6 +76,20 @@
     }
   ],
   "observations": [
+    {
+      "id": 292,
+      "kind": "train",
+      "line": "p",
+      "direction": "branch-0-outbound",
+      "from_station": "Central (Purple)",
+      "to_station": "Main",
+      "ts": 1778072104786,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml6qq4qhpd2g",
+      "resolved_post_url": null
+    },
     {
       "id": 288,
       "kind": "train",
