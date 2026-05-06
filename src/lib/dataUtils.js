@@ -47,9 +47,11 @@ export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Da
   return result;
 }
 
-// Filter alerts and observations by selected train lines and a start timestamp.
-// Active incidents bypass the timestamp filter so they always appear.
-export function filterIncidents(alerts, observations, { lines, startTs } = {}) {
+// Filter alerts and observations by selected train lines, bus toggle, and a
+// start timestamp. Active incidents bypass the timestamp filter so they always
+// appear. Bus observations are controlled independently of the train line
+// filter — selecting Red Line doesn't hide bus observations when showBus=true.
+export function filterIncidents(alerts, observations, { lines, startTs, showBus = true } = {}) {
   const hasLineFilter = lines && lines.length > 0;
 
   const filteredAlerts = alerts.filter((a) => {
@@ -59,7 +61,12 @@ export function filterIncidents(alerts, observations, { lines, startTs } = {}) {
   });
 
   const filteredObs = observations.filter((o) => {
-    if (hasLineFilter && !lines.includes(o.line)) return false;
+    const isBus = o.kind === 'bus';
+    if (isBus) {
+      if (!showBus) return false;
+    } else {
+      if (hasLineFilter && !lines.includes(o.line)) return false;
+    }
     if (startTs && o.ts < startTs && !o.active) return false;
     return true;
   });

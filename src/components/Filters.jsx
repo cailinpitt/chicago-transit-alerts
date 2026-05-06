@@ -7,7 +7,7 @@ const DATE_OPTIONS = [
   { label: 'All', value: null },
 ];
 
-export default function Filters({ selectedLines, onLinesChange, dateRange, onDateRangeChange }) {
+export default function Filters({ selectedLines, onLinesChange, showBus, onShowBusChange, dateRange, onDateRangeChange }) {
   const toggleLine = (line) => {
     onLinesChange((prev) =>
       prev.includes(line) ? prev.filter((l) => l !== line) : [...prev, line],
@@ -47,6 +47,18 @@ export default function Filters({ selectedLines, onLinesChange, dateRange, onDat
           );
         })}
       </div>
+
+      <div className="hidden sm:block w-px h-4 bg-slate-200" />
+
+      {/* Bus toggle */}
+      <button
+        onClick={() => onShowBusChange((prev) => !prev)}
+        className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+          showBus ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+        }`}
+      >
+        Bus
+      </button>
 
       <div className="hidden sm:block w-px h-4 bg-slate-200" />
 

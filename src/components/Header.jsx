@@ -15,7 +15,7 @@ export default function Header({ generatedAt }) {
             CTA Alert History
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Historical CTA alerts and service observations
+            Major CTA alerts and service observations
           </p>
         </div>
         {updatedStr && (

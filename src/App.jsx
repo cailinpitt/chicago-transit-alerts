@@ -12,6 +12,7 @@ export default function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [selectedLines, setSelectedLines] = useState([]);
+  const [showBus, setShowBus] = useState(true);
   const [dateRange, setDateRange] = useState(90); // days; null = all time
 
   useEffect(() => {
@@ -39,8 +40,9 @@ export default function App() {
     return filterIncidents(data.alerts, data.observations, {
       lines: selectedLines.length > 0 ? selectedLines : null,
       startTs,
+      showBus,
     });
-  }, [data, selectedLines, dateRange]);
+  }, [data, selectedLines, showBus, dateRange]);
 
   if (error) {
     return (
@@ -68,6 +70,8 @@ export default function App() {
             <Filters
               selectedLines={selectedLines}
               onLinesChange={setSelectedLines}
+              showBus={showBus}
+              onShowBusChange={setShowBus}
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
             />
