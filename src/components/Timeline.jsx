@@ -41,7 +41,7 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
         {numDays}-Day Timeline
       </h2>
       <div className="bg-white rounded-lg border border-slate-200 p-4">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto pb-2">
           <table className="border-collapse">
             <thead>
               <tr>
