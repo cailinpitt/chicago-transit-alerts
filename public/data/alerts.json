@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778084042306,
+  "generated_at": 1778084882725,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -84,11 +84,11 @@
       "from_station": "Sedgwick (Brown/Purple)",
       "to_station": "Quincy",
       "ts": 1778083806505,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778084703554,
+      "duration_ms": 897049,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml73mu2we32c",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml74hm4jmm2q"
     },
     {
       "id": 9,
