@@ -2,6 +2,8 @@
 
 A public archive of major CTA service alerts and bot-detected disruptions — updated every 7 minutes.
 
+> **Unofficial project.** Not affiliated with, endorsed by, or sponsored by the Chicago Transit Authority.
+
 **Live site:** https://cailinpitt.github.io/cta-alert-history/
 
 ## What's tracked
