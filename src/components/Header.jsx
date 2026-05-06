@@ -46,7 +46,7 @@ const BOTS = [
   { label: 'CTA Bus Insights', emoji: '🚌', href: 'https://bsky.app/profile/ctabusinsights.bsky.social' },
 ];
 
-export default function Header({ generatedAt, dark, onToggleDark }) {
+export default function Header({ generatedAt, dark, onToggleDark, onResetFilters }) {
   const updatedStr = generatedAt
     ? new Date(generatedAt).toLocaleString('en-US', {
         month: 'short',
@@ -62,7 +62,14 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
       <div className="max-w-5xl mx-auto px-4 py-4 flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            CTA Alert History
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="text-left hover:opacity-70 transition-opacity"
+              aria-label="Reset filters and return to default view"
+            >
+              CTA Alert History
+            </button>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
             Major CTA alerts and service observations &middot;{' '}

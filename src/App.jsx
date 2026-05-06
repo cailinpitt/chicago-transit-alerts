@@ -22,6 +22,13 @@ export default function App() {
   const [selectedBusRoutes, setSelectedBusRoutes] = useState(initial.selectedBusRoutes);
   const [dateRange, setDateRange] = useState(initial.dateRange); // days; null = all time
 
+  function resetFilters() {
+    setSelectedLines(null);
+    setShowBus(true);
+    setSelectedBusRoutes([]);
+    setDateRange(7);
+  }
+
   // Auto-flip bus visibility on transitions in/out of a positive train-line
   // selection. So clicking "Red" hides buses (a Red Line view almost never
   // wants unrelated bus disruptions); clicking it off restores them. The
@@ -121,7 +128,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
-      <Header generatedAt={data?.generated_at} dark={dark} onToggleDark={toggleDark} />
+      <Header
+        generatedAt={data?.generated_at}
+        dark={dark}
+        onToggleDark={toggleDark}
+        onResetFilters={resetFilters}
+      />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         {!data && (
           <div className="space-y-4 animate-pulse">
