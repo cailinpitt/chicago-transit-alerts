@@ -1,6 +1,6 @@
 # CTA Alert History
 
-A public archive of major CTA service alerts and bot-detected disruptions — updated every 15 minutes.
+A public archive of major CTA service alerts and bot-detected disruptions — updated every 7 minutes.
 
 **Live site:** https://cailinpitt.github.io/cta-alert-history/
 
