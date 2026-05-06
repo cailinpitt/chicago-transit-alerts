@@ -60,14 +60,15 @@ function IncidentRow({ incident }) {
           {isMerged && (
             <>
               <span className="text-xs text-slate-400 italic">via CTA</span>
-              <span className="text-xs text-slate-400 italic">auto-detected</span>
+              <span className="text-xs text-slate-300">·</span>
+              <span className="text-xs text-slate-400 italic">via auto-detection</span>
             </>
           )}
           {!isMerged && isAlert && (
             <span className="text-xs text-slate-400 italic">via CTA</span>
           )}
           {!isMerged && !isAlert && (
-            <span className="text-xs text-slate-400 italic">auto-detected</span>
+            <span className="text-xs text-slate-400 italic">via auto-detection</span>
           )}
           {duration && (
             <span className="text-xs text-slate-400">{duration}</span>
