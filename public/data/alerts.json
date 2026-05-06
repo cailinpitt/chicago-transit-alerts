@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778037086157,
+  "generated_at": 1778037383244,
   "alerts": [
     {
       "alert_id": "114735",
@@ -15,24 +15,6 @@
       "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5idb536d2c",
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5kkrofqh2s",
-      "affected_from_station": null,
-      "affected_to_station": null,
-      "affected_direction": null
-    },
-    {
-      "alert_id": "114661",
-      "kind": "train",
-      "routes": [
-        "g"
-      ],
-      "headline": "Green Line Delays, Limited Service Between Garfield & Cottage Grove",
-      "first_seen_ts": 1777781524697,
-      "last_seen_ts": 1777791722506,
-      "resolved_ts": 1777792923878,
-      "duration_ms": 11399181,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkwc46ydph2s",
-      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkwmpuutv72c",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null
@@ -69,42 +51,6 @@
       "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkomsa7xhv2i",
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkpbhsdmu72q",
-      "affected_from_station": null,
-      "affected_to_station": null,
-      "affected_direction": null
-    },
-    {
-      "alert_id": "114492",
-      "kind": "train",
-      "routes": [
-        "blue"
-      ],
-      "headline": "Boarding Change, Delays Between LaSalle and Grand",
-      "first_seen_ts": 1777431722307,
-      "last_seen_ts": 1777452722555,
-      "resolved_ts": 1777453923534,
-      "duration_ms": 22201227,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkm4dbutkg2s",
-      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkmqyujml52l",
-      "affected_from_station": null,
-      "affected_to_station": null,
-      "affected_direction": null
-    },
-    {
-      "alert_id": "114491",
-      "kind": "train",
-      "routes": [
-        "blue"
-      ],
-      "headline": "Boarding Change, Delays Between LaSalle and Grand",
-      "first_seen_ts": 1777345323941,
-      "last_seen_ts": 1777366322365,
-      "resolved_ts": 1777367523638,
-      "duration_ms": 22199697,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkjlufry2j2s",
-      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkkajxe6sg2a",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null
@@ -158,20 +104,6 @@
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml2qra745s2s"
     },
     {
-      "id": 282,
-      "kind": "train",
-      "line": "pink",
-      "direction": "branch-0-outbound",
-      "from_station": "Kostner",
-      "to_station": "California (Pink)",
-      "ts": 1777912505554,
-      "resolved_ts": 1777913403818,
-      "duration_ms": 898264,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml243p2x4g2l",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml24wh3ip52l"
-    },
-    {
       "id": 281,
       "kind": "train",
       "line": "pink",
@@ -186,62 +118,6 @@
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml24njn6km2s"
     },
     {
-      "id": 279,
-      "kind": "train",
-      "line": "p",
-      "direction": "branch-0-outbound",
-      "from_station": "Sedgwick (Brown/Purple)",
-      "to_station": "Quincy",
-      "ts": 1777911005908,
-      "resolved_ts": 1777911903812,
-      "duration_ms": 897904,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml22oytmcj2h",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml23jqhzsw2a"
-    },
-    {
-      "id": 277,
-      "kind": "bus",
-      "line": "53A",
-      "direction": null,
-      "from_station": null,
-      "to_station": null,
-      "ts": 1777870385178,
-      "resolved_ts": 1777889585264,
-      "duration_ms": 19200086,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkyuufm36b2s",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkzgqmwo4f2s"
-    },
-    {
-      "id": 274,
-      "kind": "train",
-      "line": "p",
-      "direction": "branch-1-inbound",
-      "from_station": "South Boulevard",
-      "to_station": "Howard",
-      "ts": 1777852204218,
-      "resolved_ts": 1777853104110,
-      "duration_ms": 899892,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkydwkrz362s",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkyereizzj2i"
-    },
-    {
-      "id": 271,
-      "kind": "train",
-      "line": "g",
-      "direction": "branch-len92-41780--87606",
-      "from_station": "Pulaski (Green)",
-      "to_station": "Kedzie (Green)",
-      "ts": 1777846506784,
-      "resolved_ts": 1777847404227,
-      "duration_ms": 897443,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mky6mrqpdq24",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mky7hittrj2g"
-    },
-    {
       "id": 270,
       "kind": "train",
       "line": "red",
@@ -254,76 +130,6 @@
       "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mky4x32r5p2a",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mky6vmd6gz2l"
-    },
-    {
-      "id": 268,
-      "kind": "train",
-      "line": "p",
-      "direction": "branch-1-inbound",
-      "from_station": "South Boulevard",
-      "to_station": "Howard",
-      "ts": 1777839304796,
-      "resolved_ts": 1777841103684,
-      "duration_ms": 1798888,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkxxw5f7s62s",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkxzlqazey2u"
-    },
-    {
-      "id": 266,
-      "kind": "train",
-      "line": "p",
-      "direction": "branch-0-outbound",
-      "from_station": "Central (Purple)",
-      "to_station": "Noyes",
-      "ts": 1777832104246,
-      "resolved_ts": 1777833003503,
-      "duration_ms": 899257,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkxr7kafnl2s",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkxs2dkb5w2q"
-    },
-    {
-      "id": 264,
-      "kind": "train",
-      "line": "blue",
-      "direction": "all",
-      "from_station": "Montrose (Blue)",
-      "to_station": "Belmont (Blue)",
-      "ts": 1777829706616,
-      "resolved_ts": 1777830603830,
-      "duration_ms": 897214,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkxoy3spaz2h",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkxpssyc252u"
-    },
-    {
-      "id": 261,
-      "kind": "train",
-      "line": "brn",
-      "direction": "branch-0-outbound",
-      "from_station": "Francisco",
-      "to_station": "Irving Park (Brown)",
-      "ts": 1777806604545,
-      "resolved_ts": 1777807803445,
-      "duration_ms": 1198900,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkwzhm3gxk2l",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkx2lcjjiv2x"
-    },
-    {
-      "id": 260,
-      "kind": "train",
-      "line": "p",
-      "direction": "branch-0-outbound",
-      "from_station": "Linden",
-      "to_station": "Howard",
-      "ts": 1777806304680,
-      "resolved_ts": 1777808703968,
-      "duration_ms": 2399288,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkwz6o3xee2h",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkx3g5dgcn2s"
     }
   ]
 }
