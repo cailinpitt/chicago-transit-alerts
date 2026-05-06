@@ -36,7 +36,7 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
               >
                 <span>{bot.emoji}</span>
-                {bot.label}
+                <span className="hidden sm:inline">{bot.label}</span>
               </a>
             ))}
           </div>
