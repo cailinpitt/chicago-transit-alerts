@@ -43,9 +43,11 @@ export default function Timeline({ alerts, observations, selectedLines, numDays,
   );
 
   const linesToShow =
-    selectedLines.length > 0
+    selectedLines !== null && selectedLines.length > 0
       ? TRAIN_LINE_ORDER.filter((l) => selectedLines.includes(l))
-      : TRAIN_LINE_ORDER;
+      : selectedLines !== null && selectedLines.length === 0
+        ? []
+        : TRAIN_LINE_ORDER;
 
   return (
     <section>

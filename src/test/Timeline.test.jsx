@@ -7,7 +7,7 @@ const noop = () => {};
 describe('Timeline', () => {
   it('renders a row for each train line', () => {
     render(
-      <Timeline alerts={[]} observations={[]} selectedLines={[]} numDays={30} onLineClick={noop} />,
+      <Timeline alerts={[]} observations={[]} selectedLines={null} numDays={30} onLineClick={noop} />,
     );
     expect(screen.getByText('Red')).toBeInTheDocument();
     expect(screen.getByText('Yellow')).toBeInTheDocument();
@@ -27,19 +27,27 @@ describe('Timeline', () => {
     expect(screen.queryByText('Blue')).not.toBeInTheDocument();
   });
 
+  it('renders no train rows when selectedLines is empty array', () => {
+    render(
+      <Timeline alerts={[]} observations={[]} selectedLines={[]} numDays={30} onLineClick={noop} />,
+    );
+    expect(screen.queryByText('Red')).not.toBeInTheDocument();
+    expect(screen.queryByText('Yellow')).not.toBeInTheDocument();
+  });
+
   it('calls onLineClick with the line key when a label is clicked', async () => {
     const { default: userEvent } = await import('@testing-library/user-event');
     const onLineClick = vi.fn();
     render(
-      <Timeline alerts={[]} observations={[]} selectedLines={[]} numDays={30} onLineClick={onLineClick} />,
+      <Timeline alerts={[]} observations={[]} selectedLines={null} numDays={30} onLineClick={onLineClick} />,
     );
     await userEvent.click(screen.getByText('Red'));
     expect(onLineClick).toHaveBeenCalledWith('red');
   });
 
   it('renders the correct number of day columns', () => {
-    const { container } = render(
-      <Timeline alerts={[]} observations={[]} selectedLines={[]} numDays={7} onLineClick={noop} />,
+    render(
+      <Timeline alerts={[]} observations={[]} selectedLines={null} numDays={7} onLineClick={noop} />,
     );
     // Each row has numDays cells; check one row (Red line)
     const redRow = screen.getByText('Red').closest('tr');
