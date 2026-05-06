@@ -7,7 +7,7 @@ describe('parseUrlState', () => {
       selectedLines: null,
       showBus: true,
       selectedBusRoutes: [],
-      dateRange: 90,
+      dateRange: 7,
     });
   });
 
@@ -60,7 +60,7 @@ describe('parseUrlState', () => {
   });
 
   it('falls back when range is unknown', () => {
-    expect(parseUrlState('?range=42').dateRange).toBe(90);
+    expect(parseUrlState('?range=42').dateRange).toBe(7);
   });
 });
 
@@ -70,7 +70,7 @@ describe('buildSearch', () => {
       selectedLines: null,
       showBus: true,
       selectedBusRoutes: [],
-      dateRange: 90,
+      dateRange: 7,
     })).toBe('');
   });
 
@@ -79,7 +79,7 @@ describe('buildSearch', () => {
       selectedLines: ['red', 'blue'],
       showBus: false,
       selectedBusRoutes: [],
-      dateRange: 90,
+      dateRange: 7,
     })).toBe('?lines=red%2Cblue');
   });
 
@@ -88,7 +88,7 @@ describe('buildSearch', () => {
       selectedLines: [],
       showBus: true,
       selectedBusRoutes: [],
-      dateRange: 90,
+      dateRange: 7,
     })).toBe('?lines=none');
   });
 
@@ -97,7 +97,7 @@ describe('buildSearch', () => {
       selectedLines: null,
       showBus: false,
       selectedBusRoutes: [],
-      dateRange: 90,
+      dateRange: 7,
     })).toBe('?bus=0');
   });
 
@@ -106,7 +106,7 @@ describe('buildSearch', () => {
       selectedLines: ['red'],
       showBus: false,
       selectedBusRoutes: [],
-      dateRange: 90,
+      dateRange: 7,
     })).toBe('?lines=red');
   });
 
@@ -115,7 +115,7 @@ describe('buildSearch', () => {
       selectedLines: ['red'],
       showBus: true,
       selectedBusRoutes: [],
-      dateRange: 90,
+      dateRange: 7,
     })).toBe('?lines=red&bus=1');
   });
 
@@ -124,7 +124,7 @@ describe('buildSearch', () => {
       selectedLines: null,
       showBus: true,
       selectedBusRoutes: ['66', '77'],
-      dateRange: 90,
+      dateRange: 7,
     })).toBe('?routes=66%2C77');
   });
 
