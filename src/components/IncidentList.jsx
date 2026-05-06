@@ -42,10 +42,23 @@ function IncidentRow({ incident }) {
   const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
 
+  const SIGNAL_LABELS = {
+    gap: 'headway gaps',
+    ghost: 'missing vehicles',
+    bunching: 'bunching',
+    'pulse-cold': 'possible gap forming',
+    'pulse-held': 'trains held in place',
+  };
+
   const description = isMerged || isAlert
     ? incident.headline
-    : [incident.from_station, incident.to_station].filter(Boolean).join(' → ') ||
-      'Service disruption detected';
+    : incident.from_station && incident.to_station
+      ? `${incident.from_station} → ${incident.to_station}`
+      : incident.detection_source === 'roundup' && incident.signals?.length > 0
+        ? `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`
+        : incident.detection_source === 'roundup'
+          ? 'Multiple simultaneous disruptions detected'
+          : 'Service disruption detected';
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0">
