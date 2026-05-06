@@ -1,0 +1,3 @@
+# Push updated alert data to GitHub Pages every 15 minutes.
+# Logs go to cron/push-web-data-cron.log (gitignored).
+*/15 * * * * PAGES_REPO=$HOME/Development/cta-alert-history CTA_INSIGHTS=$HOME/Development/cta-insights /bin/sh $HOME/Development/cta-insights/bin/push-web-data.sh >> $HOME/Development/cta-alert-history/cron/push-web-data-cron.log 2>&1
