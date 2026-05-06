@@ -20,14 +20,30 @@ export default function App() {
   const [dateRange, setDateRange] = useState(90); // days; null = all time
 
   useEffect(() => {
-    // BASE_URL is '/cta-alert-history/' in production, '/' in dev.
-    fetch(`${import.meta.env.BASE_URL}data/alerts.json`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then(setData)
-      .catch(setError);
+    const url = `${import.meta.env.BASE_URL}data/alerts.json`;
+
+    function fetchData() {
+      fetch(url)
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+        .then((fresh) => {
+          setData((prev) => {
+            // Only update if generated_at changed (or on first load).
+            if (!prev || fresh.generated_at !== prev.generated_at) return fresh;
+            return prev;
+          });
+        })
+        .catch((err) => {
+          // Only surface fetch errors on the initial load.
+          setData((prev) => { if (!prev) setError(err); return prev; });
+        });
+    }
+
+    fetchData();
+    const id = setInterval(fetchData, 2 * 60 * 1000); // poll every 2 minutes
+    return () => clearInterval(id);
   }, []);
 
   const activeIncidents = useMemo(() => {
