@@ -1,3 +1,45 @@
+import { useEffect, useRef, useState } from 'react';
+
+const FRESHNESS_NOTE =
+  'This is the last time the alerts changed. We check for new alerts every 7 minutes — an older time here just means nothing new has happened.';
+
+function InfoPopover({ children, label = 'What does this mean?' }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleOutside);
+    document.addEventListener('touchstart', handleOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('touchstart', handleOutside);
+    };
+  }, [open]);
+
+  return (
+    <span ref={ref} className="relative inline-flex items-center ml-1">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label={label}
+        aria-expanded={open}
+        className="inline-flex items-center justify-center hover:opacity-70 transition-opacity text-xs leading-none"
+      >
+        ℹ️
+      </button>
+      {open && (
+        <span className="absolute right-0 top-full mt-1 z-20 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 w-64 text-xs text-slate-600 dark:text-slate-300 normal-case font-normal text-left whitespace-normal">
+          {children}
+        </span>
+      )}
+    </span>
+  );
+}
+
 const BOTS = [
   { label: 'CTA Alert Insights', emoji: '⚠️', href: 'https://bsky.app/profile/ctaalertinsights.bsky.social' },
   { label: 'CTA Train Insights', emoji: '🚇', href: 'https://bsky.app/profile/ctatraininsights.bsky.social' },
@@ -43,9 +85,10 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
           </div>
           {/* Last updated — below bots on mobile, hidden on sm+ (shown in right column) */}
           {updatedStr && (
-            <p className="sm:hidden text-xs text-slate-400 dark:text-slate-500 mt-2">
-              Last updated {updatedStr}
-            </p>
+            <div className="sm:hidden flex items-center text-xs text-slate-400 dark:text-slate-500 mt-2">
+              <span>Last data change: {updatedStr}</span>
+              <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
+            </div>
           )}
         </div>
         <div className="flex items-center gap-3 pt-1 flex-shrink-0">
@@ -59,9 +102,10 @@ export default function Header({ generatedAt, dark, onToggleDark }) {
           </button>
           {/* Last updated — right of toggle on sm+, hidden on mobile */}
           {updatedStr && (
-            <p className="hidden sm:block text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
-              Last updated {updatedStr}
-            </p>
+            <div className="hidden sm:flex items-center text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+              <span>Last data change: {updatedStr}</span>
+              <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
+            </div>
           )}
         </div>
       </div>
