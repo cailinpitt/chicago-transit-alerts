@@ -1,6 +1,21 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { TRAIN_LINES, TRAIN_LINE_ORDER } from '../lib/ctaLines.js';
-import { buildIncidentsByDay, buildBusIncidentsByDay, hexToRgba } from '../lib/dataUtils.js';
+import { buildIncidentsByDay, buildBusIncidentsByDay, chicagoDayUTC, hexToRgba } from '../lib/dataUtils.js';
+
+const CHICAGO_TZ = 'America/Chicago';
+const chicagoDayMonthFmt = new Intl.DateTimeFormat('en-US', {
+  timeZone: CHICAGO_TZ, month: 'short', day: 'numeric',
+});
+function chicagoDateLabel(ts) {
+  return chicagoDayMonthFmt.format(new Date(ts));
+}
+function chicagoDateBits(ts) {
+  const parts = chicagoDayMonthFmt.formatToParts(new Date(ts));
+  return {
+    day: Number(parts.find((p) => p.type === 'day').value),
+    month: parts.find((p) => p.type === 'month').value,
+  };
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BUS_COLOR = '#64748b'; // slate-500
@@ -16,13 +31,16 @@ const NO_DATA_STYLE = {
   backgroundImage: 'repeating-linear-gradient(-45deg, var(--no-data-stripe1) 0px, var(--no-data-stripe1) 1px, var(--no-data-stripe2) 1px, var(--no-data-stripe2) 4px)',
 };
 
-function DayCell({ col, dayIdx, date, incidents, color, dataStartTs, now }) {
-  const dayEnd = now - dayIdx * DAY_MS;
+function DayCell({ col, dayIdx, dayUTC, incidents, color, dataStartTs }) {
+  // dayUTC marks the start of this Chicago calendar day (as a UTC midnight).
+  // Treat the day as "no data" if it ended on/before the cutoff.
+  const dayEnd = dayUTC + DAY_MS;
   const noData = dataStartTs != null && dayEnd <= dataStartTs;
   const count = incidents[dayIdx] || 0;
+  const dateStr = chicagoDateLabel(dayUTC);
   const label = noData
-    ? `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: no data`
-    : `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${count} incident${count !== 1 ? 's' : ''}`;
+    ? `${dateStr}: no data`
+    : `${dateStr}: ${count} incident${count !== 1 ? 's' : ''}`;
   return (
     <td key={col} className="p-0 pr-px pb-px">
       <div
@@ -65,16 +83,15 @@ export default function Timeline({
     [alerts, observations, numDays, now],
   );
 
-  // col 0 = oldest day, col numDays-1 = today
-  const days = useMemo(
-    () =>
-      Array.from({ length: numDays }, (_, col) => {
-        const dayIdx = numDays - 1 - col;
-        const date = new Date(now - dayIdx * DAY_MS);
-        return { col, dayIdx, date };
-      }),
-    [numDays, now],
-  );
+  // col 0 = oldest day, col numDays-1 = today (Chicago calendar)
+  const days = useMemo(() => {
+    const todayUTC = chicagoDayUTC(now);
+    return Array.from({ length: numDays }, (_, col) => {
+      const dayIdx = numDays - 1 - col;
+      const dayUTC = todayUTC - dayIdx * DAY_MS;
+      return { col, dayIdx, dayUTC, ...chicagoDateBits(dayUTC) };
+    });
+  }, [numDays, now]);
 
   const linesToShow =
     selectedLines !== null && selectedLines.length > 0
@@ -106,15 +123,15 @@ export default function Timeline({
                 {/* Corner spacer — matches the width of line label cells */}
                 <th className="sticky left-0 bg-white dark:bg-gh-surface z-10 w-16 min-w-[4rem]" />
                 {/* Month label: only render text on the 1st of each month */}
-                {days.map(({ col, date }) => (
+                {days.map(({ col, day, month }) => (
                   <th
                     key={col}
                     className="p-0 pr-px pb-1 align-bottom text-left"
                     style={{ width: 11 }}
                   >
-                    {date.getDate() === 1 && (
+                    {day === 1 && (
                       <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap" style={{ fontSize: 10 }}>
-                        {date.toLocaleString('en-US', { month: 'short' })}
+                        {month}
                       </span>
                     )}
                   </th>
@@ -137,16 +154,15 @@ export default function Timeline({
                         {info.label}
                       </button>
                     </td>
-                    {days.map(({ col, dayIdx, date }) => (
+                    {days.map(({ col, dayIdx, dayUTC }) => (
                       <DayCell
                         key={col}
                         col={col}
                         dayIdx={dayIdx}
-                        date={date}
+                        dayUTC={dayUTC}
                         incidents={incidents}
                         color={info.color}
                         dataStartTs={dataStartTs}
-                        now={now}
                       />
                     ))}
                   </tr>
@@ -181,16 +197,15 @@ export default function Timeline({
                       </span>
                     )}
                   </td>
-                  {days.map(({ col, dayIdx, date }) => (
+                  {days.map(({ col, dayIdx, dayUTC }) => (
                     <DayCell
                       key={col}
                       col={col}
                       dayIdx={dayIdx}
-                      date={date}
+                      dayUTC={dayUTC}
                       incidents={incidents}
                       color={BUS_COLOR}
                       dataStartTs={dataStartTs}
-                      now={now}
                     />
                   ))}
                 </tr>
