@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header.jsx';
+import Footer from './components/Footer.jsx';
 import ActiveAlerts from './components/ActiveAlerts.jsx';
 import Filters from './components/Filters.jsx';
 import Timeline from './components/Timeline.jsx';
@@ -53,7 +54,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <Header generatedAt={data?.generated_at} />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         {!data && (
@@ -90,6 +91,7 @@ export default function App() {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
