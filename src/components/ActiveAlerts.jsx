@@ -30,14 +30,36 @@ function LinePill({ kind, line, routes }) {
   );
 }
 
+const SIGNAL_LABELS = {
+  gap: 'headway gaps',
+  ghost: 'missing vehicles',
+  bunching: 'bunching',
+  'pulse-cold': 'possible gap forming',
+  'pulse-held': 'trains held in place',
+};
+
 function ActiveCard({ incident }) {
   const isAlert = !!incident.alert_id;
   const startTs = incident.first_seen_ts || incident.ts;
   const elapsedMin = Math.round((Date.now() - startTs) / 60_000);
-  const description = isAlert
-    ? incident.headline
-    : [incident.from_station, incident.to_station].filter(Boolean).join(' → ') ||
-      'Service disruption detected';
+  const stations = [incident.from_station, incident.to_station].filter(Boolean).join(' → ');
+  const signalsText = incident.signals?.length > 0
+    ? incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')
+    : null;
+  let description;
+  if (isAlert) {
+    description = incident.headline;
+  } else if (stations) {
+    description = stations;
+  } else if (incident.detection_source === 'roundup' && signalsText) {
+    description = `Multiple signals: ${signalsText}`;
+  } else if (incident.detection_source === 'roundup') {
+    description = 'Multiple simultaneous disruptions detected';
+  } else if (signalsText) {
+    description = `Service disruption detected: ${signalsText}`;
+  } else {
+    description = 'Service disruption detected';
+  }
 
   return (
     <div className="bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 p-4 flex items-start gap-3">
