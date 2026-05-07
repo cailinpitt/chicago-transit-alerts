@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildIncidentsByDay,
-  computeSummaryStats,
-  filterIncidents,
-  formatDuration,
-  mergeMatchingIncidents,
-} from '../lib/dataUtils.js';
+import { buildIncidentsByDay, computeSummaryStats } from '../lib/aggregate.js';
+import { formatDuration } from '../lib/format.js';
+import { filterIncidents, mergeMatchingIncidents } from '../lib/incidents.js';
 
 // ---------------------------------------------------------------------------
 // formatDuration

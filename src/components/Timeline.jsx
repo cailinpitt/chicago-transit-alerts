@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { buildBusIncidentsByDay, buildIncidentsByDay } from '../lib/aggregate.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
-import {
-  buildBusIncidentsByDay,
-  buildIncidentsByDay,
-  chicagoDayUTC,
-  hexToRgba,
-} from '../lib/dataUtils.js';
+import { chicagoDayUTC, hexToRgba } from '../lib/format.js';
 
 const CHICAGO_TZ = 'America/Chicago';
 const chicagoDayMonthFmt = new Intl.DateTimeFormat('en-US', {
