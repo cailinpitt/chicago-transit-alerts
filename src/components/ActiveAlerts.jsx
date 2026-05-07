@@ -1,34 +1,6 @@
-import { TRAIN_LINES } from '../lib/ctaLines.js';
-
-function LinePill({ kind, line, routes }) {
-  const keys = routes?.length > 0 ? routes : [line];
-  return (
-    <>
-      {keys.map((key) => {
-        const info = kind === 'train' ? TRAIN_LINES[key] : null;
-        if (info) {
-          return (
-            <span
-              key={key}
-              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-              style={{ backgroundColor: info.color, color: info.textColor }}
-            >
-              {info.label} Line
-            </span>
-          );
-        }
-        return (
-          <span
-            key={key}
-            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-700 text-white"
-          >
-            {kind === 'bus' ? `Route ${key}` : key}
-          </span>
-        );
-      })}
-    </>
-  );
-}
+import { getEventId } from '../lib/incidents.js';
+import LinePill from './LinePill.jsx';
+import ShareLink from './ShareLink.jsx';
 
 const SIGNAL_LABELS = {
   gap: 'headway gaps',
@@ -78,16 +50,19 @@ function ActiveCard({ incident }) {
         <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
           {description}
         </p>
-        {incident.post_url && (
-          <a
-            href={incident.post_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block mt-1.5 text-xs text-blue-500 hover:text-blue-400 hover:underline"
-          >
-            View on Bluesky →
-          </a>
-        )}
+        <div className="flex flex-wrap gap-3 mt-1.5">
+          {incident.post_url && (
+            <a
+              href={incident.post_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
+            >
+              View on Bluesky →
+            </a>
+          )}
+          <ShareLink eventId={getEventId(incident)} />
+        </div>
       </div>
     </div>
   );

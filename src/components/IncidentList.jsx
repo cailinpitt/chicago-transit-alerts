@@ -1,39 +1,10 @@
 import { useMemo, useState } from 'react';
-import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDate, formatDuration, formatTime } from '../lib/format.js';
-import { mergeMatchingIncidents } from '../lib/incidents.js';
+import { getEventId, mergeMatchingIncidents } from '../lib/incidents.js';
+import LinePill from './LinePill.jsx';
+import ShareLink from './ShareLink.jsx';
 
 const PAGE_SIZE = 25;
-
-function LinePill({ kind, line, routes }) {
-  const keys = routes?.length > 0 ? routes : [line];
-  return (
-    <>
-      {keys.map((key) => {
-        const info = kind === 'train' ? TRAIN_LINES[key] : null;
-        if (info) {
-          return (
-            <span
-              key={key}
-              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-              style={{ backgroundColor: info.color, color: info.textColor }}
-            >
-              {info.label} Line
-            </span>
-          );
-        }
-        return (
-          <span
-            key={key}
-            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-700 text-white"
-          >
-            {kind === 'bus' ? `Route ${key}` : key}
-          </span>
-        );
-      })}
-    </>
-  );
-}
 
 function IncidentRow({ incident }) {
   const isMerged = incident._type === 'merged';
@@ -134,6 +105,7 @@ function IncidentRow({ incident }) {
               Bot detection →
             </a>
           )}
+          <ShareLink eventId={getEventId(incident)} />
         </div>
       </div>
     </div>

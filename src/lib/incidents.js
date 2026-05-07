@@ -76,11 +76,62 @@ import { chicagoDayUTC } from './format.js';
  * @property {boolean} active
  * @property {string} [post_url]
  * @property {string} [resolved_reply_url]
+ * @property {string | null} [affected_from_station]
+ * @property {string | null} [affected_to_station]
+ * @property {string | null} [affected_direction]
  * @property {string | null} [from_station]
  * @property {string | null} [to_station]
  * @property {string} [obs_post_url]
+ * @property {string | null} [obs_resolved_post_url]
  * @property {number} obs_id
  */
+
+// Extract the rkey at the end of a Bluesky post URL — the part after `/post/`.
+// Used as the canonical event id for shareable links. Returns null for missing
+// or malformed URLs so callers can decide whether to render the share control.
+/**
+ * @param {string | null | undefined} postUrl
+ * @returns {string | null}
+ */
+export function postUrlRkey(postUrl) {
+  if (!postUrl) return null;
+  const m = /\/post\/([^/?#]+)/.exec(postUrl);
+  return m ? m[1] : null;
+}
+
+// Canonical event id for an incident: the alert post's rkey when present, else
+// the observation post's rkey. The alert post is preferred so a merged record
+// shares its id with the standalone alert from before the merge happened.
+/**
+ * @param {object} incident An Alert, Observation, or MergedIncident.
+ * @returns {string | null}
+ */
+export function getEventId(incident) {
+  if (!incident) return null;
+  return postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url) ?? null;
+}
+
+// Find an incident by event id across the full payload. Searches alerts first
+// (so a merged record resolves through its alert post id), then standalone
+// observations. The merge step mirrors what IncidentList renders so a shared
+// link lands on the same combined view the user copied it from.
+/**
+ * @param {Alert[]} alerts
+ * @param {Observation[]} observations
+ * @param {string} id
+ * @returns {(MergedIncident | Alert | Observation) & { _type?: string } | null}
+ */
+export function findIncidentById(alerts, observations, id) {
+  if (!id) return null;
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const fromMerged = merged.find((m) => postUrlRkey(m.post_url) === id);
+  if (fromMerged) return fromMerged;
+  const fromAlert = standaloneAlerts.find((a) => postUrlRkey(a.post_url) === id);
+  if (fromAlert) return fromAlert;
+  const fromObs = standaloneObs.find((o) => postUrlRkey(o.post_url) === id);
+  if (fromObs) return fromObs;
+  return null;
+}
 
 // Merge bot observations into their matching official CTA alerts when they
 // share the same line and overlapping time window. Returns:
@@ -122,9 +173,13 @@ export function mergeMatchingIncidents(alerts, observations) {
           active: alert.active || obs.active,
           post_url: alert.post_url,
           resolved_reply_url: alert.resolved_reply_url,
+          affected_from_station: alert.affected_from_station,
+          affected_to_station: alert.affected_to_station,
+          affected_direction: alert.affected_direction,
           from_station: obs.from_station,
           to_station: obs.to_station,
           obs_post_url: obs.post_url,
+          obs_resolved_post_url: obs.resolved_post_url,
           obs_id: obs.id,
         });
         usedObsIds.add(obs.id);
