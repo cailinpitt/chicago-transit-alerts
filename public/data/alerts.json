@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778162402285,
+  "generated_at": 1778164082136,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -76,6 +76,25 @@
     }
   ],
   "observations": [
+    {
+      "id": 15,
+      "kind": "bus",
+      "line": "66",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "bunching",
+        "ghost"
+      ],
+      "ts": 1778163841542,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlbg64ikak2i",
+      "resolved_post_url": null
+    },
     {
       "id": 14,
       "kind": "bus",
