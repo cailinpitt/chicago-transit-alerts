@@ -2,6 +2,37 @@ import { TRAIN_LINE_ORDER } from './ctaLines.js';
 
 const VALID_RANGES = new Set([7, 30, 60, 90]);
 const TRAIN_LINE_SET = new Set(TRAIN_LINE_ORDER);
+const DAY_PARAM_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+// Format a UTC epoch (Chicago day midnight) as a YYYY-MM-DD string. Cleaner in
+// URLs than an epoch, and the round-trip is unambiguous because the value is
+// always a UTC midnight.
+function dayUtcToString(dayUtc) {
+  const d = new Date(dayUtc);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function dayStringToUtc(s) {
+  const m = DAY_PARAM_RE.exec(s);
+  if (!m) return null;
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  // Reject overflow normalization (e.g. Feb 30 → Mar 2) by checking the
+  // round-trip matches the input components.
+  const utc = Date.UTC(year, month - 1, day);
+  const d = new Date(utc);
+  if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) {
+    return null;
+  }
+  return utc;
+}
+
+export { dayStringToUtc, dayUtcToString };
 
 // Bus visibility defaults to hidden when the user has narrowed to a specific
 // set of train lines — otherwise a "Red Line view" link surfaces unrelated
@@ -23,6 +54,7 @@ export function parseUrlState(search = window.location.search) {
     showBus: true,
     selectedBusRoutes: [],
     dateRange: 7,
+    selectedDay: null,
   };
 
   const linesParam = params.get('lines');
@@ -59,13 +91,19 @@ export function parseUrlState(search = window.location.search) {
     if (VALID_RANGES.has(n)) out.dateRange = n;
   }
 
+  const dayParam = params.get('day');
+  if (dayParam) {
+    const utc = dayStringToUtc(dayParam);
+    if (utc != null) out.selectedDay = utc;
+  }
+
   return out;
 }
 
 // Build a URLSearchParams string for the given state. Defaults are omitted so
 // the bare URL stays clean and shareable. Returns "" when everything is at
 // default (no leading "?").
-export function buildSearch({ selectedLines, showBus, selectedBusRoutes, dateRange }) {
+export function buildSearch({ selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay }) {
   const params = new URLSearchParams();
 
   if (selectedLines !== null) {
@@ -79,8 +117,13 @@ export function buildSearch({ selectedLines, showBus, selectedBusRoutes, dateRan
   if (selectedBusRoutes && selectedBusRoutes.length > 0) {
     params.set('routes', selectedBusRoutes.join(','));
   }
+  // Day-pin overrides the range filter visually, but we serialize both so the
+  // chip can fall back to the prior range when cleared.
   if (dateRange !== 7) {
     params.set('range', dateRange === null ? 'all' : String(dateRange));
+  }
+  if (selectedDay != null) {
+    params.set('day', dayUtcToString(selectedDay));
   }
 
   const s = params.toString();

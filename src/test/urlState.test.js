@@ -8,6 +8,7 @@ describe('parseUrlState', () => {
       showBus: true,
       selectedBusRoutes: [],
       dateRange: 7,
+      selectedDay: null,
     });
   });
 
@@ -170,7 +171,28 @@ describe('buildSearch', () => {
       showBus: false,
       selectedBusRoutes: ['66'],
       dateRange: 30,
+      selectedDay: null,
     };
     expect(parseUrlState(buildSearch(state))).toEqual(state);
+  });
+
+  it('round-trips a pinned day', () => {
+    const dayUtc = Date.UTC(2026, 4, 6); // 2026-05-06
+    const state = {
+      selectedLines: null,
+      showBus: true,
+      selectedBusRoutes: [],
+      dateRange: 7,
+      selectedDay: dayUtc,
+    };
+    const search = buildSearch(state);
+    expect(search).toBe('?day=2026-05-06');
+    expect(parseUrlState(search)).toEqual(state);
+  });
+
+  it('drops malformed day param silently', () => {
+    expect(parseUrlState('?day=not-a-date').selectedDay).toBeNull();
+    expect(parseUrlState('?day=2026-13-01').selectedDay).toBeNull(); // month out of range
+    expect(parseUrlState('?day=2026-02-30').selectedDay).toBeNull(); // overflow rejected
   });
 });

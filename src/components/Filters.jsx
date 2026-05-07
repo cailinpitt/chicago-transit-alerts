@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
+import { formatDate } from '../lib/format.js';
 
 const DATE_OPTIONS = [
   { label: '7d', value: 7 },
@@ -91,6 +92,8 @@ export default function Filters({
   onBusRoutesChange,
   dateRange,
   onDateRangeChange,
+  selectedDay = null,
+  onClearSelectedDay,
 }) {
   const toggleLine = (line) => {
     onLinesChange((prev) => {
@@ -162,22 +165,36 @@ export default function Filters({
 
       <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
 
-      {/* Date range filter */}
+      {/* Date range filter — replaced by a day chip when a single day is pinned. */}
       <div className="flex gap-1">
-        {DATE_OPTIONS.map(({ label, value }) => (
+        {selectedDay != null ? (
           <button
             type="button"
-            key={label}
-            onClick={() => onDateRangeChange(value)}
-            className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-              dateRange === value
-                ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-                : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
-            }`}
+            onClick={onClearSelectedDay}
+            className="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 hover:opacity-80 transition-opacity"
+            aria-label={`Clear day filter: ${formatDate(selectedDay)}`}
           >
-            {label}
+            <span>Showing {formatDate(selectedDay)}</span>
+            <span aria-hidden="true" className="opacity-70">
+              ×
+            </span>
           </button>
-        ))}
+        ) : (
+          DATE_OPTIONS.map(({ label, value }) => (
+            <button
+              type="button"
+              key={label}
+              onClick={() => onDateRangeChange(value)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                dateRange === value
+                  ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                  : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
+              }`}
+            >
+              {label}
+            </button>
+          ))
+        )}
       </div>
     </div>
   );

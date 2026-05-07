@@ -102,6 +102,44 @@ describe('filterIncidents', () => {
     const { observations: out } = filterIncidents([], [bus], { lines: ['red'], showBus: true });
     expect(out).toHaveLength(1);
   });
+
+  // selectedDay narrows to a single Chicago calendar day. Reference day is the
+  // UTC midnight of NOW's Chicago day; helpers below construct timestamps
+  // relative to it.
+  describe('selectedDay', () => {
+    // chicagoDayUTC of NOW (1e12) lands on 2001-09-09 UTC.
+    const dayUtc = Date.UTC(2001, 8, 9);
+    const onDayTs = dayUtc + 12 * 60 * 60_000; // noon UTC, well within the day
+
+    it('keeps incidents that started on the pinned day', () => {
+      const a = makeAlert({ first_seen_ts: onDayTs, resolved_ts: onDayTs + 60_000 });
+      const { alerts: out } = filterIncidents([a], [], { selectedDay: dayUtc, now: NOW });
+      expect(out).toHaveLength(1);
+    });
+
+    it('drops incidents from a different day', () => {
+      const earlier = makeAlert({
+        first_seen_ts: onDayTs - 3 * DAY,
+        resolved_ts: onDayTs - 3 * DAY + 60_000,
+      });
+      const { alerts: out } = filterIncidents([earlier], [], { selectedDay: dayUtc, now: NOW });
+      expect(out).toHaveLength(0);
+    });
+
+    it('keeps active incidents whose span crosses the pinned day', () => {
+      // Started 2 days before the pinned day, still active.
+      const active = makeAlert({
+        first_seen_ts: onDayTs - 2 * DAY,
+        resolved_ts: null,
+        active: true,
+      });
+      const { alerts: out } = filterIncidents([active], [], {
+        selectedDay: dayUtc,
+        now: onDayTs + 60_000,
+      });
+      expect(out).toHaveLength(1);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

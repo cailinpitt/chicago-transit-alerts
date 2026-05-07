@@ -35,7 +35,7 @@ const NO_DATA_STYLE = {
     'repeating-linear-gradient(-45deg, var(--no-data-stripe1) 0px, var(--no-data-stripe1) 1px, var(--no-data-stripe2) 1px, var(--no-data-stripe2) 4px)',
 };
 
-function DayCell({ col, dayIdx, dayUTC, incidents, color, dataStartTs, inRange }) {
+function DayCell({ dayIdx, dayUTC, incidents, color, dataStartTs, inRange, isPinned, onClick }) {
   // dayUTC marks the start of this Chicago calendar day (as a UTC midnight).
   // Treat the day as "no data" if it ended on/before the cutoff.
   const dayEnd = dayUTC + DAY_MS;
@@ -45,14 +45,31 @@ function DayCell({ col, dayIdx, dayUTC, incidents, color, dataStartTs, inRange }
   const label = noData
     ? `${dateStr}: no data`
     : `${dateStr}: ${count} incident${count !== 1 ? 's' : ''}`;
-  const dimClass = inRange ? '' : 'opacity-30';
+  const dimClass = inRange || isPinned ? '' : 'opacity-30';
+  // No-data cells can't usefully filter the list — keep them as inert squares.
+  const clickable = !noData && onClick;
+  const ringClass = isPinned
+    ? 'ring-2 ring-offset-1 ring-slate-700 dark:ring-slate-200 ring-offset-white dark:ring-offset-gh-surface'
+    : '';
   return (
-    <td key={col} className="p-0 pr-px pb-px">
-      <div
-        title={label}
-        className={`w-2.5 h-2.5 rounded-sm ${dimClass}`}
-        style={noData ? NO_DATA_STYLE : { backgroundColor: cellBg(count, color) }}
-      />
+    <td className="p-0 pr-px pb-px">
+      {clickable ? (
+        <button
+          type="button"
+          title={label}
+          aria-label={label}
+          aria-pressed={isPinned}
+          onClick={() => onClick(dayUTC)}
+          className={`block w-2.5 h-2.5 rounded-sm cursor-pointer ${dimClass} ${ringClass}`}
+          style={{ backgroundColor: cellBg(count, color) }}
+        />
+      ) : (
+        <div
+          title={label}
+          className={`w-2.5 h-2.5 rounded-sm ${dimClass}`}
+          style={noData ? NO_DATA_STYLE : { backgroundColor: cellBg(count, color) }}
+        />
+      )}
     </td>
   );
 }
@@ -65,6 +82,8 @@ export default function Timeline({
   selectedRangeDays,
   dataStartTs,
   onLineClick,
+  selectedDay = null,
+  onDayClick,
   showBus,
   selectedBusRoutes,
   onBusRouteClick,
@@ -171,13 +190,14 @@ export default function Timeline({
                     {days.map(({ col, dayIdx, dayUTC }) => (
                       <DayCell
                         key={col}
-                        col={col}
                         dayIdx={dayIdx}
                         dayUTC={dayUTC}
                         incidents={incidents}
                         color={info.color}
                         dataStartTs={dataStartTs}
                         inRange={selectedRangeDays == null || dayIdx < selectedRangeDays}
+                        isPinned={selectedDay === dayUTC}
+                        onClick={onDayClick}
                       />
                     ))}
                   </tr>
@@ -216,13 +236,14 @@ export default function Timeline({
                   {days.map(({ col, dayIdx, dayUTC }) => (
                     <DayCell
                       key={col}
-                      col={col}
                       dayIdx={dayIdx}
                       dayUTC={dayUTC}
                       incidents={incidents}
                       color={BUS_COLOR}
                       dataStartTs={dataStartTs}
                       inRange={selectedRangeDays == null || dayIdx < selectedRangeDays}
+                      isPinned={selectedDay === dayUTC}
+                      onClick={onDayClick}
                     />
                   ))}
                 </tr>

@@ -2,6 +2,8 @@
 // "Merging" pairs an official CTA alert with a matching bot observation on the
 // same line within a 2-hour window so the two sources don't double-count.
 
+import { chicagoDayUTC } from './format.js';
+
 /**
  * Top-level payload served by `public/data/alerts.json`. Regenerated server-
  * side every ~7 minutes by the cta-bot pipeline.
@@ -151,18 +153,35 @@ export function mergeMatchingIncidents(alerts, observations) {
  * @param {number | null} [options.startTs]    Drop incidents older than this (active ones bypass).
  * @param {boolean} [options.showBus]
  * @param {string[] | null} [options.busRoutes] When non-empty, restrict bus observations to these routes.
+ * @param {number | null} [options.selectedDay] Chicago-day UTC midnight; when set, only incidents
+ *   whose [start, end] span overlaps this day pass. Overrides startTs.
+ * @param {number} [options.now]               For selectedDay span calc; defaults to Date.now().
  * @returns {{ alerts: Alert[], observations: Observation[] }}
  */
 export function filterIncidents(
   alerts,
   observations,
-  { lines, startTs, showBus = true, busRoutes = null } = {},
+  { lines, startTs, showBus = true, busRoutes = null, selectedDay = null, now = Date.now() } = {},
 ) {
   const hasLineFilter = lines !== null && lines !== undefined;
   const hasBusRouteFilter = busRoutes && busRoutes.length > 0;
 
+  // When selectedDay is pinned, an incident matches iff its [start, end] span
+  // overlaps that calendar day. Active incidents (no resolved_ts) extend to
+  // `now`, so a still-open disruption shows up on every day from its start
+  // through today.
+  const overlapsSelectedDay = (start, end) => {
+    if (selectedDay == null) return true;
+    const s = chicagoDayUTC(start);
+    const e = chicagoDayUTC(end || now);
+    return selectedDay >= s && selectedDay <= e;
+  };
+
   const filteredAlerts = alerts.filter((a) => {
     if (hasLineFilter && !a.routes.some((r) => lines.includes(r))) return false;
+    if (selectedDay != null) {
+      return overlapsSelectedDay(a.first_seen_ts, a.resolved_ts);
+    }
     if (startTs && a.first_seen_ts < startTs && !a.active) return false;
     return true;
   });
@@ -174,6 +193,9 @@ export function filterIncidents(
       if (hasBusRouteFilter && !busRoutes.includes(o.line)) return false;
     } else {
       if (hasLineFilter && !lines.includes(o.line)) return false;
+    }
+    if (selectedDay != null) {
+      return overlapsSelectedDay(o.ts, o.resolved_ts);
     }
     if (startTs && o.ts < startTs && !o.active) return false;
     return true;

@@ -22,12 +22,24 @@ export default function App() {
   const [showBus, setShowBus] = useState(initial.showBus);
   const [selectedBusRoutes, setSelectedBusRoutes] = useState(initial.selectedBusRoutes);
   const [dateRange, setDateRange] = useState(initial.dateRange); // days; null = all time
+  // selectedDay is a Chicago-day UTC midnight epoch, or null. When set it
+  // overrides dateRange for the incident list — the user is drilled into a
+  // single day from the timeline.
+  const [selectedDay, setSelectedDay] = useState(initial.selectedDay);
 
   function resetFilters() {
     setSelectedLines(null);
     setShowBus(true);
     setSelectedBusRoutes([]);
     setDateRange(7);
+    setSelectedDay(null);
+  }
+
+  // Picking any range pill drops the day pin — the two are mutually exclusive
+  // narrow modes, and a stale pin would silently override the user's choice.
+  function handleDateRangeChange(next) {
+    setDateRange(next);
+    setSelectedDay(null);
   }
 
   // Auto-flip bus visibility on transitions in/out of a positive train-line
@@ -45,12 +57,18 @@ export default function App() {
   // Mirror filter state to the URL so views are shareable. replaceState (not
   // pushState) so the back button doesn't traverse every filter toggle.
   useEffect(() => {
-    const search = buildSearch({ selectedLines, showBus, selectedBusRoutes, dateRange });
+    const search = buildSearch({
+      selectedLines,
+      showBus,
+      selectedBusRoutes,
+      dateRange,
+      selectedDay,
+    });
     const next = `${window.location.pathname}${search}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.replaceState(null, '', next);
     }
-  }, [selectedLines, showBus, selectedBusRoutes, dateRange]);
+  }, [selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay]);
 
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/alerts.json`;
@@ -119,8 +137,9 @@ export default function App() {
       startTs,
       showBus,
       busRoutes: selectedBusRoutes.length > 0 ? selectedBusRoutes : null,
+      selectedDay,
     });
-  }, [data, selectedLines, showBus, selectedBusRoutes, dateRange]);
+  }, [data, selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay]);
 
   if (error) {
     return (
@@ -162,7 +181,9 @@ export default function App() {
               selectedBusRoutes={selectedBusRoutes}
               onBusRoutesChange={setSelectedBusRoutes}
               dateRange={dateRange}
-              onDateRangeChange={setDateRange}
+              onDateRangeChange={handleDateRangeChange}
+              selectedDay={selectedDay}
+              onClearSelectedDay={() => setSelectedDay(null)}
             />
             {summaryStats && <SummaryStats {...summaryStats} />}
             <Timeline
@@ -177,6 +198,8 @@ export default function App() {
                   prev?.includes(line) ? prev.filter((l) => l !== line) : [line],
                 )
               }
+              selectedDay={selectedDay}
+              onDayClick={(dayUtc) => setSelectedDay((prev) => (prev === dayUtc ? null : dayUtc))}
               showBus={showBus}
               selectedBusRoutes={selectedBusRoutes}
               onBusRouteClick={(route) =>
