@@ -4,8 +4,12 @@
 
 /* iOS rubber-band overscroll exposes the <html> background. Without these
    the dark-mode page shows a white strip when you pull past the top/bottom. */
-html { background-color: #f8fafc; } /* slate-50 */
-html.dark { background-color: #0d1117; } /* gh-canvas */
+html {
+  background-color: #f8fafc;
+} /* slate-50 */
+html.dark {
+  background-color: #0d1117;
+} /* gh-canvas */
 
 /* CSS variables for inline-styled timeline cells so they adapt to dark mode */
 :root {

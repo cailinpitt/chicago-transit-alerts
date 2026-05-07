@@ -43,9 +43,10 @@ function ActiveCard({ incident }) {
   const startTs = incident.first_seen_ts || incident.ts;
   const elapsedMin = Math.round((Date.now() - startTs) / 60_000);
   const stations = [incident.from_station, incident.to_station].filter(Boolean).join(' → ');
-  const signalsText = incident.signals?.length > 0
-    ? incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')
-    : null;
+  const signalsText =
+    incident.signals?.length > 0
+      ? incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')
+      : null;
   let description;
   if (isAlert) {
     description = incident.headline;
@@ -74,7 +75,9 @@ function ActiveCard({ incident }) {
           <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
           <span className="text-xs text-slate-400 dark:text-slate-500">{elapsedMin}m ongoing</span>
         </div>
-        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">{description}</p>
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
+          {description}
+        </p>
         {incident.post_url && (
           <a
             href={incident.post_url}
@@ -98,9 +101,7 @@ export default function ActiveAlerts({ incidents }) {
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
         </div>
-        <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wider">
-          Active Now
-        </h2>
+        <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wider">Active Now</h2>
       </div>
       <div className="space-y-2">
         {incidents.map((incident) => (

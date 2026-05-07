@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it } from 'vitest';
 import IncidentList from '../components/IncidentList.jsx';
 
 const NOW = 1_000_000_000_000;
@@ -64,7 +64,9 @@ describe('IncidentList', () => {
   });
 
   it('shows "ongoing" badge for active incidents', () => {
-    render(<IncidentList alerts={[makeAlert({ resolved_ts: null, active: true })]} observations={[]} />);
+    render(
+      <IncidentList alerts={[makeAlert({ resolved_ts: null, active: true })]} observations={[]} />,
+    );
     expect(screen.getByText('ongoing')).toBeInTheDocument();
   });
 

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { parseUrlState, buildSearch } from '../lib/urlState.js';
+import { describe, expect, it } from 'vitest';
+import { buildSearch, parseUrlState } from '../lib/urlState.js';
 
 describe('parseUrlState', () => {
   it('returns defaults when no params present', () => {
@@ -66,84 +66,102 @@ describe('parseUrlState', () => {
 
 describe('buildSearch', () => {
   it('returns empty string for default state', () => {
-    expect(buildSearch({
-      selectedLines: null,
-      showBus: true,
-      selectedBusRoutes: [],
-      dateRange: 7,
-    })).toBe('');
+    expect(
+      buildSearch({
+        selectedLines: null,
+        showBus: true,
+        selectedBusRoutes: [],
+        dateRange: 7,
+      }),
+    ).toBe('');
   });
 
   it('serializes selected lines (and the implicit bus=0 stays implicit)', () => {
-    expect(buildSearch({
-      selectedLines: ['red', 'blue'],
-      showBus: false,
-      selectedBusRoutes: [],
-      dateRange: 7,
-    })).toBe('?lines=red%2Cblue');
+    expect(
+      buildSearch({
+        selectedLines: ['red', 'blue'],
+        showBus: false,
+        selectedBusRoutes: [],
+        dateRange: 7,
+      }),
+    ).toBe('?lines=red%2Cblue');
   });
 
   it('serializes empty line selection as none', () => {
-    expect(buildSearch({
-      selectedLines: [],
-      showBus: true,
-      selectedBusRoutes: [],
-      dateRange: 7,
-    })).toBe('?lines=none');
+    expect(
+      buildSearch({
+        selectedLines: [],
+        showBus: true,
+        selectedBusRoutes: [],
+        dateRange: 7,
+      }),
+    ).toBe('?lines=none');
   });
 
   it('serializes bus hidden against the all-trains default', () => {
-    expect(buildSearch({
-      selectedLines: null,
-      showBus: false,
-      selectedBusRoutes: [],
-      dateRange: 7,
-    })).toBe('?bus=0');
+    expect(
+      buildSearch({
+        selectedLines: null,
+        showBus: false,
+        selectedBusRoutes: [],
+        dateRange: 7,
+      }),
+    ).toBe('?bus=0');
   });
 
   it('omits bus param when showBus matches the narrowed-train default (false)', () => {
-    expect(buildSearch({
-      selectedLines: ['red'],
-      showBus: false,
-      selectedBusRoutes: [],
-      dateRange: 7,
-    })).toBe('?lines=red');
+    expect(
+      buildSearch({
+        selectedLines: ['red'],
+        showBus: false,
+        selectedBusRoutes: [],
+        dateRange: 7,
+      }),
+    ).toBe('?lines=red');
   });
 
   it('emits bus=1 when user overrides the narrowed-train default', () => {
-    expect(buildSearch({
-      selectedLines: ['red'],
-      showBus: true,
-      selectedBusRoutes: [],
-      dateRange: 7,
-    })).toBe('?lines=red&bus=1');
+    expect(
+      buildSearch({
+        selectedLines: ['red'],
+        showBus: true,
+        selectedBusRoutes: [],
+        dateRange: 7,
+      }),
+    ).toBe('?lines=red&bus=1');
   });
 
   it('serializes bus routes', () => {
-    expect(buildSearch({
-      selectedLines: null,
-      showBus: true,
-      selectedBusRoutes: ['66', '77'],
-      dateRange: 7,
-    })).toBe('?routes=66%2C77');
+    expect(
+      buildSearch({
+        selectedLines: null,
+        showBus: true,
+        selectedBusRoutes: ['66', '77'],
+        dateRange: 7,
+      }),
+    ).toBe('?routes=66%2C77');
   });
 
   it('serializes non-default range', () => {
-    expect(buildSearch({
-      selectedLines: null,
-      showBus: true,
-      selectedBusRoutes: [],
-      dateRange: 30,
-    })).toBe('?range=30');
+    expect(
+      buildSearch({
+        selectedLines: null,
+        showBus: true,
+        selectedBusRoutes: [],
+        dateRange: 30,
+      }),
+    ).toBe('?range=30');
   });
 
   it('serializes range=all', () => {
-    expect(buildSearch({
-      selectedLines: null,
-      showBus: true,
-      selectedBusRoutes: [],
-      dateRange: null,
-    })).toBe('?range=all');
+    expect(
+      buildSearch({
+        selectedLines: null,
+        showBus: true,
+        selectedBusRoutes: [],
+        dateRange: null,
+      }),
+    ).toBe('?range=all');
   });
 
   it('round-trips a complex state', () => {

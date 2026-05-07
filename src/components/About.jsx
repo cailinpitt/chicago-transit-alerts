@@ -46,13 +46,12 @@ export default function About({ open, onClose }) {
 
         <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
           <p>
-            A public archive of Chicago Transit Authority service disruptions —
-            one place to check how the CTA is doing right now, this week, or
-            over the past few months.
+            A public archive of Chicago Transit Authority service disruptions — one place to check
+            how the CTA is doing right now, this week, or over the past few months.
           </p>
           <p className="text-xs italic text-slate-500 dark:text-slate-400">
-            Unofficial. Not affiliated with, endorsed by, or sponsored by the
-            Chicago Transit Authority.
+            Unofficial. Not affiliated with, endorsed by, or sponsored by the Chicago Transit
+            Authority.
           </p>
 
           <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">
@@ -69,11 +68,10 @@ export default function About({ open, onClose }) {
               >
                 <strong>@ctaalertinsights</strong>
               </a>{' '}
-              — republished CTA service alerts, plus the bot's own
-              detections: cold stretches when service drops out of part of a
-              line for 15+ minutes, full-line or full-route blackouts when
-              nothing is running at all, and roundups when several smaller
-              disruptions cluster on the same line or route at once.
+              — republished CTA service alerts, plus the bot's own detections: cold stretches when
+              service drops out of part of a line for 15+ minutes, full-line or full-route blackouts
+              when nothing is running at all, and roundups when several smaller disruptions cluster
+              on the same line or route at once.
             </li>
             <li>
               <a
@@ -84,9 +82,8 @@ export default function About({ open, onClose }) {
               >
                 <strong>@ctatraininsights</strong>
               </a>{' '}
-              — bot-detected train disruptions: bunching, long gaps versus
-              the scheduled headway, and "ghost" hours when fewer trains are
-              running than expected.
+              — bot-detected train disruptions: bunching, long gaps versus the scheduled headway,
+              and "ghost" hours when fewer trains are running than expected.
             </li>
             <li>
               <a
@@ -101,19 +98,16 @@ export default function About({ open, onClose }) {
             </li>
           </ul>
           <p>
-            When an official CTA alert and a bot observation describe the
-            same incident on the same line within a couple of hours, they're
-            merged into a single entry rather than counted twice.
+            When an official CTA alert and a bot observation describe the same incident on the same
+            line within a couple of hours, they're merged into a single entry rather than counted
+            twice.
           </p>
 
-          <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">
-            Updates
-          </h3>
+          <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">Updates</h3>
           <p>
-            Data refreshes every 7 minutes. The "Last data change" timestamp
-            in the header tracks the most recent change to the alerts — not
-            when the system last checked. An older time just means nothing
-            new has happened.
+            Data refreshes every 7 minutes. The "Last data change" timestamp in the header tracks
+            the most recent change to the alerts — not when the system last checked. An older time
+            just means nothing new has happened.
           </p>
 
           <p className="pt-2 text-xs text-slate-500 dark:text-slate-400">

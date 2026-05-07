@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
-import { TRAIN_LINES, TRAIN_LINE_ORDER } from '../lib/ctaLines.js';
+import { useEffect, useRef, useState } from 'react';
+import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 
 const DATE_OPTIONS = [
   { label: '7d', value: 7 },
@@ -33,6 +33,7 @@ function BusRoutePopover({ availableBusRoutes, selectedBusRoutes, onBusRoutesCha
   return (
     <div ref={ref} className="relative">
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
         className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors flex items-center gap-1 ${
           selectedCount > 0
@@ -49,6 +50,7 @@ function BusRoutePopover({ availableBusRoutes, selectedBusRoutes, onBusRoutesCha
           <div className="flex flex-wrap gap-1.5">
             {selectedCount > 0 && (
               <button
+                type="button"
                 onClick={() => onBusRoutesChange([])}
                 className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 hover:opacity-80 transition-opacity"
               >
@@ -59,6 +61,7 @@ function BusRoutePopover({ availableBusRoutes, selectedBusRoutes, onBusRoutesCha
               const active = selectedBusRoutes.includes(route);
               return (
                 <button
+                  type="button"
                   key={route}
                   onClick={() => toggleRoute(route)}
                   className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
@@ -78,7 +81,17 @@ function BusRoutePopover({ availableBusRoutes, selectedBusRoutes, onBusRoutesCha
   );
 }
 
-export default function Filters({ selectedLines, onLinesChange, showBus, onShowBusChange, availableBusRoutes, selectedBusRoutes, onBusRoutesChange, dateRange, onDateRangeChange }) {
+export default function Filters({
+  selectedLines,
+  onLinesChange,
+  showBus,
+  onShowBusChange,
+  availableBusRoutes,
+  selectedBusRoutes,
+  onBusRoutesChange,
+  dateRange,
+  onDateRangeChange,
+}) {
   const toggleLine = (line) => {
     onLinesChange((prev) => {
       if (prev === null) return [line];
@@ -91,6 +104,7 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
       {/* Line filter */}
       <div className="flex flex-wrap gap-1.5 items-center">
         <button
+          type="button"
           onClick={() =>
             onLinesChange(selectedLines !== null && selectedLines.length === 0 ? null : [])
           }
@@ -104,10 +118,11 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
         </button>
         {TRAIN_LINE_ORDER.map((key) => {
           const info = TRAIN_LINES[key];
-          const active = selectedLines !== null && selectedLines.includes(key);
+          const active = selectedLines?.includes(key);
           const dimmed = selectedLines !== null && !active;
           return (
             <button
+              type="button"
               key={key}
               onClick={() => toggleLine(key)}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
@@ -126,6 +141,7 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
       {/* Bus toggle + route popover */}
       <div className="flex items-center gap-1.5">
         <button
+          type="button"
           onClick={() => onShowBusChange(!showBus)}
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
             showBus
@@ -150,6 +166,7 @@ export default function Filters({ selectedLines, onLinesChange, showBus, onShowB
       <div className="flex gap-1">
         {DATE_OPTIONS.map(({ label, value }) => (
           <button
+            type="button"
             key={label}
             onClick={() => onDateRangeChange(value)}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${

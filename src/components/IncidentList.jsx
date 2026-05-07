@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { formatDate, formatTime, formatDuration, mergeMatchingIncidents } from '../lib/dataUtils.js';
+import {
+  formatDate,
+  formatDuration,
+  formatTime,
+  mergeMatchingIncidents,
+} from '../lib/dataUtils.js';
 
 const PAGE_SIZE = 25;
 
@@ -50,15 +55,16 @@ function IncidentRow({ incident }) {
     'pulse-held': 'trains held in place',
   };
 
-  const description = isMerged || isAlert
-    ? incident.headline
-    : incident.from_station && incident.to_station
-      ? `${incident.from_station} → ${incident.to_station}`
-      : incident.detection_source === 'roundup' && incident.signals?.length > 0
-        ? `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`
-        : incident.detection_source === 'roundup'
-          ? 'Multiple simultaneous disruptions detected'
-          : 'Service disruption detected';
+  const description =
+    isMerged || isAlert
+      ? incident.headline
+      : incident.from_station && incident.to_station
+        ? `${incident.from_station} → ${incident.to_station}`
+        : incident.detection_source === 'roundup' && incident.signals?.length > 0
+          ? `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`
+          : incident.detection_source === 'roundup'
+            ? 'Multiple simultaneous disruptions detected'
+            : 'Service disruption detected';
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0">
@@ -74,27 +80,31 @@ function IncidentRow({ incident }) {
             <>
               <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
               <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-              <span className="text-xs text-slate-400 dark:text-slate-500 italic">via auto-detection</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                via auto-detection
+              </span>
             </>
           )}
           {!isMerged && isAlert && (
             <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
           )}
           {!isMerged && !isAlert && (
-            <span className="text-xs text-slate-400 dark:text-slate-500 italic">via auto-detection</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+              via auto-detection
+            </span>
           )}
           {duration && (
             <>
               <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-              <span className="text-xs text-slate-400 dark:text-slate-500">{duration} duration</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                {duration} duration
+              </span>
             </>
           )}
           {!endTs && !incident.active && (
             <span className="text-xs text-slate-400 dark:text-slate-500">duration unknown</span>
           )}
-          {incident.active && (
-            <span className="text-xs font-semibold text-red-500">ongoing</span>
-          )}
+          {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
         </div>
 
         <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">{description}</p>
@@ -138,7 +148,10 @@ export default function IncidentList({ alerts, observations }) {
   const [page, setPage] = useState(1);
 
   const combined = useMemo(() => {
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      alerts,
+      observations,
+    );
 
     const all = [
       ...merged,
@@ -170,7 +183,9 @@ export default function IncidentList({ alerts, observations }) {
     <section>
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
         Incident History{' '}
-        <span className="normal-case font-normal text-slate-400 dark:text-slate-500">({total})</span>
+        <span className="normal-case font-normal text-slate-400 dark:text-slate-500">
+          ({total})
+        </span>
       </h2>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border px-4">
         {visible.map((incident) => (
@@ -183,6 +198,7 @@ export default function IncidentList({ alerts, observations }) {
       {page < pageCount && (
         <div className="mt-3 text-center">
           <button
+            type="button"
             onClick={() => setPage((p) => p + 1)}
             className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg hover:bg-slate-50 dark:hover:bg-gh-border transition-colors"
           >

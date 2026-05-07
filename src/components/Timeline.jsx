@@ -1,10 +1,17 @@
-import { useMemo, useRef, useEffect } from 'react';
-import { TRAIN_LINES, TRAIN_LINE_ORDER } from '../lib/ctaLines.js';
-import { buildIncidentsByDay, buildBusIncidentsByDay, chicagoDayUTC, hexToRgba } from '../lib/dataUtils.js';
+import { useEffect, useMemo, useRef } from 'react';
+import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
+import {
+  buildBusIncidentsByDay,
+  buildIncidentsByDay,
+  chicagoDayUTC,
+  hexToRgba,
+} from '../lib/dataUtils.js';
 
 const CHICAGO_TZ = 'America/Chicago';
 const chicagoDayMonthFmt = new Intl.DateTimeFormat('en-US', {
-  timeZone: CHICAGO_TZ, month: 'short', day: 'numeric',
+  timeZone: CHICAGO_TZ,
+  month: 'short',
+  day: 'numeric',
 });
 function chicagoDateLabel(ts) {
   return chicagoDayMonthFmt.format(new Date(ts));
@@ -28,7 +35,8 @@ function cellBg(count, lineColor) {
 }
 
 const NO_DATA_STYLE = {
-  backgroundImage: 'repeating-linear-gradient(-45deg, var(--no-data-stripe1) 0px, var(--no-data-stripe1) 1px, var(--no-data-stripe2) 1px, var(--no-data-stripe2) 4px)',
+  backgroundImage:
+    'repeating-linear-gradient(-45deg, var(--no-data-stripe1) 0px, var(--no-data-stripe1) 1px, var(--no-data-stripe2) 1px, var(--no-data-stripe2) 4px)',
 };
 
 function DayCell({ col, dayIdx, dayUTC, incidents, color, dataStartTs, inRange }) {
@@ -73,7 +81,7 @@ export default function Timeline({
     if (scrollRef.current) {
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
     }
-  }, [numDays]);
+  }, []);
 
   const incidentsByDay = useMemo(
     () => buildIncidentsByDay(alerts, observations, numDays, now),
@@ -105,7 +113,11 @@ export default function Timeline({
   // Bus rows: per-route when routes are selected, aggregate otherwise.
   const busRowsToShow = showBus
     ? selectedBusRoutes && selectedBusRoutes.length > 0
-      ? selectedBusRoutes.map((r) => ({ key: r, label: `#${r}`, incidents: busIncidentsByDay.byRoute[r] || {} }))
+      ? selectedBusRoutes.map((r) => ({
+          key: r,
+          label: `#${r}`,
+          incidents: busIncidentsByDay.byRoute[r] || {},
+        }))
       : [{ key: '_agg', label: 'Bus', incidents: busIncidentsByDay.aggregate }]
     : [];
 
@@ -132,7 +144,10 @@ export default function Timeline({
                     style={{ width: 11 }}
                   >
                     {day === 1 && (
-                      <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap" style={{ fontSize: 10 }}>
+                      <span
+                        className="text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                        style={{ fontSize: 10 }}
+                      >
                         {month}
                       </span>
                     )}
@@ -149,6 +164,7 @@ export default function Timeline({
                   <tr key={lineKey}>
                     <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
                       <button
+                        type="button"
                         onClick={() => onLineClick(lineKey)}
                         className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
                         style={{ color: info.color }}
@@ -174,7 +190,7 @@ export default function Timeline({
 
               {/* Thin separator between trains and bus */}
               {hasTrainRows && hasBusRows && (
-                <tr aria-hidden="true">
+                <tr>
                   <td colSpan={numDays + 1} className="py-1" />
                 </tr>
               )}
@@ -185,6 +201,7 @@ export default function Timeline({
                   <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
                     {key !== '_agg' && onBusRouteClick ? (
                       <button
+                        type="button"
                         onClick={() => onBusRouteClick(key)}
                         className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
                         style={{ color: BUS_COLOR }}
@@ -223,7 +240,10 @@ export default function Timeline({
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
             <div className="flex gap-0.5">
-              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--timeline-empty)' }} />
+              <div
+                className="w-2.5 h-2.5 rounded-sm"
+                style={{ backgroundColor: 'var(--timeline-empty)' }}
+              />
               <div
                 className="w-2.5 h-2.5 rounded-sm"
                 style={{ backgroundColor: hexToRgba('#64748b', 0.4) }}
@@ -236,7 +256,9 @@ export default function Timeline({
             <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={NO_DATA_STYLE} />
             <span className="text-xs text-slate-400 dark:text-slate-500">No data</span>
           </div>
-          <span className="text-xs text-slate-300 dark:text-slate-600">· Click a line name to filter</span>
+          <span className="text-xs text-slate-300 dark:text-slate-600">
+            · Click a line name to filter
+          </span>
         </div>
       </div>
     </section>
