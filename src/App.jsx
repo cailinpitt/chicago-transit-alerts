@@ -124,6 +124,17 @@ export default function App() {
     return [...routes].sort((a, b) => +a - +b);
   }, [data]);
 
+  // Prune any selected bus routes that don't exist in the current data —
+  // typically from a stale shareable URL (?routes=66,99 where 99 no longer
+  // appears). Without this the bus-route filter silently filters everything
+  // out and the user just sees an empty list.
+  useEffect(() => {
+    if (!data || selectedBusRoutes.length === 0) return;
+    const available = new Set(availableBusRoutes);
+    const valid = selectedBusRoutes.filter((r) => available.has(r));
+    if (valid.length !== selectedBusRoutes.length) setSelectedBusRoutes(valid);
+  }, [data, availableBusRoutes, selectedBusRoutes]);
+
   const summaryStats = useMemo(() => {
     if (!data) return null;
     return computeSummaryStats(data.alerts, data.observations);
