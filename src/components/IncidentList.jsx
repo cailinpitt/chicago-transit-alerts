@@ -1,11 +1,7 @@
 import { useMemo, useState } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import {
-  formatDate,
-  formatDuration,
-  formatTime,
-  mergeMatchingIncidents,
-} from '../lib/dataUtils.js';
+import { formatDate, formatDuration, formatTime } from '../lib/format.js';
+import { mergeMatchingIncidents } from '../lib/incidents.js';
 
 const PAGE_SIZE = 25;
 

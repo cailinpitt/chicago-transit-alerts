@@ -7,7 +7,8 @@ import IncidentList from './components/IncidentList.jsx';
 import SummaryStats from './components/SummaryStats.jsx';
 import Timeline from './components/Timeline.jsx';
 import { useDarkMode } from './hooks/useDarkMode.js';
-import { computeSummaryStats, filterIncidents } from './lib/dataUtils.js';
+import { computeSummaryStats } from './lib/aggregate.js';
+import { filterIncidents } from './lib/incidents.js';
 import { buildSearch, parseUrlState } from './lib/urlState.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
