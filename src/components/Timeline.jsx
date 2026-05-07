@@ -48,11 +48,9 @@ function DayCell({ dayIdx, dayUTC, incidents, color, dataStartTs, inRange, isPin
   const dimClass = inRange || isPinned ? '' : 'opacity-30';
   // No-data cells can't usefully filter the list — keep them as inert squares.
   const clickable = !noData && onClick;
-  const ringClass = isPinned
-    ? 'ring-2 ring-offset-1 ring-slate-700 dark:ring-slate-200 ring-offset-white dark:ring-offset-gh-surface'
-    : '';
+  const ringClass = isPinned ? 'ring-1 ring-slate-700 dark:ring-slate-200' : '';
   return (
-    <td className="p-0 pr-px pb-px">
+    <td className="p-0 pr-0.5 pb-0.5">
       {clickable ? (
         <button
           type="button"
@@ -155,8 +153,8 @@ export default function Timeline({
                 {days.map(({ col, day, month }) => (
                   <th
                     key={col}
-                    className="p-0 pr-px pb-1 align-bottom text-left"
-                    style={{ width: 11 }}
+                    className="p-0 pr-0.5 pb-1 align-bottom text-left"
+                    style={{ width: 12 }}
                   >
                     {day === 1 && (
                       <span
