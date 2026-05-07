@@ -10,6 +10,13 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // Build a map of lineId -> { dayIdx: incidentCount } for the timeline grid.
 // dayIdx 0 = today, 1 = yesterday, ..., numDays-1 = oldest day shown.
 // Only includes train lines (bus incidents appear in the list but not the grid).
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {number} [numDays]
+ * @param {number} [now]
+ * @returns {Object<string, Object<number, number>>} lineId -> dayIdx -> count
+ */
 export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Date.now()) {
   const result = {};
   const todayUTC = chicagoDayUTC(now);
@@ -59,6 +66,13 @@ export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Da
 // Returns { aggregate: { dayIdx: distinctRouteCount }, byRoute: { routeId: { dayIdx: count } } }
 // The aggregate counts how many distinct routes had incidents on each day, so the
 // color reflects breadth of impact rather than raw event count.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {number} [numDays]
+ * @param {number} [now]
+ * @returns {{ aggregate: Object<number, number>, byRoute: Object<string, Object<number, number>> }}
+ */
 export function buildBusIncidentsByDay(alerts, observations, numDays = 90, now = Date.now()) {
   const byRoute = {};
   const routesPerDay = {}; // { dayIdx: Set<routeId> } — for dedup in aggregate
@@ -100,6 +114,18 @@ export function buildBusIncidentsByDay(alerts, observations, numDays = 90, now =
 // Uses merged incidents so a CTA alert and a matching bot observation count
 // once, not twice. Most-affected uses a 30-day window for stability — a
 // 7-day window flips around too much when one bad day dominates.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {number} [now]
+ * @returns {{
+ *   activeCount: number,
+ *   weeklyCount: number,
+ *   mostAffectedKind: 'train' | 'bus' | null,
+ *   mostAffectedId: string | null,
+ *   mostAffectedCount: number,
+ * }}
+ */
 export function computeSummaryStats(alerts, observations, now = Date.now()) {
   const weekAgo = now - 7 * DAY_MS;
   const monthAgo = now - 30 * DAY_MS;
