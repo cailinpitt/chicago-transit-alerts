@@ -6,7 +6,9 @@ A public archive of Chicago Transit Authority service alerts and bot-detected di
 
 **Live site:** https://chicagotransitalerts.app
 
-![Screenshot of the CTA Alert History website](docs/images/website-screenshot.png)
+![Timeline view: 90-day per-line heatmap of CTA incidents](docs/images/website-timeline.png)
+
+![Incident list: chronological feed of recent alerts and bot observations](docs/images/website-incidents-list.png)
 
 ## What you see
 
@@ -35,5 +37,19 @@ The site is a static React app — no backend, no database calls from the browse
 ## Stack
 
 - [Vite](https://vitejs.dev/) + [React 19](https://react.dev/) + [Tailwind CSS](https://tailwindcss.com/)
+- [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) for tests, [Biome](https://biomejs.dev/) for linting and formatting
 - Hosted on [GitHub Pages](https://pages.github.com/) with a custom domain
 - Data pipeline lives in [cta-insights](https://github.com/cailinpitt/cta-insights) — see its README for how alerts and observations are produced.
+
+## Development
+
+```sh
+npm install
+npm run dev      # local dev server
+npm test         # run the Vitest suite
+npm run lint     # Biome check (lint + format)
+npm run format   # Biome check --write (autofix)
+npm run build    # production build into dist/
+```
+
+PRs to `main` must pass both the test and lint jobs (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)) before they can be merged.
