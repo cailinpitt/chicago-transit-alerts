@@ -41,9 +41,21 @@ function InfoPopover({ children, label = 'What does this mean?' }) {
 }
 
 const BOTS = [
-  { label: 'CTA Alert Insights', emoji: '⚠️', href: 'https://bsky.app/profile/ctaalertinsights.bsky.social' },
-  { label: 'CTA Train Insights', emoji: '🚇', href: 'https://bsky.app/profile/ctatraininsights.bsky.social' },
-  { label: 'CTA Bus Insights', emoji: '🚌', href: 'https://bsky.app/profile/ctabusinsights.bsky.social' },
+  {
+    label: 'CTA Alert Insights',
+    emoji: '⚠️',
+    href: 'https://bsky.app/profile/ctaalertinsights.bsky.social',
+  },
+  {
+    label: 'CTA Train Insights',
+    emoji: '🚇',
+    href: 'https://bsky.app/profile/ctatraininsights.bsky.social',
+  },
+  {
+    label: 'CTA Bus Insights',
+    emoji: '🚌',
+    href: 'https://bsky.app/profile/ctabusinsights.bsky.social',
+  },
 ];
 
 export default function Header({ generatedAt, dark, onToggleDark, onResetFilters }) {
@@ -73,7 +85,9 @@ export default function Header({ generatedAt, dark, onToggleDark, onResetFilters
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
             Major CTA alerts and service observations &middot;{' '}
-            <span className="text-xs">Unofficial, not affiliated with the Chicago Transit Authority</span>
+            <span className="text-xs">
+              Unofficial, not affiliated with the Chicago Transit Authority
+            </span>
           </p>
           <div className="flex flex-wrap items-center gap-1.5 mt-2">
             <span className="text-xs text-slate-400 dark:text-slate-500 mr-1">Bluesky bots</span>
@@ -100,6 +114,7 @@ export default function Header({ generatedAt, dark, onToggleDark, onResetFilters
         </div>
         <div className="flex items-center gap-3 pt-1 flex-shrink-0">
           <button
+            type="button"
             onClick={onToggleDark}
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
             aria-label="Toggle dark mode"

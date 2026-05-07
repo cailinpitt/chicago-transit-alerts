@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import Timeline from '../components/Timeline.jsx';
 
 const noop = () => {};
@@ -7,7 +7,13 @@ const noop = () => {};
 describe('Timeline', () => {
   it('renders a row for each train line', () => {
     render(
-      <Timeline alerts={[]} observations={[]} selectedLines={null} numDays={30} onLineClick={noop} />,
+      <Timeline
+        alerts={[]}
+        observations={[]}
+        selectedLines={null}
+        numDays={30}
+        onLineClick={noop}
+      />,
     );
     expect(screen.getByText('Red')).toBeInTheDocument();
     expect(screen.getByText('Yellow')).toBeInTheDocument();
@@ -39,7 +45,13 @@ describe('Timeline', () => {
     const { default: userEvent } = await import('@testing-library/user-event');
     const onLineClick = vi.fn();
     render(
-      <Timeline alerts={[]} observations={[]} selectedLines={null} numDays={30} onLineClick={onLineClick} />,
+      <Timeline
+        alerts={[]}
+        observations={[]}
+        selectedLines={null}
+        numDays={30}
+        onLineClick={onLineClick}
+      />,
     );
     await userEvent.click(screen.getByText('Red'));
     expect(onLineClick).toHaveBeenCalledWith('red');
@@ -47,7 +59,13 @@ describe('Timeline', () => {
 
   it('renders the correct number of day columns', () => {
     render(
-      <Timeline alerts={[]} observations={[]} selectedLines={null} numDays={7} onLineClick={noop} />,
+      <Timeline
+        alerts={[]}
+        observations={[]}
+        selectedLines={null}
+        numDays={7}
+        onLineClick={noop}
+      />,
     );
     // Each row has numDays cells; check one row (Red line)
     const redRow = screen.getByText('Red').closest('tr');

@@ -121,7 +121,11 @@ export function buildBusIncidentsByDay(alerts, observations, numDays = 90, now =
 // start timestamp. Active incidents bypass the timestamp filter so they always
 // appear. Bus observations are controlled independently of the train line
 // filter — selecting Red Line doesn't hide bus observations when showBus=true.
-export function filterIncidents(alerts, observations, { lines, startTs, showBus = true, busRoutes = null } = {}) {
+export function filterIncidents(
+  alerts,
+  observations,
+  { lines, startTs, showBus = true, busRoutes = null } = {},
+) {
   const hasLineFilter = lines !== null && lines !== undefined;
   const hasBusRouteFilter = busRoutes && busRoutes.length > 0;
 
@@ -166,8 +170,7 @@ export function mergeMatchingIncidents(alerts, observations) {
       if (usedObsIds.has(obs.id)) continue;
       if (!alert.routes.includes(obs.line)) continue;
 
-      const inWindow =
-        obs.ts >= alert.first_seen_ts - BUFFER_MS && obs.ts <= alertEnd;
+      const inWindow = obs.ts >= alert.first_seen_ts - BUFFER_MS && obs.ts <= alertEnd;
 
       if (inWindow) {
         merged.push({
@@ -214,9 +217,24 @@ export function computeSummaryStats(alerts, observations, now = Date.now()) {
   const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
 
   const incidents = [
-    ...merged.map((m) => ({ ts: m.first_seen_ts, kind: m.kind, lines: m.routes, active: m.active })),
-    ...standaloneAlerts.map((a) => ({ ts: a.first_seen_ts, kind: a.kind, lines: a.routes, active: a.active })),
-    ...standaloneObs.map((o) => ({ ts: o.first_seen_ts || o.ts, kind: o.kind, lines: [o.line], active: o.active })),
+    ...merged.map((m) => ({
+      ts: m.first_seen_ts,
+      kind: m.kind,
+      lines: m.routes,
+      active: m.active,
+    })),
+    ...standaloneAlerts.map((a) => ({
+      ts: a.first_seen_ts,
+      kind: a.kind,
+      lines: a.routes,
+      active: a.active,
+    })),
+    ...standaloneObs.map((o) => ({
+      ts: o.first_seen_ts || o.ts,
+      kind: o.kind,
+      lines: [o.line],
+      active: o.active,
+    })),
   ];
 
   const activeCount = incidents.filter((i) => i.active).length;

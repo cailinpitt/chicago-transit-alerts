@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  formatDuration,
-  filterIncidents,
-  mergeMatchingIncidents,
   buildIncidentsByDay,
   computeSummaryStats,
+  filterIncidents,
+  formatDuration,
+  mergeMatchingIncidents,
 } from '../lib/dataUtils.js';
 
 // ---------------------------------------------------------------------------
@@ -221,8 +221,18 @@ describe('buildIncidentsByDay', () => {
   it('counts a matching alert+observation as one incident (no double-counting)', () => {
     // Alert and obs are close in time — they will be merged into a single incident.
     const base = NOW - 2 * DAY;
-    const alert = { kind: 'train', routes: ['g'], first_seen_ts: base, resolved_ts: base + 30 * 60_000 };
-    const obs = { kind: 'train', line: 'g', ts: base + 60 * 60_000, resolved_ts: base + 90 * 60_000 };
+    const alert = {
+      kind: 'train',
+      routes: ['g'],
+      first_seen_ts: base,
+      resolved_ts: base + 30 * 60_000,
+    };
+    const obs = {
+      kind: 'train',
+      line: 'g',
+      ts: base + 60 * 60_000,
+      resolved_ts: base + 90 * 60_000,
+    };
     const result = buildIncidentsByDay([alert], [obs], 7, NOW);
     expect(result.g[2]).toBe(1);
   });
@@ -230,8 +240,18 @@ describe('buildIncidentsByDay', () => {
   it('counts two distinct non-overlapping incidents separately', () => {
     // Two alerts on the same line, both within the same Chicago calendar day.
     const base = NOW - 2 * DAY;
-    const alert1 = { kind: 'train', routes: ['g'], first_seen_ts: base, resolved_ts: base + 30 * 60_000 };
-    const alert2 = { kind: 'train', routes: ['g'], first_seen_ts: base + 60 * 60_000, resolved_ts: base + 90 * 60_000 };
+    const alert1 = {
+      kind: 'train',
+      routes: ['g'],
+      first_seen_ts: base,
+      resolved_ts: base + 30 * 60_000,
+    };
+    const alert2 = {
+      kind: 'train',
+      routes: ['g'],
+      first_seen_ts: base + 60 * 60_000,
+      resolved_ts: base + 90 * 60_000,
+    };
     const result = buildIncidentsByDay([alert1, alert2], [], 7, NOW);
     expect(result.g[2]).toBe(2);
   });

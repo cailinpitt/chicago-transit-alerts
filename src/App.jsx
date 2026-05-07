@@ -1,14 +1,14 @@
-import { useState, useEffect, useMemo } from 'react';
-import Header from './components/Header.jsx';
-import Footer from './components/Footer.jsx';
+import { useEffect, useMemo, useState } from 'react';
 import ActiveAlerts from './components/ActiveAlerts.jsx';
 import Filters from './components/Filters.jsx';
+import Footer from './components/Footer.jsx';
+import Header from './components/Header.jsx';
+import IncidentList from './components/IncidentList.jsx';
 import SummaryStats from './components/SummaryStats.jsx';
 import Timeline from './components/Timeline.jsx';
-import IncidentList from './components/IncidentList.jsx';
-import { computeSummaryStats, filterIncidents } from './lib/dataUtils.js';
-import { parseUrlState, buildSearch } from './lib/urlState.js';
 import { useDarkMode } from './hooks/useDarkMode.js';
+import { computeSummaryStats, filterIncidents } from './lib/dataUtils.js';
+import { buildSearch, parseUrlState } from './lib/urlState.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -69,7 +69,10 @@ export default function App() {
         })
         .catch((err) => {
           // Only surface fetch errors on the initial load.
-          setData((prev) => { if (!prev) setError(err); return prev; });
+          setData((prev) => {
+            if (!prev) setError(err);
+            return prev;
+          });
         });
     }
 
@@ -170,7 +173,7 @@ export default function App() {
               dataStartTs={data.data_start_ts ?? null}
               onLineClick={(line) =>
                 handleLinesChange((prev) =>
-                  prev !== null && prev.includes(line) ? prev.filter((l) => l !== line) : [line],
+                  prev?.includes(line) ? prev.filter((l) => l !== line) : [line],
                 )
               }
               showBus={showBus}
