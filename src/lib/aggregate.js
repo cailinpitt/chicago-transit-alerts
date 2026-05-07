@@ -93,10 +93,20 @@ export function buildBusIncidentsByDay(alerts, observations, numDays = 90, now =
     }
   }
 
-  for (const a of alerts.filter((a) => a.kind === 'bus')) {
+  // Merge to avoid double-counting bus incidents that have both a CTA alert
+  // and a matching bot observation on the same route.
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+    alerts.filter((a) => a.kind === 'bus'),
+    observations.filter((o) => o.kind === 'bus'),
+  );
+
+  for (const m of merged) {
+    for (const route of m.routes) addSpan(route, m.first_seen_ts, m.resolved_ts);
+  }
+  for (const a of standaloneAlerts) {
     for (const route of a.routes) addSpan(route, a.first_seen_ts, a.resolved_ts);
   }
-  for (const o of observations.filter((o) => o.kind === 'bus')) {
+  for (const o of standaloneObs) {
     addSpan(o.line, o.ts, o.resolved_ts);
   }
 

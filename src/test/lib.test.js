@@ -162,10 +162,25 @@ describe('mergeMatchingIncidents', () => {
     expect(merged).toHaveLength(0);
   });
 
-  it('does not merge bus alerts', () => {
+  it('merges bus alert and observation on the same route', () => {
     const busAlert = makeAlertForMerge({ kind: 'bus', routes: ['66'] });
     const busObs = makeObsForMerge({ kind: 'bus', line: '66' });
-    const { merged } = mergeMatchingIncidents([busAlert], [busObs]);
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      [busAlert],
+      [busObs],
+    );
+    expect(merged).toHaveLength(1);
+    expect(standaloneAlerts).toHaveLength(0);
+    expect(standaloneObs).toHaveLength(0);
+    expect(merged[0].routes).toEqual(['66']);
+  });
+
+  it('does not merge across kinds (train alert with bus obs of same key)', () => {
+    // Defensive: route/line key spaces are disjoint in practice, but a stray
+    // collision shouldn't merge a train alert with a bus observation.
+    const alert = makeAlertForMerge({ kind: 'train', routes: ['1'] });
+    const obs = makeObsForMerge({ kind: 'bus', line: '1' });
+    const { merged } = mergeMatchingIncidents([alert], [obs]);
     expect(merged).toHaveLength(0);
   });
 

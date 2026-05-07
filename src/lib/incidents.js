@@ -98,11 +98,11 @@ export function mergeMatchingIncidents(alerts, observations) {
   const merged = [];
 
   for (const alert of alerts) {
-    if (alert.kind !== 'train') continue;
     const alertEnd = (alert.resolved_ts || alert.last_seen_ts || Infinity) + BUFFER_MS;
 
     for (const obs of observations) {
       if (usedObsIds.has(obs.id)) continue;
+      if (alert.kind !== obs.kind) continue;
       if (!alert.routes.includes(obs.line)) continue;
 
       const inWindow = obs.ts >= alert.first_seen_ts - BUFFER_MS && obs.ts <= alertEnd;
