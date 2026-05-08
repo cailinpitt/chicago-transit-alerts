@@ -37,11 +37,15 @@ function trendLabel(ratio, band) {
   return `${pct}% ${band === 'up' ? 'higher' : 'lower'} vs prior 7 days`;
 }
 
-export default function TrendSparkline({ alerts, observations }) {
-  const { avg, trendRatio, recent7Avg, prior7Avg } = useMemo(
-    () => buildDailyTrend(alerts, observations),
-    [alerts, observations],
+export default function TrendSparkline({ alerts, observations, trend }) {
+  // Accept a precomputed trend from the parent (SummaryStats lifts the
+  // computation so the WoW callout sentence and the sparkline share a single
+  // source of truth) but stay independently usable when no parent provides it.
+  const computed = useMemo(
+    () => (trend ? null : buildDailyTrend(alerts, observations)),
+    [alerts, observations, trend],
   );
+  const { avg, trendRatio, recent7Avg, prior7Avg } = trend ?? computed;
 
   // No incidents anywhere in the window → render nothing rather than a flat
   // line at zero, which reads as "broken" more than "great".
