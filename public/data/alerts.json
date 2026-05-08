@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778252161984,
+  "generated_at": 1778253242463,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -76,6 +76,63 @@
     }
   ],
   "observations": [
+    {
+      "id": 21,
+      "kind": "bus",
+      "line": "36",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost"
+      ],
+      "evidence": null,
+      "ts": 1778252942295,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldz5jkmp42c",
+      "resolved_post_url": null
+    },
+    {
+      "id": 22,
+      "kind": "bus",
+      "line": "147",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost"
+      ],
+      "evidence": null,
+      "ts": 1778252942295,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldz5laso72u",
+      "resolved_post_url": null
+    },
+    {
+      "id": 23,
+      "kind": "bus",
+      "line": "151",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost"
+      ],
+      "evidence": null,
+      "ts": 1778252942295,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldz5lc47e2s",
+      "resolved_post_url": null
+    },
     {
       "id": 20,
       "kind": "bus",
