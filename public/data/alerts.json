@@ -1,7 +1,119 @@
 {
-  "generated_at": 1778255762266,
+  "generated_at": 1778256422718,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114783",
+      "kind": "bus",
+      "routes": [
+        "84"
+      ],
+      "headline": "#84 Peterson Temporary Reroute near Bryn Mawr/Sheridan",
+      "first_seen_ts": 1778256175167,
+      "last_seen_ts": 1778256175931,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle45urayb2c",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114749",
+      "kind": "bus",
+      "routes": [
+        "3",
+        "4",
+        "7",
+        "J14",
+        "26",
+        "28",
+        "126",
+        "143",
+        "146",
+        "147",
+        "1",
+        "X4"
+      ],
+      "headline": "Temporary Reroute",
+      "first_seen_ts": 1778256173881,
+      "last_seen_ts": 1778256173929,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle45t5sbk2h",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114743",
+      "kind": "bus",
+      "routes": [
+        "136",
+        "147",
+        "151"
+      ],
+      "headline": "Temporary Reroute",
+      "first_seen_ts": 1778256173158,
+      "last_seen_ts": 1778256173880,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle45ss5sn2s",
+      "resolved_reply_url": null,
+      "affected_from_station": "Devon/Sheridan-Broadway",
+      "affected_to_station": "Foster/Sheridan",
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114529",
+      "kind": "bus",
+      "routes": [
+        "53",
+        "53A",
+        "62"
+      ],
+      "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
+      "first_seen_ts": 1778256171425,
+      "last_seen_ts": 1778256171554,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle45qvexh2h",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
+    {
+      "alert_id": "114213",
+      "kind": "bus",
+      "routes": [
+        "2",
+        "6",
+        "10",
+        "29",
+        "36",
+        "62",
+        "146",
+        "148"
+      ],
+      "headline": "Temporary Reroute",
+      "first_seen_ts": 1778256171035,
+      "last_seen_ts": 1778256171387,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle45qq3x22h",
+      "resolved_reply_url": null,
+      "affected_from_station": "Wacker",
+      "affected_to_station": "Randolph",
+      "affected_direction": "south"
+    },
     {
       "alert_id": "114735",
       "kind": "train",
