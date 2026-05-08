@@ -3,4 +3,5 @@
 node_modules/
 dist/
 .og-cache/
+.og-cache-pages/
 cron/*.log

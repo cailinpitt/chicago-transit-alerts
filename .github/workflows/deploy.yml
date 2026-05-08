@@ -55,7 +55,9 @@ jobs:
       - name: Restore OG image cache
         uses: actions/cache@v4
         with:
-          path: .og-cache
+          path: |
+            .og-cache
+            .og-cache-pages
           key: og-cache-${{ github.run_id }}
           restore-keys: |
             og-cache-

@@ -1,0 +1,356 @@
+// Prerender per-page HTML stubs and OG images for /line/:id, /route/:id, and
+// /station/:slug so social media crawlers get page-specific cards instead of
+// the generic homepage one. Same pattern as prerender-events.js: emit an
+// HTML stub at <route>/index.html with rewritten OG meta, plus og.png next
+// to it. PNGs are signature-cached so unchanged pages skip Playwright.
+//
+// Scope (intentionally bounded — generating 150+ bus routes when only a few
+// are ever shared would be wasteful):
+//   - All 8 train lines (stable set, always rendered)
+//   - Bus routes that appear in alerts/observations within the 90-day window
+//   - Stations from buildStationIndex (already filtered to >=1 incident)
+//
+// Anything outside the scope falls back to the generic homepage OG card,
+// which the SPA shell at the unknown route serves by default.
+
+import { createHash } from 'node:crypto';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { chromium } from 'playwright';
+import { BUS_ROUTE_NAMES } from '../src/lib/busRoutes.js';
+import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
+import { normalizeAlertsPayload } from '../src/lib/incidents.js';
+import { buildStationIndex } from '../src/lib/stations.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(__dirname, '..');
+const DIST = resolve(ROOT, 'dist');
+const DATA = resolve(DIST, 'data', 'alerts.json');
+const SHELL = resolve(DIST, 'index.html');
+const LINE_TPL = resolve(__dirname, 'og-line-template.html');
+const STATION_TPL = resolve(__dirname, 'og-station-template.html');
+const CACHE = resolve(ROOT, '.og-cache-pages');
+const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY ?? 6);
+
+const SITE = 'https://chicagotransitalerts.app';
+const BUS_ACCENT = { color: '#475569', soft: 'rgba(71, 85, 105, 0.18)', text: '#fff' };
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WINDOW_DAYS = 90;
+
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function softColor(hex, alpha = 0.18) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return `rgba(148, 163, 184, ${alpha})`;
+  const n = parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+// Build the list of line/route/station "pages" to render. Each item carries
+// everything the renderer needs: a stable slug for the cache key and output
+// path, the raw input fields, and the kind so we pick the right template.
+function planPages(payload) {
+  const now = Date.now();
+  const cutoff = now - WINDOW_DAYS * DAY_MS;
+  const pages = [];
+
+  // Train lines: always all of them — small stable set, deserves full coverage.
+  for (const lineId of TRAIN_LINE_ORDER) {
+    const info = TRAIN_LINES[lineId];
+    if (!info) continue;
+    pages.push({
+      kind: 'line',
+      slug: `line-${lineId}`,
+      outDir: resolve(DIST, 'line', lineId),
+      url: `${SITE}/line/${lineId}`,
+      path: `/line/${lineId}`,
+      label: `${info.label} Line`,
+      // Train pill already says "Red Line"; an additional headline would
+      // be redundant. Leave the title empty so the template hides it.
+      title: '',
+      ogTitle: `${info.label} Line · CTA Alert History`,
+      desc: `Service alerts and bot-detected disruptions on the ${info.label} Line — archived on chicagotransitalerts.app.`,
+      subtitle: 'Service alerts and bot-detected disruptions, archived.',
+      accent: { color: info.color, soft: softColor(info.color, 0.22), text: info.textColor },
+    });
+  }
+
+  // Bus routes with at least one incident in the window. Sorted leading-numeric
+  // for deterministic build output (helps caching when nothing's changed).
+  const busRoutes = new Set();
+  for (const o of payload.observations || []) {
+    if (o.kind === 'bus' && o.line && o.ts >= cutoff) busRoutes.add(o.line);
+  }
+  for (const a of payload.alerts || []) {
+    if (a.kind !== 'bus' || a.first_seen_ts < cutoff) continue;
+    for (const r of a.routes || []) busRoutes.add(r);
+  }
+  for (const route of [...busRoutes].sort()) {
+    const name = BUS_ROUTE_NAMES[route] ?? BUS_ROUTE_NAMES[String(route)];
+    // Pill stays compact ("#10") so it doesn't overflow with long CTA route
+    // names like "Obama Presidential Center/Museum of Science & Industry".
+    // The full name lives in the title slot underneath, where it can wrap
+    // and clamp gracefully.
+    const ogLabel = name ? `#${route} ${name}` : `#${route}`;
+    pages.push({
+      kind: 'route',
+      slug: `route-${route}`,
+      outDir: resolve(DIST, 'route', String(route)),
+      url: `${SITE}/route/${route}`,
+      path: `/route/${route}`,
+      label: `#${route}`,
+      title: name ?? '',
+      ogTitle: `${ogLabel} · CTA Alert History`,
+      desc: `Service alerts and bot-detected disruptions on the ${ogLabel} bus route — archived on chicagotransitalerts.app.`,
+      subtitle: 'Service alerts and bot-detected disruptions, archived.',
+      accent: BUS_ACCENT,
+    });
+  }
+
+  // Stations from the index (already filtered to >=1 incident in 90d).
+  const stationIndex = buildStationIndex(payload.alerts, payload.observations, {
+    now,
+    windowDays: WINDOW_DAYS,
+  });
+  for (const [slug, rec] of [...stationIndex].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const linePills = rec.lines
+      .map((line) => {
+        const info = TRAIN_LINES[line];
+        if (!info) return null;
+        return `<span class="line-pill" style="background:${info.color};color:${info.textColor}">${escHtml(info.label)}</span>`;
+      })
+      .filter(Boolean)
+      .join('');
+    pages.push({
+      kind: 'station',
+      slug: `station-${slug}`,
+      outDir: resolve(DIST, 'station', slug),
+      url: `${SITE}/station/${slug}`,
+      path: `/station/${slug}`,
+      stationName: rec.name,
+      linePills,
+      ogTitle: `${rec.name} · CTA Alert History`,
+      desc: `Service alerts and bot-detected disruptions at ${rec.name} — archived on chicagotransitalerts.app.`,
+      subtitle: `Train station · ${rec.count} incident${rec.count === 1 ? '' : 's'} on record (90d)`,
+    });
+  }
+
+  return pages;
+}
+
+function buildHtmlStub(shell, page) {
+  const image = `${page.url}/og.png`;
+  const ogTitle = page.ogTitle.slice(0, 200);
+  const desc = page.desc.slice(0, 280);
+  return shell
+    .replace(/<title>[^<]*<\/title>/, `<title>${escHtml(ogTitle)}</title>`)
+    .replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${escAttr(page.url)}" />`)
+    .replace(
+      /<meta name="description"[^>]*>/,
+      `<meta name="description" content="${escAttr(desc)}" />`,
+    )
+    .replace(
+      /<meta property="og:title"[^>]*>/,
+      `<meta property="og:title" content="${escAttr(ogTitle)}" />`,
+    )
+    .replace(
+      /<meta property="og:description"[^>]*>/,
+      `<meta property="og:description" content="${escAttr(desc)}" />`,
+    )
+    .replace(
+      /<meta property="og:url"[^>]*>/,
+      `<meta property="og:url" content="${escAttr(page.url)}" />`,
+    )
+    .replace(
+      /<meta property="og:image"[^>]*>/g,
+      `<meta property="og:image" content="${escAttr(image)}" />`,
+    )
+    .replace(
+      /<meta property="og:image:alt"[^>]*>/,
+      `<meta property="og:image:alt" content="${escAttr(ogTitle)}" />`,
+    )
+    .replace(
+      /<meta name="twitter:title"[^>]*>/,
+      `<meta name="twitter:title" content="${escAttr(ogTitle)}" />`,
+    )
+    .replace(
+      /<meta name="twitter:description"[^>]*>/,
+      `<meta name="twitter:description" content="${escAttr(desc)}" />`,
+    )
+    .replace(
+      /<meta name="twitter:image"[^>]*>/g,
+      `<meta name="twitter:image" content="${escAttr(image)}" />`,
+    )
+    .replace(
+      /<meta name="twitter:image:alt"[^>]*>/,
+      `<meta name="twitter:image:alt" content="${escAttr(ogTitle)}" />`,
+    );
+}
+
+function fillLineTemplate(tpl, page) {
+  return tpl
+    .replaceAll('__ACCENT__', page.accent.color)
+    .replaceAll('__ACCENT_SOFT__', page.accent.soft)
+    .replaceAll('__ACCENT_TEXT__', page.accent.text)
+    .replaceAll('__LABEL__', escHtml(page.label))
+    .replaceAll('__TITLE__', escHtml(page.title ?? ''))
+    .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
+    .replaceAll('__PATH__', escHtml(page.path));
+}
+
+function fillStationTemplate(tpl, page) {
+  return tpl
+    .replaceAll('__STATION_NAME__', escHtml(page.stationName))
+    .replaceAll('__LINE_PILLS__', page.linePills)
+    .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
+    .replaceAll('__PATH__', escHtml(page.path));
+}
+
+function signatureFor(page, templateHash) {
+  const h = createHash('sha256');
+  // Hash the fields that actually affect the rendered PNG; keep the URL out
+  // so identical content under a renamed slug would still cache-hit (it
+  // won't happen in practice, but principle: PNG content depends on visual
+  // fields only).
+  const payload =
+    page.kind === 'station'
+      ? { kind: 'station', name: page.stationName, pills: page.linePills, sub: page.subtitle }
+      : {
+          kind: page.kind,
+          label: page.label,
+          title: page.title ?? '',
+          accent: page.accent,
+          sub: page.subtitle,
+        };
+  h.update(JSON.stringify({ ...payload, templateHash }));
+  return h.digest('hex');
+}
+
+async function renderPng(page, html, outPath) {
+  await page.setContent(html, { waitUntil: 'load' });
+  await page.screenshot({
+    path: outPath,
+    type: 'png',
+    clip: { x: 0, y: 0, width: 1200, height: 630 },
+  });
+}
+
+async function workerPool(items, size, worker) {
+  const queue = items.slice();
+  const runners = Array.from({ length: Math.min(size, queue.length) }, async () => {
+    while (queue.length) {
+      const item = queue.shift();
+      if (!item) return;
+      await worker(item);
+    }
+  });
+  await Promise.all(runners);
+}
+
+async function main() {
+  if (!existsSync(DATA)) {
+    console.warn(`prerender-pages: ${DATA} missing — skipping`);
+    return;
+  }
+  const payload = normalizeAlertsPayload(JSON.parse(readFileSync(DATA, 'utf8')));
+  const shell = readFileSync(SHELL, 'utf8');
+  const lineTpl = readFileSync(LINE_TPL, 'utf8');
+  const stationTpl = readFileSync(STATION_TPL, 'utf8');
+  const lineHash = createHash('sha256').update(lineTpl).digest('hex').slice(0, 16);
+  const stationHash = createHash('sha256').update(stationTpl).digest('hex').slice(0, 16);
+
+  const pages = planPages(payload);
+  if (pages.length === 0) {
+    console.log('prerender-pages: nothing to render');
+    return;
+  }
+
+  mkdirSync(CACHE, { recursive: true });
+
+  const renders = [];
+  const seenSlugs = new Set();
+  for (const page of pages) {
+    seenSlugs.add(page.slug);
+    const tplHash = page.kind === 'station' ? stationHash : lineHash;
+    const sig = signatureFor(page, tplHash);
+
+    mkdirSync(page.outDir, { recursive: true });
+    writeFileSync(resolve(page.outDir, 'index.html'), buildHtmlStub(shell, page));
+
+    const cacheDir = resolve(CACHE, page.slug);
+    const cachedPng = resolve(cacheDir, 'og.png');
+    const cachedSig = resolve(cacheDir, 'sig');
+    const sigMatches =
+      existsSync(cachedPng) && existsSync(cachedSig) && readFileSync(cachedSig, 'utf8') === sig;
+
+    if (sigMatches) {
+      copyFileSync(cachedPng, resolve(page.outDir, 'og.png'));
+      continue;
+    }
+
+    const html =
+      page.kind === 'station'
+        ? fillStationTemplate(stationTpl, page)
+        : fillLineTemplate(lineTpl, page);
+    renders.push({ page, html, cacheDir, cachedPng, cachedSig, sig });
+  }
+
+  let rendered = 0;
+  const cached = pages.length - renders.length;
+
+  if (renders.length > 0) {
+    const browser = await chromium.launch();
+    const ctx = await browser.newContext({
+      viewport: { width: 1200, height: 630 },
+      deviceScaleFactor: 1,
+    });
+    const playwrightPages = await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, renders.length) }, () => ctx.newPage()),
+    );
+    let i = 0;
+    await workerPool(renders, playwrightPages.length, async (item) => {
+      const pw = playwrightPages[i++ % playwrightPages.length];
+      const out = resolve(item.page.outDir, 'og.png');
+      await renderPng(pw, item.html, out);
+      mkdirSync(item.cacheDir, { recursive: true });
+      copyFileSync(out, item.cachedPng);
+      writeFileSync(item.cachedSig, item.sig);
+      rendered++;
+    });
+    await browser.close();
+  }
+
+  // Sweep stale cache entries (e.g. a bus route or station that aged out of
+  // the 90-day window since the last build).
+  let pruned = 0;
+  for (const entry of readdirSync(CACHE)) {
+    if (!seenSlugs.has(entry)) {
+      rmSync(resolve(CACHE, entry), { recursive: true, force: true });
+      pruned++;
+    }
+  }
+
+  console.log(
+    `prerender-pages: ${rendered} rendered, ${cached} cache-hit, ${pruned} pruned (concurrency=${CONCURRENCY})`,
+  );
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
