@@ -23,7 +23,7 @@ const DATA = resolve(ROOT, 'dist', 'data', 'alerts.json');
 const OUT = resolve(ROOT, 'dist', 'feed.xml');
 
 const SITE = 'https://chicagotransitalerts.app';
-const FEED_ID = 'tag:chicagotransitalerts.app,2024:feed';
+const FEED_ID = 'tag:chicagotransitalerts.app,2026:feed';
 const ENTRY_LIMIT = 50;
 
 function escapeXml(s) {
@@ -57,9 +57,9 @@ function routesFor(incident) {
 
 function entryId(incident) {
   const rkey = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url);
-  if (rkey) return `tag:chicagotransitalerts.app,2024:event/${rkey}`;
+  if (rkey) return `tag:chicagotransitalerts.app,2026:event/${rkey}`;
   // Fallback for records without a Bluesky post (shouldn't happen in practice).
-  return `tag:chicagotransitalerts.app,2024:${incident.alert_id ?? `obs-${incident.id}`}`;
+  return `tag:chicagotransitalerts.app,2026:${incident.alert_id ?? `obs-${incident.id}`}`;
 }
 
 function entryLink(incident) {
