@@ -96,6 +96,14 @@ function IncidentRow({ incident }) {
               Bot detection →
             </a>
           )}
+          {getEventId(incident) && (
+            <a
+              href={`/event/${getEventId(incident)}`}
+              className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
+            >
+              Details →
+            </a>
+          )}
           <ShareLink eventId={getEventId(incident)} />
         </div>
       </div>

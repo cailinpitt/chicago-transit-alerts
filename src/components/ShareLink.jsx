@@ -1,10 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 
-export default function ShareLink({ eventId }) {
+export default function ShareLink({ eventId, title }) {
   const [copied, setCopied] = useState(false);
+  // Pick the label after mount so SSR/initial-render is consistent and we
+  // don't hydrate with the wrong text. `null` means "haven't checked yet" —
+  // render the desktop label as a safe default until then.
+  const [canShare, setCanShare] = useState(false);
   const timerRef = useRef(null);
 
-  useEffect(() => () => clearTimeout(timerRef.current), []);
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      setCanShare(true);
+    }
+    return () => clearTimeout(timerRef.current);
+  }, []);
 
   if (!eventId) return null;
 
@@ -12,6 +21,19 @@ export default function ShareLink({ eventId }) {
 
   async function handleClick(e) {
     e.preventDefault();
+    // Prefer the OS share sheet on devices that have one (mobile, iPadOS).
+    // Falls through to clipboard on desktop browsers without navigator.share.
+    if (canShare) {
+      try {
+        await navigator.share({ url, title: title || 'CTA Alert History' });
+        return;
+      } catch (err) {
+        // User canceled the share sheet — don't fall through to clipboard.
+        if (err && err.name === 'AbortError') return;
+        // Any other error: fall through to clipboard so the user still gets
+        // the link.
+      }
+    }
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -22,13 +44,15 @@ export default function ShareLink({ eventId }) {
     }
   }
 
+  const label = copied ? 'Copied!' : canShare ? 'Share 🔗' : 'Copy link 🔗';
+
   return (
     <a
       href={`/event/${eventId}`}
       onClick={handleClick}
       className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
     >
-      {copied ? 'Copied!' : 'Share 🔗'}
+      {label}
     </a>
   );
 }

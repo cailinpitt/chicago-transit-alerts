@@ -165,6 +165,76 @@ export function findIncidentById(alerts, observations, id) {
   return null;
 }
 
+// Routes (or single line) an incident affects. Alerts/merged records carry a
+// plural `routes`; standalone observations carry a singular `line`. Bus
+// observations use bus route numbers; train observations use line keys.
+function incidentRoutes(incident) {
+  if (!incident) return [];
+  if (Array.isArray(incident.routes) && incident.routes.length > 0) return incident.routes;
+  if (incident.line) return [incident.line];
+  return [];
+}
+
+// Find incidents on the same line(s) within ±windowMs of the given incident,
+// excluding the incident itself. Used by the event detail page to show
+// surrounding context — was this disruption isolated, or part of a cluster of
+// problems on the same line?
+/**
+ * @param {object} incident
+ * @param {Alert[]} alerts
+ * @param {Observation[]} observations
+ * @param {number} [windowMs] Time window before/after; defaults to 24h.
+ * @returns {Array<MergedIncident | Alert | Observation>} Sorted newest-first, excluding self.
+ */
+export function findRelatedIncidents(
+  incident,
+  alerts,
+  observations,
+  windowMs = 24 * 60 * 60 * 1000,
+) {
+  if (!incident) return [];
+  const routes = new Set(incidentRoutes(incident));
+  if (routes.size === 0) return [];
+  const kind = incident.kind;
+  const ts = incident.first_seen_ts ?? incident.ts;
+  if (ts == null) return [];
+  const lo = ts - windowMs;
+  const hi = ts + windowMs;
+  const selfId = postUrlRkey(incident.post_url);
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  const overlapsRoute = (other) => {
+    if (other.kind !== kind) return false;
+    return incidentRoutes(other).some((r) => routes.has(r));
+  };
+  const inWindow = (other) => {
+    const t = other.first_seen_ts ?? other.ts;
+    return t != null && t >= lo && t <= hi;
+  };
+  const isSelf = (other) => {
+    const id = postUrlRkey(other.post_url);
+    return id != null && id === selfId;
+  };
+
+  const out = [];
+  for (const m of merged) {
+    if (!overlapsRoute(m) || !inWindow(m) || isSelf(m)) continue;
+    out.push(m);
+  }
+  for (const a of standaloneAlerts) {
+    if (!overlapsRoute(a) || !inWindow(a) || isSelf(a)) continue;
+    out.push(a);
+  }
+  for (const o of standaloneObs) {
+    if (!overlapsRoute(o) || !inWindow(o) || isSelf(o)) continue;
+    out.push(o);
+  }
+
+  out.sort((a, b) => (b.first_seen_ts ?? b.ts) - (a.first_seen_ts ?? a.ts));
+  return out;
+}
+
 // Merge bot observations into their matching official CTA alerts when they
 // share the same line and overlapping time window. Returns:
 //   merged           — combined alert+observation records

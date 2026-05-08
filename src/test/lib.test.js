@@ -6,7 +6,12 @@ import {
   computeSummaryStats,
 } from '../lib/aggregate.js';
 import { formatDuration } from '../lib/format.js';
-import { filterIncidents, mergeMatchingIncidents, observationSignals } from '../lib/incidents.js';
+import {
+  filterIncidents,
+  findRelatedIncidents,
+  mergeMatchingIncidents,
+  observationSignals,
+} from '../lib/incidents.js';
 
 // ---------------------------------------------------------------------------
 // formatDuration
@@ -465,5 +470,75 @@ describe('buildSignalsByLine', () => {
       makeObs({ id: 2, kind: 'train', line: 'red', detection_source: 'gap' }),
     ];
     expect(buildSignalsByLine(obs).totals.gap).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// findRelatedIncidents
+// ---------------------------------------------------------------------------
+describe('findRelatedIncidents', () => {
+  const baseAlert = makeAlert({
+    alert_id: 'A1',
+    routes: ['red'],
+    first_seen_ts: NOW,
+    post_url: 'https://bsky.app/profile/x/post/self',
+  });
+
+  it('returns incidents on the same line within the window', () => {
+    const before = makeAlert({
+      alert_id: 'A2',
+      routes: ['red'],
+      first_seen_ts: NOW - 6 * 60 * 60_000,
+      post_url: 'https://bsky.app/profile/x/post/before',
+    });
+    const after = makeObs({
+      id: 99,
+      line: 'red',
+      ts: NOW + 12 * 60 * 60_000,
+      post_url: 'https://bsky.app/profile/x/post/after',
+    });
+    const r = findRelatedIncidents(baseAlert, [baseAlert, before], [after]);
+    expect(r).toHaveLength(2);
+    expect(r[0].post_url).toBe(after.post_url);
+    expect(r[1].alert_id).toBe(before.alert_id);
+  });
+
+  it('excludes the incident itself by post_url', () => {
+    const r = findRelatedIncidents(baseAlert, [baseAlert], []);
+    expect(r).toHaveLength(0);
+  });
+
+  it('drops incidents on different lines', () => {
+    const otherLine = makeAlert({
+      alert_id: 'A3',
+      routes: ['blue'],
+      first_seen_ts: NOW - 60_000,
+      post_url: 'https://bsky.app/profile/x/post/blue',
+    });
+    const r = findRelatedIncidents(baseAlert, [baseAlert, otherLine], []);
+    expect(r).toHaveLength(0);
+  });
+
+  it('drops incidents outside the ±24h default window', () => {
+    const old = makeAlert({
+      alert_id: 'A4',
+      routes: ['red'],
+      first_seen_ts: NOW - 26 * 60 * 60_000,
+      post_url: 'https://bsky.app/profile/x/post/old',
+    });
+    const r = findRelatedIncidents(baseAlert, [baseAlert, old], []);
+    expect(r).toHaveLength(0);
+  });
+
+  it('does not cross kinds (train alert vs bus obs same key)', () => {
+    const busObs = makeObs({
+      id: 1,
+      kind: 'bus',
+      line: 'red', // contrived — wouldn't normally collide, but verifies the kind guard
+      ts: NOW - 60_000,
+      post_url: 'https://bsky.app/profile/x/post/bus',
+    });
+    const r = findRelatedIncidents(baseAlert, [baseAlert], [busObs]);
+    expect(r).toHaveLength(0);
   });
 });
