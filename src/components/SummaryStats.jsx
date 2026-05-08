@@ -1,3 +1,4 @@
+import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 
 function Sep() {
@@ -44,8 +45,10 @@ export default function SummaryStats({
   } else if (mostAffectedKind === 'bus') {
     parts.push(
       <span key="affected">
-        <strong className="text-slate-800 dark:text-slate-100">Route {mostAffectedId}</strong> most
-        affected (last 30 days)
+        <strong className="text-slate-800 dark:text-slate-100">
+          {formatBusRoute(mostAffectedId)}
+        </strong>{' '}
+        most affected (last 30 days)
       </span>,
     );
   }

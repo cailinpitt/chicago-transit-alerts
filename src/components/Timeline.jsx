@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { buildBusIncidentsByDay, buildIncidentsByDay } from '../lib/aggregate.js';
+import { busRouteName } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { chicagoDayUTC, hexToRgba } from '../lib/format.js';
 
@@ -123,15 +124,35 @@ export default function Timeline({
         ? []
         : TRAIN_LINE_ORDER;
 
-  // Bus rows: per-route when routes are selected, aggregate otherwise.
+  // Bus rows: per-route when routes are selected; otherwise top-5 most-affected
+  // routes + an "Other" aggregate for the long tail. The single all-routes
+  // aggregate row gets so saturated it's noise, so we surface signal instead.
   const busRowsToShow = showBus
     ? selectedBusRoutes && selectedBusRoutes.length > 0
       ? selectedBusRoutes.map((r) => ({
           key: r,
+          routeId: r,
           label: `#${r}`,
           incidents: busIncidentsByDay.byRoute[r] || {},
         }))
-      : [{ key: '_agg', label: 'Bus', incidents: busIncidentsByDay.aggregate }]
+      : [
+          ...busIncidentsByDay.topRoutes.map((r) => ({
+            key: r,
+            routeId: r,
+            label: `#${r}`,
+            incidents: busIncidentsByDay.byRoute[r] || {},
+          })),
+          ...(Object.keys(busIncidentsByDay.otherAggregate).length > 0
+            ? [
+                {
+                  key: '_other',
+                  routeId: null,
+                  label: 'Other',
+                  incidents: busIncidentsByDay.otherAggregate,
+                },
+              ]
+            : []),
+        ]
     : [];
 
   const hasBusRows = busRowsToShow.length > 0;
@@ -210,13 +231,19 @@ export default function Timeline({
               )}
 
               {/* Bus rows */}
-              {busRowsToShow.map(({ key, label, incidents }) => (
+              {busRowsToShow.map(({ key, routeId, label, incidents }) => {
+                const routeName = routeId ? busRouteName(routeId) : null;
+                const tooltip = routeName ? `${label} ${routeName}` : label;
+                const ariaLabel = routeName ? `Route ${routeId} ${routeName}` : label;
+                return (
                 <tr key={key}>
                   <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
-                    {key !== '_agg' && onBusRouteClick ? (
+                    {routeId && onBusRouteClick ? (
                       <button
                         type="button"
-                        onClick={() => onBusRouteClick(key)}
+                        onClick={() => onBusRouteClick(routeId)}
+                        title={tooltip}
+                        aria-label={ariaLabel}
                         className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
                         style={{ color: BUS_COLOR }}
                       >
@@ -245,7 +272,8 @@ export default function Timeline({
                     />
                   ))}
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

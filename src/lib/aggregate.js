@@ -63,17 +63,33 @@ export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Da
 }
 
 // Build bus incident counts for the timeline grid.
-// Returns { aggregate: { dayIdx: distinctRouteCount }, byRoute: { routeId: { dayIdx: count } } }
-// The aggregate counts how many distinct routes had incidents on each day, so the
-// color reflects breadth of impact rather than raw event count.
+// Returns { aggregate, byRoute, topRoutes, otherAggregate }
+//   - aggregate: { dayIdx: distinctRouteCount } across all routes
+//   - byRoute:   { routeId: { dayIdx: count } }
+//   - topRoutes: routeIds sorted by total incidents desc, capped at topN
+//   - otherAggregate: { dayIdx: distinctRouteCount } excluding topRoutes
+// Distinct-route counts are used (not raw event counts) so the color reflects
+// breadth of impact across the system.
 /**
  * @param {import('./incidents.js').Alert[]} alerts
  * @param {import('./incidents.js').Observation[]} observations
  * @param {number} [numDays]
  * @param {number} [now]
- * @returns {{ aggregate: Object<number, number>, byRoute: Object<string, Object<number, number>> }}
+ * @param {number} [topN]
+ * @returns {{
+ *   aggregate: Object<number, number>,
+ *   byRoute: Object<string, Object<number, number>>,
+ *   topRoutes: string[],
+ *   otherAggregate: Object<number, number>,
+ * }}
  */
-export function buildBusIncidentsByDay(alerts, observations, numDays = 90, now = Date.now()) {
+export function buildBusIncidentsByDay(
+  alerts,
+  observations,
+  numDays = 90,
+  now = Date.now(),
+  topN = 5,
+) {
   const byRoute = {};
   const routesPerDay = {}; // { dayIdx: Set<routeId> } — for dedup in aggregate
   const todayUTC = chicagoDayUTC(now);
@@ -115,7 +131,24 @@ export function buildBusIncidentsByDay(alerts, observations, numDays = 90, now =
     aggregate[Number(d)] = routes.size;
   }
 
-  return { aggregate, byRoute };
+  // Rank routes by total incidents within the visible window, then take topN.
+  const totals = Object.entries(byRoute).map(([routeId, days]) => {
+    let sum = 0;
+    for (const c of Object.values(days)) sum += c;
+    return [routeId, sum];
+  });
+  totals.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  const topRoutes = totals.slice(0, topN).map(([id]) => id);
+  const topSet = new Set(topRoutes);
+
+  const otherAggregate = {};
+  for (const [d, routes] of Object.entries(routesPerDay)) {
+    let n = 0;
+    for (const r of routes) if (!topSet.has(r)) n++;
+    if (n > 0) otherAggregate[Number(d)] = n;
+  }
+
+  return { aggregate, byRoute, topRoutes, otherAggregate };
 }
 
 // Headline stats for the at-a-glance summary line. Always computed against

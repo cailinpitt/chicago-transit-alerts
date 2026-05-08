@@ -76,7 +76,7 @@ describe('EventPage', () => {
   it('renders a standalone observation by id', async () => {
     render(<EventPage eventId="bus99" />);
     await waitFor(() => {
-      expect(screen.getByText('Route 66')).toBeInTheDocument();
+      expect(screen.getByText('#66 Chicago')).toBeInTheDocument();
     });
     expect(screen.getByText('ongoing')).toBeInTheDocument();
   });

@@ -1,3 +1,4 @@
+import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 
 export default function LinePill({ kind, line, routes }) {
@@ -22,7 +23,7 @@ export default function LinePill({ kind, line, routes }) {
             key={key}
             className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-700 text-white"
           >
-            {kind === 'bus' ? `Route ${key}` : key}
+            {kind === 'bus' ? formatBusRoute(key) : key}
           </span>
         );
       })}

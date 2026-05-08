@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDate } from '../lib/format.js';
 
@@ -60,11 +61,14 @@ function BusRoutePopover({ availableBusRoutes, selectedBusRoutes, onBusRoutesCha
             )}
             {availableBusRoutes.map((route) => {
               const active = selectedBusRoutes.includes(route);
+              const label = formatBusRoute(route);
               return (
                 <button
                   type="button"
                   key={route}
                   onClick={() => toggleRoute(route)}
+                  title={label}
+                  aria-label={label}
                   className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
                     active
                       ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
