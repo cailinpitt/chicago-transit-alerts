@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
-import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import {
   chicagoDayUTC,
@@ -13,6 +12,7 @@ import {
 import {
   findIncidentById,
   findRelatedIncidents,
+  formatRoutesLabel,
   getEventId,
   mergeMatchingIncidents,
   normalizeAlertsPayload,
@@ -113,7 +113,8 @@ function MiniTimeline({ incident, alerts, observations }) {
   return (
     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gh-border">
       <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
-        On this line — surrounding {days.length} days
+        Surrounding {days.length} days on{' '}
+        {formatRoutesLabel(incident.kind, incidentRoutes(incident))}
       </p>
       <div
         className="grid gap-1"
@@ -165,12 +166,7 @@ function RelatedIncidents({ incident, alerts, observations }) {
   // Routes the parent event affects — used to label the section without
   // re-deriving from each row (all rows share at least one of these).
   const routes = incidentRoutes(incident);
-  const lineLabel =
-    incident.kind === 'train' && routes[0] && TRAIN_LINES[routes[0]]
-      ? `${TRAIN_LINES[routes[0]].label} Line`
-      : incident.kind === 'bus' && routes[0]
-        ? formatBusRoute(routes[0])
-        : 'this line';
+  const lineLabel = formatRoutesLabel(incident.kind, routes);
   return (
     <section className="mt-4">
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
@@ -266,7 +262,12 @@ export default function EventPage({ eventId }) {
     }
     const isMerged = incident._type === 'merged';
     const isAlert = !isMerged && !!incident.alert_id;
-    document.title = `${describe(incident, isMerged, isAlert)} · ${base}`;
+    // Prefix the tab title with the route label so a generic CTA headline
+    // (e.g. "Temporary Reroute") doesn't lose the route context the rest of
+    // the page makes obvious.
+    const label = formatRoutesLabel(incident.kind, incidentRoutes(incident));
+    const desc = describe(incident, isMerged, isAlert);
+    document.title = `${label} · ${desc} · ${base}`;
     return () => {
       document.title = base;
     };

@@ -1,10 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
-import {
-  chicagoDayUTC,
-  formatChicagoDay,
-  formatDuration,
-  formatTime,
-} from '../lib/format.js';
+import { chicagoDayUTC, formatChicagoDay, formatDuration, formatTime } from '../lib/format.js';
 import {
   formatEvidenceChip,
   getEventId,

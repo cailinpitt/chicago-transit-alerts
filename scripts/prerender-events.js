@@ -7,22 +7,21 @@
 // Runs as a postbuild step. Requires `dist/data/alerts.json` to be present —
 // it's copied from `public/data/` by Vite at build time.
 
-import {
-  readFileSync,
-  writeFileSync,
-  copyFileSync,
-  mkdirSync,
-  existsSync,
-  readdirSync,
-  rmSync,
-} from 'node:fs';
 import { createHash } from 'node:crypto';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { BUS_ROUTE_NAMES } from '../src/lib/busRoutes.js';
-import { TRAIN_LINES, normalizeTrainLine } from '../src/lib/ctaLines.js';
-import { mergeMatchingIncidents } from '../src/lib/incidents.js';
+import { normalizeTrainLine, TRAIN_LINES } from '../src/lib/ctaLines.js';
+import { formatRoutesLabel, mergeMatchingIncidents } from '../src/lib/incidents.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -61,33 +60,43 @@ function softColor(hex, alpha = 0.18) {
 }
 
 function accentFor(incident) {
+  // Multi-route alerts use a kind-based label (e.g. `#136, #147, #151` or
+  // `Red and Purple Lines`) so the OG card reflects the full footprint, not
+  // just the first listed route.
+  const routes =
+    Array.isArray(incident.routes) && incident.routes.length > 0
+      ? incident.routes
+      : incident.line
+        ? [incident.line]
+        : [];
+  const label = formatRoutesLabel(incident.kind, routes) || 'CTA';
+
+  // Accent color still derives from the first route — the card's left bar +
+  // background tint is a single accent, not a gradient across N colors.
   if (incident.kind === 'train') {
-    const route = normalizeTrainLine(
-      incident.routes?.[0] ?? incident.line ?? '',
-    );
+    const route = normalizeTrainLine(routes[0] ?? '');
     const line = TRAIN_LINES[route];
     if (line) {
       return {
         color: line.color,
         soft: softColor(line.color, 0.22),
         text: line.textColor,
-        label: `${line.label} Line`,
+        label,
       };
     }
   }
   if (incident.kind === 'bus') {
-    const route = incident.routes?.[0] ?? incident.line ?? '';
-    const name = BUS_ROUTE_NAMES[route] ?? BUS_ROUTE_NAMES[String(route)];
-    return {
-      ...BUS_ACCENT,
-      label: name ? `#${route} ${name}` : `Bus #${route}`,
-    };
+    return { ...BUS_ACCENT, label };
   }
-  return { ...BUS_ACCENT, label: 'CTA' };
+  return { ...BUS_ACCENT, label };
 }
 
 function describeObservation(obs) {
-  const signals = obs.signals?.length ? obs.signals : (obs.detection_source ? [obs.detection_source] : []);
+  const signals = obs.signals?.length
+    ? obs.signals
+    : obs.detection_source
+      ? [obs.detection_source]
+      : [];
   if (!signals.length) return 'Service disruption detected by bot.';
   const labels = {
     gap: 'gap',
@@ -98,15 +107,19 @@ function describeObservation(obs) {
     roundup: 'multiple signals',
   };
   const phrases = signals.map((s) => labels[s] ?? s);
-  const list = phrases.length === 1
-    ? phrases[0]
-    : `${phrases.slice(0, -1).join(', ')} and ${phrases[phrases.length - 1]}`;
+  const list =
+    phrases.length === 1
+      ? phrases[0]
+      : `${phrases.slice(0, -1).join(', ')} and ${phrases[phrases.length - 1]}`;
   return `Bot detected ${list} on this route.`;
 }
 
 function summarize(incident) {
   if (incident.headline) {
-    return { title: incident.headline, subtitle: 'CTA service alert · archived on chicagotransitalerts.app' };
+    return {
+      title: incident.headline,
+      subtitle: 'CTA service alert · archived on chicagotransitalerts.app',
+    };
   }
   const accent = accentFor(incident);
   return {
@@ -142,16 +155,46 @@ function buildHtmlStub(shell, { id, title, subtitle, accent }) {
   return shell
     .replace(/<title>[^<]*<\/title>/, `<title>${escHtml(ogTitle)} — CTA Alert History</title>`)
     .replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${escAttr(url)}" />`)
-    .replace(/<meta name="description"[^>]*>/, `<meta name="description" content="${escAttr(desc)}" />`)
-    .replace(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${escAttr(ogTitle)}" />`)
-    .replace(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${escAttr(desc)}" />`)
-    .replace(/<meta property="og:url"[^>]*>/, `<meta property="og:url" content="${escAttr(url)}" />`)
-    .replace(/<meta property="og:image"[^>]*>/g, `<meta property="og:image" content="${escAttr(image)}" />`)
-    .replace(/<meta property="og:image:alt"[^>]*>/, `<meta property="og:image:alt" content="${escAttr(ogTitle)}" />`)
-    .replace(/<meta name="twitter:title"[^>]*>/, `<meta name="twitter:title" content="${escAttr(ogTitle)}" />`)
-    .replace(/<meta name="twitter:description"[^>]*>/, `<meta name="twitter:description" content="${escAttr(desc)}" />`)
-    .replace(/<meta name="twitter:image"[^>]*>/g, `<meta name="twitter:image" content="${escAttr(image)}" />`)
-    .replace(/<meta name="twitter:image:alt"[^>]*>/, `<meta name="twitter:image:alt" content="${escAttr(ogTitle)}" />`);
+    .replace(
+      /<meta name="description"[^>]*>/,
+      `<meta name="description" content="${escAttr(desc)}" />`,
+    )
+    .replace(
+      /<meta property="og:title"[^>]*>/,
+      `<meta property="og:title" content="${escAttr(ogTitle)}" />`,
+    )
+    .replace(
+      /<meta property="og:description"[^>]*>/,
+      `<meta property="og:description" content="${escAttr(desc)}" />`,
+    )
+    .replace(
+      /<meta property="og:url"[^>]*>/,
+      `<meta property="og:url" content="${escAttr(url)}" />`,
+    )
+    .replace(
+      /<meta property="og:image"[^>]*>/g,
+      `<meta property="og:image" content="${escAttr(image)}" />`,
+    )
+    .replace(
+      /<meta property="og:image:alt"[^>]*>/,
+      `<meta property="og:image:alt" content="${escAttr(ogTitle)}" />`,
+    )
+    .replace(
+      /<meta name="twitter:title"[^>]*>/,
+      `<meta name="twitter:title" content="${escAttr(ogTitle)}" />`,
+    )
+    .replace(
+      /<meta name="twitter:description"[^>]*>/,
+      `<meta name="twitter:description" content="${escAttr(desc)}" />`,
+    )
+    .replace(
+      /<meta name="twitter:image"[^>]*>/g,
+      `<meta name="twitter:image" content="${escAttr(image)}" />`,
+    )
+    .replace(
+      /<meta name="twitter:image:alt"[^>]*>/,
+      `<meta name="twitter:image:alt" content="${escAttr(ogTitle)}" />`,
+    );
 }
 
 function fillTemplate(tpl, fields) {
@@ -226,7 +269,10 @@ async function main() {
 
     const outDir = resolve(DIST, 'event', id);
     mkdirSync(outDir, { recursive: true });
-    writeFileSync(resolve(outDir, 'index.html'), buildHtmlStub(shell, { id, title, subtitle, accent }));
+    writeFileSync(
+      resolve(outDir, 'index.html'),
+      buildHtmlStub(shell, { id, title, subtitle, accent }),
+    );
 
     const cacheDir = resolve(CACHE, id);
     const cachedPng = resolve(cacheDir, 'og.png');
@@ -239,11 +285,19 @@ async function main() {
       continue;
     }
 
-    renders.push({ id, html: fillTemplate(template, { id, title, subtitle, badge, accent }), outDir, cacheDir, cachedPng, cachedSig, sig });
+    renders.push({
+      id,
+      html: fillTemplate(template, { id, title, subtitle, badge, accent }),
+      outDir,
+      cacheDir,
+      cachedPng,
+      cachedSig,
+      sig,
+    });
   }
 
   let rendered = 0;
-  let cached = incidents.size - renders.length;
+  const cached = incidents.size - renders.length;
 
   if (renders.length > 0) {
     const browser = await chromium.launch();

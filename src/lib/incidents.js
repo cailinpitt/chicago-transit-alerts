@@ -220,6 +220,36 @@ export function getEventId(incident) {
   return postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url) ?? null;
 }
 
+// Format a multi-route/multi-line label for display. Single-route bus alerts
+// keep their verbose `#3 King Drive` name; multi-route alerts collapse to
+// the bare numbers (e.g. `#136, #147, #151`) so the label stays short
+// enough for headings and OG cards. 4+ routes wrap as `first two + N more`
+// or `N train lines`.
+/**
+ * @param {'train'|'bus'} kind
+ * @param {string[]} routes
+ * @returns {string}
+ */
+export function formatRoutesLabel(kind, routes) {
+  if (!routes || routes.length === 0) return kind === 'train' ? 'this line' : 'this route';
+  if (kind === 'train') {
+    const labels = routes.map((r) => TRAIN_LINES[r]?.label ?? r);
+    if (labels.length === 1) return `${labels[0]} Line`;
+    if (labels.length === 2) return `${labels[0]} and ${labels[1]} Lines`;
+    if (labels.length === 3) return `${labels[0]}, ${labels[1]}, and ${labels[2]} Lines`;
+    return `${labels.length} train lines`;
+  }
+  // bus
+  if (routes.length === 1) {
+    const name = BUS_ROUTE_NAMES[routes[0]] ?? BUS_ROUTE_NAMES[String(routes[0])];
+    return name ? `#${routes[0]} ${name}` : `#${routes[0]}`;
+  }
+  const nums = routes.map((r) => `#${r}`);
+  if (nums.length === 2) return `${nums[0]} and ${nums[1]}`;
+  if (nums.length === 3) return nums.join(', ');
+  return `${nums.slice(0, 2).join(', ')} + ${nums.length - 2} more`;
+}
+
 // Find an incident by event id across the full payload. Searches alerts first
 // (so a merged record resolves through its alert post id), then standalone
 // observations. The merge step mirrors what IncidentList renders so a shared

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findIncidentById, getEventId, postUrlRkey } from '../lib/incidents.js';
+import { findIncidentById, formatRoutesLabel, getEventId, postUrlRkey } from '../lib/incidents.js';
 
 const ALERT_URL = 'https://bsky.app/profile/did:plc:abc/post/3ml5idb536d2c';
 const OBS_URL = 'https://bsky.app/profile/did:plc:xyz/post/3mkuutqcneg2h';
@@ -92,5 +92,33 @@ describe('findIncidentById', () => {
   it('returns null for a falsy id', () => {
     expect(findIncidentById([alert], [matchingObs], '')).toBeNull();
     expect(findIncidentById([alert], [matchingObs], null)).toBeNull();
+  });
+});
+
+describe('formatRoutesLabel', () => {
+  it('single bus route uses verbose name', () => {
+    expect(formatRoutesLabel('bus', ['3'])).toBe('#3 King Drive');
+  });
+  it('two bus routes joins with "and"', () => {
+    expect(formatRoutesLabel('bus', ['136', '147'])).toBe('#136 and #147');
+  });
+  it('three bus routes uses comma list', () => {
+    expect(formatRoutesLabel('bus', ['136', '147', '151'])).toBe('#136, #147, #151');
+  });
+  it('four+ bus routes truncates with overflow count', () => {
+    expect(formatRoutesLabel('bus', ['1', '3', '4', '7', '147'])).toBe('#1, #3 + 3 more');
+  });
+  it('single train line', () => {
+    expect(formatRoutesLabel('train', ['red'])).toBe('Red Line');
+  });
+  it('two train lines pluralizes', () => {
+    // Routes here are full-name keys after normalizeAlertsPayload (the bot
+    // emits short codes; normalization at fetch time turns them into full
+    // names like `purple`).
+    expect(formatRoutesLabel('train', ['red', 'purple'])).toBe('Red and Purple Lines');
+  });
+  it('empty routes falls back to generic', () => {
+    expect(formatRoutesLabel('bus', [])).toBe('this route');
+    expect(formatRoutesLabel('train', [])).toBe('this line');
   });
 });
