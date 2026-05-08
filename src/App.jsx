@@ -10,7 +10,7 @@ import SummaryStats from './components/SummaryStats.jsx';
 import Timeline from './components/Timeline.jsx';
 import { useDarkMode } from './hooks/useDarkMode.js';
 import { useNow } from './hooks/useNow.js';
-import { computeSummaryStats } from './lib/aggregate.js';
+import { computeSummaryStats, computeTypicalDurations } from './lib/aggregate.js';
 import {
   filterIncidents,
   getEventId,
@@ -224,6 +224,13 @@ export default function App() {
     return computeSummaryStats(data.alerts, data.observations, now);
   }, [data, now]);
 
+  // 90-day typical-duration cohort lookup, used by ActiveAlerts to surface
+  // a "typically ~Xm" hint next to elapsed time on each active card.
+  const typicalDurations = useMemo(() => {
+    if (!data) return null;
+    return computeTypicalDurations(data.alerts, data.observations, { now, windowDays: 90 });
+  }, [data, now]);
+
   const filtered = useMemo(() => {
     if (!data) return { alerts: [], observations: [] };
     const startTs = dateRange ? now - dateRange * DAY_MS : null;
@@ -277,7 +284,12 @@ export default function App() {
         {data && (
           <>
             {activeIncidents.length > 0 && (
-              <ActiveAlerts incidents={activeIncidents} now={now} highlightedIds={highlightedIds} />
+              <ActiveAlerts
+                incidents={activeIncidents}
+                now={now}
+                highlightedIds={highlightedIds}
+                typicalDurations={typicalDurations}
+              />
             )}
             <Filters
               selectedLines={selectedLines}

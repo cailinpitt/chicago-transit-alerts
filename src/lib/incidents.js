@@ -390,6 +390,12 @@ export function mergeMatchingIncidents(alerts, observations) {
           obs_post_url: obs.post_url,
           obs_resolved_post_url: obs.resolved_post_url,
           obs_id: obs.id,
+          // Carry the observation's typing info onto the merged record so
+          // downstream consumers (e.g. typical-duration cohorts) can bucket
+          // by signal without re-resolving the observation by id.
+          obs_line: obs.line,
+          obs_detection_source: obs.detection_source,
+          obs_signals: obs.signals,
         });
         usedObsIds.add(obs.id);
         usedAlertIds.add(alert.alert_id);

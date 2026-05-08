@@ -468,6 +468,75 @@ export function computeLineReliability(
   return { incidentFreeDays, totalDays: windowDays, medianGapHours };
 }
 
+// Bucket key for typical-duration cohorts: same kind, same line/route, same
+// signal "type" (single signal name, or 'roundup' for multi-signal records).
+// Returns null when the incident lacks a signal — pure CTA alerts have no
+// type to bucket on, so they get no median hint.
+export function typicalDurationKey(incident) {
+  if (!incident) return null;
+  const kind = incident.kind;
+  // Standalone observation has `line`; merged record carries the observation's
+  // line as `obs_line` (the alert's `routes` may include multiple lines).
+  const lineOrRoute = incident.obs_line ?? incident.line ?? null;
+  if (!kind || !lineOrRoute) return null;
+
+  const detection = incident.obs_detection_source ?? incident.detection_source;
+  if (!detection) return null;
+  const signal = detection === 'roundup' ? 'roundup' : detection;
+  return `${kind}::${lineOrRoute}::${signal}`;
+}
+
+// Median resolved-incident duration per (kind, line, signal) cohort over a
+// rolling window. Powers the "typically clears in ~Xm" hint on active alert
+// cards. Only resolved incidents count (active ones have no real duration);
+// pure CTA alerts are excluded (no signal type — see typicalDurationKey).
+//
+// Returns a Map of bucket-key → { medianMs, count }. Callers gate display on
+// count >= some threshold (5 by convention) so a sparse cohort can't show a
+// volatile median.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @returns {Map<string, { medianMs: number, count: number }>}
+ */
+export function computeTypicalDurations(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 90 } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+  const buckets = new Map();
+
+  function add(incident, startTs, resolvedTs) {
+    if (resolvedTs == null) return;
+    if (startTs < cutoff) return;
+    const duration = resolvedTs - startTs;
+    if (duration <= 0) return;
+    const key = typicalDurationKey(incident);
+    if (!key) return;
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(duration);
+  }
+
+  const { merged, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  for (const m of merged) add(m, m.first_seen_ts, m.resolved_ts);
+  for (const o of standaloneObs) add(o, o.ts, o.resolved_ts);
+
+  const out = new Map();
+  for (const [key, durations] of buckets) {
+    durations.sort((a, b) => a - b);
+    const mid = Math.floor(durations.length / 2);
+    const medianMs =
+      durations.length % 2 === 0 ? (durations[mid - 1] + durations[mid]) / 2 : durations[mid];
+    out.set(key, { medianMs, count: durations.length });
+  }
+  return out;
+}
+
 export function buildSignalsByLine(observations) {
   const byLine = {};
   const totals = {};

@@ -1,14 +1,28 @@
+import { typicalDurationKey } from '../lib/aggregate.js';
+import { formatDuration } from '../lib/format.js';
 import { getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
 
-function ActiveCard({ incident, now, isNew }) {
+// Don't surface a median when fewer than this many past incidents back it.
+// Below 5, a single outlier dominates and the hint is more noise than signal.
+const TYPICAL_MIN_COUNT = 5;
+
+function ActiveCard({ incident, now, isNew, typicalDurations }) {
   const isAlert = !!incident.alert_id;
   const startTs = incident.first_seen_ts || incident.ts;
   const elapsedMin = Math.round((now - startTs) / 60_000);
   const elapsedHours = Math.floor(elapsedMin / 60);
   const elapsedRemMin = elapsedMin % 60;
   const elapsedText = elapsedHours > 0 ? `${elapsedHours}h ${elapsedRemMin}m` : `${elapsedMin}m`;
+
+  // Look up the cohort median for this incident's (kind, line, signal) bucket.
+  // Pure CTA alerts return a null key and get no hint — there's no honest
+  // type to compare against.
+  const typicalKey = typicalDurationKey(incident);
+  const typical = typicalKey && typicalDurations ? typicalDurations.get(typicalKey) : null;
+  const typicalText =
+    typical && typical.count >= TYPICAL_MIN_COUNT ? formatDuration(typical.medianMs) : null;
   const stations = [incident.from_station, incident.to_station].filter(Boolean).join(' → ');
   const signalsText =
     incident.signals?.length > 0
@@ -44,7 +58,17 @@ function ActiveCard({ incident, now, isNew }) {
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
           <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
-          <span className="text-xs text-slate-400 dark:text-slate-500">{elapsedText} ongoing</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">
+            {elapsedText} ongoing
+            {typicalText && (
+              <>
+                {' · '}
+                <span title={`Median over ${typical.count} past similar incidents (last 90 days)`}>
+                  typically {typicalText}
+                </span>
+              </>
+            )}
+          </span>
         </div>
         <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
           {description}
@@ -75,7 +99,12 @@ function ActiveCard({ incident, now, isNew }) {
   );
 }
 
-export default function ActiveAlerts({ incidents, now = Date.now(), highlightedIds }) {
+export default function ActiveAlerts({
+  incidents,
+  now = Date.now(),
+  highlightedIds,
+  typicalDurations,
+}) {
   return (
     <section>
       <div className="flex items-center gap-2 mb-2">
@@ -94,6 +123,7 @@ export default function ActiveAlerts({ incidents, now = Date.now(), highlightedI
               incident={incident}
               now={now}
               isNew={eventId != null && highlightedIds?.has(eventId)}
+              typicalDurations={typicalDurations}
             />
           );
         })}

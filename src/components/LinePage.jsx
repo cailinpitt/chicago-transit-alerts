@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
-import { computeLineReliability, computeSummaryStats } from '../lib/aggregate.js';
+import {
+  computeLineReliability,
+  computeSummaryStats,
+  computeTypicalDurations,
+} from '../lib/aggregate.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { normalizeAlertsPayload } from '../lib/incidents.js';
@@ -121,6 +125,11 @@ export default function LinePage({ kind, lineId }) {
     return computeLineReliability(lineAlerts, lineObservations, { now, windowDays: 90 });
   }, [data, lineAlerts, lineObservations, now]);
 
+  const typicalDurations = useMemo(() => {
+    if (!data) return null;
+    return computeTypicalDurations(lineAlerts, lineObservations, { now, windowDays: 90 });
+  }, [data, lineAlerts, lineObservations, now]);
+
   // Search-only filter pass for the IncidentList. The line is already
   // locked by the alert/observation pre-filter above; the only optional
   // narrowing left is the free-text search, which we apply in-place.
@@ -223,7 +232,13 @@ export default function LinePage({ kind, lineId }) {
 
         {data && (
           <>
-            {activeIncidents.length > 0 && <ActiveAlerts incidents={activeIncidents} now={now} />}
+            {activeIncidents.length > 0 && (
+              <ActiveAlerts
+                incidents={activeIncidents}
+                now={now}
+                typicalDurations={typicalDurations}
+              />
+            )}
 
             {summary && (summary.weeklyCount > 0 || summary.quietestLineDays > 0) && (
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 px-1">
