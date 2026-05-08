@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778266802370,
+  "generated_at": 1778267222587,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -224,6 +224,39 @@
     }
   ],
   "observations": [
+    {
+      "id": 298,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-0-outbound",
+      "from_station": "Francisco",
+      "to_station": "Western (Brown)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 1.2,
+        "minutesSinceLastTrain": 20,
+        "lookbackMin": 22,
+        "coldThresholdMin": 17,
+        "trainsOutsideRun": 8,
+        "coldStations": 3,
+        "coldStationNames": [
+          "Francisco",
+          "Rockwell",
+          "Western (Brown)"
+        ],
+        "expectedTrains": 3,
+        "headwayMin": 6.625,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778267104729,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlegdl6cxi2h",
+      "resolved_post_url": null
+    },
     {
       "id": 24,
       "kind": "bus",
