@@ -293,6 +293,74 @@ export function computeSummaryStats(alerts, observations, now = Date.now()) {
   };
 }
 
+// Build per-day incident counts for the most recent `numDays` Chicago calendar
+// days, plus a rolling 7-day average and a trend indicator comparing the most
+// recent 7 days to the prior 7 days. Used by the homepage trend sparkline.
+//
+// `counts[i]` and `avg[i]` are indexed with i=0 = oldest day, i=numDays-1 =
+// today — the sparkline reads naturally left-to-right as time progresses.
+// Trend ratio is `recent7Avg / prior7Avg`; null when the prior window is zero
+// (no baseline to compare against).
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {number} [numDays]
+ * @param {number} [now]
+ * @returns {{
+ *   counts: number[],
+ *   avg: number[],
+ *   recent7Avg: number,
+ *   prior7Avg: number,
+ *   trendRatio: number | null,
+ * }}
+ */
+export function buildDailyTrend(alerts, observations, numDays = 30, now = Date.now()) {
+  const todayUTC = chicagoDayUTC(now);
+  // chronological array: index 0 = oldest, index numDays-1 = today.
+  const counts = new Array(numDays).fill(0);
+
+  function bump(ts) {
+    if (ts == null) return;
+    const dayIdx = numDays - 1 - Math.round((todayUTC - chicagoDayUTC(ts)) / DAY_MS);
+    if (dayIdx >= 0 && dayIdx < numDays) counts[dayIdx] += 1;
+  }
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  for (const m of merged) bump(m.first_seen_ts);
+  for (const a of standaloneAlerts) bump(a.first_seen_ts);
+  for (const o of standaloneObs) bump(o.first_seen_ts ?? o.ts);
+
+  // Trailing 7-day average ending at each day (so avg[i] reflects the week
+  // leading up to day i, including i itself). Earlier-than-7-days slots use
+  // a shorter window — better than NaN, and lets the sparkline span the full
+  // range without a leading dead zone.
+  const avg = new Array(numDays).fill(0);
+  for (let i = 0; i < numDays; i++) {
+    const lo = Math.max(0, i - 6);
+    let sum = 0;
+    for (let j = lo; j <= i; j++) sum += counts[j];
+    avg[i] = sum / (i - lo + 1);
+  }
+
+  // Compare the most recent 7 days to the 7 before that. With <14 days of
+  // data both windows are partial; trendRatio is still meaningful because
+  // both halves shrink symmetrically. With 0 in the prior window we return
+  // null so callers can render "no baseline" rather than divide-by-zero.
+  const recentLo = Math.max(0, numDays - 7);
+  let recentSum = 0;
+  for (let i = recentLo; i < numDays; i++) recentSum += counts[i];
+  const recent7Avg = recentSum / (numDays - recentLo);
+  const priorLo = Math.max(0, numDays - 14);
+  const priorHi = Math.max(0, numDays - 7);
+  let priorSum = 0;
+  for (let i = priorLo; i < priorHi; i++) priorSum += counts[i];
+  const priorWindowSize = priorHi - priorLo;
+  const prior7Avg = priorWindowSize > 0 ? priorSum / priorWindowSize : 0;
+  const trendRatio = prior7Avg > 0 ? recent7Avg / prior7Avg : null;
+
+  return { counts, avg, recent7Avg, prior7Avg, trendRatio };
+}
+
 // Build a 7×24 grid of incident counts, indexed [weekday][hour] where weekday
 // 0 = Sunday and hour 0 = midnight (Chicago local time). Buckets by start
 // timestamp — a multi-hour incident counts once at its start, matching how

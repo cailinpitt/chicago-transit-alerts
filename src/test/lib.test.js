@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildDailyTrend,
   buildHourOfWeek,
   buildIncidentsByDay,
   buildSignalsByLine,
@@ -502,6 +503,48 @@ describe('buildSignalsByLine', () => {
       makeObs({ id: 2, kind: 'train', line: 'red', detection_source: 'gap' }),
     ];
     expect(buildSignalsByLine(obs).totals.gap).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildDailyTrend
+// ---------------------------------------------------------------------------
+describe('buildDailyTrend', () => {
+  it('returns zeroed arrays of the right length for empty data', () => {
+    const r = buildDailyTrend([], [], 30, NOW);
+    expect(r.counts).toHaveLength(30);
+    expect(r.avg).toHaveLength(30);
+    expect(r.recent7Avg).toBe(0);
+    expect(r.prior7Avg).toBe(0);
+    expect(r.trendRatio).toBeNull();
+  });
+
+  it('places incidents into the right day bucket (today is last)', () => {
+    const alerts = [
+      makeAlert({ alert_id: 1, first_seen_ts: NOW }),
+      makeAlert({ alert_id: 2, first_seen_ts: NOW - 5 * DAY }),
+    ];
+    const { counts } = buildDailyTrend(alerts, [], 10, NOW);
+    expect(counts[counts.length - 1]).toBe(1); // today
+    expect(counts[counts.length - 1 - 5]).toBe(1); // 5 days ago
+  });
+
+  it('flags an upward trend when recent 7 days outpace the prior 7', () => {
+    const alerts = [];
+    let id = 0;
+    // Prior week: 1 incident/day. Recent week: 4 incidents/day.
+    for (let d = 7; d < 14; d++) {
+      alerts.push(makeAlert({ alert_id: ++id, first_seen_ts: NOW - d * DAY }));
+    }
+    for (let d = 0; d < 7; d++) {
+      for (let i = 0; i < 4; i++) {
+        alerts.push(makeAlert({ alert_id: ++id, first_seen_ts: NOW - d * DAY - i * 60_000 }));
+      }
+    }
+    const r = buildDailyTrend(alerts, [], 30, NOW);
+    expect(r.recent7Avg).toBeCloseTo(4, 5);
+    expect(r.prior7Avg).toBeCloseTo(1, 5);
+    expect(r.trendRatio).toBeCloseTo(4, 5);
   });
 });
 

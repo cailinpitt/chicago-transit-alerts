@@ -87,6 +87,78 @@ function BusRoutePopover({ availableBusRoutes, selectedBusRoutes, onBusRoutesCha
   );
 }
 
+function SignalsPopover({ selectedSignals, onSignalsChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggle = (sig) => {
+    onSignalsChange((prev) =>
+      prev.includes(sig) ? prev.filter((s) => s !== sig) : [...prev, sig],
+    );
+  };
+
+  const selectedCount = selectedSignals.length;
+  const label = selectedCount > 0 ? `Signals (${selectedCount})` : 'Signals';
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors flex items-center gap-1 ${
+          selectedCount > 0
+            ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+            : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
+        }`}
+      >
+        {label}
+        <span className="opacity-60">▾</span>
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1.5 z-20 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 min-w-[200px]">
+          <div className="flex flex-wrap gap-1.5">
+            {selectedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => onSignalsChange([])}
+                className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 hover:opacity-80 transition-opacity"
+              >
+                All signals
+              </button>
+            )}
+            {SIGNAL_TYPES.map((sig) => {
+              const active = selectedSignals.includes(sig);
+              return (
+                <button
+                  type="button"
+                  key={sig}
+                  onClick={() => toggle(sig)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors capitalize ${
+                    active
+                      ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                      : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
+                  }`}
+                >
+                  {SIGNAL_LABELS[sig]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Filters({
   selectedLines,
   onLinesChange,
@@ -102,11 +174,6 @@ export default function Filters({
   selectedSignals = [],
   onSignalsChange,
 }) {
-  const toggleSignal = (sig) => {
-    onSignalsChange((prev) =>
-      prev.includes(sig) ? prev.filter((s) => s !== sig) : [...prev, sig],
-    );
-  };
   const toggleLine = (line) => {
     onLinesChange((prev) => {
       if (prev === null) return [line];
@@ -211,29 +278,10 @@ export default function Filters({
 
       <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
 
-      {/* Signal-type filter — bot-detection categories. Hidden on mobile to
-          keep the filter row from wrapping into three lines; signals are a
-          power-user filter and the chip row is already getting long. */}
-      <div className="hidden md:flex flex-wrap gap-1 items-center">
-        {SIGNAL_TYPES.map((sig) => {
-          const active = selectedSignals.includes(sig);
-          return (
-            <button
-              type="button"
-              key={sig}
-              onClick={() => toggleSignal(sig)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors capitalize ${
-                active
-                  ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-                  : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
-              }`}
-              title={SIGNAL_LABELS[sig]}
-            >
-              {SIGNAL_LABELS[sig]}
-            </button>
-          );
-        })}
-      </div>
+      {/* Signal-type filter — collapses into a single popover chip at every
+          breakpoint to keep the filter row from wrapping. Mirrors the
+          bus-routes popover pattern. */}
+      <SignalsPopover selectedSignals={selectedSignals} onSignalsChange={onSignalsChange} />
     </div>
   );
 }

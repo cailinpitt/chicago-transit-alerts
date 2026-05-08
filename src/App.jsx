@@ -249,7 +249,13 @@ export default function App() {
               selectedSignals={selectedSignals}
               onSignalsChange={setSelectedSignals}
             />
-            {summaryStats && <SummaryStats {...summaryStats} />}
+            {summaryStats && (
+              <SummaryStats
+                {...summaryStats}
+                alerts={data.alerts}
+                observations={data.observations}
+              />
+            )}
             <Timeline
               alerts={vizAlerts}
               observations={vizObservations}

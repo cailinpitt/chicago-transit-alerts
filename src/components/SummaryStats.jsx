@@ -1,5 +1,6 @@
 import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
+import TrendSparkline from './TrendSparkline.jsx';
 
 function Sep() {
   return <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>;
@@ -12,6 +13,8 @@ export default function SummaryStats({
   mostAffectedId,
   quietestLineId,
   quietestLineDays,
+  alerts,
+  observations,
 }) {
   const parts = [];
 
@@ -70,13 +73,16 @@ export default function SummaryStats({
   }
 
   return (
-    <p className="text-sm text-slate-600 dark:text-slate-300 px-1">
-      {parts.map((p, i) => (
-        <span key={p.key}>
-          {i > 0 && <Sep />}
-          {p}
-        </span>
-      ))}
-    </p>
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-1">
+      <p className="text-sm text-slate-600 dark:text-slate-300 min-w-0">
+        {parts.map((p, i) => (
+          <span key={p.key}>
+            {i > 0 && <Sep />}
+            {p}
+          </span>
+        ))}
+      </p>
+      {alerts && observations && <TrendSparkline alerts={alerts} observations={observations} />}
+    </div>
   );
 }
