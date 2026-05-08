@@ -88,8 +88,7 @@ function MiniTimeline({ incident, alerts, observations }) {
   // window doesn't read as 2026 → 2026.
   const firstDay = days[0].dayUtc;
   const lastDay = days[days.length - 1].dayUtc;
-  const sameYear =
-    new Date(firstDay).getUTCFullYear() === new Date(lastDay).getUTCFullYear();
+  const sameYear = new Date(firstDay).getUTCFullYear() === new Date(lastDay).getUTCFullYear();
   // dayUtc is a UTC-midnight epoch by construction (chicagoDayUTC builds it
   // from Chicago Y/M/D), so format it as UTC to read those date components
   // back. Using timeZone='America/Chicago' would shift it back 5-6 h and

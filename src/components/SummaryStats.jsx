@@ -10,6 +10,8 @@ export default function SummaryStats({
   weeklyCount,
   mostAffectedKind,
   mostAffectedId,
+  quietestLineId,
+  quietestLineDays,
 }) {
   const parts = [];
 
@@ -49,6 +51,20 @@ export default function SummaryStats({
           {formatBusRoute(mostAffectedId)}
         </strong>{' '}
         most affected (last 30 days)
+      </span>,
+    );
+  }
+
+  // Quietest streak: a positive callout, surfaced only when the streak is
+  // long enough to be interesting. <2 days is just "didn't break today" —
+  // every line clears that bar most of the time, so showing it would dilute
+  // the more useful sentences.
+  if (quietestLineId && TRAIN_LINES[quietestLineId] && quietestLineDays >= 2) {
+    const info = TRAIN_LINES[quietestLineId];
+    parts.push(
+      <span key="quietest">
+        <strong style={{ color: info.color }}>{info.label} Line</strong> quietest:{' '}
+        {quietestLineDays} days since last incident
       </span>,
     );
   }

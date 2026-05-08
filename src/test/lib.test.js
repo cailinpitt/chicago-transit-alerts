@@ -328,7 +328,39 @@ describe('computeSummaryStats', () => {
       mostAffectedKind: null,
       mostAffectedId: null,
       mostAffectedCount: 0,
+      quietestLineId: null,
+      quietestLineDays: 0,
     });
+  });
+
+  it('quietest line picks the train line with the oldest most-recent incident', () => {
+    const alerts = [
+      makeAlert({ alert_id: 1, routes: ['red'], first_seen_ts: NOW - 1 * DAY }),
+      makeAlert({ alert_id: 2, routes: ['blue'], first_seen_ts: NOW - 5 * DAY }),
+      makeAlert({ alert_id: 3, routes: ['g'], first_seen_ts: NOW - 12 * DAY }),
+    ];
+    const r = computeSummaryStats(alerts, [], NOW);
+    expect(r.quietestLineId).toBe('g');
+    expect(r.quietestLineDays).toBe(12);
+  });
+
+  it('quietest line ignores lines with no incidents in the dataset', () => {
+    // Only Red has an incident; the seven other lines have no data → can't
+    // claim a streak. Quietest reflects only lines we have evidence for.
+    const alerts = [makeAlert({ routes: ['red'], first_seen_ts: NOW - 3 * DAY })];
+    const r = computeSummaryStats(alerts, [], NOW);
+    expect(r.quietestLineId).toBe('red');
+    expect(r.quietestLineDays).toBe(3);
+  });
+
+  it('quietest line ignores buses', () => {
+    const alerts = [
+      makeAlert({ alert_id: 1, kind: 'bus', routes: ['66'], first_seen_ts: NOW - 60 * DAY }),
+      makeAlert({ alert_id: 2, routes: ['red'], first_seen_ts: NOW - 4 * DAY }),
+    ];
+    const r = computeSummaryStats(alerts, [], NOW);
+    expect(r.quietestLineId).toBe('red');
+    expect(r.quietestLineDays).toBe(4);
   });
 
   it('counts active incidents across alerts and observations', () => {

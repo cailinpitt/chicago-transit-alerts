@@ -191,6 +191,8 @@ export function buildBusIncidentsByDay(
  *   mostAffectedKind: 'train' | 'bus' | null,
  *   mostAffectedId: string | null,
  *   mostAffectedCount: number,
+ *   quietestLineId: string | null,
+ *   quietestLineDays: number,
  * }}
  */
 export function computeSummaryStats(alerts, observations, now = Date.now()) {
@@ -254,12 +256,40 @@ export function computeSummaryStats(alerts, observations, now = Date.now()) {
     if (!mostAffected || entry.count > mostAffected.count) mostAffected = entry;
   }
 
+  // Quietest line: among the eight train lines, find the one whose most
+  // recent incident is the oldest (longest streak of clean days). Buses are
+  // excluded — there are too many low-traffic routes for "Route 192: 60 days
+  // since last incident" to be meaningful, and that's not the kind of brag
+  // riders care about anyway.
+  const lastTsByLine = new Map();
+  for (const inc of incidents) {
+    if (inc.kind !== 'train') continue;
+    for (const line of inc.lines || []) {
+      if (!TRAIN_LINE_ORDER.includes(line)) continue;
+      const prev = lastTsByLine.get(line);
+      if (prev == null || inc.ts > prev) lastTsByLine.set(line, inc.ts);
+    }
+  }
+  let quietestLineId = null;
+  let quietestLineDays = 0;
+  for (const line of TRAIN_LINE_ORDER) {
+    const ts = lastTsByLine.get(line);
+    if (ts == null) continue; // no data for this line — skip rather than guess at the streak
+    const days = Math.floor((now - ts) / DAY_MS);
+    if (days > quietestLineDays) {
+      quietestLineDays = days;
+      quietestLineId = line;
+    }
+  }
+
   return {
     activeCount,
     weeklyCount,
     mostAffectedKind: mostAffected?.kind ?? null,
     mostAffectedId: mostAffected?.id ?? null,
     mostAffectedCount: mostAffected?.count ?? 0,
+    quietestLineId,
+    quietestLineDays,
   };
 }
 
