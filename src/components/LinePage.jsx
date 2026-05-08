@@ -9,6 +9,7 @@ import {
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { normalizeAlertsPayload } from '../lib/incidents.js';
+import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
@@ -129,6 +130,15 @@ export default function LinePage({ kind, lineId }) {
     if (!data) return null;
     return computeTypicalDurations(lineAlerts, lineObservations, { now, windowDays: 90 });
   }, [data, lineAlerts, lineObservations, now]);
+
+  // Station index built from the full dataset, not just this line. A station
+  // can appear on multiple lines (Howard is on Red + Yellow; Damen on Blue +
+  // Brown), and clicking it should land on the cross-line station page —
+  // not be gated on whether this particular line meets the threshold.
+  const stationIndex = useMemo(() => {
+    if (!data) return null;
+    return buildStationIndex(data.alerts, data.observations, { now, windowDays: 90 });
+  }, [data, now]);
 
   // Search-only filter pass for the IncidentList. The line is already
   // locked by the alert/observation pre-filter above; the only optional
@@ -301,6 +311,7 @@ export default function LinePage({ kind, lineId }) {
               observations={listFiltered.observations}
               search={search}
               onSearchChange={setSearch}
+              stationIndex={stationIndex}
             />
           </>
         )}

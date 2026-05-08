@@ -54,6 +54,7 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 | `/event/:id`            | Single-incident detail page (id is the Bluesky post rkey).                             |
 | `/line/:line`           | Train line page — `/line/red`, `/line/blue`, `/line/orange`, etc. CTA short codes (`org`, `p`, `g`, `brn`, `y`) also resolve correctly. |
 | `/route/:routeId`       | Bus route page — `/route/66`, `/route/X9`, `/route/J14`, etc.                          |
+| `/station/:slug`        | Train station page — `/station/clark-division`, `/station/howard`, etc. Slugs are kebab-case derived from station names. Names with line qualifiers slug accordingly: `Central (Green)` → `/station/central-green`. |
 
 ## How it works
 

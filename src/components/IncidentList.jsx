@@ -6,12 +6,34 @@ import {
   mergeMatchingIncidents,
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
+import { slugifyStation } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
 
 const PAGE_SIZE = 25;
+// Below this threshold a station's page would be near-empty and the link
+// would be more annoying than useful — leave the name as plain text.
+const STATION_LINK_MIN_COUNT = 2;
 
-function IncidentRow({ incident, isNew }) {
+// Render a station name. Becomes a link to /station/:slug when the station
+// has enough incidents in the index to make the page worth visiting; falls
+// back to plain text otherwise. Always plain text when no index is passed
+// (e.g. tests rendering IncidentList directly).
+function StationName({ name, stationIndex }) {
+  if (!name) return null;
+  const slug = slugifyStation(name);
+  const rec = slug && stationIndex ? stationIndex.get(slug) : null;
+  if (rec && rec.count >= STATION_LINK_MIN_COUNT) {
+    return (
+      <a href={`/station/${slug}`} className="hover:text-blue-500 hover:underline">
+        {name}
+      </a>
+    );
+  }
+  return <>{name}</>;
+}
+
+function IncidentRow({ incident, isNew, stationIndex }) {
   const isMerged = incident._type === 'merged';
   const isAlert = !isMerged && !!incident.alert_id;
 
@@ -19,16 +41,25 @@ function IncidentRow({ incident, isNew }) {
   const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
 
-  const description =
-    isMerged || isAlert
-      ? incident.headline
-      : incident.from_station && incident.to_station
-        ? `${incident.from_station} → ${incident.to_station}`
-        : incident.detection_source === 'roundup' && incident.signals?.length > 0
-          ? `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`
-          : incident.detection_source === 'roundup'
-            ? 'Multiple simultaneous disruptions detected'
-            : 'Service disruption detected';
+  // The description is either a string (alerts/roundups) or a JSX fragment
+  // (segment endpoints, where station names may render as links).
+  let description;
+  if (isMerged || isAlert) {
+    description = incident.headline;
+  } else if (incident.from_station && incident.to_station) {
+    description = (
+      <>
+        <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
+        <StationName name={incident.to_station} stationIndex={stationIndex} />
+      </>
+    );
+  } else if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
+    description = `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
+  } else if (incident.detection_source === 'roundup') {
+    description = 'Multiple simultaneous disruptions detected';
+  } else {
+    description = 'Service disruption detected';
+  }
 
   return (
     <div
@@ -79,7 +110,8 @@ function IncidentRow({ incident, isNew }) {
         {/* Merged: show the specific segment from the bot observation */}
         {isMerged && incident.from_station && incident.to_station && (
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-            {incident.from_station} → {incident.to_station}
+            <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
+            <StationName name={incident.to_station} stationIndex={stationIndex} />
           </p>
         )}
 
@@ -139,6 +171,7 @@ export default function IncidentList({
   search = '',
   onSearchChange,
   highlightedIds,
+  stationIndex,
 }) {
   const [page, setPage] = useState(1);
 
@@ -257,6 +290,7 @@ export default function IncidentList({
                   key={incident.alert_id ?? `obs-${incident.id ?? incident.obs_id}`}
                   incident={incident}
                   isNew={eventId != null && highlightedIds?.has(eventId)}
+                  stationIndex={stationIndex}
                 />
               );
             })}

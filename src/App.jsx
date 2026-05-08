@@ -17,6 +17,7 @@ import {
   normalizeAlertsPayload,
   observationSignals,
 } from './lib/incidents.js';
+import { buildStationIndex } from './lib/stations.js';
 import { buildSearch, parseUrlState } from './lib/urlState.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -231,6 +232,13 @@ export default function App() {
     return computeTypicalDurations(data.alerts, data.observations, { now, windowDays: 90 });
   }, [data, now]);
 
+  // Station index — used by IncidentList to turn station names into
+  // /station/:slug links when the destination page is worth visiting.
+  const stationIndex = useMemo(() => {
+    if (!data) return null;
+    return buildStationIndex(data.alerts, data.observations, { now, windowDays: 90 });
+  }, [data, now]);
+
   const filtered = useMemo(() => {
     if (!data) return { alerts: [], observations: [] };
     const startTs = dateRange ? now - dateRange * DAY_MS : null;
@@ -347,6 +355,7 @@ export default function App() {
               search={search}
               onSearchChange={setSearch}
               highlightedIds={highlightedIds}
+              stationIndex={stationIndex}
             />
           </>
         )}
