@@ -164,7 +164,7 @@ export default function Timeline({
         {numDays}-Day Timeline
       </h2>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
-        <div ref={scrollRef} className="overflow-x-auto pb-4">
+        <div ref={scrollRef} className="overflow-x-auto pt-1 pb-4">
           <table className="border-collapse">
             <thead>
               <tr>
