@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778253242463,
+  "generated_at": 1778255762266,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -89,11 +89,11 @@
       ],
       "evidence": null,
       "ts": 1778252942295,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778255341512,
+      "duration_ms": 2399217,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldz5jkmp42c",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle3f2issp2q"
     },
     {
       "id": 22,
@@ -108,11 +108,11 @@
       ],
       "evidence": null,
       "ts": 1778252942295,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778255341512,
+      "duration_ms": 2399217,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldz5laso72u",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle3f3uq462g"
     },
     {
       "id": 23,
@@ -127,11 +127,11 @@
       ],
       "evidence": null,
       "ts": 1778252942295,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778255341512,
+      "duration_ms": 2399217,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldz5lc47e2s",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle3f52s5t2s"
     },
     {
       "id": 20,
