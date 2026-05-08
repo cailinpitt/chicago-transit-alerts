@@ -3,13 +3,15 @@ import ActiveAlerts from './components/ActiveAlerts.jsx';
 import Filters from './components/Filters.jsx';
 import Footer from './components/Footer.jsx';
 import Header from './components/Header.jsx';
+import HourOfWeekHeatmap from './components/HourOfWeekHeatmap.jsx';
 import IncidentList from './components/IncidentList.jsx';
+import SignalBreakdown from './components/SignalBreakdown.jsx';
 import SummaryStats from './components/SummaryStats.jsx';
 import Timeline from './components/Timeline.jsx';
 import { useDarkMode } from './hooks/useDarkMode.js';
 import { useNow } from './hooks/useNow.js';
 import { computeSummaryStats } from './lib/aggregate.js';
-import { filterIncidents } from './lib/incidents.js';
+import { filterIncidents, observationSignals } from './lib/incidents.js';
 import { buildSearch, parseUrlState } from './lib/urlState.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -41,6 +43,7 @@ export default function App() {
   // overrides dateRange for the incident list — the user is drilled into a
   // single day from the timeline.
   const [selectedDay, setSelectedDay] = useState(initial.selectedDay);
+  const [selectedSignals, setSelectedSignals] = useState(initial.selectedSignals);
 
   function resetFilters() {
     setSelectedLines(null);
@@ -48,6 +51,7 @@ export default function App() {
     setSelectedBusRoutes([]);
     setDateRange(7);
     setSelectedDay(null);
+    setSelectedSignals([]);
   }
 
   // Picking any range pill drops the day pin — the two are mutually exclusive
@@ -78,12 +82,13 @@ export default function App() {
       selectedBusRoutes,
       dateRange,
       selectedDay,
+      selectedSignals,
     });
     const next = `${window.location.pathname}${search}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.replaceState(null, '', next);
     }
-  }, [selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay]);
+  }, [selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay, selectedSignals]);
 
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/alerts.json`;
@@ -150,6 +155,26 @@ export default function App() {
     if (valid.length !== selectedBusRoutes.length) setSelectedBusRoutes(valid);
   }, [data, availableBusRoutes, selectedBusRoutes]);
 
+  // Visualization data — `data` minus standalone CTA alerts that the signal
+  // filter would drop, plus observations restricted to those carrying any of
+  // the selected signal kinds. Used for the Timeline grid and the hour-of-
+  // week heatmap so the signal chips actually narrow what those views show.
+  // Other filters (lines, range, day pin, bus routes) intentionally aren't
+  // applied here — the timeline has its own row-level filtering and dimming
+  // for those.
+  const vizAlerts = useMemo(() => {
+    if (!data) return [];
+    if (selectedSignals.length === 0) return data.alerts;
+    return [];
+  }, [data, selectedSignals]);
+
+  const vizObservations = useMemo(() => {
+    if (!data) return [];
+    if (selectedSignals.length === 0) return data.observations;
+    const sigSet = new Set(selectedSignals);
+    return data.observations.filter((o) => observationSignals(o).some((s) => sigSet.has(s)));
+  }, [data, selectedSignals]);
+
   const summaryStats = useMemo(() => {
     if (!data) return null;
     return computeSummaryStats(data.alerts, data.observations, now);
@@ -164,9 +189,19 @@ export default function App() {
       showBus,
       busRoutes: selectedBusRoutes.length > 0 ? selectedBusRoutes : null,
       selectedDay,
+      signals: selectedSignals.length > 0 ? selectedSignals : null,
       now,
     });
-  }, [data, selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay, now]);
+  }, [
+    data,
+    selectedLines,
+    showBus,
+    selectedBusRoutes,
+    dateRange,
+    selectedDay,
+    selectedSignals,
+    now,
+  ]);
 
   if (error) {
     return (
@@ -195,9 +230,7 @@ export default function App() {
         )}
         {data && (
           <>
-            {activeIncidents.length > 0 && (
-              <ActiveAlerts incidents={activeIncidents} now={now} />
-            )}
+            {activeIncidents.length > 0 && <ActiveAlerts incidents={activeIncidents} now={now} />}
             <Filters
               selectedLines={selectedLines}
               onLinesChange={handleLinesChange}
@@ -213,11 +246,13 @@ export default function App() {
               onDateRangeChange={handleDateRangeChange}
               selectedDay={selectedDay}
               onClearSelectedDay={() => setSelectedDay(null)}
+              selectedSignals={selectedSignals}
+              onSignalsChange={setSelectedSignals}
             />
             {summaryStats && <SummaryStats {...summaryStats} />}
             <Timeline
-              alerts={data.alerts}
-              observations={data.observations}
+              alerts={vizAlerts}
+              observations={vizObservations}
               selectedLines={selectedLines}
               numDays={90}
               selectedRangeDays={dateRange}
@@ -238,6 +273,8 @@ export default function App() {
                 )
               }
             />
+            <HourOfWeekHeatmap alerts={vizAlerts} observations={vizObservations} />
+            <SignalBreakdown observations={data.observations} />
             <IncidentList alerts={filtered.alerts} observations={filtered.observations} />
           </>
         )}

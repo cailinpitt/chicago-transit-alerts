@@ -3,7 +3,31 @@
 
 import { TRAIN_LINE_ORDER } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
-import { mergeMatchingIncidents } from './incidents.js';
+import { mergeMatchingIncidents, observationSignals, SIGNAL_TYPES } from './incidents.js';
+
+const CHICAGO_TZ = 'America/Chicago';
+const chicagoHourFmt = new Intl.DateTimeFormat('en-US', {
+  timeZone: CHICAGO_TZ,
+  weekday: 'short',
+  hour: 'numeric',
+  hour12: false,
+});
+
+// 'Sun' (system locale) → 0 ... 'Sat' → 6, matching JS Date conventions so
+// callers can index with the same model they already use elsewhere.
+const WEEKDAY_INDEX = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+
+function chicagoWeekdayHour(ts) {
+  let weekday = null;
+  let hour = null;
+  for (const p of chicagoHourFmt.formatToParts(new Date(ts))) {
+    if (p.type === 'weekday') weekday = WEEKDAY_INDEX[p.value];
+    else if (p.type === 'hour') hour = Number(p.value);
+  }
+  // Intl renders midnight as '24' under hour12:false in some Node/ICU builds.
+  if (hour === 24) hour = 0;
+  return { weekday, hour };
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -237,4 +261,66 @@ export function computeSummaryStats(alerts, observations, now = Date.now()) {
     mostAffectedId: mostAffected?.id ?? null,
     mostAffectedCount: mostAffected?.count ?? 0,
   };
+}
+
+// Build a 7×24 grid of incident counts, indexed [weekday][hour] where weekday
+// 0 = Sunday and hour 0 = midnight (Chicago local time). Buckets by start
+// timestamp — a multi-hour incident counts once at its start, matching how
+// the contributions grid handles ongoing spans.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @returns {{ grid: number[][], maxCount: number, total: number }}
+ */
+export function buildHourOfWeek(alerts, observations) {
+  const grid = Array.from({ length: 7 }, () => new Array(24).fill(0));
+  let maxCount = 0;
+  let total = 0;
+
+  function bump(ts) {
+    if (!ts) return;
+    const { weekday, hour } = chicagoWeekdayHour(ts);
+    if (weekday == null || hour == null) return;
+    grid[weekday][hour] += 1;
+    total += 1;
+    if (grid[weekday][hour] > maxCount) maxCount = grid[weekday][hour];
+  }
+
+  // Merge to avoid double-counting alert+observation pairs.
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  for (const m of merged) bump(m.first_seen_ts);
+  for (const a of standaloneAlerts) bump(a.first_seen_ts);
+  for (const o of standaloneObs) bump(o.first_seen_ts || o.ts);
+
+  return { grid, maxCount, total };
+}
+
+// Build per-train-line signal-type counts for the breakdown stacked bars.
+// Returns { lineId: { gap: n, bunching: n, ... }, totals: { gap: n, ... } }.
+// Bus routes are excluded because there are too many to chart usefully — the
+// per-line breakdown is most legible for the eight train lines.
+/**
+ * @param {import('./incidents.js').Observation[]} observations
+ * @returns {{ byLine: Object<string, Object<string, number>>, totals: Object<string, number> }}
+ */
+export function buildSignalsByLine(observations) {
+  const byLine = {};
+  const totals = {};
+  for (const sig of SIGNAL_TYPES) totals[sig] = 0;
+  for (const line of TRAIN_LINE_ORDER) {
+    byLine[line] = {};
+    for (const sig of SIGNAL_TYPES) byLine[line][sig] = 0;
+  }
+
+  for (const o of observations) {
+    if (o.kind !== 'train') continue;
+    if (!TRAIN_LINE_ORDER.includes(o.line)) continue;
+    for (const sig of observationSignals(o)) {
+      if (!(sig in totals)) continue;
+      byLine[o.line][sig] += 1;
+      totals[sig] += 1;
+    }
+  }
+
+  return { byLine, totals };
 }

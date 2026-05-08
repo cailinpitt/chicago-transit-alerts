@@ -240,42 +240,42 @@ export default function Timeline({
                 const tooltip = routeName ? `${label} ${routeName}` : label;
                 const ariaLabel = routeName ? `Route ${routeId} ${routeName}` : label;
                 return (
-                <tr key={key}>
-                  <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
-                    {routeId && onBusRouteClick ? (
-                      <button
-                        type="button"
-                        onClick={() => onBusRouteClick(routeId)}
-                        title={tooltip}
-                        aria-label={ariaLabel}
-                        className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
-                        style={{ color: BUS_COLOR }}
-                      >
-                        {label}
-                      </button>
-                    ) : (
-                      <span
-                        className="text-xs font-semibold w-full block text-right"
-                        style={{ color: BUS_COLOR }}
-                      >
-                        {label}
-                      </span>
-                    )}
-                  </td>
-                  {days.map(({ col, dayIdx, dayUTC }) => (
-                    <DayCell
-                      key={col}
-                      dayIdx={dayIdx}
-                      dayUTC={dayUTC}
-                      incidents={incidents}
-                      color={BUS_COLOR}
-                      dataStartTs={dataStartTs}
-                      inRange={selectedRangeDays == null || dayIdx < selectedRangeDays}
-                      isPinned={selectedDay === dayUTC}
-                      onClick={onDayClick}
-                    />
-                  ))}
-                </tr>
+                  <tr key={key}>
+                    <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
+                      {routeId && onBusRouteClick ? (
+                        <button
+                          type="button"
+                          onClick={() => onBusRouteClick(routeId)}
+                          title={tooltip}
+                          aria-label={ariaLabel}
+                          className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
+                          style={{ color: BUS_COLOR }}
+                        >
+                          {label}
+                        </button>
+                      ) : (
+                        <span
+                          className="text-xs font-semibold w-full block text-right"
+                          style={{ color: BUS_COLOR }}
+                        >
+                          {label}
+                        </span>
+                      )}
+                    </td>
+                    {days.map(({ col, dayIdx, dayUTC }) => (
+                      <DayCell
+                        key={col}
+                        dayIdx={dayIdx}
+                        dayUTC={dayUTC}
+                        incidents={incidents}
+                        color={BUS_COLOR}
+                        dataStartTs={dataStartTs}
+                        inRange={selectedRangeDays == null || dayIdx < selectedRangeDays}
+                        isPinned={selectedDay === dayUTC}
+                        onClick={onDayClick}
+                      />
+                    ))}
+                  </tr>
                 );
               })}
             </tbody>

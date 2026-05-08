@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { formatDate, formatDuration, formatTime } from '../lib/format.js';
-import { getEventId, mergeMatchingIncidents } from '../lib/incidents.js';
+import { Fragment, useMemo, useState } from 'react';
+import { chicagoDayUTC, formatDate, formatDuration, formatTime } from '../lib/format.js';
+import { getEventId, mergeMatchingIncidents, SIGNAL_LABELS } from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
 
@@ -13,14 +13,6 @@ function IncidentRow({ incident }) {
   const startTs = incident.first_seen_ts || incident.ts;
   const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
-
-  const SIGNAL_LABELS = {
-    gap: 'headway gaps',
-    ghost: 'missing vehicles',
-    bunching: 'bunching',
-    'pulse-cold': 'possible gap forming',
-    'pulse-held': 'trains held in place',
-  };
 
   const description =
     isMerged || isAlert
@@ -35,8 +27,7 @@ function IncidentRow({ incident }) {
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0">
-      <div className="flex-shrink-0 w-20 text-right">
-        <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(startTs)}</p>
+      <div className="flex-shrink-0 w-14 text-right">
         <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(startTs)}</p>
       </div>
 
@@ -134,6 +125,30 @@ export default function IncidentList({ alerts, observations }) {
   const pageCount = Math.ceil(total / PAGE_SIZE);
   const visible = combined.slice(0, page * PAGE_SIZE);
 
+  // Group the visible window by Chicago calendar day so the list reads as a
+  // commit-feed-style log: a date header with a count, then that day's
+  // incidents under it. We also need the per-day total against `combined`
+  // (not just `visible`) so the header count doesn't shrink as a day's
+  // incidents partly fall off the end of the rendered window.
+  const groups = useMemo(() => {
+    const totalsByDay = new Map();
+    for (const inc of combined) {
+      const key = chicagoDayUTC(inc._sortTs);
+      totalsByDay.set(key, (totalsByDay.get(key) || 0) + 1);
+    }
+    const out = [];
+    let current = null;
+    for (const inc of visible) {
+      const key = chicagoDayUTC(inc._sortTs);
+      if (!current || current.dayUtc !== key) {
+        current = { dayUtc: key, total: totalsByDay.get(key) || 0, incidents: [] };
+        out.push(current);
+      }
+      current.incidents.push(inc);
+    }
+    return out;
+  }, [combined, visible]);
+
   if (total === 0) {
     return (
       <section>
@@ -155,12 +170,24 @@ export default function IncidentList({ alerts, observations }) {
           ({total})
         </span>
       </h2>
-      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border px-4">
-        {visible.map((incident) => (
-          <IncidentRow
-            key={incident.alert_id ?? `obs-${incident.id ?? incident.obs_id}`}
-            incident={incident}
-          />
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border px-4 pt-4 pb-2">
+        {groups.map((group) => (
+          <Fragment key={group.dayUtc}>
+            <div className="flex items-baseline gap-2 pt-4 pb-1 first:pt-0 border-t border-slate-100 dark:border-gh-border first:border-t-0">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                {formatDate(group.dayUtc)}
+              </h3>
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                {group.total} incident{group.total === 1 ? '' : 's'}
+              </span>
+            </div>
+            {group.incidents.map((incident) => (
+              <IncidentRow
+                key={incident.alert_id ?? `obs-${incident.id ?? incident.obs_id}`}
+                incident={incident}
+              />
+            ))}
+          </Fragment>
         ))}
       </div>
       {page < pageCount && (

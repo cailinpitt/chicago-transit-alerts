@@ -86,6 +86,38 @@ import { chicagoDayUTC } from './format.js';
  * @property {number} obs_id
  */
 
+// User-visible signal categories — the chips and stacked-bar segments.
+// Order is the display order. Aligns with the cta-bot pipeline's pulse
+// subtypes: an observation's detection_source is one of these (or 'roundup',
+// in which case the precise signal kinds live in `signals`).
+export const SIGNAL_TYPES = ['gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-held'];
+
+// Friendly labels for every signal kind. The `pulse` fallback covers any
+// legacy snapshots written before export-web.js started emitting precise
+// pulse subtypes — once data refreshes through the pipeline, only the
+// subtype keys are seen.
+export const SIGNAL_LABELS = {
+  gap: 'headway gaps',
+  bunching: 'bunching',
+  ghost: 'missing vehicles',
+  pulse: 'stalled service',
+  'pulse-cold': 'cold stretch',
+  'pulse-held': 'trains held in place',
+};
+
+// Returns the set of signal kinds this observation represents. Roundup
+// observations carry an explicit `signals` array; single-signal observations
+// expose their kind via `detection_source`. Alerts have no signals.
+/**
+ * @param {Observation} obs
+ * @returns {string[]}
+ */
+export function observationSignals(obs) {
+  if (!obs) return [];
+  if (obs.detection_source === 'roundup') return obs.signals || [];
+  return obs.detection_source ? [obs.detection_source] : [];
+}
+
 // Extract the rkey at the end of a Bluesky post URL — the part after `/post/`.
 // Used as the canonical event id for shareable links. Returns null for missing
 // or malformed URLs so callers can decide whether to render the share control.
@@ -210,16 +242,28 @@ export function mergeMatchingIncidents(alerts, observations) {
  * @param {string[] | null} [options.busRoutes] When non-empty, restrict bus observations to these routes.
  * @param {number | null} [options.selectedDay] Chicago-day UTC midnight; when set, only incidents
  *   whose [start, end] span overlaps this day pass. Overrides startTs.
+ * @param {string[] | null} [options.signals]  When non-empty, restrict observations to those
+ *   carrying any of the given signal kinds. Standalone alerts (no signals) are dropped.
  * @param {number} [options.now]               For selectedDay span calc; defaults to Date.now().
  * @returns {{ alerts: Alert[], observations: Observation[] }}
  */
 export function filterIncidents(
   alerts,
   observations,
-  { lines, startTs, showBus = true, busRoutes = null, selectedDay = null, now = Date.now() } = {},
+  {
+    lines,
+    startTs,
+    showBus = true,
+    busRoutes = null,
+    selectedDay = null,
+    signals = null,
+    now = Date.now(),
+  } = {},
 ) {
   const hasLineFilter = lines !== null && lines !== undefined;
   const hasBusRouteFilter = busRoutes && busRoutes.length > 0;
+  const hasSignalFilter = signals && signals.length > 0;
+  const signalSet = hasSignalFilter ? new Set(signals) : null;
 
   // When selectedDay is pinned, an incident matches iff its [start, end] span
   // overlaps that calendar day. Active incidents (no resolved_ts) extend to
@@ -233,6 +277,11 @@ export function filterIncidents(
   };
 
   const filteredAlerts = alerts.filter((a) => {
+    // Signal filter is "show only bot-detected disruptions of these kinds";
+    // CTA alerts have no signal, so they're hidden whenever a signal filter
+    // is active. (A merged record's matching observation is checked separately
+    // via filteredObs — the IncidentList re-merges from these results.)
+    if (hasSignalFilter) return false;
     if (hasLineFilter && !a.routes.some((r) => lines.includes(r))) return false;
     if (selectedDay != null) {
       return overlapsSelectedDay(a.first_seen_ts, a.resolved_ts);
@@ -248,6 +297,10 @@ export function filterIncidents(
       if (hasBusRouteFilter && !busRoutes.includes(o.line)) return false;
     } else {
       if (hasLineFilter && !lines.includes(o.line)) return false;
+    }
+    if (hasSignalFilter) {
+      const sigs = observationSignals(o);
+      if (!sigs.some((s) => signalSet.has(s))) return false;
     }
     if (selectedDay != null) {
       return overlapsSelectedDay(o.ts, o.resolved_ts);

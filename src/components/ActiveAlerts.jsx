@@ -1,14 +1,6 @@
-import { getEventId } from '../lib/incidents.js';
+import { getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
-
-const SIGNAL_LABELS = {
-  gap: 'headway gaps',
-  ghost: 'missing vehicles',
-  bunching: 'bunching',
-  'pulse-cold': 'possible gap forming',
-  'pulse-held': 'trains held in place',
-};
 
 function ActiveCard({ incident, now }) {
   const isAlert = !!incident.alert_id;

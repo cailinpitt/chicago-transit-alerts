@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDate } from '../lib/format.js';
+import { SIGNAL_LABELS, SIGNAL_TYPES } from '../lib/incidents.js';
 
 const DATE_OPTIONS = [
   { label: '7d', value: 7 },
@@ -98,7 +99,14 @@ export default function Filters({
   onDateRangeChange,
   selectedDay = null,
   onClearSelectedDay,
+  selectedSignals = [],
+  onSignalsChange,
 }) {
+  const toggleSignal = (sig) => {
+    onSignalsChange((prev) =>
+      prev.includes(sig) ? prev.filter((s) => s !== sig) : [...prev, sig],
+    );
+  };
   const toggleLine = (line) => {
     onLinesChange((prev) => {
       if (prev === null) return [line];
@@ -199,6 +207,32 @@ export default function Filters({
             </button>
           ))
         )}
+      </div>
+
+      <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
+
+      {/* Signal-type filter — bot-detection categories. Hidden on mobile to
+          keep the filter row from wrapping into three lines; signals are a
+          power-user filter and the chip row is already getting long. */}
+      <div className="hidden md:flex flex-wrap gap-1 items-center">
+        {SIGNAL_TYPES.map((sig) => {
+          const active = selectedSignals.includes(sig);
+          return (
+            <button
+              type="button"
+              key={sig}
+              onClick={() => toggleSignal(sig)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors capitalize ${
+                active
+                  ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                  : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
+              }`}
+              title={SIGNAL_LABELS[sig]}
+            >
+              {SIGNAL_LABELS[sig]}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

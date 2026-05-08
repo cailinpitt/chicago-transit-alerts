@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildIncidentsByDay, computeSummaryStats } from '../lib/aggregate.js';
+import {
+  buildHourOfWeek,
+  buildIncidentsByDay,
+  buildSignalsByLine,
+  computeSummaryStats,
+} from '../lib/aggregate.js';
 import { formatDuration } from '../lib/format.js';
-import { filterIncidents, mergeMatchingIncidents } from '../lib/incidents.js';
+import { filterIncidents, mergeMatchingIncidents, observationSignals } from '../lib/incidents.js';
 
 // ---------------------------------------------------------------------------
 // formatDuration
@@ -364,5 +369,101 @@ describe('computeSummaryStats', () => {
     const alert = makeAlert({ first_seen_ts: NOW - DAY, routes: ['red'] });
     const obs = makeObs({ ts: NOW - DAY + 30 * 60_000, line: 'red' });
     expect(computeSummaryStats([alert], [obs], NOW).weeklyCount).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// observationSignals
+// ---------------------------------------------------------------------------
+describe('observationSignals', () => {
+  it('returns the signals array for roundup observations', () => {
+    const obs = { detection_source: 'roundup', signals: ['gap', 'bunching'] };
+    expect(observationSignals(obs)).toEqual(['gap', 'bunching']);
+  });
+
+  it('returns [detection_source] for single-signal observations', () => {
+    expect(observationSignals({ detection_source: 'gap' })).toEqual(['gap']);
+  });
+
+  it('returns [] when neither field is present', () => {
+    expect(observationSignals({})).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// filterIncidents — signal filter
+// ---------------------------------------------------------------------------
+describe('filterIncidents signal filter', () => {
+  it('keeps only observations whose signals overlap the selected set', () => {
+    const obsGap = makeObs({ id: 1, detection_source: 'gap' });
+    const obsBunching = makeObs({ id: 2, detection_source: 'bunching' });
+    const obsRoundup = makeObs({ id: 3, detection_source: 'roundup', signals: ['ghost', 'gap'] });
+    const r = filterIncidents([], [obsGap, obsBunching, obsRoundup], { signals: ['gap'] });
+    expect(r.observations.map((o) => o.id).sort()).toEqual([1, 3]);
+  });
+
+  it('drops standalone alerts when a signal filter is active', () => {
+    const r = filterIncidents([makeAlert()], [makeObs({ detection_source: 'gap' })], {
+      signals: ['gap'],
+    });
+    expect(r.alerts).toHaveLength(0);
+    expect(r.observations).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildHourOfWeek
+// ---------------------------------------------------------------------------
+describe('buildHourOfWeek', () => {
+  it('returns an empty 7×24 grid for empty input', () => {
+    const r = buildHourOfWeek([], []);
+    expect(r.grid).toHaveLength(7);
+    expect(r.grid[0]).toHaveLength(24);
+    expect(r.maxCount).toBe(0);
+    expect(r.total).toBe(0);
+  });
+
+  it('counts incidents into their start-time bucket', () => {
+    // 2026-01-05 is a Monday in Chicago (UTC-6).
+    const monday3pmCT = Date.UTC(2026, 0, 5, 21, 0); // 3pm CT = 21:00 UTC
+    const obs = makeObs({ ts: monday3pmCT });
+    const { grid, total } = buildHourOfWeek([], [obs]);
+    expect(total).toBe(1);
+    expect(grid[1][15]).toBe(1); // Monday, 3pm
+  });
+
+  it('does not double-count a merged alert+observation pair', () => {
+    const alert = makeAlert({ first_seen_ts: NOW, resolved_ts: NOW + 60 * 60_000 });
+    const obs = makeObs({ ts: NOW + 30 * 60_000, resolved_ts: NOW + 60 * 60_000 });
+    const { total } = buildHourOfWeek([alert], [obs]);
+    expect(total).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildSignalsByLine
+// ---------------------------------------------------------------------------
+describe('buildSignalsByLine', () => {
+  it('counts each signal kind per train line', () => {
+    const obs = [
+      makeObs({ id: 1, line: 'red', detection_source: 'gap' }),
+      makeObs({ id: 2, line: 'red', detection_source: 'gap' }),
+      makeObs({ id: 3, line: 'red', detection_source: 'roundup', signals: ['bunching', 'ghost'] }),
+      makeObs({ id: 4, line: 'blue', detection_source: 'bunching' }),
+    ];
+    const { byLine, totals } = buildSignalsByLine(obs);
+    expect(byLine.red).toMatchObject({ gap: 2, bunching: 1, ghost: 1 });
+    expect(byLine.blue).toMatchObject({ bunching: 1 });
+    expect(totals.gap).toBe(2);
+    expect(totals.bunching).toBe(2);
+    expect(totals.ghost).toBe(1);
+  });
+
+  it('ignores bus observations', () => {
+    const obs = [
+      makeObs({ id: 1, kind: 'bus', line: '66', detection_source: 'gap' }),
+      makeObs({ id: 2, kind: 'train', line: 'red', detection_source: 'gap' }),
+    ];
+    expect(buildSignalsByLine(obs).totals.gap).toBe(1);
   });
 });

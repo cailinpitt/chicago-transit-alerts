@@ -1,7 +1,9 @@
 import { TRAIN_LINE_ORDER } from './ctaLines.js';
+import { SIGNAL_TYPES } from './incidents.js';
 
 const VALID_RANGES = new Set([7, 30, 60, 90]);
 const TRAIN_LINE_SET = new Set(TRAIN_LINE_ORDER);
+const SIGNAL_SET = new Set(SIGNAL_TYPES);
 const DAY_PARAM_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 // Format a UTC epoch (Chicago day midnight) as a YYYY-MM-DD string. Cleaner in
@@ -55,6 +57,7 @@ export function parseUrlState(search = window.location.search) {
     selectedBusRoutes: [],
     dateRange: 7,
     selectedDay: null,
+    selectedSignals: [],
   };
 
   const linesParam = params.get('lines');
@@ -97,13 +100,28 @@ export function parseUrlState(search = window.location.search) {
     if (utc != null) out.selectedDay = utc;
   }
 
+  const signalsParam = params.get('signals');
+  if (signalsParam) {
+    out.selectedSignals = signalsParam
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => SIGNAL_SET.has(s));
+  }
+
   return out;
 }
 
 // Build a URLSearchParams string for the given state. Defaults are omitted so
 // the bare URL stays clean and shareable. Returns "" when everything is at
 // default (no leading "?").
-export function buildSearch({ selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay }) {
+export function buildSearch({
+  selectedLines,
+  showBus,
+  selectedBusRoutes,
+  dateRange,
+  selectedDay,
+  selectedSignals,
+}) {
   const params = new URLSearchParams();
 
   if (selectedLines !== null) {
@@ -124,6 +142,9 @@ export function buildSearch({ selectedLines, showBus, selectedBusRoutes, dateRan
   }
   if (selectedDay != null) {
     params.set('day', dayUtcToString(selectedDay));
+  }
+  if (selectedSignals && selectedSignals.length > 0) {
+    params.set('signals', selectedSignals.join(','));
   }
 
   const s = params.toString();

@@ -9,6 +9,7 @@ describe('parseUrlState', () => {
       selectedBusRoutes: [],
       dateRange: 7,
       selectedDay: null,
+      selectedSignals: [],
     });
   });
 
@@ -172,6 +173,7 @@ describe('buildSearch', () => {
       selectedBusRoutes: ['66'],
       dateRange: 30,
       selectedDay: null,
+      selectedSignals: [],
     };
     expect(parseUrlState(buildSearch(state))).toEqual(state);
   });
@@ -184,6 +186,7 @@ describe('buildSearch', () => {
       selectedBusRoutes: [],
       dateRange: 7,
       selectedDay: dayUtc,
+      selectedSignals: [],
     };
     const search = buildSearch(state);
     expect(search).toBe('?day=2026-05-06');

@@ -1,16 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { formatDate, formatDuration, formatTime } from '../lib/format.js';
-import { findIncidentById } from '../lib/incidents.js';
+import { findIncidentById, SIGNAL_LABELS } from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
-
-const SIGNAL_LABELS = {
-  gap: 'headway gaps',
-  ghost: 'missing vehicles',
-  bunching: 'bunching',
-  'pulse-cold': 'possible gap forming',
-  'pulse-held': 'trains held in place',
-};
 
 function describe(incident, isMerged, isAlert) {
   if (isMerged || isAlert) return incident.headline;
@@ -67,10 +59,7 @@ export default function EventPage({ eventId }) {
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
       <main className="max-w-3xl mx-auto px-4 py-6 w-full flex-1">
         <div className="flex items-center justify-between mb-4">
-          <a
-            href="/"
-            className="text-sm text-blue-500 hover:text-blue-400 hover:underline"
-          >
+          <a href="/" className="text-sm text-blue-500 hover:text-blue-400 hover:underline">
             ← Back to all incidents
           </a>
           <button
