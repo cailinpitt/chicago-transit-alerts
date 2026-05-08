@@ -22,6 +22,12 @@ A public archive of Chicago Transit Authority service alerts and bot-detected di
 
 Filter state, the pinned day, and the search query all round-trip through the URL — any view is a shareable link.
 
+## Subscribe
+
+An Atom feed of the 50 most recent incidents (alerts + bot observations, all lines and routes) lives at [`/feed.xml`](https://chicagotransitalerts.app/feed.xml). Drop the URL into any feed reader (Feedly, Inoreader, NetNewsWire, etc.) to follow along — new entries appear as incidents are detected, and resolved incidents bump their entry so readers re-mark them unread when service clears.
+
+The feed is regenerated as a postbuild step from the same `alerts.json` the SPA reads, so it updates whenever the underlying data does.
+
 ## What's tracked
 
 Two distinct sources, displayed together:

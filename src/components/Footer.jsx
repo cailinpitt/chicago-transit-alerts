@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import About from './About.jsx';
+import Subscribe from './Subscribe.jsx';
 
 export default function Footer() {
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
   return (
     <>
       <footer className="border-t border-slate-200 dark:border-gh-border mt-8">
@@ -14,6 +16,13 @@ export default function Footer() {
             className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
           >
             About
+          </button>
+          <button
+            type="button"
+            onClick={() => setSubscribeOpen(true)}
+            className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          >
+            Subscribe
           </button>
           <a
             href="https://bsky.app/profile/ticketmasterceo.com"
@@ -34,6 +43,7 @@ export default function Footer() {
         </div>
       </footer>
       <About open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <Subscribe open={subscribeOpen} onClose={() => setSubscribeOpen(false)} />
     </>
   );
 }

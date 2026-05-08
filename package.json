@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "node scripts/prerender-events.js",
+    "postbuild": "node scripts/prerender-events.js && node scripts/generate-feed.js",
     "preview": "vite preview",
     "test": "vitest",
     "lint": "biome check",
