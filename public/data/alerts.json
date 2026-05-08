@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778267642602,
+  "generated_at": 1778268062724,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -10,7 +10,7 @@
       ],
       "headline": "#81 Lawrence Temporary Reroute near Lawrence/Avandale",
       "first_seen_ts": 1778262603485,
-      "last_seen_ts": 1778267402887,
+      "last_seen_ts": 1778268001821,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -28,7 +28,7 @@
       ],
       "headline": "#103 West 103rd Temporary Reroute at 103rd/Sangamon",
       "first_seen_ts": 1778259004788,
-      "last_seen_ts": 1778267402887,
+      "last_seen_ts": 1778268001821,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -46,7 +46,7 @@
       ],
       "headline": "#84 Peterson Temporary Reroute near Bryn Mawr/Sheridan",
       "first_seen_ts": 1778256175167,
-      "last_seen_ts": 1778267402886,
+      "last_seen_ts": 1778268001821,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -75,7 +75,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173881,
-      "last_seen_ts": 1778267402886,
+      "last_seen_ts": 1778268001820,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -95,7 +95,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173158,
-      "last_seen_ts": 1778267402886,
+      "last_seen_ts": 1778268001820,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -115,7 +115,7 @@
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
       "first_seen_ts": 1778256171425,
-      "last_seen_ts": 1778267402886,
+      "last_seen_ts": 1778268001820,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -140,7 +140,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778267402886,
+      "last_seen_ts": 1778268001820,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -225,6 +225,26 @@
   ],
   "observations": [
     {
+      "id": 26,
+      "kind": "bus",
+      "line": "22",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost",
+        "bunching"
+      ],
+      "evidence": null,
+      "ts": 1778267642109,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlegtmcyhx2i",
+      "resolved_post_url": null
+    },
+    {
       "id": 25,
       "kind": "bus",
       "line": "9",
@@ -271,11 +291,11 @@
         "held": null
       },
       "ts": 1778267104729,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778268004484,
+      "duration_ms": 899755,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlegdl6cxi2h",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mleh6drapi2a"
     },
     {
       "id": 24,
