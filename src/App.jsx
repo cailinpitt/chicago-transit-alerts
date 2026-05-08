@@ -7,14 +7,29 @@ import IncidentList from './components/IncidentList.jsx';
 import SummaryStats from './components/SummaryStats.jsx';
 import Timeline from './components/Timeline.jsx';
 import { useDarkMode } from './hooks/useDarkMode.js';
+import { useNow } from './hooks/useNow.js';
 import { computeSummaryStats } from './lib/aggregate.js';
 import { filterIncidents } from './lib/incidents.js';
 import { buildSearch, parseUrlState } from './lib/urlState.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Sort routes by leading numeric component, falling back to alpha for
+// letter-prefixed variants ('X9', 'J14', '8A'). The previous `+a - +b` sort
+// produced `NaN` comparisons for any route that didn't parse as a pure integer,
+// scattering them randomly through the list.
+function busRouteCompare(a, b) {
+  const na = parseInt(a, 10);
+  const nb = parseInt(b, 10);
+  if (Number.isNaN(na) && Number.isNaN(nb)) return a.localeCompare(b);
+  if (Number.isNaN(na)) return 1;
+  if (Number.isNaN(nb)) return -1;
+  return na - nb || a.localeCompare(b);
+}
+
 export default function App() {
   const [dark, toggleDark] = useDarkMode();
+  const now = useNow();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const initial = useMemo(() => parseUrlState(), []);
@@ -121,7 +136,7 @@ export default function App() {
       ...data.observations.filter((o) => o.kind === 'bus').map((o) => o.line),
       ...data.alerts.filter((a) => a.kind === 'bus').flatMap((a) => a.routes),
     ]);
-    return [...routes].sort((a, b) => +a - +b);
+    return [...routes].sort(busRouteCompare);
   }, [data]);
 
   // Prune any selected bus routes that don't exist in the current data —
@@ -137,20 +152,21 @@ export default function App() {
 
   const summaryStats = useMemo(() => {
     if (!data) return null;
-    return computeSummaryStats(data.alerts, data.observations);
-  }, [data]);
+    return computeSummaryStats(data.alerts, data.observations, now);
+  }, [data, now]);
 
   const filtered = useMemo(() => {
     if (!data) return { alerts: [], observations: [] };
-    const startTs = dateRange ? Date.now() - dateRange * DAY_MS : null;
+    const startTs = dateRange ? now - dateRange * DAY_MS : null;
     return filterIncidents(data.alerts, data.observations, {
       lines: selectedLines,
       startTs,
       showBus,
       busRoutes: selectedBusRoutes.length > 0 ? selectedBusRoutes : null,
       selectedDay,
+      now,
     });
-  }, [data, selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay]);
+  }, [data, selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay, now]);
 
   if (error) {
     return (
@@ -179,7 +195,9 @@ export default function App() {
         )}
         {data && (
           <>
-            {activeIncidents.length > 0 && <ActiveAlerts incidents={activeIncidents} />}
+            {activeIncidents.length > 0 && (
+              <ActiveAlerts incidents={activeIncidents} now={now} />
+            )}
             <Filters
               selectedLines={selectedLines}
               onLinesChange={handleLinesChange}
@@ -204,6 +222,7 @@ export default function App() {
               numDays={90}
               selectedRangeDays={dateRange}
               dataStartTs={data.data_start_ts ?? null}
+              now={now}
               onLineClick={(line) =>
                 handleLinesChange((prev) =>
                   prev?.includes(line) ? prev.filter((l) => l !== line) : [line],

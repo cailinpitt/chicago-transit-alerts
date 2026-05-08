@@ -86,8 +86,12 @@ export default function Timeline({
   showBus,
   selectedBusRoutes,
   onBusRouteClick,
+  now: nowProp,
 }) {
-  const now = useMemo(() => Date.now(), []);
+  // Fall back to a fresh `Date.now()` when no `now` is supplied (e.g. test
+  // renders). When the prop is provided, day-bucketing advances with the wall
+  // clock so a tab open across midnight still shows the correct "today" column.
+  const now = nowProp ?? Date.now();
   const scrollRef = useRef(null);
 
   // Scroll to the right (today) on mount and whenever numDays changes.

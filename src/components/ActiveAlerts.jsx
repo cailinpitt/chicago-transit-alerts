@@ -10,10 +10,10 @@ const SIGNAL_LABELS = {
   'pulse-held': 'trains held in place',
 };
 
-function ActiveCard({ incident }) {
+function ActiveCard({ incident, now }) {
   const isAlert = !!incident.alert_id;
   const startTs = incident.first_seen_ts || incident.ts;
-  const elapsedMin = Math.round((Date.now() - startTs) / 60_000);
+  const elapsedMin = Math.round((now - startTs) / 60_000);
   const stations = [incident.from_station, incident.to_station].filter(Boolean).join(' → ');
   const signalsText =
     incident.signals?.length > 0
@@ -68,7 +68,7 @@ function ActiveCard({ incident }) {
   );
 }
 
-export default function ActiveAlerts({ incidents }) {
+export default function ActiveAlerts({ incidents, now = Date.now() }) {
   return (
     <section>
       <div className="flex items-center gap-2 mb-2">
@@ -80,7 +80,11 @@ export default function ActiveAlerts({ incidents }) {
       </div>
       <div className="space-y-2">
         {incidents.map((incident) => (
-          <ActiveCard key={incident.alert_id ?? `obs-${incident.id}`} incident={incident} />
+          <ActiveCard
+            key={incident.alert_id ?? `obs-${incident.id}`}
+            incident={incident}
+            now={now}
+          />
         ))}
       </div>
     </section>

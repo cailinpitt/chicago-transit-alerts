@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useDarkMode() {
   const [dark, setDark] = useState(() => {
@@ -12,5 +12,6 @@ export function useDarkMode() {
     localStorage.setItem('darkMode', String(dark));
   }, [dark]);
 
-  return [dark, () => setDark((d) => !d)];
+  const toggle = useCallback(() => setDark((d) => !d), []);
+  return [dark, toggle];
 }
