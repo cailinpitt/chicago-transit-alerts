@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778202173837,
+  "generated_at": 1778208122737,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -88,6 +88,7 @@
         "bunching",
         "gap"
       ],
+      "evidence": null,
       "ts": 1778185141879,
       "resolved_ts": 1778190241604,
       "duration_ms": 5099725,
@@ -107,6 +108,7 @@
         "ghost",
         "gap"
       ],
+      "evidence": null,
       "ts": 1778180941868,
       "resolved_ts": 1778186041492,
       "duration_ms": 5099624,
@@ -126,6 +128,7 @@
         "bunching",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1778163841542,
       "resolved_ts": 1778168941448,
       "duration_ms": 5099906,
@@ -145,6 +148,7 @@
         "bunching",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1778159941831,
       "resolved_ts": 1778162341955,
       "duration_ms": 2400124,
@@ -164,6 +168,7 @@
         "ghost",
         "gap"
       ],
+      "evidence": null,
       "ts": 1778124242134,
       "resolved_ts": 1778125741305,
       "duration_ms": 1499171,
@@ -183,6 +188,7 @@
         "gap",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1778120641355,
       "resolved_ts": 1778122141406,
       "duration_ms": 1500051,
@@ -202,6 +208,7 @@
         "bunching",
         "gap"
       ],
+      "evidence": null,
       "ts": 1778119441560,
       "resolved_ts": 1778121242106,
       "duration_ms": 1800546,
@@ -221,6 +228,7 @@
         "gap",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1778090941503,
       "resolved_ts": 1778093341674,
       "duration_ms": 2400171,
@@ -240,6 +248,7 @@
         "ghost",
         "bunching"
       ],
+      "evidence": null,
       "ts": 1778077141583,
       "resolved_ts": 1778081342187,
       "duration_ms": 4200604,
@@ -256,6 +265,7 @@
       "to_station": "Main",
       "detection_source": "pulse-cold",
       "signals": null,
+      "evidence": null,
       "ts": 1778072104786,
       "resolved_ts": 1778073304034,
       "duration_ms": 1199248,
@@ -275,6 +285,7 @@
         "gap",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1778040542023,
       "resolved_ts": 1778042942263,
       "duration_ms": 2400240,
@@ -294,6 +305,7 @@
         "gap",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1778036942077,
       "resolved_ts": 1778040242154,
       "duration_ms": 3300077,
@@ -310,6 +322,7 @@
       "to_station": "Central (Green)",
       "detection_source": "pulse-cold",
       "signals": null,
+      "evidence": null,
       "ts": 1778029205917,
       "resolved_ts": 1778030704029,
       "duration_ms": 1498112,
@@ -329,6 +342,7 @@
         "gap",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1778026141805,
       "resolved_ts": 1778028542173,
       "duration_ms": 2400368,
@@ -348,6 +362,7 @@
         "bunching",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1778023141978,
       "resolved_ts": 1778024941377,
       "duration_ms": 1799399,
@@ -367,6 +382,7 @@
         "bunching",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1777990140451,
       "resolved_ts": 1777994941609,
       "duration_ms": 4801158,
@@ -387,6 +403,7 @@
         "gap",
         "ghost"
       ],
+      "evidence": null,
       "ts": 1777934341348,
       "resolved_ts": 1777938241329,
       "duration_ms": 3899981,
@@ -403,6 +420,7 @@
       "to_station": "Rockwell",
       "detection_source": "pulse-cold",
       "signals": null,
+      "evidence": null,
       "ts": 1777933805654,
       "resolved_ts": 1777934704267,
       "duration_ms": 898613,
@@ -419,6 +437,7 @@
       "to_station": "Ashland (Green/Pink)",
       "detection_source": "pulse-cold",
       "signals": null,
+      "evidence": null,
       "ts": 1777912205854,
       "resolved_ts": 1777913104095,
       "duration_ms": 898241,
@@ -435,6 +454,7 @@
       "to_station": null,
       "detection_source": "roundup",
       "signals": null,
+      "evidence": null,
       "ts": 1777904641559,
       "resolved_ts": 1777906741592,
       "duration_ms": 2100033,
@@ -451,6 +471,7 @@
       "to_station": "Harrison",
       "detection_source": "pulse-cold",
       "signals": null,
+      "evidence": null,
       "ts": 1777844704679,
       "resolved_ts": 1777846803443,
       "duration_ms": 2098764,
