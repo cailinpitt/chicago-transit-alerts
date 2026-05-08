@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
-import { computeSummaryStats } from '../lib/aggregate.js';
+import { computeLineReliability, computeSummaryStats } from '../lib/aggregate.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { normalizeAlertsPayload } from '../lib/incidents.js';
@@ -11,6 +11,18 @@ import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
 import Timeline from './Timeline.jsx';
 import TrendSparkline from './TrendSparkline.jsx';
+
+// Format a median gap (in hours) for display: minutes for sub-hour gaps,
+// hours for sub-day, "Xd Yh" beyond. Days read more naturally than "96h"
+// when an incident-quiet line has a multi-day median gap.
+function formatGap(hours) {
+  if (hours == null) return '';
+  if (hours < 1) return `${Math.round(hours * 60)}m`;
+  if (hours < 24) return `${Math.round(hours)}h`;
+  const d = Math.floor(hours / 24);
+  const h = Math.round(hours - d * 24);
+  return h > 0 ? `${d}d ${h}h` : `${d}d`;
+}
 
 // LinePage — `/line/:id` for trains, `/route/:id` for buses. Renders the
 // same data-rich blocks as the homepage but pre-filtered to a single line
@@ -99,6 +111,14 @@ export default function LinePage({ kind, lineId }) {
   const summary = useMemo(() => {
     if (!data) return null;
     return computeSummaryStats(lineAlerts, lineObservations, now);
+  }, [data, lineAlerts, lineObservations, now]);
+
+  // 90-day reliability snapshot for this line: how many days were quiet, and
+  // the typical cadence between incidents. Hidden when there's no incident
+  // history — "0 of 90 days" reads worse than just not showing the line.
+  const reliability = useMemo(() => {
+    if (!data) return null;
+    return computeLineReliability(lineAlerts, lineObservations, { now, windowDays: 90 });
   }, [data, lineAlerts, lineObservations, now]);
 
   // Search-only filter pass for the IncidentList. The line is already
@@ -206,19 +226,41 @@ export default function LinePage({ kind, lineId }) {
             {activeIncidents.length > 0 && <ActiveAlerts incidents={activeIncidents} now={now} />}
 
             {summary && (summary.weeklyCount > 0 || summary.quietestLineDays > 0) && (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-1">
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  <strong className="text-slate-800 dark:text-slate-100">
-                    {summary.weeklyCount}
-                  </strong>{' '}
-                  incident{summary.weeklyCount === 1 ? '' : 's'} in the last 7 days
-                  {summary.quietestLineDays >= 2 && (
-                    <>
-                      <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
-                      <span>{summary.quietestLineDays} days since last incident</span>
-                    </>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 px-1">
+                <div className="space-y-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    <strong className="text-slate-800 dark:text-slate-100">
+                      {summary.weeklyCount}
+                    </strong>{' '}
+                    incident{summary.weeklyCount === 1 ? '' : 's'} in the last 7 days
+                    {summary.quietestLineDays >= 2 && (
+                      <>
+                        <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
+                        <span>{summary.quietestLineDays} days since last incident</span>
+                      </>
+                    )}
+                  </p>
+                  {reliability && reliability.incidentFreeDays < reliability.totalDays && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <strong className="text-slate-700 dark:text-slate-200">
+                        {reliability.incidentFreeDays} of {reliability.totalDays} days
+                      </strong>{' '}
+                      incident-free (90d)
+                      {reliability.medianGapHours != null && (
+                        <>
+                          <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
+                          <span>
+                            median{' '}
+                            <strong className="text-slate-700 dark:text-slate-200">
+                              {formatGap(reliability.medianGapHours)}
+                            </strong>{' '}
+                            between incidents
+                          </span>
+                        </>
+                      )}
+                    </p>
                   )}
-                </p>
+                </div>
                 <TrendSparkline alerts={lineAlerts} observations={lineObservations} />
               </div>
             )}

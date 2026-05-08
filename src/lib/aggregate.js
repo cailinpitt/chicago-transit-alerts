@@ -401,6 +401,73 @@ export function buildHourOfWeek(alerts, observations) {
  * @param {import('./incidents.js').Observation[]} observations
  * @returns {{ byLine: Object<string, Object<string, number>>, totals: Object<string, number> }}
  */
+// Per-line reliability stats over a rolling window: how many of the last N
+// Chicago-days had zero incident activity, and the typical cadence between
+// incidents (median gap, start-to-start). Inputs are expected to be already
+// filtered to a single line/route — the function does not filter further.
+//
+// `incidentFreeDays` counts Chicago-days within [today - windowDays + 1, today]
+// that had no overlap with any incident span. An incident spanning multiple
+// days subtracts from incident-free days for every day it touched, matching
+// the way the timeline grid colors days. `medianGapHours` is null when fewer
+// than 2 starts fall inside the window (no gap to take a median over).
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @returns {{ incidentFreeDays: number, totalDays: number, medianGapHours: number | null }}
+ */
+export function computeLineReliability(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 90 } = {},
+) {
+  const todayUTC = chicagoDayUTC(now);
+  const cutoffDayUTC = todayUTC - (windowDays - 1) * DAY_MS;
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  const spans = []; // [startTs, endTs]
+  const starts = [];
+
+  function add(startTs, endTs) {
+    spans.push([startTs, endTs ?? now]);
+    starts.push(startTs);
+  }
+
+  for (const m of merged) add(m.first_seen_ts, m.resolved_ts);
+  for (const a of standaloneAlerts) add(a.first_seen_ts, a.resolved_ts);
+  for (const o of standaloneObs) add(o.ts, o.resolved_ts);
+
+  const daysWithIncident = new Set();
+  for (const [start, end] of spans) {
+    const startDayIdx = Math.round((todayUTC - chicagoDayUTC(start)) / DAY_MS);
+    const endDayIdx = Math.round((todayUTC - chicagoDayUTC(end)) / DAY_MS);
+    const lo = Math.max(0, endDayIdx);
+    const hi = Math.min(windowDays - 1, startDayIdx);
+    for (let d = lo; d <= hi; d++) daysWithIncident.add(d);
+  }
+
+  const incidentFreeDays = windowDays - daysWithIncident.size;
+
+  const startsInWindow = starts.filter((t) => t >= cutoffDayUTC).sort((a, b) => a - b);
+  let medianGapHours = null;
+  if (startsInWindow.length >= 2) {
+    const gaps = [];
+    for (let i = 1; i < startsInWindow.length; i++) {
+      gaps.push(startsInWindow[i] - startsInWindow[i - 1]);
+    }
+    gaps.sort((a, b) => a - b);
+    const mid = Math.floor(gaps.length / 2);
+    const medianMs = gaps.length % 2 === 0 ? (gaps[mid - 1] + gaps[mid]) / 2 : gaps[mid];
+    medianGapHours = medianMs / (60 * 60 * 1000);
+  }
+
+  return { incidentFreeDays, totalDays: windowDays, medianGapHours };
+}
+
 export function buildSignalsByLine(observations) {
   const byLine = {};
   const totals = {};
