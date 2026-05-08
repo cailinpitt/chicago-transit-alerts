@@ -6,6 +6,9 @@ function ActiveCard({ incident, now, isNew }) {
   const isAlert = !!incident.alert_id;
   const startTs = incident.first_seen_ts || incident.ts;
   const elapsedMin = Math.round((now - startTs) / 60_000);
+  const elapsedHours = Math.floor(elapsedMin / 60);
+  const elapsedRemMin = elapsedMin % 60;
+  const elapsedText = elapsedHours > 0 ? `${elapsedHours}h ${elapsedRemMin}m` : `${elapsedMin}m`;
   const stations = [incident.from_station, incident.to_station].filter(Boolean).join(' → ');
   const signalsText =
     incident.signals?.length > 0
@@ -41,7 +44,7 @@ function ActiveCard({ incident, now, isNew }) {
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
           <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
-          <span className="text-xs text-slate-400 dark:text-slate-500">{elapsedMin}m ongoing</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">{elapsedText} ongoing</span>
         </div>
         <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
           {description}
