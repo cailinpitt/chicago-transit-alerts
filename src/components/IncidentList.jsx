@@ -1,5 +1,10 @@
 import { Fragment, useMemo, useState } from 'react';
-import { chicagoDayUTC, formatDate, formatDuration, formatTime } from '../lib/format.js';
+import {
+  chicagoDayUTC,
+  formatChicagoDay,
+  formatDuration,
+  formatTime,
+} from '../lib/format.js';
 import {
   formatEvidenceChip,
   getEventId,
@@ -244,7 +249,7 @@ export default function IncidentList({
           <Fragment key={group.dayUtc}>
             <div className="flex items-baseline gap-2 pt-4 pb-1 first:pt-0 border-t border-slate-100 dark:border-gh-border first:border-t-0">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {formatDate(group.dayUtc)}
+                {formatChicagoDay(group.dayUtc)}
               </h3>
               <span className="text-xs text-slate-400 dark:text-slate-500">
                 {group.total} incident{group.total === 1 ? '' : 's'}

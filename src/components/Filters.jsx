@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
-import { formatDate } from '../lib/format.js';
+import { formatChicagoDay } from '../lib/format.js';
 import { SIGNAL_LABELS, SIGNAL_TYPES } from '../lib/incidents.js';
 
 const DATE_OPTIONS = [
@@ -251,9 +251,9 @@ export default function Filters({
             type="button"
             onClick={onClearSelectedDay}
             className="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 hover:opacity-80 transition-opacity"
-            aria-label={`Clear day filter: ${formatDate(selectedDay)}`}
+            aria-label={`Clear day filter: ${formatChicagoDay(selectedDay)}`}
           >
-            <span>Showing {formatDate(selectedDay)}</span>
+            <span>Showing {formatChicagoDay(selectedDay)}</span>
             <span aria-hidden="true" className="opacity-70">
               ×
             </span>

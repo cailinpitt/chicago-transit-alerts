@@ -48,6 +48,20 @@ export function formatDate(ts) {
   });
 }
 
+// Format a value produced by `chicagoDayUTC` (a UTC midnight that *encodes*
+// the Chicago calendar Y/M/D in its components, not a true Chicago wall-clock
+// instant). Formatting one of those with `formatDate` re-applies the Chicago
+// offset and shifts the result back a calendar day; format as UTC instead so
+// the date components round-trip.
+export function formatChicagoDay(dayUtc) {
+  return new Date(dayUtc).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 export function formatTime(ts) {
   return new Date(ts).toLocaleTimeString('en-US', {
     hour: 'numeric',

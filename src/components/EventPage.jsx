@@ -2,7 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { chicagoDayUTC, formatDate, formatDuration, formatTime, hexToRgba } from '../lib/format.js';
+import {
+  chicagoDayUTC,
+  formatChicagoDay,
+  formatDate,
+  formatDuration,
+  formatTime,
+  hexToRgba,
+} from '../lib/format.js';
 import {
   findIncidentById,
   findRelatedIncidents,
@@ -114,7 +121,7 @@ function MiniTimeline({ incident, alerts, observations }) {
       >
         {days.map(({ dayUtc, count }) => {
           const isPinned = dayUtc === centerDayUtc;
-          const label = `${formatDate(dayUtc)}: ${count} incident${count === 1 ? '' : 's'}`;
+          const label = `${formatChicagoDay(dayUtc)}: ${count} incident${count === 1 ? '' : 's'}`;
           return (
             <div
               key={dayUtc}
