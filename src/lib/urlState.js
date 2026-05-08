@@ -58,6 +58,7 @@ export function parseUrlState(search = window.location.search) {
     dateRange: 7,
     selectedDay: null,
     selectedSignals: [],
+    search: '',
   };
 
   const linesParam = params.get('lines');
@@ -108,6 +109,9 @@ export function parseUrlState(search = window.location.search) {
       .filter((s) => SIGNAL_SET.has(s));
   }
 
+  const qParam = params.get('q');
+  if (qParam) out.search = qParam;
+
   return out;
 }
 
@@ -121,6 +125,7 @@ export function buildSearch({
   dateRange,
   selectedDay,
   selectedSignals,
+  search,
 }) {
   const params = new URLSearchParams();
 
@@ -145,6 +150,9 @@ export function buildSearch({
   }
   if (selectedSignals && selectedSignals.length > 0) {
     params.set('signals', selectedSignals.join(','));
+  }
+  if (search && search.trim().length > 0) {
+    params.set('q', search.trim());
   }
 
   const s = params.toString();

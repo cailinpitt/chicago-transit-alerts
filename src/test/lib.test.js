@@ -431,6 +431,107 @@ describe('observationSignals', () => {
 // ---------------------------------------------------------------------------
 // filterIncidents — signal filter
 // ---------------------------------------------------------------------------
+describe('filterIncidents search', () => {
+  it('matches alert headlines case-insensitively', () => {
+    const a1 = makeAlert({ alert_id: 1, headline: 'Red Line Delays at Howard' });
+    const a2 = makeAlert({ alert_id: 2, headline: 'Blue Line Delay near Forest Park' });
+    const r = filterIncidents([a1, a2], [], { search: 'howard' });
+    expect(r.alerts.map((a) => a.alert_id)).toEqual([1]);
+  });
+
+  it('matches observation from/to stations and direction', () => {
+    const o1 = makeObs({ id: 1, from_station: 'Polk', to_station: 'Ashland' });
+    const o2 = makeObs({ id: 2, from_station: 'Belmont', to_station: 'Howard' });
+    const r = filterIncidents([], [o1, o2], { search: 'howard' });
+    expect(r.observations.map((o) => o.id)).toEqual([2]);
+  });
+
+  it('matches bus route numbers', () => {
+    const o = makeObs({ id: 1, kind: 'bus', line: '66' });
+    const r = filterIncidents([], [o], { search: '66' });
+    expect(r.observations).toHaveLength(1);
+  });
+
+  it('returns everything when search is whitespace-only', () => {
+    const a = makeAlert({ headline: 'whatever' });
+    const r = filterIncidents([a], [], { search: '   ' });
+    expect(r.alerts).toHaveLength(1);
+  });
+
+  it('matches train line by user-visible label even when key differs', () => {
+    // 'g' is the line key for Green; without label-matching, "green" would
+    // never find Green Line incidents.
+    const o = makeObs({ id: 1, line: 'g', from_station: null, to_station: null });
+    const r = filterIncidents([], [o], { search: 'green' });
+    expect(r.observations).toHaveLength(1);
+  });
+
+  it('matches bus route by name (e.g. "Chicago" → route 66)', () => {
+    const o = makeObs({
+      id: 1,
+      kind: 'bus',
+      line: '66',
+      from_station: null,
+      to_station: null,
+    });
+    const r = filterIncidents([], [o], { search: 'chicago' });
+    expect(r.observations).toHaveLength(1);
+  });
+
+  it('matches alerts via their line label', () => {
+    const a = makeAlert({ alert_id: 1, routes: ['brn'], headline: 'Service issue' });
+    const r = filterIncidents([a], [], { search: 'brown' });
+    expect(r.alerts).toHaveLength(1);
+  });
+
+  it('matches "red line" and "Brown Line" conversational forms', () => {
+    const red = makeObs({ id: 1, line: 'red', from_station: null, to_station: null });
+    const brn = makeObs({ id: 2, line: 'brn', from_station: null, to_station: null });
+    expect(filterIncidents([], [red], { search: 'red line' }).observations).toHaveLength(1);
+    expect(filterIncidents([], [brn], { search: 'Brown Line' }).observations).toHaveLength(1);
+  });
+
+  it('matches signal labels (e.g. "headway gaps" → gap observations)', () => {
+    const gapObs = makeObs({
+      id: 1,
+      detection_source: 'gap',
+      from_station: null,
+      to_station: null,
+    });
+    const ghostObs = makeObs({
+      id: 2,
+      detection_source: 'ghost',
+      from_station: null,
+      to_station: null,
+    });
+    const r = filterIncidents([], [gapObs, ghostObs], { search: 'headway gaps' });
+    expect(r.observations.map((o) => o.id)).toEqual([1]);
+  });
+
+  it('matches signal labels for roundup observations via signals array', () => {
+    const o = makeObs({
+      id: 1,
+      detection_source: 'roundup',
+      signals: ['bunching', 'gap'],
+      from_station: null,
+      to_station: null,
+    });
+    expect(filterIncidents([], [o], { search: 'bunching' }).observations).toHaveLength(1);
+  });
+
+  it('matches "route 66" for bus observations', () => {
+    const o = makeObs({
+      id: 1,
+      kind: 'bus',
+      line: '66',
+      from_station: null,
+      to_station: null,
+    });
+    expect(filterIncidents([], [o], { search: 'route 66' }).observations).toHaveLength(1);
+    expect(filterIncidents([], [o], { search: '#66' }).observations).toHaveLength(1);
+  });
+});
+
 describe('filterIncidents signal filter', () => {
   it('keeps only observations whose signals overlap the selected set', () => {
     const obsGap = makeObs({ id: 1, detection_source: 'gap' });

@@ -44,6 +44,7 @@ export default function App() {
   // single day from the timeline.
   const [selectedDay, setSelectedDay] = useState(initial.selectedDay);
   const [selectedSignals, setSelectedSignals] = useState(initial.selectedSignals);
+  const [search, setSearch] = useState(initial.search);
 
   function resetFilters() {
     setSelectedLines(null);
@@ -52,6 +53,7 @@ export default function App() {
     setDateRange(7);
     setSelectedDay(null);
     setSelectedSignals([]);
+    setSearch('');
   }
 
   // Picking any range pill drops the day pin — the two are mutually exclusive
@@ -76,19 +78,20 @@ export default function App() {
   // Mirror filter state to the URL so views are shareable. replaceState (not
   // pushState) so the back button doesn't traverse every filter toggle.
   useEffect(() => {
-    const search = buildSearch({
+    const queryString = buildSearch({
       selectedLines,
       showBus,
       selectedBusRoutes,
       dateRange,
       selectedDay,
       selectedSignals,
+      search,
     });
-    const next = `${window.location.pathname}${search}${window.location.hash}`;
+    const next = `${window.location.pathname}${queryString}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.replaceState(null, '', next);
     }
-  }, [selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay, selectedSignals]);
+  }, [selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay, selectedSignals, search]);
 
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/alerts.json`;
@@ -190,6 +193,7 @@ export default function App() {
       busRoutes: selectedBusRoutes.length > 0 ? selectedBusRoutes : null,
       selectedDay,
       signals: selectedSignals.length > 0 ? selectedSignals : null,
+      search,
       now,
     });
   }, [
@@ -200,6 +204,7 @@ export default function App() {
     dateRange,
     selectedDay,
     selectedSignals,
+    search,
     now,
   ]);
 
@@ -281,7 +286,12 @@ export default function App() {
             />
             <HourOfWeekHeatmap alerts={vizAlerts} observations={vizObservations} />
             <SignalBreakdown observations={data.observations} />
-            <IncidentList alerts={filtered.alerts} observations={filtered.observations} />
+            <IncidentList
+              alerts={filtered.alerts}
+              observations={filtered.observations}
+              search={search}
+              onSearchChange={setSearch}
+            />
           </>
         )}
       </main>

@@ -111,8 +111,35 @@ function IncidentRow({ incident }) {
   );
 }
 
-export default function IncidentList({ alerts, observations }) {
+export default function IncidentList({ alerts, observations, search = '', onSearchChange }) {
   const [page, setPage] = useState(1);
+
+  // Search input lives in this section's header, on the same line as the
+  // title, so the cause-effect of typing → results-narrowing is immediate.
+  // Reused in both the empty-state and populated branches below.
+  const searchInput = onSearchChange ? (
+    <div className="relative w-full sm:w-64">
+      <input
+        type="search"
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="Search Red, 66, Chicago, Howard…"
+        aria-label="Search by line, route, station, or text"
+        title="Search line names (Red, Blue), bus routes by number (66) or name (Chicago), station names (Howard, Belmont), and alert text."
+        className="w-full pl-3 pr-7 py-1 text-xs rounded-full bg-slate-100 dark:bg-gh-subtle text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-transparent focus:outline-none focus:border-slate-300 dark:focus:border-gh-border"
+      />
+      {search && (
+        <button
+          type="button"
+          onClick={() => onSearchChange('')}
+          aria-label="Clear search"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm leading-none"
+        >
+          ×
+        </button>
+      )}
+    </div>
+  ) : null;
 
   const combined = useMemo(() => {
     const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
@@ -160,11 +187,14 @@ export default function IncidentList({ alerts, observations }) {
   if (total === 0) {
     return (
       <section>
-        <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-          Incident History
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+          <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            Incident History
+          </h2>
+          {searchInput}
+        </div>
         <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
-          No incidents in this range.
+          {search ? `No incidents match "${search}".` : 'No incidents in this range.'}
         </div>
       </section>
     );
@@ -172,12 +202,15 @@ export default function IncidentList({ alerts, observations }) {
 
   return (
     <section>
-      <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-        Incident History{' '}
-        <span className="normal-case font-normal text-slate-400 dark:text-slate-500">
-          ({total})
-        </span>
-      </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+        <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          Incident History{' '}
+          <span className="normal-case font-normal text-slate-400 dark:text-slate-500">
+            ({total})
+          </span>
+        </h2>
+        {searchInput}
+      </div>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border px-4 pt-4 pb-2">
         {groups.map((group) => (
           <Fragment key={group.dayUtc}>
