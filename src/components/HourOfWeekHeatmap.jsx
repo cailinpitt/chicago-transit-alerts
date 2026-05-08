@@ -82,7 +82,9 @@ export default function HourOfWeekHeatmap({ alerts, observations }) {
                 return (
                   <div
                     key={hour}
+                    role="img"
                     title={tooltip}
+                    aria-label={tooltip}
                     className="rounded-sm aspect-square"
                     style={{ backgroundColor: cellBg(count, maxCount) }}
                   />

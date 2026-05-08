@@ -247,6 +247,7 @@ export default function LinePage({ kind, lineId }) {
                 incidents={activeIncidents}
                 now={now}
                 typicalDurations={typicalDurations}
+                stationIndex={stationIndex}
               />
             )}
 

@@ -180,6 +180,7 @@ export default function StationPage({ slug }) {
                 incidents={activeIncidents}
                 now={now}
                 typicalDurations={typicalDurations}
+                stationIndex={stationIndex}
               />
             )}
 

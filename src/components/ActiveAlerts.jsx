@@ -3,12 +3,13 @@ import { formatDuration } from '../lib/format.js';
 import { getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
+import StationName from './StationName.jsx';
 
 // Don't surface a median when fewer than this many past incidents back it.
 // Below 5, a single outlier dominates and the hint is more noise than signal.
 const TYPICAL_MIN_COUNT = 5;
 
-function ActiveCard({ incident, now, isNew, typicalDurations }) {
+function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
   const isAlert = !!incident.alert_id;
   const startTs = incident.first_seen_ts || incident.ts;
   const elapsedMin = Math.round((now - startTs) / 60_000);
@@ -23,16 +24,31 @@ function ActiveCard({ incident, now, isNew, typicalDurations }) {
   const typical = typicalKey && typicalDurations ? typicalDurations.get(typicalKey) : null;
   const typicalText =
     typical && typical.count >= TYPICAL_MIN_COUNT ? formatDuration(typical.medianMs) : null;
-  const stations = [incident.from_station, incident.to_station].filter(Boolean).join(' → ');
+  const hasStations = !!(incident.from_station && incident.to_station);
   const signalsText =
     incident.signals?.length > 0
       ? incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')
       : null;
+  // The description is either a string or a JSX fragment. The fragment form
+  // appears for segment-style observations so each endpoint can become a
+  // /station/:slug link when its page is worth visiting.
   let description;
   if (isAlert) {
     description = incident.headline;
-  } else if (stations) {
-    description = stations;
+  } else if (hasStations) {
+    description = (
+      <>
+        <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
+        <StationName name={incident.to_station} stationIndex={stationIndex} />
+      </>
+    );
+  } else if (incident.from_station || incident.to_station) {
+    description = (
+      <StationName
+        name={incident.from_station ?? incident.to_station}
+        stationIndex={stationIndex}
+      />
+    );
   } else if (incident.detection_source === 'roundup' && signalsText) {
     description = `Multiple signals: ${signalsText}`;
   } else if (incident.detection_source === 'roundup') {
@@ -50,7 +66,7 @@ function ActiveCard({ incident, now, isNew, typicalDurations }) {
       }`}
     >
       {/* Pulsing dot */}
-      <div className="relative mt-1.5 flex-shrink-0 flex h-2.5 w-2.5">
+      <div aria-hidden="true" className="relative mt-1.5 flex-shrink-0 flex h-2.5 w-2.5">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
       </div>
@@ -104,11 +120,12 @@ export default function ActiveAlerts({
   now = Date.now(),
   highlightedIds,
   typicalDurations,
+  stationIndex,
 }) {
   return (
     <section>
       <div className="flex items-center gap-2 mb-2">
-        <div className="relative flex h-2 w-2">
+        <div aria-hidden="true" className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
         </div>
@@ -124,6 +141,7 @@ export default function ActiveAlerts({
               now={now}
               isNew={eventId != null && highlightedIds?.has(eventId)}
               typicalDurations={typicalDurations}
+              stationIndex={stationIndex}
             />
           );
         })}

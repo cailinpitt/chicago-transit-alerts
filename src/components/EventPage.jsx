@@ -18,8 +18,10 @@ import {
   normalizeAlertsPayload,
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
+import { buildStationIndex } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
+import StationName from './StationName.jsx';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BUS_COLOR = '#64748b'; // slate-500 — mirrors Timeline's bus row tint.
@@ -143,12 +145,17 @@ function MiniTimeline({ incident, alerts, observations }) {
   );
 }
 
-function relatedDescription(incident) {
+function relatedDescription(incident, stationIndex) {
   const isMerged = incident._type === 'merged';
   const isAlert = !isMerged && !!incident.alert_id;
   if (isMerged || isAlert) return incident.headline;
   if (incident.from_station && incident.to_station) {
-    return `${incident.from_station} → ${incident.to_station}`;
+    return (
+      <>
+        <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
+        <StationName name={incident.to_station} stationIndex={stationIndex} />
+      </>
+    );
   }
   if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
     return `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
@@ -157,7 +164,7 @@ function relatedDescription(incident) {
   return 'Service disruption detected';
 }
 
-function RelatedIncidents({ incident, alerts, observations }) {
+function RelatedIncidents({ incident, alerts, observations, stationIndex }) {
   const related = useMemo(
     () => findRelatedIncidents(incident, alerts, observations),
     [incident, alerts, observations],
@@ -206,7 +213,7 @@ function RelatedIncidents({ incident, alerts, observations }) {
                   )}
                 </div>
                 <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
-                  {relatedDescription(other)}
+                  {relatedDescription(other, stationIndex)}
                 </p>
               </div>
             </div>
@@ -217,10 +224,29 @@ function RelatedIncidents({ incident, alerts, observations }) {
   );
 }
 
-function describe(incident, isMerged, isAlert) {
+// Plain-string variant of `describe` for places that can't render JSX —
+// document.title, plain text logging, etc.
+function describeText(incident, isMerged, isAlert) {
   if (isMerged || isAlert) return incident.headline;
   if (incident.from_station && incident.to_station) {
     return `${incident.from_station} → ${incident.to_station}`;
+  }
+  if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
+    return `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
+  }
+  if (incident.detection_source === 'roundup') return 'Multiple simultaneous disruptions detected';
+  return 'Service disruption detected';
+}
+
+function describe(incident, isMerged, isAlert, stationIndex) {
+  if (isMerged || isAlert) return incident.headline;
+  if (incident.from_station && incident.to_station) {
+    return (
+      <>
+        <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
+        <StationName name={incident.to_station} stationIndex={stationIndex} />
+      </>
+    );
   }
   if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
     return `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
@@ -252,6 +278,11 @@ export default function EventPage({ eventId }) {
     return findIncidentById(data.alerts, data.observations, eventId);
   }, [data, eventId]);
 
+  const stationIndex = useMemo(() => {
+    if (!data) return null;
+    return buildStationIndex(data.alerts, data.observations, { windowDays: 90 });
+  }, [data]);
+
   // Set the tab title from the incident so bookmarks and shared links land in
   // browser history with something readable, not the generic site title.
   useEffect(() => {
@@ -266,7 +297,7 @@ export default function EventPage({ eventId }) {
     // (e.g. "Temporary Reroute") doesn't lose the route context the rest of
     // the page makes obvious.
     const label = formatRoutesLabel(incident.kind, incidentRoutes(incident));
-    const desc = describe(incident, isMerged, isAlert);
+    const desc = describeText(incident, isMerged, isAlert);
     document.title = `${label} · ${desc} · ${base}`;
     return () => {
       document.title = base;
@@ -312,11 +343,13 @@ export default function EventPage({ eventId }) {
               incident={incident}
               alerts={data.alerts}
               observations={data.observations}
+              stationIndex={stationIndex}
             />
             <RelatedIncidents
               incident={incident}
               alerts={data.alerts}
               observations={data.observations}
+              stationIndex={stationIndex}
             />
           </>
         )}
@@ -325,24 +358,38 @@ export default function EventPage({ eventId }) {
   );
 }
 
-function formatAffected(incident) {
+function formatAffected(incident, stationIndex) {
   const from = incident.affected_from_station;
   const to = incident.affected_to_station;
   const dir = incident.affected_direction;
-  const segment = from && to ? `${from} → ${to}` : (from ?? to ?? null);
-  if (!segment && !dir) return null;
-  if (segment && dir) return `${dir} · ${segment}`;
+  if (!from && !to && !dir) return null;
+  const segment =
+    from && to ? (
+      <>
+        <StationName name={from} stationIndex={stationIndex} /> →{' '}
+        <StationName name={to} stationIndex={stationIndex} />
+      </>
+    ) : from || to ? (
+      <StationName name={from ?? to} stationIndex={stationIndex} />
+    ) : null;
+  if (segment && dir) {
+    return (
+      <>
+        {dir} · {segment}
+      </>
+    );
+  }
   return segment ?? dir;
 }
 
-function EventDetail({ incident, alerts, observations }) {
+function EventDetail({ incident, alerts, observations, stationIndex }) {
   const isMerged = incident._type === 'merged';
   const isAlert = !isMerged && !!incident.alert_id;
   const startTs = incident.first_seen_ts || incident.ts;
   const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
-  const description = describe(incident, isMerged, isAlert);
-  const affected = formatAffected(incident);
+  const description = describe(incident, isMerged, isAlert, stationIndex);
+  const affected = formatAffected(incident, stationIndex);
   const resolvedUrl = incident.resolved_reply_url ?? incident.resolved_post_url ?? null;
   const obsResolvedUrl = isMerged ? (incident.obs_resolved_post_url ?? null) : null;
   const eventId = getEventId(incident);
@@ -377,7 +424,8 @@ function EventDetail({ incident, alerts, observations }) {
 
       {isMerged && incident.from_station && incident.to_station && (
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-          {incident.from_station} → {incident.to_station}
+          <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
+          <StationName name={incident.to_station} stationIndex={stationIndex} />
         </p>
       )}
 

@@ -65,6 +65,56 @@ The site is a static React app — no backend, no database calls from the browse
 3. GitHub Actions builds the Vite app and deploys it to GitHub Pages.
 4. The browser polls `alerts.json` every 5 minutes so the page stays current without a reload.
 
+## Data as an API
+
+The same JSON the SPA reads is published at a stable URL:
+
+```
+https://chicagotransitalerts.app/data/alerts.json
+```
+
+It's regenerated whenever the underlying data changes (typically every 7 minutes when there's activity) and served from GitHub Pages with no auth. Use it however you like — research, journalism, hobby dashboards, training data. A non-exhaustive sketch of the shape:
+
+```jsonc
+{
+  "generated_at": 1715200000000,         // epoch ms when the snapshot was produced
+  "data_start_ts": 1707350400000,        // earliest moment we have coverage for
+  "alerts": [
+    {
+      "alert_id": "...",
+      "kind": "train",                   // or "bus"
+      "routes": ["red"],                 // line keys ('red', 'g', 'org', …) or bus route numbers
+      "headline": "...",
+      "first_seen_ts": 1715199000000,
+      "resolved_ts": null,               // null = still open
+      "active": true,
+      "post_url": "https://bsky.app/profile/.../post/...",
+      "affected_from_station": null,
+      "affected_to_station": null
+    }
+  ],
+  "observations": [
+    {
+      "id": 12345,
+      "kind": "train",
+      "line": "red",
+      "ts": 1715199000000,
+      "resolved_ts": 1715202600000,
+      "active": false,
+      "detection_source": "pulse-cold",  // or 'gap', 'bunching', 'ghost', 'pulse-held', 'roundup'
+      "signals": ["gap", "bunching"],    // populated for roundups
+      "from_station": "Howard",
+      "to_station": "Loyola",
+      "post_url": "https://bsky.app/profile/.../post/..."
+    }
+  ]
+}
+```
+
+Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/incidents.js). An [Atom feed](https://chicagotransitalerts.app/feed.xml) is also published if you want notifications without polling.
+
+Please be a courteous client — cache responses, don't poll faster than every few minutes, and credit the project if you build something public.
+
 ## Stack
 
 - [Vite](https://vitejs.dev/) + [React 19](https://react.dev/) + [Tailwind CSS](https://tailwindcss.com/)

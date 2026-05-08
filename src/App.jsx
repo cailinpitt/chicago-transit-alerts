@@ -297,6 +297,7 @@ export default function App() {
                 now={now}
                 highlightedIds={highlightedIds}
                 typicalDurations={typicalDurations}
+                stationIndex={stationIndex}
               />
             )}
             <Filters

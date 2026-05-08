@@ -6,32 +6,11 @@ import {
   mergeMatchingIncidents,
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
-import { slugifyStation } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
+import StationName from './StationName.jsx';
 
 const PAGE_SIZE = 25;
-// Below this threshold a station's page would be near-empty and the link
-// would be more annoying than useful — leave the name as plain text.
-const STATION_LINK_MIN_COUNT = 2;
-
-// Render a station name. Becomes a link to /station/:slug when the station
-// has enough incidents in the index to make the page worth visiting; falls
-// back to plain text otherwise. Always plain text when no index is passed
-// (e.g. tests rendering IncidentList directly).
-function StationName({ name, stationIndex }) {
-  if (!name) return null;
-  const slug = slugifyStation(name);
-  const rec = slug && stationIndex ? stationIndex.get(slug) : null;
-  if (rec && rec.count >= STATION_LINK_MIN_COUNT) {
-    return (
-      <a href={`/station/${slug}`} className="hover:text-blue-500 hover:underline">
-        {name}
-      </a>
-    );
-  }
-  return <>{name}</>;
-}
 
 function IncidentRow({ incident, isNew, stationIndex }) {
   const isMerged = incident._type === 'merged';
