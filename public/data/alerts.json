@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778249641927,
+  "generated_at": 1778252161984,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -89,11 +89,11 @@
       ],
       "evidence": null,
       "ts": 1778249342119,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778251741812,
+      "duration_ms": 2399693,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldvsaam3m2s",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldxzsqh2y2u"
     },
     {
       "id": 19,
@@ -109,11 +109,11 @@
       ],
       "evidence": null,
       "ts": 1778247242034,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778251741812,
+      "duration_ms": 4499778,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldttneyr22c",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldxzqxu2l2c"
     },
     {
       "id": 18,
