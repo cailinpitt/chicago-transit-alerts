@@ -7,7 +7,16 @@
 // Runs as a postbuild step. Requires `dist/data/alerts.json` to be present —
 // it's copied from `public/data/` by Vite at build time.
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  copyFileSync,
+  mkdirSync,
+  existsSync,
+  readdirSync,
+  rmSync,
+} from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -21,6 +30,11 @@ const DIST = resolve(ROOT, 'dist');
 const DATA = resolve(DIST, 'data', 'alerts.json');
 const SHELL = resolve(DIST, 'index.html');
 const TEMPLATE = resolve(__dirname, 'og-event-template.html');
+// Image cache survives across builds via actions/cache. Only the PNG and its
+// signature live here — the HTML stub is regenerated every build because it
+// embeds the freshly hashed asset paths from `dist/index.html`.
+const CACHE = resolve(ROOT, '.og-cache');
+const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY ?? 6);
 
 const SITE = 'https://chicagotransitalerts.app';
 const BUS_ACCENT = { color: '#475569', soft: 'rgba(71, 85, 105, 0.18)', text: '#fff' };
@@ -152,6 +166,35 @@ function fillTemplate(tpl, fields) {
     .replaceAll('__EVENT_ID__', escHtml(fields.id));
 }
 
+// Hash the inputs that affect the rendered PNG. If this is unchanged from the
+// last build's signature, we can skip Playwright entirely for this event.
+function signatureFor({ id, title, subtitle, badge, accent, templateHash }) {
+  const h = createHash('sha256');
+  h.update(JSON.stringify({ id, title, subtitle, badge, accent, templateHash }));
+  return h.digest('hex');
+}
+
+async function renderPng(page, html, outPath) {
+  await page.setContent(html, { waitUntil: 'load' });
+  await page.screenshot({
+    path: outPath,
+    type: 'png',
+    clip: { x: 0, y: 0, width: 1200, height: 630 },
+  });
+}
+
+async function workerPool(items, size, worker) {
+  const queue = items.slice();
+  const runners = Array.from({ length: Math.min(size, queue.length) }, async () => {
+    while (queue.length) {
+      const item = queue.shift();
+      if (!item) return;
+      await worker(item);
+    }
+  });
+  await Promise.all(runners);
+}
+
 async function main() {
   if (!existsSync(DATA)) {
     console.warn(`prerender-events: ${DATA} missing — skipping (build copies public/data first)`);
@@ -160,6 +203,7 @@ async function main() {
   const payload = JSON.parse(readFileSync(DATA, 'utf8'));
   const shell = readFileSync(SHELL, 'utf8');
   const template = readFileSync(TEMPLATE, 'utf8');
+  const templateHash = createHash('sha256').update(template).digest('hex').slice(0, 16);
 
   const incidents = pickIncidents(payload);
   if (incidents.size === 0) {
@@ -167,38 +211,78 @@ async function main() {
     return;
   }
 
-  const browser = await chromium.launch();
-  const ctx = await browser.newContext({
-    viewport: { width: 1200, height: 630 },
-    deviceScaleFactor: 1,
-  });
-  const page = await ctx.newPage();
+  mkdirSync(CACHE, { recursive: true });
 
-  let count = 0;
+  // Plan each event: always emit the HTML stub; queue PNG render only on a
+  // signature miss.
+  const renders = [];
+  const seenIds = new Set();
   for (const [id, incident] of incidents) {
+    seenIds.add(id);
     const accent = accentFor(incident);
     const { title, subtitle } = summarize(incident);
     const badge = incident.active ? 'Active' : 'Archived';
+    const sig = signatureFor({ id, title, subtitle, badge, accent, templateHash });
 
     const outDir = resolve(DIST, 'event', id);
     mkdirSync(outDir, { recursive: true });
-
-    // Per-event HTML stub (SPA still hydrates from this — only meta differs).
     writeFileSync(resolve(outDir, 'index.html'), buildHtmlStub(shell, { id, title, subtitle, accent }));
 
-    // Per-event OG image.
-    const html = fillTemplate(template, { id, title, subtitle, badge, accent });
-    await page.setContent(html, { waitUntil: 'load' });
-    await page.screenshot({
-      path: resolve(outDir, 'og.png'),
-      type: 'png',
-      clip: { x: 0, y: 0, width: 1200, height: 630 },
-    });
-    count++;
+    const cacheDir = resolve(CACHE, id);
+    const cachedPng = resolve(cacheDir, 'og.png');
+    const cachedSig = resolve(cacheDir, 'sig');
+    const sigMatches =
+      existsSync(cachedPng) && existsSync(cachedSig) && readFileSync(cachedSig, 'utf8') === sig;
+
+    if (sigMatches) {
+      copyFileSync(cachedPng, resolve(outDir, 'og.png'));
+      continue;
+    }
+
+    renders.push({ id, html: fillTemplate(template, { id, title, subtitle, badge, accent }), outDir, cacheDir, cachedPng, cachedSig, sig });
   }
 
-  await browser.close();
-  console.log(`prerender-events: wrote ${count} per-event stubs`);
+  let rendered = 0;
+  let cached = incidents.size - renders.length;
+
+  if (renders.length > 0) {
+    const browser = await chromium.launch();
+    const ctx = await browser.newContext({
+      viewport: { width: 1200, height: 630 },
+      deviceScaleFactor: 1,
+    });
+
+    const pages = await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, renders.length) }, () => ctx.newPage()),
+    );
+    let i = 0;
+    await workerPool(renders, pages.length, async (item) => {
+      const page = pages[i++ % pages.length];
+      const out = resolve(item.outDir, 'og.png');
+      await renderPng(page, item.html, out);
+      mkdirSync(item.cacheDir, { recursive: true });
+      copyFileSync(out, item.cachedPng);
+      writeFileSync(item.cachedSig, item.sig);
+      rendered++;
+    });
+
+    await browser.close();
+  }
+
+  // Sweep cache entries for events no longer in the payload so the cache
+  // doesn't grow unboundedly. (Resolved incidents eventually age out of
+  // alerts.json; their cached PNGs are no longer reachable.)
+  let pruned = 0;
+  for (const entry of readdirSync(CACHE)) {
+    if (!seenIds.has(entry)) {
+      rmSync(resolve(CACHE, entry), { recursive: true, force: true });
+      pruned++;
+    }
+  }
+
+  console.log(
+    `prerender-events: ${rendered} rendered, ${cached} cache-hit, ${pruned} pruned (concurrency=${CONCURRENCY})`,
+  );
 }
 
 main().catch((err) => {
