@@ -1,0 +1,259 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useDarkMode } from '../hooks/useDarkMode.js';
+import { useNow } from '../hooks/useNow.js';
+import { computeSummaryStats } from '../lib/aggregate.js';
+import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
+import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
+import { normalizeAlertsPayload } from '../lib/incidents.js';
+import ActiveAlerts from './ActiveAlerts.jsx';
+import Header from './Header.jsx';
+import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
+import IncidentList from './IncidentList.jsx';
+import Timeline from './Timeline.jsx';
+import TrendSparkline from './TrendSparkline.jsx';
+
+// LinePage — `/line/:id` for trains, `/route/:id` for buses. Renders the
+// same data-rich blocks as the homepage but pre-filtered to a single line
+// or bus route, with a permalink-friendly URL. Reuses existing components
+// by feeding them only the matching subset of alerts/observations; the
+// components don't need to know they're scoped.
+export default function LinePage({ kind, lineId }) {
+  const [dark, toggleDark] = useDarkMode();
+  const now = useNow();
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
+
+  // Validate the id: for trains it must be a known TRAIN_LINES key (after
+  // normalizing CTA short codes — `/line/org` resolves to 'orange'); for
+  // buses it must appear in BUS_ROUTE_NAMES (which is comprehensive). An
+  // unknown id renders the not-found card without trying to fetch.
+  const isTrain = kind === 'train';
+  const normalizedLineId = isTrain ? normalizeTrainLine(lineId) : lineId;
+  const trainInfo = isTrain ? TRAIN_LINES[normalizedLineId] : null;
+  const busName = !isTrain ? BUS_ROUTE_NAMES[lineId] : null;
+  const isKnown = isTrain ? !!trainInfo : !!busName;
+  // Use the normalized id for all internal lookups so a `/line/org` URL
+  // matches data tagged 'orange' after `normalizeAlertsPayload` runs.
+  const effectiveLineId = isTrain ? normalizedLineId : lineId;
+
+  useEffect(() => {
+    const url = `${import.meta.env.BASE_URL}data/alerts.json`;
+    fetch(url, { cache: 'no-store' })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((raw) => setData(normalizeAlertsPayload(raw)))
+      .catch(setError);
+  }, []);
+
+  // Subset of the dataset that touches this line/route. Trains carry the
+  // line on `routes` (alerts) or `line` (observations); buses carry the
+  // route number in the same fields. We use this subset for every
+  // visualization so each card reflects only this one line's behavior.
+  const lineAlerts = useMemo(() => {
+    if (!data) return [];
+    return data.alerts.filter(
+      (a) => a.kind === kind && Array.isArray(a.routes) && a.routes.includes(effectiveLineId),
+    );
+  }, [data, kind, effectiveLineId]);
+
+  const lineObservations = useMemo(() => {
+    if (!data) return [];
+    return data.observations.filter((o) => o.kind === kind && o.line === effectiveLineId);
+  }, [data, kind, effectiveLineId]);
+
+  const activeIncidents = useMemo(() => {
+    return [
+      ...lineAlerts.filter((a) => a.active),
+      ...lineObservations.filter((o) => o.active),
+    ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
+  }, [lineAlerts, lineObservations]);
+
+  // Title + tab title — built from the human label, not the key. The bus
+  // chip uses the bare route number ("#147") so it stays compact and
+  // parallel with the train pill ("Red Line"); the route name is rendered
+  // separately to the right rather than crammed inside the pill.
+  const heading = isTrain ? `${trainInfo?.label ?? lineId} Line` : `#${lineId}`;
+  // The tab title uses the longer formatBusRoute form so a pinned tab is
+  // unambiguous in the OS tab strip ("#147 Outer DuSable Lake Shore Exp.").
+  const tabHeading = isTrain ? heading : busName ? formatBusRoute(lineId) : lineId;
+  useEffect(() => {
+    const base = 'CTA Alert History';
+    if (!isKnown) {
+      document.title = `${base}`;
+      return;
+    }
+    const prefix = activeIncidents.length > 0 ? `(${activeIncidents.length}) ` : '';
+    document.title = `${prefix}${tabHeading} · ${base}`;
+    return () => {
+      document.title = base;
+    };
+  }, [isKnown, tabHeading, activeIncidents.length]);
+
+  // Per-line summary: reuse computeSummaryStats with only this line's data.
+  // The "most affected" answer collapses to either this line/route or null
+  // (no incidents in 30d), so we don't render that field separately —
+  // weeklyCount and the trend sparkline carry the load.
+  const summary = useMemo(() => {
+    if (!data) return null;
+    return computeSummaryStats(lineAlerts, lineObservations, now);
+  }, [data, lineAlerts, lineObservations, now]);
+
+  // Search-only filter pass for the IncidentList. The line is already
+  // locked by the alert/observation pre-filter above; the only optional
+  // narrowing left is the free-text search, which we apply in-place.
+  const listFiltered = useMemo(() => {
+    if (!search.trim()) return { alerts: lineAlerts, observations: lineObservations };
+    // Lazy import would pull a circular dep; replicate the same trim/lower
+    // logic filterIncidents uses but only against the search field — line
+    // and kind are already constrained.
+    const q = search.trim().toLowerCase();
+    const matchesText = (s) => s != null && String(s).toLowerCase().includes(q);
+    const alertHit = (a) =>
+      [a.headline, a.affected_from_station, a.affected_to_station, a.affected_direction].some(
+        matchesText,
+      );
+    const obsHit = (o) =>
+      [o.from_station, o.to_station, o.direction].some(matchesText) ||
+      (o.signals || []).some(matchesText) ||
+      (o.detection_source && matchesText(o.detection_source));
+    return {
+      alerts: lineAlerts.filter(alertHit),
+      observations: lineObservations.filter(obsHit),
+    };
+  }, [lineAlerts, lineObservations, search]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gh-canvas">
+        <p className="text-red-600 text-sm">Failed to load alert data.</p>
+      </div>
+    );
+  }
+
+  if (!isKnown) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
+        <Header
+          generatedAt={data?.generated_at}
+          dark={dark}
+          onToggleDark={toggleDark}
+          onResetFilters={() => {
+            window.location.href = '/';
+          }}
+        />
+        <main className="max-w-3xl mx-auto px-4 py-6 w-full flex-1">
+          <a href="/" className="text-sm text-blue-500 hover:text-blue-400 hover:underline">
+            ← Back to all incidents
+          </a>
+          <div className="mt-4 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              We don't recognize {kind === 'train' ? 'that line' : 'that route'} ({lineId}).
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Color used for the heading pill + accents. Trains use their CTA brand
+  // color; buses fall back to slate to match the bus rows in the timeline.
+  const headingBg = isTrain ? trainInfo.color : '#64748b';
+  const headingText = isTrain ? trainInfo.textColor : '#fff';
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
+      <Header
+        generatedAt={data?.generated_at}
+        dark={dark}
+        onToggleDark={toggleDark}
+        onResetFilters={() => {
+          window.location.href = '/';
+        }}
+      />
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
+        <div>
+          <a
+            href="/"
+            className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3"
+          >
+            ← Back to all incidents
+          </a>
+          <div className="flex flex-wrap items-center gap-3">
+            <span
+              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold"
+              style={{ backgroundColor: headingBg, color: headingText }}
+            >
+              {heading}
+            </span>
+            {!isTrain && busName && (
+              <span className="text-sm text-slate-500 dark:text-slate-400">{busName}</span>
+            )}
+          </div>
+        </div>
+
+        {!data && (
+          <div className="space-y-4 animate-pulse">
+            <div className="h-16 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
+            <div className="h-48 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
+          </div>
+        )}
+
+        {data && (
+          <>
+            {activeIncidents.length > 0 && <ActiveAlerts incidents={activeIncidents} now={now} />}
+
+            {summary && (summary.weeklyCount > 0 || summary.quietestLineDays > 0) && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-1">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  <strong className="text-slate-800 dark:text-slate-100">
+                    {summary.weeklyCount}
+                  </strong>{' '}
+                  incident{summary.weeklyCount === 1 ? '' : 's'} in the last 7 days
+                  {summary.quietestLineDays >= 2 && (
+                    <>
+                      <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
+                      <span>{summary.quietestLineDays} days since last incident</span>
+                    </>
+                  )}
+                </p>
+                <TrendSparkline alerts={lineAlerts} observations={lineObservations} />
+              </div>
+            )}
+
+            <Timeline
+              alerts={lineAlerts}
+              observations={lineObservations}
+              selectedLines={isTrain ? [effectiveLineId] : []}
+              numDays={90}
+              selectedRangeDays={null}
+              dataStartTs={data.data_start_ts ?? null}
+              now={now}
+              onLineClick={() => {}}
+              showBus={!isTrain}
+              selectedBusRoutes={!isTrain ? [lineId] : []}
+              onBusRouteClick={() => {}}
+            />
+
+            <HourOfWeekHeatmap alerts={lineAlerts} observations={lineObservations} />
+
+            <IncidentList
+              alerts={listFiltered.alerts}
+              observations={listFiltered.observations}
+              search={search}
+              onSearchChange={setSearch}
+            />
+          </>
+        )}
+
+        {data && lineAlerts.length === 0 && lineObservations.length === 0 && (
+          <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+            No incidents on record for {heading}.
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

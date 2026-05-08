@@ -1,12 +1,17 @@
 import { Fragment, useMemo, useState } from 'react';
 import { chicagoDayUTC, formatDate, formatDuration, formatTime } from '../lib/format.js';
-import { getEventId, mergeMatchingIncidents, SIGNAL_LABELS } from '../lib/incidents.js';
+import {
+  formatEvidenceChip,
+  getEventId,
+  mergeMatchingIncidents,
+  SIGNAL_LABELS,
+} from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
 
 const PAGE_SIZE = 25;
 
-function IncidentRow({ incident }) {
+function IncidentRow({ incident, isNew }) {
   const isMerged = incident._type === 'merged';
   const isAlert = !isMerged && !!incident.alert_id;
 
@@ -26,7 +31,11 @@ function IncidentRow({ incident }) {
             : 'Service disruption detected';
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0">
+    <div
+      className={`flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0 ${
+        isNew ? 'animate-fade-highlight' : ''
+      }`}
+    >
       <div className="flex-shrink-0 w-14 text-right">
         <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(startTs)}</p>
       </div>
@@ -74,6 +83,19 @@ function IncidentRow({ incident }) {
           </p>
         )}
 
+        {/* Bot-confidence chip — pulled from the observation's evidence
+            payload. Surfaces "why the bot fired" without requiring a click
+            through to Bluesky. */}
+        {(() => {
+          const chip = formatEvidenceChip(incident);
+          if (!chip) return null;
+          return (
+            <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
+              {chip}
+            </span>
+          );
+        })()}
+
         {/* Links */}
         <div className="flex flex-wrap gap-3 mt-1.5">
           {incident.post_url && (
@@ -111,7 +133,13 @@ function IncidentRow({ incident }) {
   );
 }
 
-export default function IncidentList({ alerts, observations, search = '', onSearchChange }) {
+export default function IncidentList({
+  alerts,
+  observations,
+  search = '',
+  onSearchChange,
+  highlightedIds,
+}) {
   const [page, setPage] = useState(1);
 
   // Search input lives in this section's header, on the same line as the
@@ -222,12 +250,16 @@ export default function IncidentList({ alerts, observations, search = '', onSear
                 {group.total} incident{group.total === 1 ? '' : 's'}
               </span>
             </div>
-            {group.incidents.map((incident) => (
-              <IncidentRow
-                key={incident.alert_id ?? `obs-${incident.id ?? incident.obs_id}`}
-                incident={incident}
-              />
-            ))}
+            {group.incidents.map((incident) => {
+              const eventId = getEventId(incident);
+              return (
+                <IncidentRow
+                  key={incident.alert_id ?? `obs-${incident.id ?? incident.obs_id}`}
+                  incident={incident}
+                  isNew={eventId != null && highlightedIds?.has(eventId)}
+                />
+              );
+            })}
           </Fragment>
         ))}
       </div>

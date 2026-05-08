@@ -2,7 +2,7 @@ import { getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
 
-function ActiveCard({ incident, now }) {
+function ActiveCard({ incident, now, isNew }) {
   const isAlert = !!incident.alert_id;
   const startTs = incident.first_seen_ts || incident.ts;
   const elapsedMin = Math.round((now - startTs) / 60_000);
@@ -27,7 +27,11 @@ function ActiveCard({ incident, now }) {
   }
 
   return (
-    <div className="bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 p-4 flex items-start gap-3">
+    <div
+      className={`bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 p-4 flex items-start gap-3 ${
+        isNew ? 'animate-fade-highlight' : ''
+      }`}
+    >
       {/* Pulsing dot */}
       <div className="relative mt-1.5 flex-shrink-0 flex h-2.5 w-2.5">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
@@ -68,7 +72,7 @@ function ActiveCard({ incident, now }) {
   );
 }
 
-export default function ActiveAlerts({ incidents, now = Date.now() }) {
+export default function ActiveAlerts({ incidents, now = Date.now(), highlightedIds }) {
   return (
     <section>
       <div className="flex items-center gap-2 mb-2">
@@ -79,13 +83,17 @@ export default function ActiveAlerts({ incidents, now = Date.now() }) {
         <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wider">Active Now</h2>
       </div>
       <div className="space-y-2">
-        {incidents.map((incident) => (
-          <ActiveCard
-            key={incident.alert_id ?? `obs-${incident.id}`}
-            incident={incident}
-            now={now}
-          />
-        ))}
+        {incidents.map((incident) => {
+          const eventId = getEventId(incident);
+          return (
+            <ActiveCard
+              key={incident.alert_id ?? `obs-${incident.id}`}
+              incident={incident}
+              now={now}
+              isNew={eventId != null && highlightedIds?.has(eventId)}
+            />
+          );
+        })}
       </div>
     </section>
   );

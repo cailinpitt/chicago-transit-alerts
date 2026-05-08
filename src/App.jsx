@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ActiveAlerts from './components/ActiveAlerts.jsx';
 import Filters from './components/Filters.jsx';
 import Footer from './components/Footer.jsx';
@@ -11,7 +11,12 @@ import Timeline from './components/Timeline.jsx';
 import { useDarkMode } from './hooks/useDarkMode.js';
 import { useNow } from './hooks/useNow.js';
 import { computeSummaryStats } from './lib/aggregate.js';
-import { filterIncidents, observationSignals } from './lib/incidents.js';
+import {
+  filterIncidents,
+  getEventId,
+  normalizeAlertsPayload,
+  observationSignals,
+} from './lib/incidents.js';
 import { buildSearch, parseUrlState } from './lib/urlState.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -102,7 +107,8 @@ export default function App() {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json();
         })
-        .then((fresh) => {
+        .then((raw) => {
+          const fresh = normalizeAlertsPayload(raw);
           setData((prev) => {
             // Only update if generated_at changed (or on first load).
             if (!prev || fresh.generated_at !== prev.generated_at) return fresh;
@@ -137,6 +143,41 @@ export default function App() {
     const base = 'CTA Alert History';
     document.title = activeIncidents.length > 0 ? `(${activeIncidents.length}) ${base}` : base;
   }, [activeIncidents.length]);
+
+  // Track which event ids have been seen on prior renders, so when the 5-min
+  // poll brings in new ones we can briefly highlight them. The first data load
+  // seeds the set without highlighting anything — otherwise every event would
+  // flash on initial page render.
+  const seenIdsRef = useRef(null);
+  const [highlightedIds, setHighlightedIds] = useState(() => new Set());
+  useEffect(() => {
+    if (!data) return;
+    const current = new Set();
+    for (const a of data.alerts) {
+      const id = getEventId(a);
+      if (id) current.add(id);
+    }
+    for (const o of data.observations) {
+      const id = getEventId(o);
+      if (id) current.add(id);
+    }
+    if (seenIdsRef.current === null) {
+      seenIdsRef.current = current;
+      return;
+    }
+    const fresh = new Set();
+    for (const id of current) {
+      if (!seenIdsRef.current.has(id)) fresh.add(id);
+    }
+    seenIdsRef.current = current;
+    if (fresh.size === 0) return;
+    setHighlightedIds(fresh);
+    // Match the keyframe duration in tailwind.config.js — keep the React
+    // state alive long enough for the CSS animation to run, then drop the
+    // class so it doesn't replay if the component re-renders.
+    const t = setTimeout(() => setHighlightedIds(new Set()), 5000);
+    return () => clearTimeout(t);
+  }, [data]);
 
   const availableBusRoutes = useMemo(() => {
     if (!data) return [];
@@ -235,7 +276,9 @@ export default function App() {
         )}
         {data && (
           <>
-            {activeIncidents.length > 0 && <ActiveAlerts incidents={activeIncidents} now={now} />}
+            {activeIncidents.length > 0 && (
+              <ActiveAlerts incidents={activeIncidents} now={now} highlightedIds={highlightedIds} />
+            )}
             <Filters
               selectedLines={selectedLines}
               onLinesChange={handleLinesChange}
@@ -291,6 +334,7 @@ export default function App() {
               observations={filtered.observations}
               search={search}
               onSearchChange={setSearch}
+              highlightedIds={highlightedIds}
             />
           </>
         )}

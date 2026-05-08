@@ -3,8 +3,31 @@
 // same line within a 2-hour window so the two sources don't double-count.
 
 import { BUS_ROUTE_NAMES } from './busRoutes.js';
-import { TRAIN_LINES } from './ctaLines.js';
+import { normalizeTrainLine, TRAIN_LINES } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
+
+// Normalize line keys on alerts/observations from the cta-bot JSON. Bot data
+// uses CTA's short codes ('g', 'org', 'p', 'brn', 'y'); the rest of the UI
+// uses full names ('green', 'orange', etc.). Run this once at the fetch
+// boundary so downstream code never has to think about it.
+/**
+ * @param {AlertsPayload} payload
+ * @returns {AlertsPayload}
+ */
+export function normalizeAlertsPayload(payload) {
+  if (!payload) return payload;
+  return {
+    ...payload,
+    alerts: (payload.alerts || []).map((a) =>
+      a.kind === 'train' && Array.isArray(a.routes)
+        ? { ...a, routes: a.routes.map(normalizeTrainLine) }
+        : a,
+    ),
+    observations: (payload.observations || []).map((o) =>
+      o.kind === 'train' && o.line ? { ...o, line: normalizeTrainLine(o.line) } : o,
+    ),
+  };
+}
 
 /**
  * Top-level payload served by `public/data/alerts.json`. Regenerated server-
@@ -106,6 +129,58 @@ export const SIGNAL_LABELS = {
   'pulse-cold': 'cold stretch',
   'pulse-held': 'trains held in place',
 };
+
+// Compact human-readable summary of the bot's evidence for this observation
+// — surfaced as a small chip on incident rows so a reader can see *why* the
+// bot fired without reading the full Bluesky post. Returns null when there's
+// nothing material to render (alerts, missing evidence payload, roundups —
+// the signal mix is already shown via the description text).
+/**
+ * @param {object} incident An Alert, Observation, or MergedIncident.
+ * @returns {string | null}
+ */
+export function formatEvidenceChip(incident) {
+  if (!incident) return null;
+  const ev = incident.evidence;
+  if (!ev || typeof ev !== 'object') return null;
+  // Train pulse evidence has the canonical fields. The held subtree exists
+  // when the candidate was a held-cluster (or inferred-held from cold).
+  if (ev.held && typeof ev.held === 'object' && ev.held.trainCount != null) {
+    const min = ev.held.stationaryMs ? Math.round(ev.held.stationaryMs / 60000) : null;
+    const noun = incident.kind === 'bus' ? 'buses' : 'trains';
+    const single = noun === 'buses' ? 'bus' : 'train';
+    const countLabel = `${ev.held.trainCount} ${ev.held.trainCount === 1 ? single : noun} held`;
+    return min != null ? `${countLabel} · ${min} min stationary` : countLabel;
+  }
+  // Bus held shape (no nested .held — fields live at the top level).
+  if (ev.kind === 'held' && ev.busCount != null) {
+    const min = ev.stationaryMs ? Math.round(ev.stationaryMs / 60000) : null;
+    const countLabel = `${ev.busCount} ${ev.busCount === 1 ? 'bus' : 'buses'} held`;
+    return min != null ? `${countLabel} · ${min} min stationary` : countLabel;
+  }
+  // Train cold evidence.
+  if (ev.coldStations != null || ev.expectedTrains != null) {
+    const parts = [];
+    if (ev.coldStations) {
+      parts.push(`${ev.coldStations} ${ev.coldStations === 1 ? 'station' : 'stations'} cold`);
+    }
+    if (ev.expectedTrains) {
+      parts.push(`${ev.expectedTrains} ${ev.expectedTrains === 1 ? 'train' : 'trains'} missed`);
+    } else if (ev.minutesSinceLastTrain) {
+      parts.push(`${ev.minutesSinceLastTrain} min since last train`);
+    }
+    return parts.length > 0 ? parts.join(' · ') : null;
+  }
+  // Bus blackout shape.
+  if (ev.kind === 'cold' && ev.lookbackMin != null) {
+    const parts = [`no buses in ${ev.lookbackMin} min`];
+    if (ev.expectedActive && ev.expectedActive >= 1) {
+      parts.push(`${Math.round(ev.expectedActive)} expected`);
+    }
+    return parts.join(' · ');
+  }
+  return null;
+}
 
 // Returns the set of signal kinds this observation represents. Roundup
 // observations carry an explicit `signals` array; single-signal observations

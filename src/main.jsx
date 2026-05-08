@@ -3,12 +3,28 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.jsx';
 import EventPage from './components/EventPage.jsx';
+import LinePage from './components/LinePage.jsx';
 
-// Match `/event/:id` so deep links from the share button render the detail
-// view. GitHub Pages serves `404.html` (a copy of `index.html`) for any unknown
-// path, so the SPA boots and we route here on the client.
-const eventMatch = /^\/event\/([^/?#]+)\/?$/.exec(window.location.pathname);
+// Client-side routing. GitHub Pages serves `404.html` (a copy of `index.html`)
+// for any unknown path, so the SPA boots and we dispatch to the right page
+// here. Match patterns:
+//   /event/:id  → individual event detail
+//   /line/:id   → train line page (e.g. /line/red, /line/blue)
+//   /route/:id  → bus route page  (e.g. /route/66, /route/X9)
+const path = window.location.pathname;
+const eventMatch = /^\/event\/([^/?#]+)\/?$/.exec(path);
+const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
+const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>{eventMatch ? <EventPage eventId={eventMatch[1]} /> : <App />}</StrictMode>,
-);
+let page;
+if (eventMatch) {
+  page = <EventPage eventId={eventMatch[1]} />;
+} else if (lineMatch) {
+  page = <LinePage kind="train" lineId={lineMatch[1]} />;
+} else if (routeMatch) {
+  page = <LinePage kind="bus" lineId={routeMatch[1]} />;
+} else {
+  page = <App />;
+}
+
+createRoot(document.getElementById('root')).render(<StrictMode>{page}</StrictMode>);

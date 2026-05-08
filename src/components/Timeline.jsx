@@ -80,12 +80,15 @@ export default function Timeline({
   numDays,
   selectedRangeDays,
   dataStartTs,
-  onLineClick,
+  // onLineClick / onBusRouteClick used to toggle filter selection; now the
+  // labels are anchor links to dedicated pages. Props are still accepted for
+  // backward compat with callers that pass them, but ignored here.
+  onLineClick: _onLineClick,
   selectedDay = null,
   onDayClick,
   showBus,
   selectedBusRoutes,
-  onBusRouteClick,
+  onBusRouteClick: _onBusRouteClick,
   now: nowProp,
 }) {
   // Fall back to a fresh `Date.now()` when no `now` is supplied (e.g. test
@@ -201,14 +204,19 @@ export default function Timeline({
                 return (
                   <tr key={lineKey}>
                     <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
-                      <button
-                        type="button"
-                        onClick={() => onLineClick(lineKey)}
-                        className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
+                      {/* Anchor (not button) so the label is a real link —
+                          middle-click opens in a new tab, link previews
+                          work, and the URL is the dedicated /line/:id
+                          page. The filter chips above remain for
+                          narrowing the existing view. */}
+                      <a
+                        href={`/line/${lineKey}`}
+                        title={`Open ${info.label} Line page`}
+                        className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity inline-block"
                         style={{ color: info.color }}
                       >
                         {info.label}
-                      </button>
+                      </a>
                     </td>
                     {days.map(({ col, dayIdx, dayUTC }) => (
                       <DayCell
@@ -242,17 +250,18 @@ export default function Timeline({
                 return (
                   <tr key={key}>
                     <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
-                      {routeId && onBusRouteClick ? (
-                        <button
-                          type="button"
-                          onClick={() => onBusRouteClick(routeId)}
+                      {routeId ? (
+                        // Anchor to the dedicated route page. The aggregate
+                        // 'Other' row has no routeId and stays inert.
+                        <a
+                          href={`/route/${routeId}`}
                           title={tooltip}
                           aria-label={ariaLabel}
-                          className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity"
+                          className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity inline-block"
                           style={{ color: BUS_COLOR }}
                         >
                           {label}
-                        </button>
+                        </a>
                       ) : (
                         <span
                           className="text-xs font-semibold w-full block text-right"

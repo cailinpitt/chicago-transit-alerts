@@ -8,6 +8,7 @@ import {
   findRelatedIncidents,
   getEventId,
   mergeMatchingIncidents,
+  normalizeAlertsPayload,
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
@@ -239,7 +240,7 @@ export default function EventPage({ eventId }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then(setData)
+      .then((raw) => setData(normalizeAlertsPayload(raw)))
       .catch(setError);
   }, []);
 

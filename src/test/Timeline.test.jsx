@@ -41,20 +41,19 @@ describe('Timeline', () => {
     expect(screen.queryByText('Yellow')).not.toBeInTheDocument();
   });
 
-  it('calls onLineClick with the line key when a label is clicked', async () => {
-    const { default: userEvent } = await import('@testing-library/user-event');
-    const onLineClick = vi.fn();
+  it('renders line labels as links to /line/:id', () => {
     render(
       <Timeline
         alerts={[]}
         observations={[]}
         selectedLines={null}
         numDays={30}
-        onLineClick={onLineClick}
+        onLineClick={noop}
       />,
     );
-    await userEvent.click(screen.getByText('Red'));
-    expect(onLineClick).toHaveBeenCalledWith('red');
+    const redLink = screen.getByText('Red').closest('a');
+    expect(redLink).toBeInTheDocument();
+    expect(redLink).toHaveAttribute('href', '/line/red');
   });
 
   it('renders the correct number of day columns', () => {

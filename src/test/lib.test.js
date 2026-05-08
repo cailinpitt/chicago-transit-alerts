@@ -283,18 +283,18 @@ describe('buildIncidentsByDay', () => {
     const base = NOW - 2 * DAY;
     const alert = {
       kind: 'train',
-      routes: ['g'],
+      routes: ['green'],
       first_seen_ts: base,
       resolved_ts: base + 30 * 60_000,
     };
     const obs = {
       kind: 'train',
-      line: 'g',
+      line: 'green',
       ts: base + 60 * 60_000,
       resolved_ts: base + 90 * 60_000,
     };
     const result = buildIncidentsByDay([alert], [obs], 7, NOW);
-    expect(result.g[2]).toBe(1);
+    expect(result.green[2]).toBe(1);
   });
 
   it('counts two distinct non-overlapping incidents separately', () => {
@@ -302,18 +302,18 @@ describe('buildIncidentsByDay', () => {
     const base = NOW - 2 * DAY;
     const alert1 = {
       kind: 'train',
-      routes: ['g'],
+      routes: ['green'],
       first_seen_ts: base,
       resolved_ts: base + 30 * 60_000,
     };
     const alert2 = {
       kind: 'train',
-      routes: ['g'],
+      routes: ['green'],
       first_seen_ts: base + 60 * 60_000,
       resolved_ts: base + 90 * 60_000,
     };
     const result = buildIncidentsByDay([alert1, alert2], [], 7, NOW);
-    expect(result.g[2]).toBe(2);
+    expect(result.green[2]).toBe(2);
   });
 });
 
@@ -338,10 +338,10 @@ describe('computeSummaryStats', () => {
     const alerts = [
       makeAlert({ alert_id: 1, routes: ['red'], first_seen_ts: NOW - 1 * DAY }),
       makeAlert({ alert_id: 2, routes: ['blue'], first_seen_ts: NOW - 5 * DAY }),
-      makeAlert({ alert_id: 3, routes: ['g'], first_seen_ts: NOW - 12 * DAY }),
+      makeAlert({ alert_id: 3, routes: ['green'], first_seen_ts: NOW - 12 * DAY }),
     ];
     const r = computeSummaryStats(alerts, [], NOW);
-    expect(r.quietestLineId).toBe('g');
+    expect(r.quietestLineId).toBe('green');
     expect(r.quietestLineDays).toBe(12);
   });
 
@@ -461,7 +461,7 @@ describe('filterIncidents search', () => {
   it('matches train line by user-visible label even when key differs', () => {
     // 'g' is the line key for Green; without label-matching, "green" would
     // never find Green Line incidents.
-    const o = makeObs({ id: 1, line: 'g', from_station: null, to_station: null });
+    const o = makeObs({ id: 1, line: 'green', from_station: null, to_station: null });
     const r = filterIncidents([], [o], { search: 'green' });
     expect(r.observations).toHaveLength(1);
   });
@@ -479,14 +479,14 @@ describe('filterIncidents search', () => {
   });
 
   it('matches alerts via their line label', () => {
-    const a = makeAlert({ alert_id: 1, routes: ['brn'], headline: 'Service issue' });
+    const a = makeAlert({ alert_id: 1, routes: ['brown'], headline: 'Service issue' });
     const r = filterIncidents([a], [], { search: 'brown' });
     expect(r.alerts).toHaveLength(1);
   });
 
   it('matches "red line" and "Brown Line" conversational forms', () => {
     const red = makeObs({ id: 1, line: 'red', from_station: null, to_station: null });
-    const brn = makeObs({ id: 2, line: 'brn', from_station: null, to_station: null });
+    const brn = makeObs({ id: 2, line: 'brown', from_station: null, to_station: null });
     expect(filterIncidents([], [red], { search: 'red line' }).observations).toHaveLength(1);
     expect(filterIncidents([], [brn], { search: 'Brown Line' }).observations).toHaveLength(1);
   });

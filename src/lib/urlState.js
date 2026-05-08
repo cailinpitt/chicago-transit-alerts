@@ -1,4 +1,4 @@
-import { TRAIN_LINE_ORDER } from './ctaLines.js';
+import { normalizeTrainLine, TRAIN_LINE_ORDER } from './ctaLines.js';
 import { SIGNAL_TYPES } from './incidents.js';
 
 const VALID_RANGES = new Set([7, 30, 60, 90]);
@@ -65,9 +65,11 @@ export function parseUrlState(search = window.location.search) {
   if (linesParam === 'none') {
     out.selectedLines = [];
   } else if (linesParam) {
+    // Normalize CTA short codes to full names so old shareable URLs
+    // (?lines=org,p) keep working after the rename.
     const valid = linesParam
       .split(',')
-      .map((s) => s.trim())
+      .map((s) => normalizeTrainLine(s.trim()))
       .filter((s) => TRAIN_LINE_SET.has(s));
     if (valid.length > 0) out.selectedLines = valid;
   }
