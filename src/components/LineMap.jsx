@@ -17,10 +17,48 @@ function stationFill(count, maxCount, baseColor) {
   return baseColor;
 }
 
+// Compose an SVG `path` `d` attribute for a polyline. Skip lines with
+// fewer than 2 points (would render nothing useful anyway).
+function pathFor(track) {
+  return `M${track.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`;
+}
+
+function StationDot({ station, maxCount, accent, radius = 5 }) {
+  const fill = stationFill(station.count, maxCount, accent);
+  const label =
+    station.count === 0
+      ? `${station.name}: no incidents (last 90 days)`
+      : `${station.name}: ${station.count} incident${station.count === 1 ? '' : 's'} (last 90 days)`;
+  const href = station.slug ? `/station/${station.slug}` : null;
+  const circle = (
+    <circle
+      cx={station.x}
+      cy={station.y}
+      r={radius}
+      fill={fill}
+      stroke="white"
+      strokeWidth={1.5}
+      className="dark:[stroke:#0d1117]"
+    >
+      <title>{label}</title>
+    </circle>
+  );
+  if (!href || station.count === 0) return circle;
+  return (
+    <a href={href} aria-label={label}>
+      {circle}
+    </a>
+  );
+}
+
 // SVG geographic heatmap of stations along a single train line, colored by
 // their incident count over the rolling window. Hidden when there's no data
 // for the line at all (geography missing or wrong line key) — the caller
 // shouldn't paper over a blank rendering with a "no data" placeholder.
+//
+// When ≥4 stations cluster downtown (true for every line except Yellow),
+// a zoom inset is rendered in the lower-right corner so the dense Loop
+// stations are individually clickable rather than overlapping dots.
 export default function LineMap({ lineKey, stationIndex }) {
   const map = useMemo(
     () => buildLineMap(lineKey, stationIndex, { width: 720, height: 360, margin: 18 }),
@@ -30,12 +68,13 @@ export default function LineMap({ lineKey, stationIndex }) {
   const info = TRAIN_LINES[lineKey];
   const accent = info?.color ?? '#475569';
 
-  // Build the polyline path for each track segment as one SVG `path` so the
-  // line renders as a continuous stroke rather than a chain of lines. Skip
-  // tracks with fewer than 2 points (would render nothing useful anyway).
-  const trackPaths = map.tracks
-    .filter((t) => t.length >= 2)
-    .map((t) => `M${t.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`);
+  const trackPaths = map.tracks.filter((t) => t.length >= 2).map(pathFor);
+  const inset = map.downtown;
+  const insetTracks = inset ? inset.tracks.filter((t) => t.length >= 2).map(pathFor) : [];
+  // Position the inset in the lower-right with a small gutter from the
+  // main SVG edge.
+  const insetX = inset ? map.width - inset.width - 8 : 0;
+  const insetY = inset ? map.height - inset.height - 8 : 0;
 
   return (
     <section>
@@ -43,14 +82,22 @@ export default function LineMap({ lineKey, stationIndex }) {
         Stations by 90-day incident count
       </h2>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
-        <div className="overflow-x-auto">
+        {/* Horizontal scroll on narrow viewports — at phone width the SVG
+            would compress to where station dots overlap and become
+            untappable. Min-width keeps the geometry legible; the gradient
+            edge mirrors the Timeline pattern as a scroll affordance. */}
+        <div className="relative overflow-x-auto">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-gh-surface to-transparent sm:hidden"
+          />
           <svg
             viewBox={`0 0 ${map.width} ${map.height}`}
             preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-label={`${info?.label ?? lineKey} Line stations heatmap`}
-            className="w-full h-auto block"
-            style={{ minHeight: 200 }}
+            className="block h-auto"
+            style={{ minWidth: 640, width: '100%' }}
           >
             <title>{`${info?.label ?? lineKey} Line stations`}</title>
             {/* Track segments — colored at brand opacity 0.35 so stations
@@ -66,35 +113,81 @@ export default function LineMap({ lineKey, stationIndex }) {
                 strokeLinejoin="round"
               />
             ))}
-            {/* Stations — circle per stop. Each circle has a <title> child
-                for native browser tooltips with the station name + count. */}
-            {map.stations.map((s) => {
-              const fill = stationFill(s.count, map.maxCount, accent);
-              const label =
-                s.count === 0
-                  ? `${s.name}: no incidents (last 90 days)`
-                  : `${s.name}: ${s.count} incident${s.count === 1 ? '' : 's'} (last 90 days)`;
-              const href = s.slug ? `/station/${s.slug}` : null;
-              const circle = (
-                <circle
-                  cx={s.x}
-                  cy={s.y}
-                  r={5}
-                  fill={fill}
-                  stroke="white"
-                  strokeWidth={1.5}
-                  className="dark:[stroke:#0d1117]"
-                >
-                  <title>{label}</title>
-                </circle>
-              );
-              if (!href || s.count === 0) return <g key={s.name}>{circle}</g>;
-              return (
-                <a key={s.name} href={href} aria-label={label}>
-                  {circle}
-                </a>
-              );
-            })}
+            {/* Stations on the main map */}
+            {map.stations.map((s) => (
+              <StationDot
+                key={s.name}
+                station={s}
+                maxCount={map.maxCount}
+                accent={accent}
+                radius={6}
+              />
+            ))}
+
+            {/* Downtown inset — separate nested SVG so it has its own
+                coordinate space. Background panel + connector rectangle
+                outline showing the area being zoomed. */}
+            {inset && (
+              <>
+                <rect
+                  x={map.downtown.mainBoxRect.x}
+                  y={map.downtown.mainBoxRect.y}
+                  width={map.downtown.mainBoxRect.width}
+                  height={map.downtown.mainBoxRect.height}
+                  fill="none"
+                  stroke="#94a3b8"
+                  strokeWidth={1}
+                  strokeDasharray="3 3"
+                  rx={3}
+                />
+                <g transform={`translate(${insetX}, ${insetY})`}>
+                  <rect
+                    x={0}
+                    y={0}
+                    width={inset.width}
+                    height={inset.height}
+                    rx={6}
+                    fill="white"
+                    stroke="#cbd5e1"
+                    strokeWidth={1}
+                    className="dark:[fill:#161b22] dark:[stroke:#30363d]"
+                  />
+                  <text
+                    x={10}
+                    y={14}
+                    fontSize={10}
+                    fontWeight={700}
+                    fill="#64748b"
+                    style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}
+                  >
+                    Downtown
+                  </text>
+                  {/* Inset content lives in the same SVG coord space —
+                      already projected into [0..insetW, 0..insetH] by
+                      buildLineMap, so no extra transform needed. */}
+                  {insetTracks.map((d) => (
+                    <path
+                      key={`inset-${d}`}
+                      d={d}
+                      fill="none"
+                      stroke={hexToRgba(accent, 0.35)}
+                      strokeWidth={3}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  ))}
+                  {inset.stations.map((s) => (
+                    <StationDot
+                      key={`inset-${s.name}`}
+                      station={s}
+                      maxCount={map.maxCount}
+                      accent={accent}
+                      radius={5}
+                    />
+                  ))}
+                </g>
+              </>
+            )}
           </svg>
         </div>
 
@@ -123,6 +216,7 @@ export default function LineMap({ lineKey, stationIndex }) {
           </div>
           <span className="text-xs text-slate-300 dark:text-slate-600">
             · Each dot = one station · Click for the station's incident history
+            {inset ? ' · Downtown stations zoomed bottom-right' : ''}
           </span>
         </div>
       </div>
