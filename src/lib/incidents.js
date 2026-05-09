@@ -528,7 +528,6 @@ export function filterIncidents(
     selectedDay = null,
     signals = null,
     search = '',
-    activeOnly = false,
     now = Date.now(),
   } = {},
 ) {
@@ -555,7 +554,6 @@ export function filterIncidents(
     // is active. (A merged record's matching observation is checked separately
     // via filteredObs — the IncidentList re-merges from these results.)
     if (hasSignalFilter) return false;
-    if (activeOnly && !a.active) return false;
     if (a.kind === 'bus') {
       if (!showBus) return false;
       if (hasBusRouteFilter && !a.routes.some((r) => busRoutes.includes(r))) return false;
@@ -569,7 +567,6 @@ export function filterIncidents(
   });
 
   const filteredObs = observations.filter((o) => {
-    if (activeOnly && !o.active) return false;
     const isBus = o.kind === 'bus';
     if (isBus) {
       if (!showBus) return false;

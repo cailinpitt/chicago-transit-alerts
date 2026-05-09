@@ -183,24 +183,6 @@ describe('filterIncidents', () => {
       expect(out).toHaveLength(1);
     });
   });
-
-  describe('activeOnly', () => {
-    it('keeps only ongoing incidents when activeOnly is set', () => {
-      const ongoing = makeAlert({ alert_id: 'on', resolved_ts: null, active: true });
-      const done = makeAlert({ alert_id: 'off', resolved_ts: NOW, active: false });
-      const r = filterIncidents([ongoing, done], [], { activeOnly: true });
-      expect(r.alerts).toHaveLength(1);
-      expect(r.alerts[0].alert_id).toBe('on');
-    });
-
-    it('also drops resolved observations', () => {
-      const ongoing = makeObs({ id: 1, resolved_ts: null, active: true });
-      const done = makeObs({ id: 2, resolved_ts: NOW, active: false });
-      const r = filterIncidents([], [ongoing, done], { activeOnly: true });
-      expect(r.observations).toHaveLength(1);
-      expect(r.observations[0].id).toBe(1);
-    });
-  });
 });
 
 // ---------------------------------------------------------------------------

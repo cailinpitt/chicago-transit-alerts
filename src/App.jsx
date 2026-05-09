@@ -71,7 +71,6 @@ export default function App() {
   const [selectedDay, setSelectedDay] = useState(initial.selectedDay);
   const [selectedSignals, setSelectedSignals] = useState(initial.selectedSignals);
   const [search, setSearch] = useState(initial.search);
-  const [activeOnly, setActiveOnly] = useState(initial.activeOnly ?? false);
 
   function resetFilters() {
     setSelectedLines(null);
@@ -81,23 +80,13 @@ export default function App() {
     setSelectedDay(null);
     setSelectedSignals([]);
     setSearch('');
-    setActiveOnly(false);
   }
 
   // Picking any range pill drops the day pin — the two are mutually exclusive
   // narrow modes, and a stale pin would silently override the user's choice.
-  // Same goes for active-only: the date pills are about historical scope, the
-  // active chip is about state, so they overwrite each other rather than
-  // compose into "active in last 7 days" (which would always equal active).
   function handleDateRangeChange(next) {
     setDateRange(next);
     setSelectedDay(null);
-    setActiveOnly(false);
-  }
-
-  function handleActiveOnly(next) {
-    setActiveOnly(next);
-    if (next) setSelectedDay(null);
   }
 
   // Auto-flip bus visibility on transitions in/out of a positive train-line
@@ -123,22 +112,12 @@ export default function App() {
       selectedDay,
       selectedSignals,
       search,
-      activeOnly,
     });
     const next = `${window.location.pathname}${queryString}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.replaceState(null, '', next);
     }
-  }, [
-    selectedLines,
-    showBus,
-    selectedBusRoutes,
-    dateRange,
-    selectedDay,
-    selectedSignals,
-    search,
-    activeOnly,
-  ]);
+  }, [selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay, selectedSignals, search]);
 
   // Persist the sticky subset (lines, bus visibility, bus routes, signals)
   // to localStorage so a returning visitor sees the same scope they last
@@ -295,19 +274,15 @@ export default function App() {
 
   const filtered = useMemo(() => {
     if (!data) return { alerts: [], observations: [] };
-    // activeOnly takes precedence over dateRange — when active-only is on we
-    // don't want a stale 7d window silently dropping a 10-day-old ongoing
-    // incident from the list.
-    const startTs = activeOnly ? null : dateRange ? now - dateRange * DAY_MS : null;
+    const startTs = dateRange ? now - dateRange * DAY_MS : null;
     return filterIncidents(data.alerts, data.observations, {
       lines: selectedLines,
       startTs,
       showBus,
       busRoutes: selectedBusRoutes.length > 0 ? selectedBusRoutes : null,
-      selectedDay: activeOnly ? null : selectedDay,
+      selectedDay,
       signals: selectedSignals.length > 0 ? selectedSignals : null,
       search,
-      activeOnly,
       now,
     });
   }, [
@@ -319,7 +294,6 @@ export default function App() {
     selectedDay,
     selectedSignals,
     search,
-    activeOnly,
     now,
   ]);
 
@@ -384,8 +358,6 @@ export default function App() {
                 onClearSelectedDay={() => setSelectedDay(null)}
                 selectedSignals={selectedSignals}
                 onSignalsChange={setSelectedSignals}
-                activeOnly={activeOnly}
-                onActiveOnlyChange={handleActiveOnly}
               />
             </div>
             {todaySummary && (

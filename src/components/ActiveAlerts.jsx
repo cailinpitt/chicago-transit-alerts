@@ -9,66 +9,100 @@ import StationName from './StationName.jsx';
 // Below 5, a single outlier dominates and the hint is more noise than signal.
 const TYPICAL_MIN_COUNT = 5;
 
-function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
-  const isAlert = !!incident.alert_id;
-  const startTs = incident.first_seen_ts || incident.ts;
-  const elapsedText = formatDuration(now - startTs) ?? '0m';
+// Above this count, switch from full red-bordered cards to compact one-line
+// rows so a busy day doesn't push the rest of the homepage off the screen.
+// The first FULL_CARD_LIMIT incidents stay full-size (most users care about
+// the freshest one or two); the rest collapse to compact rows that link
+// straight to /event/:id.
+const FULL_CARD_LIMIT = 2;
 
-  // Look up the cohort median for this incident's (kind, line, signal) bucket.
-  // Pure CTA alerts return a null key and get no hint — there's no honest
-  // type to compare against.
-  const typicalKey = typicalDurationKey(incident);
-  const typical = typicalKey && typicalDurations ? typicalDurations.get(typicalKey) : null;
-  const typicalText =
-    typical && typical.count >= TYPICAL_MIN_COUNT ? formatDuration(typical.medianMs) : null;
+// Pull the description out of an incident for both card and row variants.
+// Returns a string-or-JSX `description` plus a flat `descriptionText` that
+// the compact row can fall back to when stations are missing (compact rows
+// are single-line, no nested links).
+function describeIncident(incident, stationIndex) {
+  const isAlert = !!incident.alert_id;
   const hasStations = !!(incident.from_station && incident.to_station);
   const signalsText =
     incident.signals?.length > 0
       ? incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')
       : null;
-  // The description is either a string or a JSX fragment. The fragment form
-  // appears for segment-style observations so each endpoint can become a
-  // /station/:slug link when its page is worth visiting.
-  let description;
+
   if (isAlert) {
-    description = incident.headline;
-  } else if (hasStations) {
-    description = (
-      <>
-        <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
-        <StationName name={incident.to_station} stationIndex={stationIndex} />
-      </>
-    );
-  } else if (incident.from_station || incident.to_station) {
-    description = (
-      <StationName
-        name={incident.from_station ?? incident.to_station}
-        stationIndex={stationIndex}
-      />
-    );
-  } else if (incident.detection_source === 'roundup' && signalsText) {
-    description = `Multiple signals: ${signalsText}`;
-  } else if (incident.detection_source === 'roundup') {
-    description = 'Multiple simultaneous disruptions detected';
-  } else if (signalsText) {
-    description = `Service disruption detected: ${signalsText}`;
-  } else {
-    description = 'Service disruption detected';
+    return { description: incident.headline, descriptionText: incident.headline };
   }
+  if (hasStations) {
+    return {
+      description: (
+        <>
+          <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
+          <StationName name={incident.to_station} stationIndex={stationIndex} />
+        </>
+      ),
+      descriptionText: `${incident.from_station} → ${incident.to_station}`,
+    };
+  }
+  if (incident.from_station || incident.to_station) {
+    const name = incident.from_station ?? incident.to_station;
+    return {
+      description: <StationName name={name} stationIndex={stationIndex} />,
+      descriptionText: name,
+    };
+  }
+  if (incident.detection_source === 'roundup' && signalsText) {
+    const t = `Multiple signals: ${signalsText}`;
+    return { description: t, descriptionText: t };
+  }
+  if (incident.detection_source === 'roundup') {
+    const t = 'Multiple simultaneous disruptions detected';
+    return { description: t, descriptionText: t };
+  }
+  if (signalsText) {
+    const t = `Service disruption detected: ${signalsText}`;
+    return { description: t, descriptionText: t };
+  }
+  return {
+    description: 'Service disruption detected',
+    descriptionText: 'Service disruption detected',
+  };
+}
+
+function elapsed(now, startTs) {
+  return formatDuration(now - startTs) ?? '0m';
+}
+
+// Full red-bordered card. Used for the freshest 1–2 active incidents. The
+// whole card navigates to /event/:id via an absolutely-positioned link
+// overlay — that pattern (rather than wrapping the card in an <a>) lets
+// the inner Bluesky and Share links remain real <a>/<button> elements
+// without nesting interactive content, which would be invalid HTML.
+// The per-card pulsing dot has been dropped: the section header already has
+// one, and stacking six of them reads as anxiety, not information.
+function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
+  const startTs = incident.first_seen_ts || incident.ts;
+  const elapsedText = elapsed(now, startTs);
+  const typicalKey = typicalDurationKey(incident);
+  const typical = typicalKey && typicalDurations ? typicalDurations.get(typicalKey) : null;
+  const typicalText =
+    typical && typical.count >= TYPICAL_MIN_COUNT ? formatDuration(typical.medianMs) : null;
+  const { description } = describeIncident(incident, stationIndex);
+  const eventId = getEventId(incident);
 
   return (
     <div
-      className={`bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 p-4 flex items-start gap-3 ${
-        isNew ? 'animate-fade-highlight' : ''
-      }`}
+      className={`relative bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 p-4 ${
+        eventId ? 'hover:border-red-300 dark:hover:border-red-800 transition-colors' : ''
+      } ${isNew ? 'animate-fade-highlight' : ''}`}
     >
-      {/* Pulsing dot */}
-      <div aria-hidden="true" className="relative mt-1.5 flex-shrink-0 flex h-2.5 w-2.5">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
-      </div>
-
-      <div className="flex-1 min-w-0">
+      {/* Card-wide overlay link. Sits behind the inner content (z-0) so
+          inner <a>/<button> elements (which get z-10 via .relative) keep
+          working independently with middle-click, focus, etc. */}
+      {eventId && (
+        <a href={`/event/${eventId}`} className="absolute inset-0 z-0 rounded-lg">
+          <span className="sr-only">View event details</span>
+        </a>
+      )}
+      <div className="relative z-10 pointer-events-none">
         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
           <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
           <span className="text-xs text-slate-400 dark:text-slate-500">
@@ -83,10 +117,13 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
             )}
           </span>
         </div>
-        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
+        {/* pointer-events-auto re-enables hovering on station-name links
+            (StationName renders <a>) inside the description, which would
+            otherwise be blocked by the parent's pointer-events-none. */}
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug pointer-events-auto">
           {description}
         </p>
-        <div className="flex flex-wrap gap-3 mt-1.5">
+        <div className="flex flex-wrap gap-3 mt-1.5 pointer-events-auto">
           {incident.post_url && (
             <a
               href={incident.post_url}
@@ -97,19 +134,68 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
               View on Bluesky →
             </a>
           )}
-          {getEventId(incident) && (
-            <a
-              href={`/event/${getEventId(incident)}`}
-              className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
-            >
-              Details →
-            </a>
-          )}
-          <ShareLink eventId={getEventId(incident)} />
+          <ShareLink eventId={eventId} />
         </div>
       </div>
     </div>
   );
+}
+
+// Cap on pills shown inside a compact row. A multi-route bus alert can
+// touch a dozen routes — rendering them all blows the row up vertically and
+// squeezes the description out. Show the first pill, then a "+N" chip; the
+// /event/:id page lists every affected route in full.
+const COMPACT_PILL_LIMIT = 1;
+
+// Compact one-line variant. Shown for the 3rd+ active incident. Whole row
+// links to /event/:id. No description-side links (they wouldn't fit), no
+// typical-duration hint (signal-to-noise loss in a single line). Pills are
+// capped and the description is truncated so the row stays exactly one line
+// regardless of how many routes the alert touches.
+function ActiveRow({ incident, now, isNew }) {
+  const startTs = incident.first_seen_ts || incident.ts;
+  const elapsedText = elapsed(now, startTs);
+  const { descriptionText } = describeIncident(incident, null);
+  const eventId = getEventId(incident);
+
+  const allRoutes =
+    Array.isArray(incident.routes) && incident.routes.length > 0
+      ? incident.routes
+      : incident.line
+        ? [incident.line]
+        : [];
+  const shownRoutes = allRoutes.slice(0, COMPACT_PILL_LIMIT);
+  const overflowCount = allRoutes.length - shownRoutes.length;
+
+  const className = `flex items-center gap-3 px-3 py-2 rounded-md border border-red-200 dark:border-red-900 bg-white dark:bg-gh-surface text-sm hover:border-red-300 dark:hover:border-red-800 transition-colors ${
+    isNew ? 'animate-fade-highlight' : ''
+  }`;
+  const inner = (
+    <>
+      <span className="flex items-center gap-1 flex-shrink-0">
+        <LinePill kind={incident.kind} line={incident.line} routes={shownRoutes} />
+        {overflowCount > 0 && (
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
+            +{overflowCount}
+          </span>
+        )}
+      </span>
+      <span className="flex-1 min-w-0 truncate whitespace-nowrap text-slate-700 dark:text-slate-200">
+        {descriptionText}
+      </span>
+      <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0 tabular-nums">
+        {elapsedText}
+      </span>
+    </>
+  );
+  if (eventId) {
+    return (
+      <a href={`/event/${eventId}`} className={className}>
+        {inner}
+      </a>
+    );
+  }
+  return <div className={className}>{inner}</div>;
 }
 
 export default function ActiveAlerts({
@@ -119,6 +205,14 @@ export default function ActiveAlerts({
   typicalDurations,
   stationIndex,
 }) {
+  // First 1-2 stay as full cards — the freshest, most-likely-to-investigate
+  // incidents get visual weight. Beyond that we collapse to compact rows so
+  // a system-wide bad afternoon doesn't push the rest of the page below the
+  // fold.
+  const fullCount = Math.min(incidents.length, FULL_CARD_LIMIT);
+  const fullCards = incidents.slice(0, fullCount);
+  const compactRows = incidents.slice(fullCount);
+
   return (
     <section>
       <div className="flex items-center gap-2 mb-2">
@@ -126,10 +220,15 @@ export default function ActiveAlerts({
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
         </div>
-        <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wider">Active Now</h2>
+        <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wider">
+          Active Now
+          <span className="ml-2 normal-case font-normal text-slate-400 dark:text-slate-500">
+            ({incidents.length})
+          </span>
+        </h2>
       </div>
       <div className="space-y-2">
-        {incidents.map((incident) => {
+        {fullCards.map((incident) => {
           const eventId = getEventId(incident);
           return (
             <ActiveCard
@@ -142,6 +241,21 @@ export default function ActiveAlerts({
             />
           );
         })}
+        {compactRows.length > 0 && (
+          <div className="space-y-1.5 pt-1">
+            {compactRows.map((incident) => {
+              const eventId = getEventId(incident);
+              return (
+                <ActiveRow
+                  key={incident.alert_id ?? `obs-${incident.id}`}
+                  incident={incident}
+                  now={now}
+                  isNew={eventId != null && highlightedIds?.has(eventId)}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
