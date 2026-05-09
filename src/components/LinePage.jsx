@@ -15,6 +15,7 @@ import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
+import LineMap from './LineMap.jsx';
 import Timeline from './Timeline.jsx';
 import TrendSparkline from './TrendSparkline.jsx';
 
@@ -363,6 +364,10 @@ export default function LinePage({ kind, lineId }) {
                 <TrendSparkline alerts={lineAlerts} observations={lineObservations} />
               </div>
             )}
+
+            {/* Geographic station heatmap — train-only, since the data
+                files cover the L. Hidden on bus pages. */}
+            {isTrain && <LineMap lineKey={effectiveLineId} stationIndex={stationIndex} />}
 
             <DurationHistogram histogram={durationHistogram} />
 
