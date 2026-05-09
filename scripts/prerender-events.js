@@ -21,7 +21,11 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { normalizeTrainLine, TRAIN_LINES } from '../src/lib/ctaLines.js';
-import { formatRoutesLabel, mergeMatchingIncidents } from '../src/lib/incidents.js';
+import {
+  formatRoutesLabel,
+  mergeMatchingIncidents,
+  normalizeAlertsPayload,
+} from '../src/lib/incidents.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -147,11 +151,64 @@ function pickIncidents(payload) {
   return out;
 }
 
-function buildHtmlStub(shell, { id, title, subtitle, accent }) {
+// Build a schema.org Event JSON-LD payload for crawler / search consumption.
+// schema.org has no perfect "service disruption" type, but Event matches
+// the start/end/name shape and is recognized by Google's rich-results
+// pipeline. Returned as a string ready to embed in <script>.
+function buildJsonLd(incident, { ogTitle, desc, url }) {
+  const startTs = incident.first_seen_ts ?? incident.ts ?? null;
+  const endTs = incident.resolved_ts ?? null;
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    '@id': url,
+    name: ogTitle,
+    description: desc,
+    url,
+    eventStatus:
+      endTs != null ? 'https://schema.org/EventCompleted' : 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    isAccessibleForFree: true,
+  };
+  if (startTs != null) ld.startDate = new Date(startTs).toISOString();
+  if (endTs != null) ld.endDate = new Date(endTs).toISOString();
+  // Use the incident's segment endpoints as a place name when available.
+  // Schema.org Event.location accepts a Place; we attach a name only since
+  // we don't carry geo coordinates per station.
+  const fromStation = incident.from_station ?? incident.affected_from_station ?? null;
+  const toStation = incident.to_station ?? incident.affected_to_station ?? null;
+  const locationName =
+    fromStation && toStation ? `${fromStation} → ${toStation}` : (fromStation ?? toStation ?? null);
+  if (locationName) {
+    ld.location = {
+      '@type': 'Place',
+      name: locationName,
+      address: { '@type': 'PostalAddress', addressLocality: 'Chicago', addressRegion: 'IL' },
+    };
+  } else {
+    ld.location = {
+      '@type': 'Place',
+      name: 'Chicago Transit Authority',
+      address: { '@type': 'PostalAddress', addressLocality: 'Chicago', addressRegion: 'IL' },
+    };
+  }
+  ld.organizer = {
+    '@type': 'Organization',
+    name: 'CTA Alert History (unofficial)',
+    url: SITE,
+  };
+  return JSON.stringify(ld);
+}
+
+function buildHtmlStub(shell, { id, title, subtitle, accent, incident }) {
   const url = `${SITE}/event/${id}`;
   const image = `${url}/og.png`;
   const ogTitle = `${accent.label} · ${title}`.slice(0, 200);
   const desc = subtitle.slice(0, 280);
+  // Inject JSON-LD just before </head>. `<` inside the JSON has to be escaped
+  // because </script> in a string literal would otherwise close the tag.
+  const jsonLd = buildJsonLd(incident, { ogTitle, desc, url }).replaceAll('<', '\\u003c');
+  const ldTag = `<script type="application/ld+json">${jsonLd}</script>`;
   return shell
     .replace(/<title>[^<]*<\/title>/, `<title>${escHtml(ogTitle)} — CTA Alert History</title>`)
     .replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${escAttr(url)}" />`)
@@ -194,7 +251,8 @@ function buildHtmlStub(shell, { id, title, subtitle, accent }) {
     .replace(
       /<meta name="twitter:image:alt"[^>]*>/,
       `<meta name="twitter:image:alt" content="${escAttr(ogTitle)}" />`,
-    );
+    )
+    .replace('</head>', `${ldTag}\n  </head>`);
 }
 
 function fillTemplate(tpl, fields) {
@@ -243,7 +301,11 @@ async function main() {
     console.warn(`prerender-events: ${DATA} missing — skipping (build copies public/data first)`);
     return;
   }
-  const payload = JSON.parse(readFileSync(DATA, 'utf8'));
+  // Normalize at read time so train short codes (`y`, `brn`, `org`, `p`, `g`)
+  // get expanded to full names. Without this, formatRoutesLabel can't look
+  // them up in TRAIN_LINES and the OG card / JSON-LD ends up with `y Line`
+  // instead of `Yellow Line`.
+  const payload = normalizeAlertsPayload(JSON.parse(readFileSync(DATA, 'utf8')));
   const shell = readFileSync(SHELL, 'utf8');
   const template = readFileSync(TEMPLATE, 'utf8');
   const templateHash = createHash('sha256').update(template).digest('hex').slice(0, 16);
@@ -271,7 +333,7 @@ async function main() {
     mkdirSync(outDir, { recursive: true });
     writeFileSync(
       resolve(outDir, 'index.html'),
-      buildHtmlStub(shell, { id, title, subtitle, accent }),
+      buildHtmlStub(shell, { id, title, subtitle, accent, incident }),
     );
 
     const cacheDir = resolve(CACHE, id);

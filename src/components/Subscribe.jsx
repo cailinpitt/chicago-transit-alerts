@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
 const FEED_URL = 'https://chicagotransitalerts.app/feed.xml';
+const CSV_URL = 'https://chicagotransitalerts.app/data/incidents.csv';
+const JSON_URL = 'https://chicagotransitalerts.app/data/alerts.json';
 
 export default function Subscribe({ open, onClose }) {
   const [copied, setCopied] = useState(false);
@@ -138,6 +140,27 @@ export default function Subscribe({ open, onClose }) {
             The feed regenerates each time the underlying data changes, roughly every 7 minutes when
             there's activity.
           </p>
+
+          <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-3">Bulk data</h3>
+          <p>
+            Building a dashboard or doing analysis? The same data is published as a flat CSV (one
+            row per alert or observation) and as JSON. No auth, no rate-limit beyond reasonable
+            polling.
+          </p>
+          <ul className="list-disc list-outside ml-5 space-y-1 text-xs">
+            <li>
+              <a className={LINK} href={CSV_URL} target="_blank" rel="noopener noreferrer">
+                {CSV_URL}
+              </a>{' '}
+              — flat CSV for pandas / spreadsheets.
+            </li>
+            <li>
+              <a className={LINK} href={JSON_URL} target="_blank" rel="noopener noreferrer">
+                {JSON_URL}
+              </a>{' '}
+              — same shape the SPA reads.
+            </li>
+          </ul>
         </div>
       </div>
     </div>

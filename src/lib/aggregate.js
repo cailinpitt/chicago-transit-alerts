@@ -493,6 +493,65 @@ export function computeLineReliability(
   return { incidentFreeDays, totalDays: windowDays, medianGapHours, longestStreakDays };
 }
 
+// Histogram bins for resolution-time distributions on LinePage. Tuned to
+// the timescales CTA disruptions actually live in: most pulse-detected
+// observations clear in well under an hour, while CTA alerts can stretch
+// to multi-hour reroutes. Six bins keeps the chart compact and the bin
+// boundaries memorable.
+export const DURATION_BINS = [
+  { label: '< 15m', loMs: 0, hiMs: 15 * 60_000 },
+  { label: '15–30m', loMs: 15 * 60_000, hiMs: 30 * 60_000 },
+  { label: '30m–1h', loMs: 30 * 60_000, hiMs: 60 * 60_000 },
+  { label: '1–2h', loMs: 60 * 60_000, hiMs: 2 * 60 * 60_000 },
+  { label: '2–4h', loMs: 2 * 60 * 60_000, hiMs: 4 * 60 * 60_000 },
+  { label: '4h+', loMs: 4 * 60 * 60_000, hiMs: Number.POSITIVE_INFINITY },
+];
+
+// Resolution-time histogram for a (line/route, window) cohort. Inputs are
+// expected to already be filtered to the relevant scope — the caller hands
+// in alerts/observations for one line and the helper bins their durations.
+// Active incidents are excluded (they have no real duration yet); incidents
+// that started before the window are excluded too so a stale long disruption
+// doesn't dominate the rightmost bin forever.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @returns {{ bins: Array<{ label: string, loMs: number, hiMs: number, count: number }>, total: number }}
+ */
+export function computeDurationHistogram(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 90 } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+  const bins = DURATION_BINS.map((b) => ({ ...b, count: 0 }));
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  function tally(start, end) {
+    if (start == null || end == null) return;
+    if (start < cutoff) return;
+    const dur = end - start;
+    if (dur <= 0) return;
+    for (const b of bins) {
+      if (dur >= b.loMs && dur < b.hiMs) {
+        b.count += 1;
+        return;
+      }
+    }
+  }
+  for (const m of merged) tally(m.first_seen_ts, m.resolved_ts);
+  for (const a of standaloneAlerts) tally(a.first_seen_ts, a.resolved_ts);
+  for (const o of standaloneObs) tally(o.ts, o.resolved_ts);
+
+  let total = 0;
+  for (const b of bins) total += b.count;
+  return { bins, total };
+}
+
 // Bucket key for typical-duration cohorts: same kind, same line/route, same
 // signal "type" (single signal name, or 'roundup' for multi-signal records).
 // Returns null when the incident lacks a signal — pure CTA alerts have no

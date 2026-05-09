@@ -113,6 +113,14 @@ It's regenerated whenever the underlying data changes (typically every 7 minutes
 
 Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/incidents.js). An [Atom feed](https://chicagotransitalerts.app/feed.xml) is also published if you want notifications without polling.
 
+A flat CSV mirror of the same data — one row per alert or observation, with an explicit `type` column — is also published for spreadsheet and pandas users:
+
+```
+https://chicagotransitalerts.app/data/incidents.csv
+```
+
+Columns: `type, id, kind, routes, headline, detection_source, signals, from_station, to_station, direction, first_seen_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` and `signals` are semicolon-separated when multi-valued. Regenerated alongside `alerts.json`.
+
 Please be a courteous client — cache responses, don't poll faster than every few minutes, and credit the project if you build something public.
 
 ## Stack

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import {
+  computeDurationHistogram,
   computeLineReliability,
   computeSummaryStats,
   computeTypicalDurations,
@@ -16,6 +17,57 @@ import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
 import Timeline from './Timeline.jsx';
 import TrendSparkline from './TrendSparkline.jsx';
+
+// Distribution of resolution times for this line over the rolling window.
+// Compact horizontal bars — each row is a duration bin. Hidden when the
+// cohort is empty (no resolved incidents on this line yet) so a brand-new
+// line page doesn't have a "0 / 0 / 0 / 0" stub.
+function DurationHistogram({ histogram }) {
+  if (!histogram || histogram.total === 0) return null;
+  const max = histogram.bins.reduce((m, b) => (b.count > m ? b.count : m), 0);
+  return (
+    <section>
+      <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+        Resolution time (last 90 days)
+      </h2>
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
+        <div className="space-y-1.5">
+          {histogram.bins.map((b) => {
+            const pct = max > 0 ? (b.count / max) * 100 : 0;
+            return (
+              <div key={b.label} className="flex items-center gap-3">
+                <div className="w-16 flex-shrink-0 text-right">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                    {b.label}
+                  </span>
+                </div>
+                <div className="flex-1 h-4 rounded-sm bg-slate-100 dark:bg-gh-subtle overflow-hidden">
+                  {b.count > 0 && (
+                    <div
+                      className="h-full bg-slate-500 dark:bg-slate-400"
+                      style={{ width: `${pct}%` }}
+                      role="img"
+                      aria-label={`${b.label}: ${b.count} incident${b.count === 1 ? '' : 's'}`}
+                    />
+                  )}
+                </div>
+                <div className="w-8 text-right flex-shrink-0">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                    {b.count}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-3 pt-3 border-t border-slate-100 dark:border-gh-border">
+          {histogram.total} resolved incident{histogram.total === 1 ? '' : 's'} · active incidents
+          excluded (no final duration yet)
+        </p>
+      </div>
+    </section>
+  );
+}
 
 // Format a median gap (in hours) for display: minutes for sub-hour gaps,
 // hours for sub-day, "Xd Yh" beyond. Days read more naturally than "96h"
@@ -129,6 +181,11 @@ export default function LinePage({ kind, lineId }) {
   const typicalDurations = useMemo(() => {
     if (!data) return null;
     return computeTypicalDurations(lineAlerts, lineObservations, { now, windowDays: 90 });
+  }, [data, lineAlerts, lineObservations, now]);
+
+  const durationHistogram = useMemo(() => {
+    if (!data) return null;
+    return computeDurationHistogram(lineAlerts, lineObservations, { now, windowDays: 90 });
   }, [data, lineAlerts, lineObservations, now]);
 
   // Station index built from the full dataset, not just this line. A station
@@ -306,6 +363,8 @@ export default function LinePage({ kind, lineId }) {
                 <TrendSparkline alerts={lineAlerts} observations={lineObservations} />
               </div>
             )}
+
+            <DurationHistogram histogram={durationHistogram} />
 
             <Timeline
               alerts={lineAlerts}

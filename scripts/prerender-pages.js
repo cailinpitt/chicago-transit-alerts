@@ -180,6 +180,26 @@ function calendarSubtitle(dailyPayload) {
   return `${total} incident${total === 1 ? '' : 's'} across ${span} day${span === 1 ? '' : 's'}`;
 }
 
+// Compute which train lines and bus routes currently have an active
+// disruption (alert or observation that hasn't resolved). The OG card
+// switches into an "Active disruption" variant for those, so a shared
+// link surfaces the in-progress state instead of a stale-looking card.
+function activeRoutesByKind(payload) {
+  const trains = new Set();
+  const buses = new Set();
+  for (const a of payload.alerts ?? []) {
+    if (!a.active) continue;
+    if (a.kind === 'train') for (const r of a.routes ?? []) trains.add(r);
+    else if (a.kind === 'bus') for (const r of a.routes ?? []) buses.add(String(r));
+  }
+  for (const o of payload.observations ?? []) {
+    if (!o.active || !o.line) continue;
+    if (o.kind === 'train') trains.add(o.line);
+    else if (o.kind === 'bus') buses.add(String(o.line));
+  }
+  return { trains, buses };
+}
+
 // Build the list of line/route/station "pages" to render. Each item carries
 // everything the renderer needs: a stable slug for the cache key and output
 // path, the raw input fields, and the kind so we pick the right template.
@@ -187,6 +207,7 @@ function planPages(payload, dailyPayload) {
   const now = Date.now();
   const cutoff = now - WINDOW_DAYS * DAY_MS;
   const pages = [];
+  const { trains: activeTrains, buses: activeBuses } = activeRoutesByKind(payload);
 
   // Calendar — singleton page. Always rendered so a fresh deploy never
   // ships without its share card. The grid HTML is computed up front and
@@ -230,6 +251,7 @@ function planPages(payload, dailyPayload) {
   for (const lineId of TRAIN_LINE_ORDER) {
     const info = TRAIN_LINES[lineId];
     if (!info) continue;
+    const active = activeTrains.has(lineId);
     pages.push({
       kind: 'line',
       slug: `line-${lineId}`,
@@ -242,8 +264,11 @@ function planPages(payload, dailyPayload) {
       title: '',
       ogTitle: `${info.label} Line · CTA Alert History`,
       desc: `Service alerts and bot-detected disruptions on the ${info.label} Line — archived on chicagotransitalerts.app.`,
-      subtitle: 'Service alerts and bot-detected disruptions, archived.',
+      subtitle: active
+        ? 'Active disruption right now — see live status.'
+        : 'Service alerts and bot-detected disruptions, archived.',
       accent: { color: info.color, soft: softColor(info.color, 0.22), text: info.textColor },
+      active,
     });
   }
 
@@ -264,6 +289,7 @@ function planPages(payload, dailyPayload) {
     // The full name lives in the title slot underneath, where it can wrap
     // and clamp gracefully.
     const ogLabel = name ? `#${route} ${name}` : `#${route}`;
+    const active = activeBuses.has(String(route));
     pages.push({
       kind: 'route',
       slug: `route-${route}`,
@@ -274,8 +300,11 @@ function planPages(payload, dailyPayload) {
       title: name ?? '',
       ogTitle: `${ogLabel} · CTA Alert History`,
       desc: `Service alerts and bot-detected disruptions on the ${ogLabel} bus route — archived on chicagotransitalerts.app.`,
-      subtitle: 'Service alerts and bot-detected disruptions, archived.',
+      subtitle: active
+        ? 'Active disruption right now — see live status.'
+        : 'Service alerts and bot-detected disruptions, archived.',
       accent: BUS_ACCENT,
+      active,
     });
   }
 
@@ -359,6 +388,9 @@ function buildHtmlStub(shell, page) {
     );
 }
 
+const ACTIVE_RIBBON_HTML =
+  '<div class="active-ribbon"><span class="dot"></span>Active disruption</div>';
+
 function fillLineTemplate(tpl, page) {
   return tpl
     .replaceAll('__ACCENT__', page.accent.color)
@@ -367,7 +399,8 @@ function fillLineTemplate(tpl, page) {
     .replaceAll('__LABEL__', escHtml(page.label))
     .replaceAll('__TITLE__', escHtml(page.title ?? ''))
     .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
-    .replaceAll('__PATH__', escHtml(page.path));
+    .replaceAll('__PATH__', escHtml(page.path))
+    .replaceAll('__ACTIVE_RIBBON__', page.active ? ACTIVE_RIBBON_HTML : '');
 }
 
 function fillStationTemplate(tpl, page) {
@@ -415,6 +448,7 @@ function signatureFor(page, templateHash) {
       title: page.title ?? '',
       accent: page.accent,
       sub: page.subtitle,
+      active: !!page.active,
     };
   }
   h.update(JSON.stringify({ ...payload, templateHash }));
