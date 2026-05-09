@@ -47,6 +47,7 @@ const LINE_TPL = resolve(__dirname, 'og-line-template.html');
 const STATION_TPL = resolve(__dirname, 'og-station-template.html');
 const CALENDAR_TPL = resolve(__dirname, 'og-calendar-template.html');
 const STATS_TPL = resolve(__dirname, 'og-stats-template.html');
+const COMPARE_TPL = resolve(__dirname, 'og-compare-template.html');
 const CACHE = resolve(ROOT, '.og-cache-pages');
 const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY ?? 6);
 
@@ -225,6 +226,23 @@ function planPages(payload, dailyPayload) {
       desc: 'A 12-month heatmap of daily CTA service alerts and bot-detected disruptions — archived on chicagotransitalerts.app.',
       subtitle,
       gridHtml,
+    });
+  }
+
+  // Compare — singleton page. Template is fully static (no per-build data
+  // baked into the card); we just emit it so /compare gets its own OG image
+  // for social sharing instead of the homepage card. Skipped if the template
+  // file is missing (defensive — the template ships with the repo).
+  if (existsSync(COMPARE_TPL)) {
+    pages.push({
+      kind: 'compare',
+      slug: 'compare',
+      outDir: resolve(DIST, 'compare'),
+      url: `${SITE}/compare`,
+      path: '/compare',
+      ogTitle: 'Compare CTA lines · CTA Alert History',
+      desc: 'Side-by-side reliability, signal mix, and resolution time for up to 3 CTA train lines or bus routes — archived on chicagotransitalerts.app.',
+      subtitle: '',
     });
   }
 
@@ -423,6 +441,13 @@ function fillStatsTemplate(tpl, page) {
     .replaceAll('__STATS__', page.statsHtml);
 }
 
+// Compare template is static — no placeholders to fill. The function exists
+// for symmetry with the others and to give us a hook if we ever want to
+// make the card per-combination later.
+function fillCompareTemplate(tpl) {
+  return tpl;
+}
+
 function signatureFor(page, templateHash) {
   const h = createHash('sha256');
   // Hash the fields that actually affect the rendered PNG; keep the URL out
@@ -441,6 +466,10 @@ function signatureFor(page, templateHash) {
     payload = { kind: 'calendar', sub: page.subtitle, grid: page.gridHtml };
   } else if (page.kind === 'stats') {
     payload = { kind: 'stats', sub: page.subtitle, stats: page.statsHtml };
+  } else if (page.kind === 'compare') {
+    // Static template — content is fully baked in. The template hash
+    // (mixed in below) is the only thing that can change the PNG.
+    payload = { kind: 'compare' };
   } else {
     payload = {
       kind: page.kind,
@@ -491,6 +520,7 @@ async function main() {
   const stationTpl = readFileSync(STATION_TPL, 'utf8');
   const calendarTpl = existsSync(CALENDAR_TPL) ? readFileSync(CALENDAR_TPL, 'utf8') : null;
   const statsTpl = existsSync(STATS_TPL) ? readFileSync(STATS_TPL, 'utf8') : null;
+  const compareTpl = existsSync(COMPARE_TPL) ? readFileSync(COMPARE_TPL, 'utf8') : null;
   const lineHash = createHash('sha256').update(lineTpl).digest('hex').slice(0, 16);
   const stationHash = createHash('sha256').update(stationTpl).digest('hex').slice(0, 16);
   const calendarHash = calendarTpl
@@ -498,6 +528,9 @@ async function main() {
     : '';
   const statsHash = statsTpl
     ? createHash('sha256').update(statsTpl).digest('hex').slice(0, 16)
+    : '';
+  const compareHash = compareTpl
+    ? createHash('sha256').update(compareTpl).digest('hex').slice(0, 16)
     : '';
 
   const pages = planPages(payload, dailyPayload);
@@ -516,6 +549,7 @@ async function main() {
     if (page.kind === 'station') tplHash = stationHash;
     else if (page.kind === 'calendar') tplHash = calendarHash;
     else if (page.kind === 'stats') tplHash = statsHash;
+    else if (page.kind === 'compare') tplHash = compareHash;
     else tplHash = lineHash;
     const sig = signatureFor(page, tplHash);
 
@@ -537,6 +571,7 @@ async function main() {
     if (page.kind === 'station') html = fillStationTemplate(stationTpl, page);
     else if (page.kind === 'calendar') html = fillCalendarTemplate(calendarTpl, page);
     else if (page.kind === 'stats') html = fillStatsTemplate(statsTpl, page);
+    else if (page.kind === 'compare') html = fillCompareTemplate(compareTpl);
     else html = fillLineTemplate(lineTpl, page);
     renders.push({ page, html, cacheDir, cachedPng, cachedSig, sig });
   }

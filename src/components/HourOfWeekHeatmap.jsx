@@ -33,7 +33,14 @@ function cellBg(count, maxCount) {
   return 'rgb(71, 85, 105)';
 }
 
-export default function HourOfWeekHeatmap({ alerts, observations }) {
+// `title` controls the section heading. Pass `null` to suppress the heading
+// entirely — used by /compare where one shared heading sits above three
+// instances of this component.
+export default function HourOfWeekHeatmap({
+  alerts,
+  observations,
+  title = 'When do incidents happen?',
+}) {
   const { grid, maxCount, total } = useMemo(
     () => buildHourOfWeek(alerts, observations),
     [alerts, observations],
@@ -43,9 +50,11 @@ export default function HourOfWeekHeatmap({ alerts, observations }) {
 
   return (
     <section>
-      <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-        When do incidents happen?
-      </h2>
+      {title != null && (
+        <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+          {title}
+        </h2>
+      )}
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
         <div className="grid gap-1" style={{ gridTemplateColumns: GRID_TEMPLATE }}>
           {/* Header row: empty corner cell + hour labels */}

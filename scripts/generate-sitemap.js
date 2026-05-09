@@ -63,6 +63,7 @@ function main() {
   // Singletons.
   entries.push(urlEntry(`${SITE}/calendar`, generatedIso, 'daily', 0.7));
   entries.push(urlEntry(`${SITE}/stats`, generatedIso, 'daily', 0.7));
+  entries.push(urlEntry(`${SITE}/compare`, generatedIso, 'monthly', 0.5));
 
   // Train lines — stable set of 8.
   for (const line of TRAIN_LINE_ORDER) {

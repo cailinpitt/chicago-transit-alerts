@@ -12,12 +12,14 @@ A public archive of Chicago Transit Authority service alerts and bot-detected di
 
 ## What you see
 
-- **Active alerts** — anything currently disrupting service, surfaced at the top of the page. New incidents picked up by the 5-minute poll briefly fade-in so returning visitors notice what's changed.
-- **At-a-glance summary** — active count, last-7-days incident count, the most-affected line/route over 30 days, the train line with the longest clean streak, and a small 30-day trend sparkline (recent week vs. prior week).
+- **Active alerts** — anything currently disrupting service, surfaced at the top of the page. The two most recent show as full cards; additional ongoing incidents collapse to compact one-line rows so a system-wide bad afternoon doesn't push the rest of the page off the screen. New incidents picked up by the 5-minute poll briefly fade-in so returning visitors notice what's changed.
+- **At-a-glance summary** — three flowing groups: state + 7-day volume, a week-over-week trend phrase with an inline sparkline, and the most-affected line/route over 30 days plus the train line with the longest clean streak.
 - **90-day timeline** — a per-line contribution-style grid. Train rows + the top 5 most-affected bus routes + an aggregate "Other" row for the long tail. Click a day cell to drill into that single day; click a line name to open its dedicated page.
 - **When do incidents happen?** — a 7×24 hour-of-week heatmap so you can see whether things really are worse at PM rush or on Sunday mornings.
-- **Signal mix by line** — stacked bars showing the proportion of bot detection types (gap, bunching, ghost, cold stretch, trains held in place) per train line.
-- **Incident history** — chronological day-grouped list of every captured alert and observation. Filterable by line, bus route, time window (7d / 30d / 90d / all), single pinned day, signal type, and free-text search across headlines, station names, route numbers, and route names ("Howard", "Chicago", "Red Line", "headway gaps", etc).
+- **Signal mix by line** — stacked bars showing the proportion of bot detection types (gap, bunching, ghost, cold stretch, trains held in place) per train line. Bus route pages also show a single-row variant scoped to that route.
+- **Incident history** — chronological day-grouped list of every captured alert and observation. Filterable by line, bus route, time window (7d / 30d / 90d / all), single pinned day, signal type, and free-text search across headlines, station names, route numbers, and route names ("Howard", "Chicago", "Red Line", "headway gaps", etc). Search matches are highlighted in the list as you type.
+- **Per-line page** — `/line/:line` and `/route/:routeId` show reliability stats, year-over-year delta (when ≥1y of data exists), resolution-time histogram, and a per-station heatmap on a stylized line map (trains).
+- **Compare** — `/compare` puts up to three train lines or bus routes side-by-side with a stat table, overlaid duration histograms, signal-mix rows, and a row of mini hour-of-week heatmaps. State round-trips through the URL (`?trains=red,blue,green` / `?buses=66,X9,77`).
 - **Per-event detail page** — every captured incident gets a permalink at `/event/:id` with surrounding-24h context on the same line and a 14-day mini timeline.
 
 Filter state, the pinned day, and the search query all round-trip through the URL — any view is a shareable link.
@@ -25,6 +27,8 @@ Filter state, the pinned day, and the search query all round-trip through the UR
 ## Subscribe
 
 An Atom feed of the 50 most recent incidents (alerts + bot observations, all lines and routes) lives at [`/feed.xml`](https://chicagotransitalerts.app/feed.xml). Drop the URL into any feed reader (Feedly, Inoreader, NetNewsWire, etc.) to follow along — new entries appear as incidents are detected, and resolved incidents bump their entry so readers re-mark them unread when service clears.
+
+Each entry carries `<media:thumbnail>`, `<media:content>`, and a small HTML `<content type="html">` body so readers that support those (Inoreader, Feedly) display the per-event OG card as the entry icon and a richer preview pane than the one-line `<summary>`.
 
 The feed is regenerated as a postbuild step from the same `alerts.json` the SPA reads, so it updates whenever the underlying data does.
 
@@ -55,6 +59,9 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 | `/line/:line`           | Train line page — `/line/red`, `/line/blue`, `/line/orange`, etc. CTA short codes (`org`, `p`, `g`, `brn`, `y`) also resolve correctly. |
 | `/route/:routeId`       | Bus route page — `/route/66`, `/route/X9`, `/route/J14`, etc.                          |
 | `/station/:slug`        | Train station page — `/station/clark-division`, `/station/howard`, etc. Slugs are kebab-case derived from station names. Names with line qualifiers slug accordingly: `Central (Green)` → `/station/central-green`. |
+| `/calendar`             | 12-month calendar heatmap of daily incident counts. Click a day to drill into it.       |
+| `/stats`                | Worst-day / worst-hour / worst-station / longest-incident leaderboards plus year-over-year. |
+| `/compare`              | Side-by-side reliability, signal mix, and resolution-time comparison for up to 3 train lines or bus routes. State round-trips through `?trains=red,blue,green` or `?buses=66,X9,77`. |
 
 ## How it works
 

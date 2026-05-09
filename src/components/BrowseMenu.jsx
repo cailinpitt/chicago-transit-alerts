@@ -118,6 +118,13 @@ export default function BrowseMenu({ alerts, observations }) {
               >
                 Stats &amp; leaderboards
               </a>
+              <a
+                href="/compare"
+                role="menuitem"
+                className="block px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
+              >
+                Compare lines
+              </a>
             </section>
 
             <section>

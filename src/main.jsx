@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.jsx';
 import CalendarPage from './components/CalendarPage.jsx';
+import ComparePage from './components/ComparePage.jsx';
 import EventPage from './components/EventPage.jsx';
 import LinePage from './components/LinePage.jsx';
 import StationPage from './components/StationPage.jsx';
@@ -17,6 +18,7 @@ import StatsPage from './components/StatsPage.jsx';
 //   /station/:slug → train station page (e.g. /station/clark-division)
 //   /calendar      → 12-month calendar heatmap of daily incident counts
 //   /stats         → leaderboard of worst day/hour/station/longest incident
+//   /compare       → side-by-side comparison of up to 3 train lines or bus routes
 const path = window.location.pathname;
 const eventMatch = /^\/event\/([^/?#]+)\/?$/.exec(path);
 const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
@@ -24,6 +26,7 @@ const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
 const stationMatch = /^\/station\/([^/?#]+)\/?$/.exec(path);
 const calendarMatch = /^\/calendar\/?$/.exec(path);
 const statsMatch = /^\/stats\/?$/.exec(path);
+const compareMatch = /^\/compare\/?$/.exec(path);
 
 let page;
 if (eventMatch) {
@@ -38,6 +41,8 @@ if (eventMatch) {
   page = <CalendarPage />;
 } else if (statsMatch) {
   page = <StatsPage />;
+} else if (compareMatch) {
+  page = <ComparePage />;
 } else {
   page = <App />;
 }
