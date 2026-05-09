@@ -108,6 +108,8 @@ export default function StationPage({ slug }) {
           onResetFilters={() => {
             window.location.href = '/';
           }}
+          alerts={data?.alerts}
+          observations={data?.observations}
         />
         <main className="max-w-3xl mx-auto px-4 py-6 w-full flex-1">
           <a href="/" className="text-sm text-blue-500 hover:text-blue-400 hover:underline">
@@ -132,6 +134,8 @@ export default function StationPage({ slug }) {
         onResetFilters={() => {
           window.location.href = '/';
         }}
+        alerts={data?.alerts}
+        observations={data?.observations}
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         <div>

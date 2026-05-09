@@ -19,6 +19,7 @@ import {
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
+import BrowseMenu from './BrowseMenu.jsx';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
@@ -311,15 +312,18 @@ export default function EventPage({ eventId }) {
           <a href="/" className="text-sm text-blue-500 hover:text-blue-400 hover:underline">
             ← Back to all incidents
           </a>
-          <button
-            type="button"
-            onClick={toggleDark}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {dark ? '☀️' : '🌙'}
-            <span>{dark ? 'Light' : 'Dark'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <BrowseMenu alerts={data?.alerts} observations={data?.observations} />
+            <button
+              type="button"
+              onClick={toggleDark}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {dark ? '☀️' : '🌙'}
+              <span>{dark ? 'Light' : 'Dark'}</span>
+            </button>
+          </div>
         </div>
 
         {error && <p className="text-red-600 text-sm">Failed to load alert data.</p>}

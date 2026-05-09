@@ -279,6 +279,8 @@ export default function App() {
         dark={dark}
         onToggleDark={toggleDark}
         onResetFilters={resetFilters}
+        alerts={data?.alerts}
+        observations={data?.observations}
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         {!data && (
@@ -300,24 +302,31 @@ export default function App() {
                 stationIndex={stationIndex}
               />
             )}
-            <Filters
-              selectedLines={selectedLines}
-              onLinesChange={handleLinesChange}
-              showBus={showBus}
-              onShowBusChange={(val) => {
-                setShowBus(val);
-                if (!val) setSelectedBusRoutes([]);
-              }}
-              availableBusRoutes={availableBusRoutes}
-              selectedBusRoutes={selectedBusRoutes}
-              onBusRoutesChange={setSelectedBusRoutes}
-              dateRange={dateRange}
-              onDateRangeChange={handleDateRangeChange}
-              selectedDay={selectedDay}
-              onClearSelectedDay={() => setSelectedDay(null)}
-              selectedSignals={selectedSignals}
-              onSignalsChange={setSelectedSignals}
-            />
+            {/* Sticky filter bar — keeps controls reachable as the user
+                scrolls through the list and visualizations below. The
+                negative horizontal margin extends the backdrop past the
+                main element's px-4 so scrolled content doesn't peek
+                through the gutters. */}
+            <div className="sticky top-0 z-30 -mx-4 px-4 py-3 bg-slate-50/95 dark:bg-gh-canvas/95 backdrop-blur-sm border-b border-slate-200 dark:border-gh-border">
+              <Filters
+                selectedLines={selectedLines}
+                onLinesChange={handleLinesChange}
+                showBus={showBus}
+                onShowBusChange={(val) => {
+                  setShowBus(val);
+                  if (!val) setSelectedBusRoutes([]);
+                }}
+                availableBusRoutes={availableBusRoutes}
+                selectedBusRoutes={selectedBusRoutes}
+                onBusRoutesChange={setSelectedBusRoutes}
+                dateRange={dateRange}
+                onDateRangeChange={handleDateRangeChange}
+                selectedDay={selectedDay}
+                onClearSelectedDay={() => setSelectedDay(null)}
+                selectedSignals={selectedSignals}
+                onSignalsChange={setSelectedSignals}
+              />
+            </div>
             {summaryStats && (
               <SummaryStats
                 {...summaryStats}
@@ -325,6 +334,17 @@ export default function App() {
                 observations={data.observations}
               />
             )}
+            {/* IncidentList sits directly below the summary so picking a
+                filter immediately changes what's visible without a long
+                scroll past the visualizations. */}
+            <IncidentList
+              alerts={filtered.alerts}
+              observations={filtered.observations}
+              search={search}
+              onSearchChange={setSearch}
+              highlightedIds={highlightedIds}
+              stationIndex={stationIndex}
+            />
             <Timeline
               alerts={vizAlerts}
               observations={vizObservations}
@@ -350,14 +370,6 @@ export default function App() {
             />
             <HourOfWeekHeatmap alerts={vizAlerts} observations={vizObservations} />
             <SignalBreakdown observations={data.observations} />
-            <IncidentList
-              alerts={filtered.alerts}
-              observations={filtered.observations}
-              search={search}
-              onSearchChange={setSearch}
-              highlightedIds={highlightedIds}
-              stationIndex={stationIndex}
-            />
           </>
         )}
       </main>

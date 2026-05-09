@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import BrowseMenu from './BrowseMenu.jsx';
 
 const FRESHNESS_NOTE =
   'This is the last time the alerts changed. We check for new alerts every 7 minutes — an older time here just means nothing new has happened.';
@@ -58,7 +59,14 @@ const BOTS = [
   },
 ];
 
-export default function Header({ generatedAt, dark, onToggleDark, onResetFilters }) {
+export default function Header({
+  generatedAt,
+  dark,
+  onToggleDark,
+  onResetFilters,
+  alerts,
+  observations,
+}) {
   const updatedStr = generatedAt
     ? new Date(generatedAt).toLocaleString('en-US', {
         month: 'short',
@@ -112,7 +120,8 @@ export default function Header({ generatedAt, dark, onToggleDark, onResetFilters
             </div>
           )}
         </div>
-        <div className="flex items-center gap-3 pt-1 flex-shrink-0">
+        <div className="flex items-center gap-2 pt-1 flex-shrink-0">
+          <BrowseMenu alerts={alerts} observations={observations} />
           <button
             type="button"
             onClick={onToggleDark}
