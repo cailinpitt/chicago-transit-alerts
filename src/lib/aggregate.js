@@ -3,7 +3,13 @@
 
 import { TRAIN_LINE_ORDER } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
-import { mergeMatchingIncidents, observationSignals, SIGNAL_TYPES } from './incidents.js';
+import {
+  mergeMatchingIncidents,
+  observationSignals,
+  postUrlRkey,
+  SIGNAL_TYPES,
+} from './incidents.js';
+import { buildStationIndex } from './stations.js';
 
 const CHICAGO_TZ = 'America/Chicago';
 const chicagoHourFmt = new Intl.DateTimeFormat('en-US', {
@@ -417,7 +423,12 @@ export function buildHourOfWeek(alerts, observations) {
  * @param {object} [options]
  * @param {number} [options.now]
  * @param {number} [options.windowDays]
- * @returns {{ incidentFreeDays: number, totalDays: number, medianGapHours: number | null }}
+ * @returns {{
+ *   incidentFreeDays: number,
+ *   totalDays: number,
+ *   medianGapHours: number | null,
+ *   longestStreakDays: number,
+ * }}
  */
 export function computeLineReliability(
   alerts,
@@ -452,6 +463,20 @@ export function computeLineReliability(
 
   const incidentFreeDays = windowDays - daysWithIncident.size;
 
+  // Longest run of consecutive Chicago days within the window with no
+  // incident on this line. Same dayIdx model as the contributions grid:
+  // 0 = today, windowDays-1 = oldest day shown.
+  let longestStreakDays = 0;
+  let currentStreak = 0;
+  for (let d = 0; d < windowDays; d++) {
+    if (daysWithIncident.has(d)) {
+      currentStreak = 0;
+    } else {
+      currentStreak += 1;
+      if (currentStreak > longestStreakDays) longestStreakDays = currentStreak;
+    }
+  }
+
   const startsInWindow = starts.filter((t) => t >= cutoffDayUTC).sort((a, b) => a - b);
   let medianGapHours = null;
   if (startsInWindow.length >= 2) {
@@ -465,7 +490,7 @@ export function computeLineReliability(
     medianGapHours = medianMs / (60 * 60 * 1000);
   }
 
-  return { incidentFreeDays, totalDays: windowDays, medianGapHours };
+  return { incidentFreeDays, totalDays: windowDays, medianGapHours, longestStreakDays };
 }
 
 // Bucket key for typical-duration cohorts: same kind, same line/route, same
@@ -535,6 +560,200 @@ export function computeTypicalDurations(
     out.set(key, { medianMs, count: durations.length });
   }
   return out;
+}
+
+// One-line narrative summary of today's activity for the homepage. Uses
+// merged incidents so an alert+observation pair counts once. Returns null
+// when there's no data to summarize (e.g. before data_start_ts).
+//
+// Outputs one of three shapes:
+//   - quiet day:   "Quiet today — 0 incidents so far · 14 hours since the last."
+//   - busy day:    "Today: 5 incidents across 3 lines · 1 still ongoing."
+//   - simple busy: "Today: 1 incident on the Red Line."
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {number} [now]
+ * @returns {string | null}
+ */
+export function buildTodaySummary(alerts, observations, now = Date.now()) {
+  const todayUtc = chicagoDayUTC(now);
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  const todays = [];
+  const allTs = [];
+  function consider(ts, lines, active) {
+    if (ts == null) return;
+    allTs.push(ts);
+    if (chicagoDayUTC(ts) !== todayUtc) return;
+    todays.push({ lines: lines || [], active });
+  }
+  for (const m of merged) consider(m.first_seen_ts, m.routes, m.active);
+  for (const a of standaloneAlerts) consider(a.first_seen_ts, a.routes, a.active);
+  for (const o of standaloneObs) consider(o.ts, [o.line], o.active);
+
+  if (allTs.length === 0) return null;
+
+  if (todays.length === 0) {
+    const lastTs = Math.max(...allTs);
+    const elapsedMs = now - lastTs;
+    if (elapsedMs < 0) return 'Quiet today — 0 incidents so far.';
+    const hours = Math.floor(elapsedMs / (60 * 60 * 1000));
+    if (hours < 24) {
+      return `Quiet today — 0 incidents so far · ${hours} hour${hours === 1 ? '' : 's'} since the last.`;
+    }
+    const days = Math.floor(hours / 24);
+    return `Quiet today — 0 incidents so far · ${days} day${days === 1 ? '' : 's'} since the last incident.`;
+  }
+
+  const activeCount = todays.filter((i) => i.active).length;
+  const lineSet = new Set();
+  for (const inc of todays) {
+    for (const l of inc.lines) lineSet.add(l);
+  }
+
+  const incidentWord = todays.length === 1 ? 'incident' : 'incidents';
+  let head = `Today: ${todays.length} ${incidentWord}`;
+  if (lineSet.size > 1) {
+    head += ` across ${lineSet.size} lines/routes`;
+  } else if (lineSet.size === 1) {
+    const only = [...lineSet][0];
+    const trainLabel = TRAIN_LINE_ORDER.includes(only)
+      ? `the ${only.charAt(0).toUpperCase()}${only.slice(1)} Line`
+      : null;
+    head += trainLabel ? ` on ${trainLabel}` : ` on #${only}`;
+  }
+  if (activeCount > 0) {
+    head += ` · ${activeCount} still ongoing`;
+  }
+  return `${head}.`;
+}
+
+// Leaderboard-style stats for the /stats page. Computed against the full
+// dataset (no filtering) so each "worst" answer reflects the project's
+// recorded history end-to-end. Returns null fields when there's nothing
+// in the cohort yet rather than fake-zero rows.
+//
+//   worstDay        — Chicago calendar day with the most distinct incidents.
+//   worstHour       — (weekday, hour) cell of the hour-of-week heatmap with
+//                     the highest start count.
+//   worstStation    — station with the most incident touches in the rolling
+//                     window (uses buildStationIndex's own gating).
+//   longestIncident — longest resolved incident in ms with its key fields.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays] Used by station + day cohorts.
+ * @returns {{
+ *   worstDay: { dayUtc: number, count: number } | null,
+ *   worstHour: { weekday: number, hour: number, count: number } | null,
+ *   worstStation: { slug: string, name: string, count: number, lines: string[] } | null,
+ *   longestIncident: {
+ *     id: string,
+ *     kind: string,
+ *     routes: string[],
+ *     headline: string | null,
+ *     fromStation: string | null,
+ *     toStation: string | null,
+ *     startTs: number,
+ *     endTs: number,
+ *     durationMs: number,
+ *     postUrl: string | null,
+ *   } | null,
+ * }}
+ */
+export function computeStatsLeaderboards(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 90 } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  // worstDay — bucket each incident by its Chicago start day.
+  const dayCounts = new Map();
+  function bumpDay(ts) {
+    if (ts == null) return;
+    const day = chicagoDayUTC(ts);
+    dayCounts.set(day, (dayCounts.get(day) || 0) + 1);
+  }
+  for (const m of merged) bumpDay(m.first_seen_ts);
+  for (const a of standaloneAlerts) bumpDay(a.first_seen_ts);
+  for (const o of standaloneObs) bumpDay(o.ts);
+  let worstDay = null;
+  for (const [dayUtc, count] of dayCounts) {
+    if (!worstDay || count > worstDay.count) worstDay = { dayUtc, count };
+  }
+
+  // worstHour — same dataset reused via buildHourOfWeek so the cell
+  // semantics match the homepage heatmap exactly.
+  const { grid, maxCount: hourMax, total: hourTotal } = buildHourOfWeek(alerts, observations);
+  let worstHour = null;
+  if (hourTotal > 0 && hourMax > 0) {
+    for (let w = 0; w < 7; w++) {
+      for (let h = 0; h < 24; h++) {
+        if (grid[w][h] === hourMax) {
+          worstHour = { weekday: w, hour: h, count: hourMax };
+          break;
+        }
+      }
+      if (worstHour) break;
+    }
+  }
+
+  // worstStation — reuse buildStationIndex (windowDays-bounded by design).
+  const stationIndex = buildStationIndex(alerts, observations, { now, windowDays });
+  let worstStation = null;
+  for (const rec of stationIndex.values()) {
+    if (!worstStation || rec.count > worstStation.count) {
+      worstStation = {
+        slug: rec.slug,
+        name: rec.name,
+        count: rec.count,
+        lines: rec.lines,
+      };
+    }
+  }
+
+  // longestIncident — only resolved incidents with a positive duration count.
+  // Walk merged + standalones the same way the rest of the app does so a
+  // merged alert+obs pair contributes once with its alert-side metadata.
+  let longestIncident = null;
+  function offer(incident, startTs, endTs) {
+    if (endTs == null || startTs == null) return;
+    const durationMs = endTs - startTs;
+    if (durationMs <= 0) return;
+    if (longestIncident && durationMs <= longestIncident.durationMs) return;
+    const id = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url) ?? null;
+    if (!id) return;
+    longestIncident = {
+      id,
+      kind: incident.kind,
+      routes: incident.routes ?? (incident.line ? [incident.line] : []),
+      headline: incident.headline ?? null,
+      fromStation: incident.from_station ?? incident.affected_from_station ?? null,
+      toStation: incident.to_station ?? incident.affected_to_station ?? null,
+      startTs,
+      endTs,
+      durationMs,
+      postUrl: incident.post_url ?? incident.obs_post_url ?? null,
+    };
+  }
+  for (const m of merged) offer(m, m.first_seen_ts, m.resolved_ts);
+  for (const a of standaloneAlerts) offer(a, a.first_seen_ts, a.resolved_ts);
+  for (const o of standaloneObs) offer(o, o.ts, o.resolved_ts);
+
+  // Note: `cutoff` isn't applied to worstDay / longestIncident so the page
+  // can show a "longest incident on record" rather than artificially clipping.
+  // The window only matters for stations and hour-of-week, where the cohort
+  // sizes change as data ages out.
+  void cutoff;
+
+  return { worstDay, worstHour, worstStation, longestIncident };
 }
 
 export function buildSignalsByLine(observations) {

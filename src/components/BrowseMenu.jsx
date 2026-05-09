@@ -111,6 +111,13 @@ export default function BrowseMenu({ alerts, observations }) {
               >
                 12-month calendar
               </a>
+              <a
+                href="/stats"
+                role="menuitem"
+                className="block px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
+              >
+                Stats &amp; leaderboards
+              </a>
             </section>
 
             <section>

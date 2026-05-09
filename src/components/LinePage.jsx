@@ -276,6 +276,18 @@ export default function LinePage({ kind, lineId }) {
                         {reliability.incidentFreeDays} of {reliability.totalDays} days
                       </strong>{' '}
                       incident-free (90d)
+                      {reliability.longestStreakDays >= 2 && (
+                        <>
+                          <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
+                          <span>
+                            longest streak{' '}
+                            <strong className="text-slate-700 dark:text-slate-200">
+                              {reliability.longestStreakDays} day
+                              {reliability.longestStreakDays === 1 ? '' : 's'}
+                            </strong>
+                          </span>
+                        </>
+                      )}
                       {reliability.medianGapHours != null && (
                         <>
                           <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>

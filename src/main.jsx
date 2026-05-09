@@ -6,6 +6,7 @@ import CalendarPage from './components/CalendarPage.jsx';
 import EventPage from './components/EventPage.jsx';
 import LinePage from './components/LinePage.jsx';
 import StationPage from './components/StationPage.jsx';
+import StatsPage from './components/StatsPage.jsx';
 
 // Client-side routing. GitHub Pages serves `404.html` (a copy of `index.html`)
 // for any unknown path, so the SPA boots and we dispatch to the right page
@@ -15,12 +16,14 @@ import StationPage from './components/StationPage.jsx';
 //   /route/:id     → bus route page  (e.g. /route/66, /route/X9)
 //   /station/:slug → train station page (e.g. /station/clark-division)
 //   /calendar      → 12-month calendar heatmap of daily incident counts
+//   /stats         → leaderboard of worst day/hour/station/longest incident
 const path = window.location.pathname;
 const eventMatch = /^\/event\/([^/?#]+)\/?$/.exec(path);
 const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
 const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
 const stationMatch = /^\/station\/([^/?#]+)\/?$/.exec(path);
 const calendarMatch = /^\/calendar\/?$/.exec(path);
+const statsMatch = /^\/stats\/?$/.exec(path);
 
 let page;
 if (eventMatch) {
@@ -33,6 +36,8 @@ if (eventMatch) {
   page = <StationPage slug={stationMatch[1]} />;
 } else if (calendarMatch) {
   page = <CalendarPage />;
+} else if (statsMatch) {
+  page = <StatsPage />;
 } else {
   page = <App />;
 }

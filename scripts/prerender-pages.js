@@ -1,6 +1,6 @@
 // Prerender per-page HTML stubs and OG images for /line/:id, /route/:id,
-// /station/:slug, and /calendar so social media crawlers get page-specific
-// cards instead of the generic homepage one. Same pattern as
+// /station/:slug, /calendar, and /stats so social media crawlers get
+// page-specific cards instead of the generic homepage one. Same pattern as
 // prerender-events.js: emit an HTML stub at <route>/index.html with
 // rewritten OG meta, plus og.png next to it. PNGs are signature-cached so
 // unchanged pages skip Playwright.
@@ -10,7 +10,8 @@
 //   - All 8 train lines (stable set, always rendered)
 //   - Bus routes that appear in alerts/observations within the 90-day window
 //   - Stations from buildStationIndex (already filtered to >=1 incident)
-//   - The /calendar page (singleton, always rendered)
+//   - /calendar (singleton, always rendered)
+//   - /stats (singleton, always rendered)
 //
 // Anything outside the scope falls back to the generic homepage OG card,
 // which the SPA shell at the unknown route serves by default.
@@ -28,10 +29,12 @@ import {
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { computeStatsLeaderboards } from '../src/lib/aggregate.js';
 import { BUS_ROUTE_NAMES } from '../src/lib/busRoutes.js';
 import { buildCalendarMonths, maxCountAcrossMonths } from '../src/lib/calendar.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
-import { normalizeAlertsPayload } from '../src/lib/incidents.js';
+import { formatChicagoDay, formatDuration } from '../src/lib/format.js';
+import { formatRoutesLabel, normalizeAlertsPayload } from '../src/lib/incidents.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -43,6 +46,7 @@ const SHELL = resolve(DIST, 'index.html');
 const LINE_TPL = resolve(__dirname, 'og-line-template.html');
 const STATION_TPL = resolve(__dirname, 'og-station-template.html');
 const CALENDAR_TPL = resolve(__dirname, 'og-calendar-template.html');
+const STATS_TPL = resolve(__dirname, 'og-stats-template.html');
 const CACHE = resolve(ROOT, '.og-cache-pages');
 const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY ?? 6);
 
@@ -108,6 +112,64 @@ function buildCalendarGridHtml(dailyPayload) {
   return rows.join('');
 }
 
+// Render the four-stat leaderboard as HTML for the OG card. Mirrors the
+// shape of StatsPage but flattened to two label/value rows per cell.
+const STATS_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function statsHour(h) {
+  if (h === 0) return '12am';
+  if (h === 12) return '12pm';
+  return h < 12 ? `${h}am` : `${h - 12}pm`;
+}
+
+function buildStatsHtml(leaders) {
+  const items = [];
+  if (leaders.worstDay) {
+    items.push({
+      label: 'Worst day',
+      value: `${formatChicagoDay(leaders.worstDay.dayUtc)} · ${leaders.worstDay.count} incident${leaders.worstDay.count === 1 ? '' : 's'}`,
+    });
+  } else {
+    items.push({ label: 'Worst day', value: 'Not enough data yet' });
+  }
+  if (leaders.worstHour) {
+    items.push({
+      label: 'Worst hour',
+      value: `${STATS_DAYS[leaders.worstHour.weekday]} ${statsHour(leaders.worstHour.hour)} · ${leaders.worstHour.count} incident${leaders.worstHour.count === 1 ? '' : 's'}`,
+    });
+  } else {
+    items.push({ label: 'Worst hour', value: 'Not enough data yet' });
+  }
+  if (leaders.worstStation) {
+    items.push({
+      label: 'Most-affected station',
+      value: `${leaders.worstStation.name} · ${leaders.worstStation.count} incident${leaders.worstStation.count === 1 ? '' : 's'}`,
+    });
+  } else {
+    items.push({ label: 'Most-affected station', value: 'No station data yet' });
+  }
+  if (leaders.longestIncident) {
+    const routes = formatRoutesLabel(leaders.longestIncident.kind, leaders.longestIncident.routes);
+    items.push({
+      label: 'Longest incident',
+      value: `${routes} · ${formatDuration(leaders.longestIncident.durationMs)}`,
+    });
+  } else {
+    items.push({ label: 'Longest incident', value: 'No resolved incidents yet' });
+  }
+  return items
+    .map(
+      (it) =>
+        `<div class="stat"><p class="stat-eyebrow">${escHtml(it.label)}</p><p class="stat-value">${escHtml(it.value)}</p></div>`,
+    )
+    .join('');
+}
+
+function statsSubtitle(payload) {
+  const total = (payload.alerts?.length ?? 0) + (payload.observations?.length ?? 0);
+  if (total === 0) return 'Worst days, hours, stations, and longest incidents on record.';
+  return `Worst days, hours, stations, and longest incidents — across ${total} record${total === 1 ? '' : 's'}.`;
+}
+
 function calendarSubtitle(dailyPayload) {
   let total = 0;
   for (const d of dailyPayload?.days ?? []) {
@@ -144,6 +206,25 @@ function planPages(payload, dailyPayload) {
       gridHtml,
     });
   }
+
+  // Stats / leaderboards — also a singleton. Reuses the same leaderboard
+  // function the live page calls so the share image and the page agree.
+  const leaders = computeStatsLeaderboards(payload.alerts ?? [], payload.observations ?? [], {
+    now,
+    windowDays: WINDOW_DAYS,
+  });
+  const statsHtml = buildStatsHtml(leaders);
+  pages.push({
+    kind: 'stats',
+    slug: 'stats',
+    outDir: resolve(DIST, 'stats'),
+    url: `${SITE}/stats`,
+    path: '/stats',
+    ogTitle: 'Stats · CTA Alert History',
+    desc: 'Worst days, hours, stations, and longest incidents on the CTA — archived on chicagotransitalerts.app.',
+    subtitle: statsSubtitle(payload),
+    statsHtml,
+  });
 
   // Train lines: always all of them — small stable set, deserves full coverage.
   for (const lineId of TRAIN_LINE_ORDER) {
@@ -303,6 +384,12 @@ function fillCalendarTemplate(tpl, page) {
     .replaceAll('__GRID__', page.gridHtml);
 }
 
+function fillStatsTemplate(tpl, page) {
+  return tpl
+    .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
+    .replaceAll('__STATS__', page.statsHtml);
+}
+
 function signatureFor(page, templateHash) {
   const h = createHash('sha256');
   // Hash the fields that actually affect the rendered PNG; keep the URL out
@@ -319,6 +406,8 @@ function signatureFor(page, templateHash) {
     };
   } else if (page.kind === 'calendar') {
     payload = { kind: 'calendar', sub: page.subtitle, grid: page.gridHtml };
+  } else if (page.kind === 'stats') {
+    payload = { kind: 'stats', sub: page.subtitle, stats: page.statsHtml };
   } else {
     payload = {
       kind: page.kind,
@@ -367,10 +456,14 @@ async function main() {
   const lineTpl = readFileSync(LINE_TPL, 'utf8');
   const stationTpl = readFileSync(STATION_TPL, 'utf8');
   const calendarTpl = existsSync(CALENDAR_TPL) ? readFileSync(CALENDAR_TPL, 'utf8') : null;
+  const statsTpl = existsSync(STATS_TPL) ? readFileSync(STATS_TPL, 'utf8') : null;
   const lineHash = createHash('sha256').update(lineTpl).digest('hex').slice(0, 16);
   const stationHash = createHash('sha256').update(stationTpl).digest('hex').slice(0, 16);
   const calendarHash = calendarTpl
     ? createHash('sha256').update(calendarTpl).digest('hex').slice(0, 16)
+    : '';
+  const statsHash = statsTpl
+    ? createHash('sha256').update(statsTpl).digest('hex').slice(0, 16)
     : '';
 
   const pages = planPages(payload, dailyPayload);
@@ -385,8 +478,11 @@ async function main() {
   const seenSlugs = new Set();
   for (const page of pages) {
     seenSlugs.add(page.slug);
-    const tplHash =
-      page.kind === 'station' ? stationHash : page.kind === 'calendar' ? calendarHash : lineHash;
+    let tplHash;
+    if (page.kind === 'station') tplHash = stationHash;
+    else if (page.kind === 'calendar') tplHash = calendarHash;
+    else if (page.kind === 'stats') tplHash = statsHash;
+    else tplHash = lineHash;
     const sig = signatureFor(page, tplHash);
 
     mkdirSync(page.outDir, { recursive: true });
@@ -406,6 +502,7 @@ async function main() {
     let html;
     if (page.kind === 'station') html = fillStationTemplate(stationTpl, page);
     else if (page.kind === 'calendar') html = fillCalendarTemplate(calendarTpl, page);
+    else if (page.kind === 'stats') html = fillStatsTemplate(statsTpl, page);
     else html = fillLineTemplate(lineTpl, page);
     renders.push({ page, html, cacheDir, cachedPng, cachedSig, sig });
   }
