@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778339640758,
+  "generated_at": 1778340062057,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -18,7 +18,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlgjrso46p2s",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114809",
@@ -37,7 +39,9 @@
       "resolved_reply_url": null,
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114806",
@@ -55,7 +59,9 @@
       "resolved_reply_url": null,
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": "west"
+      "affected_direction": "west",
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114805",
@@ -73,7 +79,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlgjobfnu52a",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": "south"
+      "affected_direction": "south",
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114804",
@@ -91,7 +99,9 @@
       "resolved_reply_url": null,
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114803",
@@ -109,7 +119,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlfzzkuiqg2u",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114797",
@@ -127,7 +139,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlf5jmdybs2c",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114794",
@@ -145,7 +159,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlf63ihfyk2i",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114788",
@@ -163,7 +179,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlf6newsr42u",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": "west"
+      "affected_direction": "west",
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114783",
@@ -181,7 +199,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlel3kbazx24",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114749",
@@ -210,7 +230,9 @@
       "resolved_reply_url": null,
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114743",
@@ -230,7 +252,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlend2ylel24",
       "affected_from_station": "Devon/Sheridan-Broadway",
       "affected_to_station": "Foster/Sheridan",
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114529",
@@ -250,7 +274,9 @@
       "resolved_reply_url": null,
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114213",
@@ -275,7 +301,9 @@
       "resolved_reply_url": null,
       "affected_from_station": "Wacker",
       "affected_to_station": "Randolph",
-      "affected_direction": "south"
+      "affected_direction": "south",
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114735",
@@ -293,7 +321,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5kkrofqh2s",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114651",
@@ -311,7 +341,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkuwjeoszq2g",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114493",
@@ -329,7 +361,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkpbhsdmu72q",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     },
     {
       "alert_id": "114344",
@@ -347,7 +381,9 @@
       "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mkhaya7hf52i",
       "affected_from_station": null,
       "affected_to_station": null,
-      "affected_direction": null
+      "affected_direction": null,
+      "cta_event_start_ts": null,
+      "cta_event_end_ts": null
     }
   ],
   "observations": [
