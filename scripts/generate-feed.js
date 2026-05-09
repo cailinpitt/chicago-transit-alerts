@@ -23,6 +23,9 @@ const DATA = resolve(ROOT, 'dist', 'data', 'alerts.json');
 const OUT = resolve(ROOT, 'dist', 'feed.xml');
 
 const SITE = 'https://chicagotransitalerts.app';
+// The 2026 here is the tag URI authority date (RFC 4151) — pinned forever,
+// not a "current year". Changing it would alter every entry <id> and re-mark
+// every subscriber's read entries as unread.
 const FEED_ID = 'tag:chicagotransitalerts.app,2026:feed';
 const ENTRY_LIMIT = 50;
 

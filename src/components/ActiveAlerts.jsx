@@ -12,10 +12,7 @@ const TYPICAL_MIN_COUNT = 5;
 function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
   const isAlert = !!incident.alert_id;
   const startTs = incident.first_seen_ts || incident.ts;
-  const elapsedMin = Math.round((now - startTs) / 60_000);
-  const elapsedHours = Math.floor(elapsedMin / 60);
-  const elapsedRemMin = elapsedMin % 60;
-  const elapsedText = elapsedHours > 0 ? `${elapsedHours}h ${elapsedRemMin}m` : `${elapsedMin}m`;
+  const elapsedText = formatDuration(now - startTs) ?? '0m';
 
   // Look up the cohort median for this incident's (kind, line, signal) bucket.
   // Pure CTA alerts return a null key and get no hint — there's no honest
