@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778306821864,
+  "generated_at": 1778322481744,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -10,7 +10,7 @@
       ],
       "headline": "#94 California Temporary Reroute at California/Fullerton",
       "first_seen_ts": 1778306405672,
-      "last_seen_ts": 1778306406831,
+      "last_seen_ts": 1778321402621,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -111,7 +111,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173881,
-      "last_seen_ts": 1778306402440,
+      "last_seen_ts": 1778322002671,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -151,7 +151,7 @@
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
       "first_seen_ts": 1778256171425,
-      "last_seen_ts": 1778306402440,
+      "last_seen_ts": 1778322002671,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -176,7 +176,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778306402440,
+      "last_seen_ts": 1778322002671,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -260,6 +260,38 @@
     }
   ],
   "observations": [
+    {
+      "id": 300,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-0-outbound",
+      "from_station": "Francisco",
+      "to_station": "Rockwell",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 0.7,
+        "minutesSinceLastTrain": null,
+        "lookbackMin": 39,
+        "coldThresholdMin": 34,
+        "trainsOutsideRun": 4,
+        "coldStations": 2,
+        "coldStationNames": [
+          "Francisco",
+          "Rockwell"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 13.625,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778322304722,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlfzqnzvni2x",
+      "resolved_post_url": null
+    },
     {
       "id": 28,
       "kind": "bus",
