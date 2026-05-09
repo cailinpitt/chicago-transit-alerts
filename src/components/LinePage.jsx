@@ -6,6 +6,7 @@ import {
   computeLineReliability,
   computeSummaryStats,
   computeTypicalDurations,
+  computeYearOverYear,
 } from '../lib/aggregate.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
@@ -17,6 +18,7 @@ import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
 import LineMap from './LineMap.jsx';
+import { SignalBreakdownSingleRoute } from './SignalBreakdown.jsx';
 import Timeline from './Timeline.jsx';
 import TrendSparkline from './TrendSparkline.jsx';
 
@@ -178,6 +180,18 @@ export default function LinePage({ kind, lineId }) {
     return computeDurationHistogram(lineAlerts, lineObservations, { now, windowDays: 90 });
   }, [data, lineAlerts, lineObservations, now]);
 
+  // YoY for this line specifically. Gated on data_start_ts covering the
+  // prior window — for a young dataset this just renders nothing rather
+  // than a misleading "0 vs 0".
+  const yoy = useMemo(() => {
+    if (!data) return null;
+    return computeYearOverYear(lineAlerts, lineObservations, {
+      now,
+      windowDays: 30,
+      dataStartTs: data.data_start_ts ?? null,
+    });
+  }, [data, lineAlerts, lineObservations, now]);
+
   // Station index built from the full dataset, not just this line. A station
   // can appear on multiple lines (Howard is on Red + Yellow; Damen on Blue +
   // Brown), and clicking it should land on the cross-line station page —
@@ -333,6 +347,24 @@ export default function LinePage({ kind, lineId }) {
                       )}
                     </p>
                   )}
+                  {yoy?.enoughData && yoy.pctChange != null && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <strong
+                        className={
+                          yoy.pctChange > 0
+                            ? 'text-red-500'
+                            : yoy.pctChange < 0
+                              ? 'text-green-600 dark:text-green-500'
+                              : 'text-slate-700 dark:text-slate-200'
+                        }
+                      >
+                        {yoy.pctChange === 0
+                          ? 'Unchanged'
+                          : `${Math.abs(Math.round(yoy.pctChange * 100))}% ${yoy.pctChange > 0 ? 'busier' : 'quieter'}`}
+                      </strong>{' '}
+                      than the same 30 days a year ago ({yoy.priorCount} → {yoy.currentCount})
+                    </p>
+                  )}
                 </div>
                 <TrendSparkline alerts={lineAlerts} observations={lineObservations} />
               </div>
@@ -359,6 +391,14 @@ export default function LinePage({ kind, lineId }) {
             />
 
             <HourOfWeekHeatmap alerts={lineAlerts} observations={lineObservations} />
+
+            {!isTrain && (
+              <SignalBreakdownSingleRoute
+                observations={lineObservations}
+                label={`#${lineId}`}
+                labelColor={headingBg}
+              />
+            )}
 
             <IncidentList
               alerts={listFiltered.alerts}

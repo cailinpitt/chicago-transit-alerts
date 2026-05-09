@@ -836,3 +836,82 @@ export function buildSignalsByLine(observations) {
 
   return { byLine, totals };
 }
+
+// Year-over-year comparison: count merged incidents in the trailing
+// `windowDays` ending now vs the same calendar window one year prior.
+// Returns `{ enoughData: false }` when the dataset doesn't reach back far
+// enough to cover the prior window — callers gate display on that flag
+// rather than rendering misleading "0 vs 5" deltas.
+//
+// Inputs are expected to already be scoped (full system on /stats; one
+// line/route on LinePage); this helper just counts what it's given.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays] Width of each comparison window. Default 30.
+ * @param {number | null} [options.dataStartTs] Earliest moment we have
+ *   coverage for. When the prior window starts before this, returns
+ *   enoughData:false.
+ * @returns {{
+ *   enoughData: boolean,
+ *   currentCount: number,
+ *   priorCount: number,
+ *   pctChange: number | null,
+ *   currentStartTs: number,
+ *   currentEndTs: number,
+ *   priorStartTs: number,
+ *   priorEndTs: number,
+ * }}
+ */
+export function computeYearOverYear(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 30, dataStartTs = null } = {},
+) {
+  const yearMs = 365 * DAY_MS;
+  const windowMs = windowDays * DAY_MS;
+  const currentEndTs = now;
+  const currentStartTs = now - windowMs;
+  const priorEndTs = now - yearMs;
+  const priorStartTs = priorEndTs - windowMs;
+
+  const enoughData = dataStartTs == null || dataStartTs <= priorStartTs;
+  if (!enoughData) {
+    return {
+      enoughData: false,
+      currentCount: 0,
+      priorCount: 0,
+      pctChange: null,
+      currentStartTs,
+      currentEndTs,
+      priorStartTs,
+      priorEndTs,
+    };
+  }
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  let currentCount = 0;
+  let priorCount = 0;
+  function bump(ts) {
+    if (ts == null) return;
+    if (ts >= currentStartTs && ts <= currentEndTs) currentCount += 1;
+    else if (ts >= priorStartTs && ts <= priorEndTs) priorCount += 1;
+  }
+  for (const m of merged) bump(m.first_seen_ts);
+  for (const a of standaloneAlerts) bump(a.first_seen_ts);
+  for (const o of standaloneObs) bump(o.first_seen_ts ?? o.ts);
+
+  const pctChange = priorCount > 0 ? (currentCount - priorCount) / priorCount : null;
+  return {
+    enoughData: true,
+    currentCount,
+    priorCount,
+    pctChange,
+    currentStartTs,
+    currentEndTs,
+    priorStartTs,
+    priorEndTs,
+  };
+}

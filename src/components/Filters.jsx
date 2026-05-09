@@ -173,6 +173,8 @@ export default function Filters({
   onClearSelectedDay,
   selectedSignals = [],
   onSignalsChange,
+  activeOnly = false,
+  onActiveOnlyChange,
 }) {
   const toggleLine = (line) => {
     onLinesChange((prev) => {
@@ -244,8 +246,11 @@ export default function Filters({
 
       <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
 
-      {/* Date range filter — replaced by a day chip when a single day is pinned. */}
-      <div className="flex gap-1">
+      {/* Date range filter — replaced by a day chip when a day is pinned, or
+          by an "Active only" chip when active-only mode is on. The three
+          modes (range, day, active) are mutually exclusive narrowings of the
+          incident list, so they share this slot rather than stack. */}
+      <div className="flex gap-1 items-center flex-wrap">
         {selectedDay != null ? (
           <button
             type="button"
@@ -258,21 +263,45 @@ export default function Filters({
               ×
             </span>
           </button>
+        ) : activeOnly ? (
+          <button
+            type="button"
+            onClick={() => onActiveOnlyChange?.(false)}
+            className="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 bg-red-500 text-white hover:opacity-80 transition-opacity"
+            aria-label="Clear active-only filter"
+          >
+            <span>Active only</span>
+            <span aria-hidden="true" className="opacity-70">
+              ×
+            </span>
+          </button>
         ) : (
-          DATE_OPTIONS.map(({ label, value }) => (
-            <button
-              type="button"
-              key={label}
-              onClick={() => onDateRangeChange(value)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                dateRange === value
-                  ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-                  : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
-              }`}
-            >
-              {label}
-            </button>
-          ))
+          <>
+            {DATE_OPTIONS.map(({ label, value }) => (
+              <button
+                type="button"
+                key={label}
+                onClick={() => onDateRangeChange(value)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  dateRange === value
+                    ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                    : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+            {onActiveOnlyChange && (
+              <button
+                type="button"
+                onClick={() => onActiveOnlyChange(true)}
+                className="px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border"
+                title="Show only ongoing incidents"
+              >
+                Active
+              </button>
+            )}
+          </>
         )}
       </div>
 

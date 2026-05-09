@@ -8,7 +8,9 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { formatDuration } from '../src/lib/format.js';
 import {
+  formatEvidenceChip,
   formatRoutesLabel,
   mergeMatchingIncidents,
   normalizeAlertsPayload,
@@ -103,6 +105,32 @@ function entrySummary(incident) {
   return describeObservation(incident);
 }
 
+// Build a small HTML body for the entry's <content type="html">. Aimed at
+// feed-reader preview panes that render real markup — gives readers a
+// scannable card with state, segment, headline, and bot-evidence chip,
+// rather than the one-line <summary> they'd otherwise show.
+function entryContentHtml(incident) {
+  const start = startTs(incident);
+  const resolved = incident.resolved_ts ?? null;
+  const stateLine = resolved
+    ? `<strong>Resolved</strong> after ${escapeXml(formatDuration(resolved - start) ?? '')}`
+    : incident.active
+      ? '<strong>Ongoing</strong>'
+      : '';
+  const stations = [incident.from_station, incident.to_station].filter(Boolean).join(' → ');
+  const chip = formatEvidenceChip(incident);
+  const headline = incident.headline ? escapeXml(incident.headline) : null;
+  const fallback = headline ? null : escapeXml(describeObservation(incident));
+
+  const parts = [];
+  if (stateLine) parts.push(`<p>${stateLine}</p>`);
+  if (headline) parts.push(`<p>${headline}</p>`);
+  if (fallback) parts.push(`<p>${fallback}</p>`);
+  if (stations) parts.push(`<p><em>${escapeXml(stations)}</em></p>`);
+  if (chip) parts.push(`<p>${escapeXml(chip)}</p>`);
+  return parts.join('');
+}
+
 function toIso(ms) {
   return new Date(ms).toISOString();
 }
@@ -133,6 +161,7 @@ function main() {
       const published = toIso(startTs(incident));
       const updated = toIso(updatedTs(incident));
       const thumb = entryThumbnail(incident);
+      const contentHtml = entryContentHtml(incident);
       const lines = [
         '  <entry>',
         `    <id>${escapeXml(id)}</id>`,
@@ -141,6 +170,10 @@ function main() {
         `    <published>${published}</published>`,
         `    <updated>${updated}</updated>`,
         `    <summary>${escapeXml(summary)}</summary>`,
+        // <content type="html"> needs the inner markup escaped so the parser
+        // sees it as XML text — readers (Inoreader, Feedly, etc.) un-escape
+        // and render the resulting HTML in their preview pane.
+        `    <content type="html">${escapeXml(contentHtml)}</content>`,
       ];
       if (thumb) {
         lines.push(

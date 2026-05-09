@@ -11,6 +11,7 @@ describe('parseUrlState', () => {
       selectedDay: null,
       selectedSignals: [],
       search: '',
+      activeOnly: false,
     });
   });
 
@@ -176,6 +177,7 @@ describe('buildSearch', () => {
       selectedDay: null,
       selectedSignals: [],
       search: '',
+      activeOnly: false,
     };
     expect(parseUrlState(buildSearch(state))).toEqual(state);
   });
@@ -190,10 +192,27 @@ describe('buildSearch', () => {
       selectedDay: dayUtc,
       selectedSignals: [],
       search: '',
+      activeOnly: false,
     };
     const search = buildSearch(state);
     expect(search).toBe('?day=2026-05-06');
     expect(parseUrlState(search)).toEqual(state);
+  });
+
+  it('round-trips activeOnly', () => {
+    const state = {
+      selectedLines: null,
+      showBus: true,
+      selectedBusRoutes: [],
+      dateRange: 7,
+      selectedDay: null,
+      selectedSignals: [],
+      search: '',
+      activeOnly: true,
+    };
+    const s = buildSearch(state);
+    expect(s).toBe('?active=1');
+    expect(parseUrlState(s)).toEqual(state);
   });
 
   it('drops malformed day param silently', () => {

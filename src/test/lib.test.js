@@ -10,6 +10,7 @@ import {
   computeStatsLeaderboards,
   computeSummaryStats,
   computeTypicalDurations,
+  computeYearOverYear,
   typicalDurationKey,
 } from '../lib/aggregate.js';
 import { formatDuration, formatGap } from '../lib/format.js';
@@ -180,6 +181,24 @@ describe('filterIncidents', () => {
         now: onDayTs + 60_000,
       });
       expect(out).toHaveLength(1);
+    });
+  });
+
+  describe('activeOnly', () => {
+    it('keeps only ongoing incidents when activeOnly is set', () => {
+      const ongoing = makeAlert({ alert_id: 'on', resolved_ts: null, active: true });
+      const done = makeAlert({ alert_id: 'off', resolved_ts: NOW, active: false });
+      const r = filterIncidents([ongoing, done], [], { activeOnly: true });
+      expect(r.alerts).toHaveLength(1);
+      expect(r.alerts[0].alert_id).toBe('on');
+    });
+
+    it('also drops resolved observations', () => {
+      const ongoing = makeObs({ id: 1, resolved_ts: null, active: true });
+      const done = makeObs({ id: 2, resolved_ts: NOW, active: false });
+      const r = filterIncidents([], [ongoing, done], { activeOnly: true });
+      expect(r.observations).toHaveLength(1);
+      expect(r.observations[0].id).toBe(1);
     });
   });
 });
@@ -1078,5 +1097,59 @@ describe('computeStatsLeaderboards', () => {
     });
     const r = computeStatsLeaderboards([], [active], { now: NOW });
     expect(r.longestIncident).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeYearOverYear
+// ---------------------------------------------------------------------------
+describe('computeYearOverYear', () => {
+  const YEAR = 365 * DAY;
+
+  it('returns enoughData=false when dataStartTs is inside the prior window', () => {
+    const r = computeYearOverYear([], [], {
+      now: NOW,
+      windowDays: 30,
+      dataStartTs: NOW - 30 * DAY,
+    });
+    expect(r.enoughData).toBe(false);
+  });
+
+  it('counts current vs prior 30-day windows separately', () => {
+    const obs = [
+      // 3 incidents in the current window (last 30 days)
+      makeObs({ id: 1, ts: NOW - 5 * DAY, first_seen_ts: NOW - 5 * DAY }),
+      makeObs({ id: 2, ts: NOW - 10 * DAY, first_seen_ts: NOW - 10 * DAY }),
+      makeObs({ id: 3, ts: NOW - 15 * DAY, first_seen_ts: NOW - 15 * DAY }),
+      // 5 incidents in the same 30-day window a year ago
+      makeObs({ id: 4, ts: NOW - YEAR - 1 * DAY, first_seen_ts: NOW - YEAR - 1 * DAY }),
+      makeObs({ id: 5, ts: NOW - YEAR - 5 * DAY, first_seen_ts: NOW - YEAR - 5 * DAY }),
+      makeObs({ id: 6, ts: NOW - YEAR - 10 * DAY, first_seen_ts: NOW - YEAR - 10 * DAY }),
+      makeObs({ id: 7, ts: NOW - YEAR - 20 * DAY, first_seen_ts: NOW - YEAR - 20 * DAY }),
+      makeObs({ id: 8, ts: NOW - YEAR - 25 * DAY, first_seen_ts: NOW - YEAR - 25 * DAY }),
+      // Outside both windows — should not count.
+      makeObs({ id: 9, ts: NOW - 60 * DAY, first_seen_ts: NOW - 60 * DAY }),
+    ];
+    const r = computeYearOverYear([], obs, {
+      now: NOW,
+      windowDays: 30,
+      dataStartTs: NOW - 2 * YEAR,
+    });
+    expect(r.enoughData).toBe(true);
+    expect(r.currentCount).toBe(3);
+    expect(r.priorCount).toBe(5);
+    expect(r.pctChange).toBeCloseTo((3 - 5) / 5, 5); // -40%
+  });
+
+  it('returns null pctChange when prior window had zero incidents', () => {
+    const obs = [makeObs({ id: 1, ts: NOW - 5 * DAY, first_seen_ts: NOW - 5 * DAY })];
+    const r = computeYearOverYear([], obs, {
+      now: NOW,
+      windowDays: 30,
+      dataStartTs: NOW - 2 * YEAR,
+    });
+    expect(r.pctChange).toBeNull();
+    expect(r.currentCount).toBe(1);
+    expect(r.priorCount).toBe(0);
   });
 });

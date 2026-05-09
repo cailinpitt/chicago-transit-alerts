@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
-import { computeStatsLeaderboards } from '../lib/aggregate.js';
+import { computeStatsLeaderboards, computeYearOverYear } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay, formatDate, formatDuration, formatTime } from '../lib/format.js';
 import { formatRoutesLabel, normalizeAlertsPayload } from '../lib/incidents.js';
@@ -76,6 +76,15 @@ export default function StatsPage() {
     return computeStatsLeaderboards(data.alerts, data.observations, { now, windowDays: 90 });
   }, [data, now]);
 
+  const yoy = useMemo(() => {
+    if (!data) return null;
+    return computeYearOverYear(data.alerts, data.observations, {
+      now,
+      windowDays: 30,
+      dataStartTs: data.data_start_ts ?? null,
+    });
+  }, [data, now]);
+
   const longestRoutesLabel = useMemo(() => {
     if (!leaders?.longestIncident) return null;
     return formatRoutesLabel(leaders.longestIncident.kind, leaders.longestIncident.routes);
@@ -119,6 +128,24 @@ export default function StatsPage() {
               />
             ))}
           </div>
+        )}
+
+        {yoy?.enoughData && (
+          <StatCard
+            eyebrow="Year-over-year (last 30 days)"
+            headline={
+              yoy.pctChange == null
+                ? `${yoy.currentCount} incidents — no comparable activity a year ago`
+                : `${yoy.currentCount} incidents — ${
+                    yoy.pctChange === 0
+                      ? 'unchanged from'
+                      : `${Math.abs(Math.round(yoy.pctChange * 100))}% ${
+                          yoy.pctChange > 0 ? 'busier than' : 'quieter than'
+                        }`
+                  } the same window last year (${yoy.priorCount})`
+            }
+            sub="Trailing 30 days vs the same 30-day window 365 days ago. Counts merged incidents (alerts + bot observations together)."
+          />
         )}
 
         {leaders && (

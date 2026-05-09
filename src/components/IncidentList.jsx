@@ -6,13 +6,14 @@ import {
   mergeMatchingIncidents,
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
+import HighlightedText from './HighlightedText.jsx';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
 
 const PAGE_SIZE = 25;
 
-function IncidentRow({ incident, isNew, stationIndex }) {
+function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   const isMerged = incident._type === 'merged';
   const isAlert = !isMerged && !!incident.alert_id;
 
@@ -20,20 +21,34 @@ function IncidentRow({ incident, isNew, stationIndex }) {
   const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
 
-  // The description is either a string (alerts/roundups) or a JSX fragment
-  // (segment endpoints, where station names may render as links).
+  // The description is either highlightable text (alerts/roundups) or a JSX
+  // fragment (segment endpoints, where station names may render as links).
   let description;
   if (isMerged || isAlert) {
-    description = incident.headline;
+    description = <HighlightedText text={incident.headline} query={searchQuery} />;
   } else if (incident.from_station && incident.to_station) {
     description = (
       <>
-        <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
-        <StationName name={incident.to_station} stationIndex={stationIndex} />
+        <StationName
+          name={incident.from_station}
+          stationIndex={stationIndex}
+          searchQuery={searchQuery}
+        />{' '}
+        →{' '}
+        <StationName
+          name={incident.to_station}
+          stationIndex={stationIndex}
+          searchQuery={searchQuery}
+        />
       </>
     );
   } else if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
-    description = `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
+    description = (
+      <HighlightedText
+        text={`Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`}
+        query={searchQuery}
+      />
+    );
   } else if (incident.detection_source === 'roundup') {
     description = 'Multiple simultaneous disruptions detected';
   } else {
@@ -89,8 +104,17 @@ function IncidentRow({ incident, isNew, stationIndex }) {
         {/* Merged: show the specific segment from the bot observation */}
         {isMerged && incident.from_station && incident.to_station && (
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-            <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
-            <StationName name={incident.to_station} stationIndex={stationIndex} />
+            <StationName
+              name={incident.from_station}
+              stationIndex={stationIndex}
+              searchQuery={searchQuery}
+            />{' '}
+            →{' '}
+            <StationName
+              name={incident.to_station}
+              stationIndex={stationIndex}
+              searchQuery={searchQuery}
+            />
           </p>
         )}
 
@@ -270,6 +294,7 @@ export default function IncidentList({
                   incident={incident}
                   isNew={eventId != null && highlightedIds?.has(eventId)}
                   stationIndex={stationIndex}
+                  searchQuery={search}
                 />
               );
             })}
