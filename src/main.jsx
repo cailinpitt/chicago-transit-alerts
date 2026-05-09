@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.jsx';
+import CalendarPage from './components/CalendarPage.jsx';
 import EventPage from './components/EventPage.jsx';
 import LinePage from './components/LinePage.jsx';
 import StationPage from './components/StationPage.jsx';
@@ -13,11 +14,13 @@ import StationPage from './components/StationPage.jsx';
 //   /line/:id      → train line page (e.g. /line/red, /line/blue)
 //   /route/:id     → bus route page  (e.g. /route/66, /route/X9)
 //   /station/:slug → train station page (e.g. /station/clark-division)
+//   /calendar      → 12-month calendar heatmap of daily incident counts
 const path = window.location.pathname;
 const eventMatch = /^\/event\/([^/?#]+)\/?$/.exec(path);
 const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
 const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
 const stationMatch = /^\/station\/([^/?#]+)\/?$/.exec(path);
+const calendarMatch = /^\/calendar\/?$/.exec(path);
 
 let page;
 if (eventMatch) {
@@ -28,6 +31,8 @@ if (eventMatch) {
   page = <LinePage kind="bus" lineId={routeMatch[1]} />;
 } else if (stationMatch) {
   page = <StationPage slug={stationMatch[1]} />;
+} else if (calendarMatch) {
+  page = <CalendarPage />;
 } else {
   page = <App />;
 }

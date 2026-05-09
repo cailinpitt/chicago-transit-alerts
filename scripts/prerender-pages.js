@@ -1,14 +1,16 @@
-// Prerender per-page HTML stubs and OG images for /line/:id, /route/:id, and
-// /station/:slug so social media crawlers get page-specific cards instead of
-// the generic homepage one. Same pattern as prerender-events.js: emit an
-// HTML stub at <route>/index.html with rewritten OG meta, plus og.png next
-// to it. PNGs are signature-cached so unchanged pages skip Playwright.
+// Prerender per-page HTML stubs and OG images for /line/:id, /route/:id,
+// /station/:slug, and /calendar so social media crawlers get page-specific
+// cards instead of the generic homepage one. Same pattern as
+// prerender-events.js: emit an HTML stub at <route>/index.html with
+// rewritten OG meta, plus og.png next to it. PNGs are signature-cached so
+// unchanged pages skip Playwright.
 //
 // Scope (intentionally bounded — generating 150+ bus routes when only a few
 // are ever shared would be wasteful):
 //   - All 8 train lines (stable set, always rendered)
 //   - Bus routes that appear in alerts/observations within the 90-day window
 //   - Stations from buildStationIndex (already filtered to >=1 incident)
+//   - The /calendar page (singleton, always rendered)
 //
 // Anything outside the scope falls back to the generic homepage OG card,
 // which the SPA shell at the unknown route serves by default.
@@ -27,6 +29,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { BUS_ROUTE_NAMES } from '../src/lib/busRoutes.js';
+import { buildCalendarMonths, maxCountAcrossMonths } from '../src/lib/calendar.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
 import { normalizeAlertsPayload } from '../src/lib/incidents.js';
 import { buildStationIndex } from '../src/lib/stations.js';
@@ -35,9 +38,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const DIST = resolve(ROOT, 'dist');
 const DATA = resolve(DIST, 'data', 'alerts.json');
+const DAILY_DATA = resolve(DIST, 'data', 'daily-counts.json');
 const SHELL = resolve(DIST, 'index.html');
 const LINE_TPL = resolve(__dirname, 'og-line-template.html');
 const STATION_TPL = resolve(__dirname, 'og-station-template.html');
+const CALENDAR_TPL = resolve(__dirname, 'og-calendar-template.html');
 const CACHE = resolve(ROOT, '.og-cache-pages');
 const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY ?? 6);
 
@@ -61,13 +66,84 @@ function softColor(hex, alpha = 0.18) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
+// Mirrors CalendarPage's cellBg — five intensity stops keyed off max. Kept
+// inline here (not imported) because the page consumes it as a CSS variable;
+// here we want a literal color string for HTML style attributes.
+function calendarCellColor(count, maxCount) {
+  if (count === 0 || maxCount <= 0) return '#e2e8f0';
+  const ratio = count / maxCount;
+  if (ratio < 0.2) return 'rgba(100, 116, 139, 0.25)';
+  if (ratio < 0.4) return 'rgba(100, 116, 139, 0.45)';
+  if (ratio < 0.7) return 'rgba(100, 116, 139, 0.65)';
+  if (ratio < 0.9) return 'rgba(100, 116, 139, 0.85)';
+  return 'rgb(71, 85, 105)';
+}
+
+// Render the 12-month grid as HTML the OG template can drop in. Uses the
+// same buildCalendarMonths logic the live page uses, so the share image
+// shows the actual data — busy days dark, sparse months mostly empty.
+function buildCalendarGridHtml(dailyPayload) {
+  const months = buildCalendarMonths(dailyPayload?.days ?? [], {
+    monthsBack: 12,
+    dataStartTs: dailyPayload?.data_start_ts ?? null,
+  });
+  const maxCount = maxCountAcrossMonths(months);
+  const labelFmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'UTC',
+    month: 'short',
+    year: 'numeric',
+  });
+  const rows = months.map((m) => {
+    const label = labelFmt.format(new Date(Date.UTC(m.year, m.month - 1, 1)));
+    const cells = m.cells
+      .map((cell) => {
+        if (cell.placeholder || cell.future) return '<div class="cell future"></div>';
+        if (cell.noData) return '<div class="cell no-data"></div>';
+        const bg = calendarCellColor(cell.count, maxCount);
+        return `<div class="cell" style="background:${bg}"></div>`;
+      })
+      .join('');
+    return `<div class="month-row"><div class="month-label">${escHtml(label)}</div>${cells}</div>`;
+  });
+  return rows.join('');
+}
+
+function calendarSubtitle(dailyPayload) {
+  let total = 0;
+  for (const d of dailyPayload?.days ?? []) {
+    total += (d.train_count || 0) + (d.bus_count || 0);
+  }
+  const span = (dailyPayload?.days ?? []).length;
+  if (total === 0) return 'Daily incident heatmap';
+  return `${total} incident${total === 1 ? '' : 's'} across ${span} day${span === 1 ? '' : 's'}`;
+}
+
 // Build the list of line/route/station "pages" to render. Each item carries
 // everything the renderer needs: a stable slug for the cache key and output
 // path, the raw input fields, and the kind so we pick the right template.
-function planPages(payload) {
+function planPages(payload, dailyPayload) {
   const now = Date.now();
   const cutoff = now - WINDOW_DAYS * DAY_MS;
   const pages = [];
+
+  // Calendar — singleton page. Always rendered so a fresh deploy never
+  // ships without its share card. The grid HTML is computed up front and
+  // baked into the signature so a content change re-renders the PNG.
+  if (dailyPayload) {
+    const gridHtml = buildCalendarGridHtml(dailyPayload);
+    const subtitle = calendarSubtitle(dailyPayload);
+    pages.push({
+      kind: 'calendar',
+      slug: 'calendar',
+      outDir: resolve(DIST, 'calendar'),
+      url: `${SITE}/calendar`,
+      path: '/calendar',
+      ogTitle: '12-Month Calendar · CTA Alert History',
+      desc: 'A 12-month heatmap of daily CTA service alerts and bot-detected disruptions — archived on chicagotransitalerts.app.',
+      subtitle,
+      gridHtml,
+    });
+  }
 
   // Train lines: always all of them — small stable set, deserves full coverage.
   for (const lineId of TRAIN_LINE_ORDER) {
@@ -221,22 +297,37 @@ function fillStationTemplate(tpl, page) {
     .replaceAll('__PATH__', escHtml(page.path));
 }
 
+function fillCalendarTemplate(tpl, page) {
+  return tpl
+    .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
+    .replaceAll('__GRID__', page.gridHtml);
+}
+
 function signatureFor(page, templateHash) {
   const h = createHash('sha256');
   // Hash the fields that actually affect the rendered PNG; keep the URL out
   // so identical content under a renamed slug would still cache-hit (it
   // won't happen in practice, but principle: PNG content depends on visual
   // fields only).
-  const payload =
-    page.kind === 'station'
-      ? { kind: 'station', name: page.stationName, pills: page.linePills, sub: page.subtitle }
-      : {
-          kind: page.kind,
-          label: page.label,
-          title: page.title ?? '',
-          accent: page.accent,
-          sub: page.subtitle,
-        };
+  let payload;
+  if (page.kind === 'station') {
+    payload = {
+      kind: 'station',
+      name: page.stationName,
+      pills: page.linePills,
+      sub: page.subtitle,
+    };
+  } else if (page.kind === 'calendar') {
+    payload = { kind: 'calendar', sub: page.subtitle, grid: page.gridHtml };
+  } else {
+    payload = {
+      kind: page.kind,
+      label: page.label,
+      title: page.title ?? '',
+      accent: page.accent,
+      sub: page.subtitle,
+    };
+  }
   h.update(JSON.stringify({ ...payload, templateHash }));
   return h.digest('hex');
 }
@@ -268,13 +359,21 @@ async function main() {
     return;
   }
   const payload = normalizeAlertsPayload(JSON.parse(readFileSync(DATA, 'utf8')));
+  // daily-counts.json is optional — if it's missing (e.g. during a build
+  // before the cron has dropped one in), skip the calendar OG card rather
+  // than failing the whole step.
+  const dailyPayload = existsSync(DAILY_DATA) ? JSON.parse(readFileSync(DAILY_DATA, 'utf8')) : null;
   const shell = readFileSync(SHELL, 'utf8');
   const lineTpl = readFileSync(LINE_TPL, 'utf8');
   const stationTpl = readFileSync(STATION_TPL, 'utf8');
+  const calendarTpl = existsSync(CALENDAR_TPL) ? readFileSync(CALENDAR_TPL, 'utf8') : null;
   const lineHash = createHash('sha256').update(lineTpl).digest('hex').slice(0, 16);
   const stationHash = createHash('sha256').update(stationTpl).digest('hex').slice(0, 16);
+  const calendarHash = calendarTpl
+    ? createHash('sha256').update(calendarTpl).digest('hex').slice(0, 16)
+    : '';
 
-  const pages = planPages(payload);
+  const pages = planPages(payload, dailyPayload);
   if (pages.length === 0) {
     console.log('prerender-pages: nothing to render');
     return;
@@ -286,7 +385,8 @@ async function main() {
   const seenSlugs = new Set();
   for (const page of pages) {
     seenSlugs.add(page.slug);
-    const tplHash = page.kind === 'station' ? stationHash : lineHash;
+    const tplHash =
+      page.kind === 'station' ? stationHash : page.kind === 'calendar' ? calendarHash : lineHash;
     const sig = signatureFor(page, tplHash);
 
     mkdirSync(page.outDir, { recursive: true });
@@ -303,10 +403,10 @@ async function main() {
       continue;
     }
 
-    const html =
-      page.kind === 'station'
-        ? fillStationTemplate(stationTpl, page)
-        : fillLineTemplate(lineTpl, page);
+    let html;
+    if (page.kind === 'station') html = fillStationTemplate(stationTpl, page);
+    else if (page.kind === 'calendar') html = fillCalendarTemplate(calendarTpl, page);
+    else html = fillLineTemplate(lineTpl, page);
     renders.push({ page, html, cacheDir, cachedPng, cachedSig, sig });
   }
 

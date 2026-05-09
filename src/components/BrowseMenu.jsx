@@ -102,6 +102,19 @@ export default function BrowseMenu({ alerts, observations }) {
           <div className="space-y-3">
             <section>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                Views
+              </h3>
+              <a
+                href="/calendar"
+                role="menuitem"
+                className="block px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
+              >
+                12-month calendar
+              </a>
+            </section>
+
+            <section>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                 Train lines
               </h3>
               <div className="flex flex-wrap gap-1.5">
