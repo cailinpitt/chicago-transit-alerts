@@ -4,14 +4,22 @@ import {
   buildHourOfWeek,
   buildIncidentsByDay,
   buildSignalsByLine,
+  buildTodaySummary,
+  computeDurationHistogram,
+  computeLineReliability,
+  computeStatsLeaderboards,
   computeSummaryStats,
+  computeTypicalDurations,
+  typicalDurationKey,
 } from '../lib/aggregate.js';
-import { formatDuration } from '../lib/format.js';
+import { formatDuration, formatGap } from '../lib/format.js';
 import {
+  buildSearchMatchers,
   filterIncidents,
   findRelatedIncidents,
   mergeMatchingIncidents,
   observationSignals,
+  searchFilterIncidents,
 } from '../lib/incidents.js';
 
 // ---------------------------------------------------------------------------
@@ -739,5 +747,336 @@ describe('findRelatedIncidents', () => {
     });
     const r = findRelatedIncidents(baseAlert, [baseAlert], [busObs]);
     expect(r).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatGap
+// ---------------------------------------------------------------------------
+describe('formatGap', () => {
+  it('returns empty string for null', () => {
+    expect(formatGap(null)).toBe('');
+  });
+
+  it('formats sub-hour gaps in minutes', () => {
+    expect(formatGap(0.25)).toBe('15m');
+    expect(formatGap(0.5)).toBe('30m');
+  });
+
+  it('rounds whole hours when sub-day', () => {
+    expect(formatGap(2)).toBe('2h');
+    expect(formatGap(2.4)).toBe('2h');
+    expect(formatGap(2.6)).toBe('3h');
+  });
+
+  it('formats multi-day gaps with optional hours', () => {
+    expect(formatGap(48)).toBe('2d');
+    expect(formatGap(49)).toBe('2d 1h');
+    expect(formatGap(73)).toBe('3d 1h');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildSearchMatchers / searchFilterIncidents
+// ---------------------------------------------------------------------------
+describe('buildSearchMatchers', () => {
+  it('returns hasSearch=false and pass-through matchers for blank input', () => {
+    const m = buildSearchMatchers('');
+    expect(m.hasSearch).toBe(false);
+    expect(m.matchesAlert(makeAlert())).toBe(true);
+    expect(m.matchesObservation(makeObs())).toBe(true);
+  });
+
+  it('matches alert headline case-insensitively', () => {
+    const a = makeAlert({ headline: 'Red Line Reroute at Howard' });
+    const { matchesAlert } = buildSearchMatchers('howard');
+    expect(matchesAlert(a)).toBe(true);
+  });
+
+  it('matches observation segment endpoints', () => {
+    const o = makeObs({ from_station: 'Jarvis', to_station: 'Howard' });
+    expect(buildSearchMatchers('jarvis').matchesObservation(o)).toBe(true);
+  });
+
+  it('matches train line by full label', () => {
+    const a = makeAlert({ kind: 'train', routes: ['red'], headline: 'X' });
+    expect(buildSearchMatchers('Red Line').matchesAlert(a)).toBe(true);
+  });
+
+  it('matches bus route by "Route N" form', () => {
+    const o = makeObs({ kind: 'bus', line: '66' });
+    expect(buildSearchMatchers('Route 66').matchesObservation(o)).toBe(true);
+  });
+
+  it('matches signal label aliases', () => {
+    const o = makeObs({ signals: ['gap'], detection_source: 'gap' });
+    expect(buildSearchMatchers('headway gap').matchesObservation(o)).toBe(true);
+  });
+});
+
+describe('searchFilterIncidents', () => {
+  it('returns inputs unchanged when query is blank', () => {
+    const a = [makeAlert()];
+    const o = [makeObs()];
+    const r = searchFilterIncidents(a, o, '');
+    expect(r.alerts).toBe(a);
+    expect(r.observations).toBe(o);
+  });
+
+  it('narrows both alerts and observations to matches', () => {
+    const a = [makeAlert({ headline: 'Foo' }), makeAlert({ alert_id: 2, headline: 'Bar' })];
+    const o = [makeObs({ from_station: 'Foo' }), makeObs({ id: 2, from_station: 'Howard' })];
+    const r = searchFilterIncidents(a, o, 'foo');
+    expect(r.alerts).toHaveLength(1);
+    expect(r.observations).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeLineReliability
+// ---------------------------------------------------------------------------
+describe('computeLineReliability', () => {
+  it('returns 100% incident-free for an empty cohort', () => {
+    const r = computeLineReliability([], [], { now: NOW, windowDays: 90 });
+    expect(r.incidentFreeDays).toBe(90);
+    expect(r.totalDays).toBe(90);
+    expect(r.medianGapHours).toBeNull();
+    expect(r.longestStreakDays).toBe(90);
+  });
+
+  it('counts each incident-day once even when an incident spans multiple days', () => {
+    const o = makeObs({
+      ts: NOW - 3 * DAY,
+      resolved_ts: NOW - DAY, // touches 3 calendar days
+    });
+    const r = computeLineReliability([], [o], { now: NOW, windowDays: 30 });
+    expect(r.totalDays - r.incidentFreeDays).toBe(3);
+  });
+
+  it('finds the longest run of consecutive incident-free days', () => {
+    // Incidents on day 0 and day 10 within a 20-day window — the run between
+    // them is 9 days (days 1–9), tied with the run before day 10 (days 11–19).
+    const obs = [
+      makeObs({ ts: NOW, resolved_ts: NOW + 60_000 }),
+      makeObs({ id: 2, ts: NOW - 10 * DAY, resolved_ts: NOW - 10 * DAY + 60_000 }),
+    ];
+    const r = computeLineReliability([], obs, { now: NOW, windowDays: 20 });
+    expect(r.longestStreakDays).toBe(9);
+  });
+
+  it('computes median gap in hours between consecutive starts', () => {
+    const obs = [
+      makeObs({ id: 1, ts: NOW - 10 * 60 * 60_000 }),
+      makeObs({ id: 2, ts: NOW - 7 * 60 * 60_000 }), // 3h gap
+      makeObs({ id: 3, ts: NOW - 1 * 60 * 60_000 }), // 6h gap
+    ];
+    const r = computeLineReliability([], obs, { now: NOW, windowDays: 90 });
+    expect(r.medianGapHours).toBeCloseTo(4.5, 5); // (3 + 6) / 2
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeDurationHistogram
+// ---------------------------------------------------------------------------
+describe('computeDurationHistogram', () => {
+  it('returns empty bins for empty input', () => {
+    const r = computeDurationHistogram([], [], { now: NOW, windowDays: 90 });
+    expect(r.total).toBe(0);
+    expect(r.bins.every((b) => b.count === 0)).toBe(true);
+  });
+
+  it('bins durations into the right buckets', () => {
+    const obs = [
+      makeObs({ id: 1, ts: NOW, resolved_ts: NOW + 5 * 60_000 }), // < 15m
+      makeObs({ id: 2, ts: NOW, resolved_ts: NOW + 20 * 60_000 }), // 15-30m
+      makeObs({ id: 3, ts: NOW, resolved_ts: NOW + 45 * 60_000 }), // 30m-1h
+      makeObs({ id: 4, ts: NOW, resolved_ts: NOW + 90 * 60_000 }), // 1-2h
+      makeObs({ id: 5, ts: NOW, resolved_ts: NOW + 5 * 60 * 60_000 }), // 4h+
+    ];
+    const r = computeDurationHistogram([], obs, { now: NOW, windowDays: 90 });
+    expect(r.total).toBe(5);
+    expect(r.bins.find((b) => b.label === '< 15m').count).toBe(1);
+    expect(r.bins.find((b) => b.label === '4h+').count).toBe(1);
+  });
+
+  it('excludes active (unresolved) incidents', () => {
+    const o = makeObs({ ts: NOW, resolved_ts: null, active: true });
+    const r = computeDurationHistogram([], [o], { now: NOW });
+    expect(r.total).toBe(0);
+  });
+
+  it('excludes incidents that started before the cutoff', () => {
+    const o = makeObs({
+      ts: NOW - 100 * DAY,
+      resolved_ts: NOW - 99 * DAY,
+    });
+    const r = computeDurationHistogram([], [o], { now: NOW, windowDays: 90 });
+    expect(r.total).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// typicalDurationKey / computeTypicalDurations
+// ---------------------------------------------------------------------------
+describe('typicalDurationKey', () => {
+  it('returns null when fields are missing', () => {
+    expect(typicalDurationKey(null)).toBeNull();
+    expect(typicalDurationKey({ kind: 'train' })).toBeNull(); // no line, no detection
+  });
+
+  it('builds kind::line::signal for an observation', () => {
+    expect(typicalDurationKey({ kind: 'train', line: 'red', detection_source: 'gap' })).toBe(
+      'train::red::gap',
+    );
+  });
+
+  it('collapses roundup to a single bucket', () => {
+    expect(typicalDurationKey({ kind: 'train', line: 'red', detection_source: 'roundup' })).toBe(
+      'train::red::roundup',
+    );
+  });
+
+  it('prefers obs_line/obs_detection_source on merged records', () => {
+    expect(
+      typicalDurationKey({
+        kind: 'train',
+        obs_line: 'blue',
+        obs_detection_source: 'gap',
+        line: 'red',
+      }),
+    ).toBe('train::blue::gap');
+  });
+});
+
+describe('computeTypicalDurations', () => {
+  it('returns an empty Map when no resolved incidents qualify', () => {
+    const r = computeTypicalDurations([], [], { now: NOW, windowDays: 90 });
+    expect(r.size).toBe(0);
+  });
+
+  it('computes median duration per (kind, line, signal) bucket', () => {
+    const obs = [
+      makeObs({
+        id: 1,
+        line: 'red',
+        detection_source: 'gap',
+        ts: NOW - DAY,
+        resolved_ts: NOW - DAY + 10 * 60_000,
+      }),
+      makeObs({
+        id: 2,
+        line: 'red',
+        detection_source: 'gap',
+        ts: NOW - DAY,
+        resolved_ts: NOW - DAY + 20 * 60_000,
+      }),
+      makeObs({
+        id: 3,
+        line: 'red',
+        detection_source: 'gap',
+        ts: NOW - DAY,
+        resolved_ts: NOW - DAY + 30 * 60_000,
+      }),
+    ];
+    const r = computeTypicalDurations([], obs, { now: NOW });
+    const bucket = r.get('train::red::gap');
+    expect(bucket.count).toBe(3);
+    expect(bucket.medianMs).toBe(20 * 60_000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildTodaySummary
+// ---------------------------------------------------------------------------
+describe('buildTodaySummary', () => {
+  // Pin "now" to a Chicago-friendly mid-day moment so the boundary between
+  // "today" and "yesterday" doesn't depend on test environment TZ.
+  const TODAY_NOW = Date.UTC(2026, 4, 9, 18, 0, 0); // 2026-05-09 13:00 Chicago
+
+  it('returns null when there is no incident data at all', () => {
+    expect(buildTodaySummary([], [], TODAY_NOW)).toBeNull();
+  });
+
+  it('reports a quiet-day message in hours when the last incident was today recent', () => {
+    const o = makeObs({ ts: TODAY_NOW - 3 * 60 * 60_000 - 5 * 60_000, resolved_ts: TODAY_NOW });
+    // chicagoDayUTC of `o.ts` is the same Chicago day as TODAY_NOW only if it
+    // doesn't cross local midnight; this case is mid-afternoon, so safe.
+    // But the incident *is* on today, so this case will fall into busy-day.
+    const out = buildTodaySummary([], [o], TODAY_NOW);
+    expect(out).toMatch(/Today: 1 incident/);
+  });
+
+  it('formats busy-day with single line', () => {
+    const o = makeObs({ line: 'red', ts: TODAY_NOW - 60_000 });
+    const out = buildTodaySummary([], [o], TODAY_NOW);
+    expect(out).toMatch(/Red Line/);
+  });
+
+  it('reports active count when at least one incident is ongoing', () => {
+    const o1 = makeObs({
+      id: 1,
+      line: 'red',
+      ts: TODAY_NOW - 10 * 60_000,
+      active: true,
+      resolved_ts: null,
+    });
+    const o2 = makeObs({ id: 2, line: 'blue', ts: TODAY_NOW - 5 * 60_000 });
+    const out = buildTodaySummary([], [o1, o2], TODAY_NOW);
+    expect(out).toMatch(/2 incidents/);
+    expect(out).toMatch(/1 still ongoing/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeStatsLeaderboards
+// ---------------------------------------------------------------------------
+describe('computeStatsLeaderboards', () => {
+  it('returns null fields when there is no data', () => {
+    const r = computeStatsLeaderboards([], [], { now: NOW });
+    expect(r.worstDay).toBeNull();
+    expect(r.worstHour).toBeNull();
+    expect(r.worstStation).toBeNull();
+    expect(r.longestIncident).toBeNull();
+  });
+
+  it('picks the day with the most distinct incidents as worstDay', () => {
+    const obs = [
+      makeObs({ id: 1, ts: NOW - 5 * DAY }),
+      makeObs({ id: 2, ts: NOW - 5 * DAY + 60_000 }),
+      makeObs({ id: 3, ts: NOW - 5 * DAY + 120_000 }),
+      makeObs({ id: 4, ts: NOW - DAY }),
+    ];
+    const r = computeStatsLeaderboards([], obs, { now: NOW });
+    expect(r.worstDay.count).toBe(3);
+  });
+
+  it('picks the longest resolved incident', () => {
+    const short = makeObs({
+      id: 1,
+      ts: NOW - DAY,
+      resolved_ts: NOW - DAY + 10 * 60_000,
+      post_url: 'https://bsky.app/profile/x/post/short',
+    });
+    const long = makeObs({
+      id: 2,
+      ts: NOW - DAY,
+      resolved_ts: NOW - DAY + 4 * 60 * 60_000,
+      post_url: 'https://bsky.app/profile/x/post/long',
+    });
+    const r = computeStatsLeaderboards([], [short, long], { now: NOW });
+    expect(r.longestIncident.id).toBe('long');
+    expect(r.longestIncident.durationMs).toBe(4 * 60 * 60_000);
+  });
+
+  it('skips active incidents when picking longestIncident', () => {
+    const active = makeObs({
+      id: 1,
+      ts: NOW - 10 * DAY,
+      resolved_ts: null,
+      active: true,
+      post_url: 'https://bsky.app/profile/x/post/active',
+    });
+    const r = computeStatsLeaderboards([], [active], { now: NOW });
+    expect(r.longestIncident).toBeNull();
   });
 });

@@ -3,7 +3,7 @@ import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import { computeTypicalDurations } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { normalizeAlertsPayload } from '../lib/incidents.js';
+import { normalizeAlertsPayload, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
@@ -60,21 +60,7 @@ export default function StationPage({ slug }) {
 
   const listFiltered = useMemo(() => {
     if (!station) return { alerts: [], observations: [] };
-    if (!search.trim()) return { alerts: station.alerts, observations: station.observations };
-    const q = search.trim().toLowerCase();
-    const matchesText = (s) => s != null && String(s).toLowerCase().includes(q);
-    const alertHit = (a) =>
-      [a.headline, a.affected_from_station, a.affected_to_station, a.affected_direction].some(
-        matchesText,
-      );
-    const obsHit = (o) =>
-      [o.from_station, o.to_station, o.direction].some(matchesText) ||
-      (o.signals || []).some(matchesText) ||
-      (o.detection_source && matchesText(o.detection_source));
-    return {
-      alerts: station.alerts.filter(alertHit),
-      observations: station.observations.filter(obsHit),
-    };
+    return searchFilterIncidents(station.alerts, station.observations, search);
   }, [station, search]);
 
   useEffect(() => {

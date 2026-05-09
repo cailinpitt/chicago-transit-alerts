@@ -432,6 +432,91 @@ export function mergeMatchingIncidents(alerts, observations) {
  * @param {number} [options.now]               For selectedDay span calc; defaults to Date.now().
  * @returns {{ alerts: Alert[], observations: Observation[] }}
  */
+// Build the per-incident text matchers used by both `filterIncidents` and
+// `searchFilterIncidents`. Returned as `{ matchesAlert, matchesObservation }`;
+// when the query is blank both matchers return true (hasSearch=false caller
+// path skips them in `filterIncidents`, but the sentinel keeps the signature
+// uniform for direct callers).
+//
+// Match scope mirrors what users expect from the search box:
+//   - alert headline, affected stations/direction
+//   - observation segment endpoints, direction
+//   - route/line keys *and* their human labels ("Red Line", "Route 66",
+//     bus-route long names, signal-type labels). Without label matching,
+//     "Green" wouldn't match key `g`, and "headway gaps" wouldn't match
+//     observations carrying `signals: ['gap']`.
+/**
+ * @param {string} query
+ * @returns {{
+ *   hasSearch: boolean,
+ *   matchesAlert: (alert: Alert) => boolean,
+ *   matchesObservation: (obs: Observation) => boolean,
+ * }}
+ */
+export function buildSearchMatchers(query) {
+  const q = (query || '').trim().toLowerCase();
+  const hasSearch = q.length > 0;
+  if (!hasSearch) {
+    return { hasSearch, matchesAlert: () => true, matchesObservation: () => true };
+  }
+  const matchesLine = (key, kind) => {
+    if (key == null) return false;
+    const haystack = [String(key).toLowerCase()];
+    if (kind === 'train') {
+      const label = TRAIN_LINES[key]?.label?.toLowerCase();
+      if (label) haystack.push(label, `${label} line`);
+    } else if (kind === 'bus') {
+      const lowerKey = String(key).toLowerCase();
+      haystack.push(`route ${lowerKey}`, `#${lowerKey}`);
+      const name = BUS_ROUTE_NAMES[key];
+      if (name) haystack.push(name.toLowerCase());
+    }
+    return haystack.some((s) => s.includes(q));
+  };
+  const matchesAlert = (a) => {
+    const fields = [
+      a.headline,
+      a.affected_from_station,
+      a.affected_to_station,
+      a.affected_direction,
+    ].filter(Boolean);
+    if (fields.some((s) => s.toLowerCase().includes(q))) return true;
+    return (a.routes || []).some((r) => matchesLine(r, a.kind));
+  };
+  const matchesObservation = (o) => {
+    const fields = [o.from_station, o.to_station, o.direction].filter((v) => v != null);
+    if (fields.some((v) => String(v).toLowerCase().includes(q))) return true;
+    if (matchesLine(o.line, o.kind)) return true;
+    for (const sig of observationSignals(o)) {
+      if (sig.toLowerCase().includes(q)) return true;
+      const label = SIGNAL_LABELS[sig];
+      if (label?.toLowerCase().includes(q)) return true;
+    }
+    return false;
+  };
+  return { hasSearch, matchesAlert, matchesObservation };
+}
+
+// Search-only filter: subset alerts/observations to those whose searchable
+// fields contain `query`. Inputs are expected to already be scoped to the
+// caller's view (LinePage, StationPage); this just narrows by free text and
+// uses the same matchers as `filterIncidents` so the search box behaves
+// identically across pages.
+/**
+ * @param {Alert[]} alerts
+ * @param {Observation[]} observations
+ * @param {string} query
+ * @returns {{ alerts: Alert[], observations: Observation[] }}
+ */
+export function searchFilterIncidents(alerts, observations, query) {
+  const { hasSearch, matchesAlert, matchesObservation } = buildSearchMatchers(query);
+  if (!hasSearch) return { alerts, observations };
+  return {
+    alerts: alerts.filter(matchesAlert),
+    observations: observations.filter(matchesObservation),
+  };
+}
+
 export function filterIncidents(
   alerts,
   observations,
@@ -450,51 +535,7 @@ export function filterIncidents(
   const hasBusRouteFilter = busRoutes && busRoutes.length > 0;
   const hasSignalFilter = signals && signals.length > 0;
   const signalSet = hasSignalFilter ? new Set(signals) : null;
-  const q = (search || '').trim().toLowerCase();
-  const hasSearch = q.length > 0;
-  // Match a route/line key against the user-visible label as well as the raw
-  // key. Includes the conversational forms riders actually type:
-  // "Red Line" / "Brown Line" for trains, "Route 66" / "Chicago" for buses.
-  // Without this, "Red" wouldn't match by accident of casing, "Green" wouldn't
-  // match key 'g' at all, and "Red Line" or "Route 66" would miss entirely.
-  const matchesLine = (key, kind) => {
-    if (key == null) return false;
-    const haystack = [String(key).toLowerCase()];
-    if (kind === 'train') {
-      const label = TRAIN_LINES[key]?.label?.toLowerCase();
-      if (label) haystack.push(label, `${label} line`);
-    } else if (kind === 'bus') {
-      const lowerKey = String(key).toLowerCase();
-      haystack.push(`route ${lowerKey}`, `#${lowerKey}`);
-      const name = BUS_ROUTE_NAMES[key];
-      if (name) haystack.push(name.toLowerCase());
-    }
-    return haystack.some((s) => s.includes(q));
-  };
-  const alertMatches = (a) => {
-    const fields = [
-      a.headline,
-      a.affected_from_station,
-      a.affected_to_station,
-      a.affected_direction,
-    ].filter(Boolean);
-    if (fields.some((s) => s.toLowerCase().includes(q))) return true;
-    return (a.routes || []).some((r) => matchesLine(r, a.kind));
-  };
-  const obsMatches = (o) => {
-    const fields = [o.from_station, o.to_station, o.direction].filter((v) => v != null);
-    if (fields.some((v) => String(v).toLowerCase().includes(q))) return true;
-    if (matchesLine(o.line, o.kind)) return true;
-    // Signal-type aliases. The chip filter is the primary way to narrow by
-    // signal kind, but it's also natural to type the friendly label —
-    // "headway gaps", "missing vehicles" — and have it work.
-    for (const sig of observationSignals(o)) {
-      if (sig.toLowerCase().includes(q)) return true;
-      const label = SIGNAL_LABELS[sig];
-      if (label && label.toLowerCase().includes(q)) return true;
-    }
-    return false;
-  };
+  const { hasSearch, matchesAlert, matchesObservation } = buildSearchMatchers(search);
 
   // When selectedDay is pinned, an incident matches iff its [start, end] span
   // overlaps that calendar day. Active incidents (no resolved_ts) extend to
@@ -517,7 +558,7 @@ export function filterIncidents(
       if (!showBus) return false;
       if (hasBusRouteFilter && !a.routes.some((r) => busRoutes.includes(r))) return false;
     } else if (hasLineFilter && !a.routes.some((r) => lines.includes(r))) return false;
-    if (hasSearch && !alertMatches(a)) return false;
+    if (hasSearch && !matchesAlert(a)) return false;
     if (selectedDay != null) {
       return overlapsSelectedDay(a.first_seen_ts, a.resolved_ts);
     }
@@ -537,7 +578,7 @@ export function filterIncidents(
       const sigs = observationSignals(o);
       if (!sigs.some((s) => signalSet.has(s))) return false;
     }
-    if (hasSearch && !obsMatches(o)) return false;
+    if (hasSearch && !matchesObservation(o)) return false;
     if (selectedDay != null) {
       return overlapsSelectedDay(o.ts, o.resolved_ts);
     }

@@ -9,7 +9,8 @@ import {
 } from '../lib/aggregate.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
-import { normalizeAlertsPayload } from '../lib/incidents.js';
+import { formatGap } from '../lib/format.js';
+import { normalizeAlertsPayload, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
@@ -68,18 +69,6 @@ function DurationHistogram({ histogram }) {
       </div>
     </section>
   );
-}
-
-// Format a median gap (in hours) for display: minutes for sub-hour gaps,
-// hours for sub-day, "Xd Yh" beyond. Days read more naturally than "96h"
-// when an incident-quiet line has a multi-day median gap.
-function formatGap(hours) {
-  if (hours == null) return '';
-  if (hours < 1) return `${Math.round(hours * 60)}m`;
-  if (hours < 24) return `${Math.round(hours)}h`;
-  const d = Math.floor(hours / 24);
-  const h = Math.round(hours - d * 24);
-  return h > 0 ? `${d}d ${h}h` : `${d}d`;
 }
 
 // LinePage — `/line/:id` for trains, `/route/:id` for buses. Renders the
@@ -198,29 +187,13 @@ export default function LinePage({ kind, lineId }) {
     return buildStationIndex(data.alerts, data.observations, { now, windowDays: 90 });
   }, [data, now]);
 
-  // Search-only filter pass for the IncidentList. The line is already
-  // locked by the alert/observation pre-filter above; the only optional
-  // narrowing left is the free-text search, which we apply in-place.
-  const listFiltered = useMemo(() => {
-    if (!search.trim()) return { alerts: lineAlerts, observations: lineObservations };
-    // Lazy import would pull a circular dep; replicate the same trim/lower
-    // logic filterIncidents uses but only against the search field — line
-    // and kind are already constrained.
-    const q = search.trim().toLowerCase();
-    const matchesText = (s) => s != null && String(s).toLowerCase().includes(q);
-    const alertHit = (a) =>
-      [a.headline, a.affected_from_station, a.affected_to_station, a.affected_direction].some(
-        matchesText,
-      );
-    const obsHit = (o) =>
-      [o.from_station, o.to_station, o.direction].some(matchesText) ||
-      (o.signals || []).some(matchesText) ||
-      (o.detection_source && matchesText(o.detection_source));
-    return {
-      alerts: lineAlerts.filter(alertHit),
-      observations: lineObservations.filter(obsHit),
-    };
-  }, [lineAlerts, lineObservations, search]);
+  // Search-only narrowing for the IncidentList. The line is already locked
+  // by the pre-filter above; only free-text search remains. Reuse the same
+  // matchers `filterIncidents` uses so search behavior stays in one place.
+  const listFiltered = useMemo(
+    () => searchFilterIncidents(lineAlerts, lineObservations, search),
+    [lineAlerts, lineObservations, search],
+  );
 
   if (error) {
     return (

@@ -45,6 +45,20 @@ export function formatDuration(ms) {
   return `~${parts.join(' ')}`;
 }
 
+// Format a duration given in *hours* for the per-line "median gap between
+// incidents" stat: minutes for sub-hour gaps, whole hours for sub-day, and
+// "Xd Yh" beyond. Differs from formatDuration: input is hours, no `~` prefix,
+// and we round to whole hours past 1h since median-gap stats don't need
+// minute precision.
+export function formatGap(hours) {
+  if (hours == null) return '';
+  if (hours < 1) return `${Math.round(hours * 60)}m`;
+  if (hours < 24) return `${Math.round(hours)}h`;
+  const d = Math.floor(hours / 24);
+  const h = Math.round(hours - d * 24);
+  return h > 0 ? `${d}d ${h}h` : `${d}d`;
+}
+
 export function formatDate(ts) {
   return new Date(ts).toLocaleDateString('en-US', {
     month: 'short',
