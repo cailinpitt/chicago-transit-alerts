@@ -34,9 +34,15 @@ export function formatDuration(ms) {
   if (!ms || ms < 0) return null;
   const totalMin = Math.round(ms / 60_000);
   if (totalMin < 60) return `~${totalMin}m`;
-  const h = Math.floor(totalMin / 60);
+  const totalH = Math.floor(totalMin / 60);
   const m = totalMin % 60;
-  return m > 0 ? `~${h}h ${m}m` : `~${h}h`;
+  if (totalH < 24) return m > 0 ? `~${totalH}h ${m}m` : `~${totalH}h`;
+  const d = Math.floor(totalH / 24);
+  const h = totalH % 24;
+  const parts = [`${d}d`];
+  if (h > 0) parts.push(`${h}h`);
+  if (m > 0) parts.push(`${m}m`);
+  return `~${parts.join(' ')}`;
 }
 
 export function formatDate(ts) {

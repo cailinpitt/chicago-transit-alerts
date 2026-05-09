@@ -35,6 +35,13 @@ describe('formatDuration', () => {
   it('formats hours and minutes', () => {
     expect(formatDuration(90 * 60_000)).toBe('~1h 30m');
   });
+
+  it('formats days, hours, and minutes past 24h', () => {
+    expect(formatDuration(24 * 60 * 60_000)).toBe('~1d');
+    expect(formatDuration(28 * 60 * 60_000 + 41 * 60_000)).toBe('~1d 4h 41m');
+    expect(formatDuration(25 * 60 * 60_000)).toBe('~1d 1h');
+    expect(formatDuration(24 * 60 * 60_000 + 30 * 60_000)).toBe('~1d 30m');
+  });
 });
 
 // ---------------------------------------------------------------------------
