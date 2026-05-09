@@ -15,6 +15,27 @@ function Sep() {
   return <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>;
 }
 
+// One sentence-group worth of inline stat phrases, joined by `·`. The outer
+// element is plain block flow (not flex) — flex containers strip whitespace
+// between children, which would eat the space after `<strong>` tags inside
+// each phrase. Phrases still wrap naturally on narrow viewports because the
+// container is a normal paragraph.
+function StatRow({ children }) {
+  const items = children.filter(Boolean);
+  if (items.length === 0) return null;
+  return (
+    <p className="text-sm text-slate-600 dark:text-slate-300">
+      {items.map((item, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: items are stable phrases per render
+        <span key={i}>
+          {i > 0 && <Sep />}
+          {item}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 export default function SummaryStats({
   activeCount,
   weeklyCount,
@@ -30,94 +51,92 @@ export default function SummaryStats({
     [alerts, observations],
   );
 
-  const parts = [];
-
-  if (activeCount > 0) {
-    parts.push(
-      <span key="active">
+  const activePhrase =
+    activeCount > 0 ? (
+      <>
         <strong className="text-slate-800 dark:text-slate-100">{activeCount}</strong> active now
-      </span>,
+      </>
+    ) : (
+      <span className="text-slate-500 dark:text-slate-400">All clear</span>
     );
-  } else {
-    parts.push(
-      <span key="active" className="text-slate-500 dark:text-slate-400">
-        All clear
-      </span>,
-    );
-  }
 
-  parts.push(
-    <span key="week">
+  const weekPhrase = (
+    <>
       <strong className="text-slate-800 dark:text-slate-100">{weeklyCount}</strong> incident
       {weeklyCount === 1 ? '' : 's'} in the last 7 days
-    </span>,
+    </>
   );
 
+  let affectedPhrase = null;
   if (mostAffectedKind === 'train' && TRAIN_LINES[mostAffectedId]) {
     const info = TRAIN_LINES[mostAffectedId];
-    parts.push(
-      <span key="affected">
+    affectedPhrase = (
+      <>
         <strong style={{ color: info.color }}>{info.label} Line</strong> most affected (last 30
         days)
-      </span>,
+      </>
     );
   } else if (mostAffectedKind === 'bus') {
-    parts.push(
-      <span key="affected">
+    affectedPhrase = (
+      <>
         <strong className="text-slate-800 dark:text-slate-100">
           {formatBusRoute(mostAffectedId)}
         </strong>{' '}
         most affected (last 30 days)
-      </span>,
+      </>
     );
   }
 
-  // Week-over-week callout: louder than the trend chip on the sparkline,
-  // gated so it only fires on weeks worth pointing at.
+  // WoW callout. Gated so a 1→2 weekend doesn't read as "100% busier".
+  let trendPhrase = null;
   if (trend?.trendRatio != null) {
     const priorTotal = trend.prior7Avg * 7;
     const delta = trend.trendRatio - 1;
     if (Math.abs(delta) >= CALLOUT_DELTA && priorTotal >= CALLOUT_MIN_PRIOR) {
       const pct = Math.round(Math.abs(delta) * 100);
       const up = delta > 0;
-      parts.push(
-        <span key="trend-callout">
+      trendPhrase = (
+        <>
           <strong className={up ? 'text-red-500' : 'text-green-600 dark:text-green-500'}>
             {pct}% {up ? 'busier' : 'quieter'}
           </strong>{' '}
           than the prior 7 days
-        </span>,
+        </>
       );
     }
   }
 
-  // Quietest streak: a positive callout, surfaced only when the streak is
-  // long enough to be interesting. <2 days is just "didn't break today" —
-  // every line clears that bar most of the time, so showing it would dilute
-  // the more useful sentences.
+  // Quietest streak: positive callout, surfaced only when the streak is
+  // long enough to be interesting. <2 days clears that bar most of the time.
+  let quietestPhrase = null;
   if (quietestLineId && TRAIN_LINES[quietestLineId] && quietestLineDays >= 2) {
     const info = TRAIN_LINES[quietestLineId];
-    parts.push(
-      <span key="quietest">
+    quietestPhrase = (
+      <>
         <strong style={{ color: info.color }}>{info.label} Line</strong> quietest:{' '}
         {quietestLineDays} days since last incident
-      </span>,
+      </>
     );
   }
 
+  // Three logical groups stacked vertically:
+  //   1. State + volume — "6 active · 46 incidents in the last 7 days"
+  //   2. Trend phrase + sparkline (only when we have a callout)
+  //   3. Rankings — "#66 Chicago most affected · Yellow Line quietest"
+  // Each group is flex-wrap so on narrow widths individual phrases break
+  // onto their own lines instead of one long run-on. The sparkline lives
+  // beside the trend phrase rather than at the far right of the whole
+  // block, so the visual reads "this number is what the line shows".
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-1">
-      <p className="text-sm text-slate-600 dark:text-slate-300 min-w-0">
-        {parts.map((p, i) => (
-          <span key={p.key}>
-            {i > 0 && <Sep />}
-            {p}
-          </span>
-        ))}
-      </p>
-      {alerts && observations && (
-        <TrendSparkline alerts={alerts} observations={observations} trend={trend} />
+    <div className="space-y-1.5 px-1">
+      <StatRow>{[activePhrase, weekPhrase]}</StatRow>
+      {alerts && observations && (trendPhrase || trend?.trendRatio != null) && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600 dark:text-slate-300">
+          {trendPhrase ?? <span className="text-slate-500 dark:text-slate-400">Trend</span>}
+          <TrendSparkline alerts={alerts} observations={observations} trend={trend} />
+        </div>
       )}
+      <StatRow>{[affectedPhrase, quietestPhrase]}</StatRow>
     </div>
   );
 }
