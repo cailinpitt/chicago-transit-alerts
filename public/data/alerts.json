@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778340062057,
+  "generated_at": 1778340482162,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -31,7 +31,7 @@
       ],
       "headline": "#54 Cicero and #66 Chicago Temporary Reroute near Chicago/Laramie",
       "first_seen_ts": 1778338204112,
-      "last_seen_ts": 1778339402971,
+      "last_seen_ts": 1778340422659,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -40,7 +40,7 @@
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
-      "cta_event_start_ts": null,
+      "cta_event_start_ts": 1778337900000,
       "cta_event_end_ts": null
     },
     {
@@ -51,7 +51,7 @@
       ],
       "headline": "Temporary Westbound Reroute near 76th/Pulaski",
       "first_seen_ts": 1778327406619,
-      "last_seen_ts": 1778339402971,
+      "last_seen_ts": 1778340422659,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -60,7 +60,7 @@
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": "west",
-      "cta_event_start_ts": null,
+      "cta_event_start_ts": 1778324400000,
       "cta_event_end_ts": null
     },
     {
@@ -91,7 +91,7 @@
       ],
       "headline": "Temporary Reroute at 87th/Exchange",
       "first_seen_ts": 1778324405103,
-      "last_seen_ts": 1778339402971,
+      "last_seen_ts": 1778340422658,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -100,7 +100,7 @@
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
-      "cta_event_start_ts": null,
+      "cta_event_start_ts": 1778321700000,
       "cta_event_end_ts": null
     },
     {
@@ -222,7 +222,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173881,
-      "last_seen_ts": 1778339402971,
+      "last_seen_ts": 1778340422658,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -231,8 +231,8 @@
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
-      "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_start_ts": 1778248800000,
+      "cta_event_end_ts": 1778450400000
     },
     {
       "alert_id": "114743",
@@ -266,7 +266,7 @@
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
       "first_seen_ts": 1778256171425,
-      "last_seen_ts": 1778339402971,
+      "last_seen_ts": 1778340422658,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -275,8 +275,8 @@
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
-      "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_start_ts": 1777899600000,
+      "cta_event_end_ts": 1778533200000
     },
     {
       "alert_id": "114213",
@@ -293,7 +293,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778339402970,
+      "last_seen_ts": 1778340422658,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -302,7 +302,7 @@
       "affected_from_station": "Wacker",
       "affected_to_station": "Randolph",
       "affected_direction": "south",
-      "cta_event_start_ts": null,
+      "cta_event_start_ts": 1776088800000,
       "cta_event_end_ts": null
     },
     {
