@@ -36,6 +36,21 @@ const DOWNTOWN_BBOX = {
 };
 const DOWNTOWN_INSET_THRESHOLD = 4;
 
+// Terminal stations per line. Used as anchors for the only labels we render
+// on the main map — labeling every station overcrowds the SVG, but flagging
+// the endpoints gives a rider enough context to orient ("Howard at the top,
+// 95th at the bottom"). Names match trainStations.json exactly.
+const LINE_TERMINALS = {
+  red: ['Howard', '95th/Dan Ryan'],
+  blue: ["O'Hare", 'Forest Park'],
+  brown: ['Kimball'],
+  green: ['Harlem/Lake', 'Ashland/63rd', 'Cottage Grove'],
+  orange: ['Midway'],
+  pink: ['54th/Cermak'],
+  purple: ['Linden', 'Howard'],
+  yellow: ['Dempster-Skokie', 'Howard'],
+};
+
 export function shortCodeFor(lineKey) {
   return FULL_TO_SHORT[lineKey] ?? lineKey;
 }
@@ -44,10 +59,21 @@ function inBox(lat, lon, bbox) {
   return lat >= bbox.latLo && lat <= bbox.latHi && lon >= bbox.lonLo && lon <= bbox.lonHi;
 }
 
-// Project a set of stations + track segments into a fixed SVG box. Used
-// twice: once for the full-line map, once for the downtown inset (after
-// pre-filtering to bbox).
-function projectInto(rawStations, segments, { width, height, margin }) {
+// Project a set of stations + track segments into a target SVG box.
+//
+// `maxWidth` / `maxHeight` are upper bounds. The actual returned SVG
+// dimensions are computed from the input's natural aspect ratio (after
+// latitude-cosine correction so distances scale equivalently in x and y).
+//
+// `rotate: true` rotates the projection 90° counter-clockwise: north → left,
+// south → right. Used for very vertical lines (Red, Purple) so the SVG
+// stays landscape-ish rather than becoming a tall narrow strip that demands
+// page scroll to get past.
+function projectInto(
+  rawStations,
+  segments,
+  { maxWidth, maxHeight, margin, minHeight = 200, rotate = false },
+) {
   if (rawStations.length === 0) return null;
 
   let minLat = Number.POSITIVE_INFINITY;
@@ -67,46 +93,70 @@ function projectInto(rawStations, segments, { width, height, margin }) {
   const latRange = Math.max(maxLat - minLat, 1e-6);
   const lonRange = Math.max(maxLon - minLon, 1e-6);
 
-  // Preserve aspect ratio by scaling on the tighter axis. Otherwise the
-  // Loop's L-shapes get distorted.
+  // Cosine-of-latitude correction: 1° of longitude is shorter than 1° of
+  // latitude in distance terms. At Chicago (~41.85°N) the ratio is ~0.74.
+  // Multiplying lonRange by this factor lets us treat them as equivalent
+  // distances downstream, so the rendered map preserves visual scale.
+  const meanLat = (minLat + maxLat) / 2;
+  const lonScaleCorrection = Math.cos((meanLat * Math.PI) / 180);
+  const effectiveLonRange = lonRange * lonScaleCorrection;
+
+  // After rotation, latitude span drives the horizontal axis and longitude
+  // span drives the vertical axis. Compute the effective horizontal/vertical
+  // ranges based on orientation.
+  const xRange = rotate ? latRange : effectiveLonRange;
+  const yRange = rotate ? effectiveLonRange : latRange;
+  const aspect = xRange / yRange; // wider-than-tall when > 1
+
+  // Pick natural dimensions from the aspect ratio, bounded by the caller's
+  // maxes. Wider lines fill maxWidth and shrink height; taller lines fill
+  // maxHeight and shrink width. minHeight prevents an extremely wide line
+  // (e.g. a hypothetical horizontal trunk) from collapsing to a thin strip.
+  let width;
+  let height;
+  if (aspect >= 1) {
+    width = maxWidth;
+    height = Math.max(minHeight, Math.min(maxHeight, Math.round(maxWidth / aspect)));
+  } else {
+    height = maxHeight;
+    width = Math.max(minHeight, Math.min(maxWidth, Math.round(maxHeight * aspect)));
+  }
+
   const innerW = width - 2 * margin;
   const innerH = height - 2 * margin;
-  const scale = Math.min(innerW / lonRange, innerH / latRange);
-  const projW = lonRange * scale;
-  const projH = latRange * scale;
+  // Same scale on both axes so geometry stays distortion-free.
+  const scale = Math.min(innerW / xRange, innerH / yRange);
+  const projW = xRange * scale;
+  const projH = yRange * scale;
   const offX = margin + (innerW - projW) / 2;
   const offY = margin + (innerH - projH) / 2;
 
-  const project = (lat, lon) => ({
-    x: offX + (lon - minLon) * scale,
-    y: offY + (maxLat - lat) * scale,
-  });
+  // 90° CCW: north → left (x grows toward south), east → top (y grows
+  // toward west). Default (no rotate): east → right, north → top.
+  const project = rotate
+    ? (lat, lon) => ({
+        x: offX + (maxLat - lat) * scale,
+        y: offY + (maxLon - lon) * lonScaleCorrection * scale,
+      })
+    : (lat, lon) => ({
+        x: offX + (lon - minLon) * lonScaleCorrection * scale,
+        y: offY + (maxLat - lat) * scale,
+      });
 
   const projectedStations = rawStations.map((s) => ({
     name: s.name,
     slug: s.slug,
     count: s.count,
+    isTerminal: !!s.isTerminal,
     ...project(s.lat, s.lon),
   }));
   const projectedTracks = segments.map((seg) => seg.map(([lat, lon]) => project(lat, lon)));
-
-  // Bbox in projected (SVG) space — useful for the main map to draw a
-  // rectangle indicating "this is the area zoomed in the inset."
-  const bboxRect = {
-    x: offX,
-    y: offY,
-    width: projW,
-    height: projH,
-  };
 
   return {
     width,
     height,
     stations: projectedStations,
     tracks: projectedTracks,
-    bboxRect,
-    // Expose the projection so callers can map additional points (e.g.
-    // the downtown bbox corners) into the same SVG coordinate space.
     project,
   };
 }
@@ -121,9 +171,9 @@ function projectInto(rawStations, segments, { width, height, margin }) {
  * @param {string} lineKey full-name line key ('red', 'brown', etc.)
  * @param {Map<string, any> | null} [stationIndex]
  * @param {object} [options]
- * @param {number} [options.width]   Main SVG width.
- * @param {number} [options.height]  Main SVG height.
- * @param {number} [options.margin]  Margin around the projected bbox.
+ * @param {number} [options.maxWidth]
+ * @param {number} [options.maxHeight]
+ * @param {number} [options.margin]
  * @returns {{
  *   width: number,
  *   height: number,
@@ -135,14 +185,14 @@ function projectInto(rawStations, segments, { width, height, margin }) {
  *     tracks: Array<Array<{ x: number, y: number }>>,
  *     width: number,
  *     height: number,
- *     mainBoxRect: { x: number, y: number, width: number, height: number },
+ *     mainBoxRect: { x: number, y: number, width: number, height: number } | null,
  *   },
  * } | null}
  */
 export function buildLineMap(
   lineKey,
   stationIndex = null,
-  { width = 720, height = 360, margin = 18 } = {},
+  { maxWidth = 720, maxHeight = 540, margin = 24 } = {},
 ) {
   if (!TRAIN_LINE_ORDER.includes(lineKey)) return null;
   const short = shortCodeFor(lineKey);
@@ -151,14 +201,48 @@ export function buildLineMap(
   if (!segments || lineStations.length === 0) return null;
 
   // Annotate stations with their incident counts up front so both projections
-  // share the same enriched records.
+  // share the same enriched records. `isTerminal` flags endpoint stations
+  // for the renderer, which uses it to attach text labels.
+  const terminals = new Set(LINE_TERMINALS[lineKey] ?? []);
   const enriched = lineStations.map((s) => {
     const slug = slugifyStation(s.name);
     const count = slug && stationIndex ? (stationIndex.get(slug)?.count ?? 0) : 0;
-    return { name: s.name, slug, lat: s.lat, lon: s.lon, count };
+    return {
+      name: s.name,
+      slug,
+      lat: s.lat,
+      lon: s.lon,
+      count,
+      isTerminal: terminals.has(s.name),
+    };
   });
 
-  const main = projectInto(enriched, segments, { width, height, margin });
+  // Detect a "very vertical" line and rotate it 90° CCW so the SVG stays
+  // landscape. Threshold is in distance-corrected aspect (effective lonRange
+  // / latRange). Below 0.5 the line is more than 2x taller than wide; render
+  // sideways instead.
+  let minLat = Number.POSITIVE_INFINITY;
+  let maxLat = Number.NEGATIVE_INFINITY;
+  let minLon = Number.POSITIVE_INFINITY;
+  let maxLon = Number.NEGATIVE_INFINITY;
+  for (const s of enriched) {
+    if (s.lat < minLat) minLat = s.lat;
+    if (s.lat > maxLat) maxLat = s.lat;
+    if (s.lon < minLon) minLon = s.lon;
+    if (s.lon > maxLon) maxLon = s.lon;
+  }
+  const meanLat = (minLat + maxLat) / 2;
+  const cosCorrection = Math.cos((meanLat * Math.PI) / 180);
+  const naturalAspect =
+    (Math.max(maxLon - minLon, 1e-6) * cosCorrection) / Math.max(maxLat - minLat, 1e-6);
+  const rotate = naturalAspect < 0.5;
+
+  const main = projectInto(enriched, segments, {
+    maxWidth,
+    maxHeight: rotate ? 240 : maxHeight,
+    margin,
+    rotate,
+  });
   if (!main) return null;
 
   let maxCount = 0;
@@ -202,14 +286,18 @@ export function buildLineMap(
     }
 
     const inset = projectInto(downtownStations, downtownSegments, {
-      width: 240,
-      height: 200,
+      maxWidth: 320,
+      maxHeight: 280,
       margin: 14,
+      minHeight: 160,
+      // Match the main map's orientation so the dashed "zoom here" rect on
+      // the main lines up with the inset's geometry — if main is rotated
+      // sideways, the inset should be too.
+      rotate,
     });
     if (inset) {
-      // Draw a marker box on the main map showing the area the inset zooms
-      // into. Use the main projection (exposed by projectInto) so corners
-      // land in the same SVG coordinate space as the main map.
+      // Marker rect on the main map showing the area the inset zooms into.
+      // Same coordinate space as the main projection.
       const c1 = main.project(DOWNTOWN_BBOX.latHi, DOWNTOWN_BBOX.lonLo);
       const c2 = main.project(DOWNTOWN_BBOX.latLo, DOWNTOWN_BBOX.lonHi);
       downtown = {
