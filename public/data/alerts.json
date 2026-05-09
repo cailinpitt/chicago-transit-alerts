@@ -1,7 +1,43 @@
 {
-  "generated_at": 1778324822323,
+  "generated_at": 1778327762172,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114806",
+      "kind": "bus",
+      "routes": [
+        "67"
+      ],
+      "headline": "Temporary Westbound Reroute near 76th/Pulaski",
+      "first_seen_ts": 1778327406619,
+      "last_seen_ts": 1778327407356,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlg6iqbeoc2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": "west"
+    },
+    {
+      "alert_id": "114805",
+      "kind": "bus",
+      "routes": [
+        "53"
+      ],
+      "headline": "Temporary Southbound Reroute near 76th/Pulaski",
+      "first_seen_ts": 1778327403731,
+      "last_seen_ts": 1778327404939,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlg6iny3lv2x",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": "south"
+    },
     {
       "alert_id": "114804",
       "kind": "bus",
@@ -10,7 +46,7 @@
       ],
       "headline": "Temporary Reroute at 87th/Exchange",
       "first_seen_ts": 1778324405103,
-      "last_seen_ts": 1778324406182,
+      "last_seen_ts": 1778327401764,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -129,7 +165,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173881,
-      "last_seen_ts": 1778324402391,
+      "last_seen_ts": 1778327401764,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -169,7 +205,7 @@
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
       "first_seen_ts": 1778256171425,
-      "last_seen_ts": 1778324402391,
+      "last_seen_ts": 1778327401764,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -194,7 +230,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778324402391,
+      "last_seen_ts": 1778327401764,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
