@@ -144,6 +144,7 @@ function main() {
   <subtitle>Chicago Transit Authority service alerts and bot-detected disruptions.</subtitle>
   <link rel="alternate" type="text/html" href="${SITE}/"/>
   <link rel="self" type="application/atom+xml" href="${SITE}/feed.xml"/>
+  <link rel="hub" href="https://pubsubhubbub.superfeedr.com/"/>
   <updated>${feedUpdated}</updated>
   <author><name>cta-alert-history</name></author>
 ${entries}

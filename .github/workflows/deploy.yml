@@ -77,3 +77,9 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Notify WebSub hub
+        run: |
+          curl -fsS -X POST https://pubsubhubbub.superfeedr.com/ \
+            -d hub.mode=publish \
+            -d hub.url=https://chicagotransitalerts.app/feed.xml
