@@ -513,7 +513,10 @@ export function filterIncidents(
     // is active. (A merged record's matching observation is checked separately
     // via filteredObs — the IncidentList re-merges from these results.)
     if (hasSignalFilter) return false;
-    if (hasLineFilter && !a.routes.some((r) => lines.includes(r))) return false;
+    if (a.kind === 'bus') {
+      if (!showBus) return false;
+      if (hasBusRouteFilter && !a.routes.some((r) => busRoutes.includes(r))) return false;
+    } else if (hasLineFilter && !a.routes.some((r) => lines.includes(r))) return false;
     if (hasSearch && !alertMatches(a)) return false;
     if (selectedDay != null) {
       return overlapsSelectedDay(a.first_seen_ts, a.resolved_ts);

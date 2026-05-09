@@ -114,6 +114,22 @@ describe('filterIncidents', () => {
     expect(out).toHaveLength(1);
   });
 
+  it('filters bus alerts by selected bus routes', () => {
+    const a22 = makeAlert({ alert_id: 'a22', kind: 'bus', routes: ['22'] });
+    const a66 = makeAlert({ alert_id: 'a66', kind: 'bus', routes: ['66'] });
+    const { alerts: out } = filterIncidents([a22, a66], [], { busRoutes: ['22'] });
+    expect(out).toHaveLength(1);
+    expect(out[0].alert_id).toBe('a22');
+  });
+
+  it('hides bus alerts when showBus is false', () => {
+    const bus = makeAlert({ alert_id: 'b', kind: 'bus', routes: ['22'] });
+    const train = makeAlert({ alert_id: 't', kind: 'train', routes: ['red'] });
+    const { alerts: out } = filterIncidents([bus, train], [], { showBus: false });
+    expect(out).toHaveLength(1);
+    expect(out[0].kind).toBe('train');
+  });
+
   // selectedDay narrows to a single Chicago calendar day. Reference day is the
   // UTC midnight of NOW's Chicago day; helpers below construct timestamps
   // relative to it.
