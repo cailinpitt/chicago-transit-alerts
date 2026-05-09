@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778293261745,
+  "generated_at": 1778296442571,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -93,7 +93,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173881,
-      "last_seen_ts": 1778293202453,
+      "last_seen_ts": 1778296202800,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -133,7 +133,7 @@
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
       "first_seen_ts": 1778256171425,
-      "last_seen_ts": 1778293202453,
+      "last_seen_ts": 1778296202800,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -158,7 +158,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778293202453,
+      "last_seen_ts": 1778296202800,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -242,6 +242,26 @@
     }
   ],
   "observations": [
+    {
+      "id": 27,
+      "kind": "bus",
+      "line": "9",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost",
+        "gap"
+      ],
+      "evidence": null,
+      "ts": 1778296141678,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlfbexoxi72c",
+      "resolved_post_url": null
+    },
     {
       "id": 26,
       "kind": "bus",
