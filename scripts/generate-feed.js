@@ -67,6 +67,11 @@ function entryLink(incident) {
   return rkey ? `${SITE}/event/${rkey}` : SITE;
 }
 
+function entryThumbnail(incident) {
+  const rkey = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url);
+  return rkey ? `${SITE}/event/${rkey}/og.png` : null;
+}
+
 function describeObservation(obs) {
   const stations = [obs.from_station, obs.to_station].filter(Boolean).join(' → ');
   const signals = observationSignals(obs);
@@ -124,7 +129,8 @@ function main() {
       const summary = entrySummary(incident);
       const published = toIso(startTs(incident));
       const updated = toIso(updatedTs(incident));
-      return [
+      const thumb = entryThumbnail(incident);
+      const lines = [
         '  <entry>',
         `    <id>${escapeXml(id)}</id>`,
         `    <title>${escapeXml(title)}</title>`,
@@ -132,13 +138,20 @@ function main() {
         `    <published>${published}</published>`,
         `    <updated>${updated}</updated>`,
         `    <summary>${escapeXml(summary)}</summary>`,
-        '  </entry>',
-      ].join('\n');
+      ];
+      if (thumb) {
+        lines.push(
+          `    <media:thumbnail url="${escapeXml(thumb)}" width="1200" height="630"/>`,
+          `    <media:content url="${escapeXml(thumb)}" medium="image" type="image/png" width="1200" height="630"/>`,
+        );
+      }
+      lines.push('  </entry>');
+      return lines.join('\n');
     })
     .join('\n');
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
   <id>${FEED_ID}</id>
   <title>CTA Alert History</title>
   <subtitle>Chicago Transit Authority service alerts and bot-detected disruptions.</subtitle>
