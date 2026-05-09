@@ -170,7 +170,14 @@ export default function Timeline({
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
         {numDays}-Day Timeline
       </h2>
-      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4 relative">
+        {/* Fade gradient on the right edge — affordance that the grid scrolls
+            horizontally on narrow viewports. Inert (pointer-events: none) so
+            it doesn't intercept clicks on the rightmost cells. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 right-0 bottom-0 w-8 rounded-r-lg bg-gradient-to-l from-white dark:from-gh-surface to-transparent sm:hidden"
+        />
         <div ref={scrollRef} className="overflow-x-auto pt-1 pb-4">
           <table className="border-collapse">
             <thead>

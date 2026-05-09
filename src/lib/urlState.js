@@ -46,6 +46,39 @@ function defaultShowBus(selectedLines) {
 
 export { defaultShowBus };
 
+// localStorage key for cross-visit filter persistence. Stored as JSON; the
+// shape mirrors the small "sticky" subset of App state — line/bus/signal
+// selections — that's worth carrying across visits. dateRange and the
+// pinned day are deliberately excluded: a stale "30d" choice from last
+// month feels more confusing than helpful.
+const STORAGE_KEY = 'cta-alert-history:filters';
+const STICKY_KEYS = ['selectedLines', 'showBus', 'selectedBusRoutes', 'selectedSignals'];
+
+export function readStoredFilters() {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed == null || typeof parsed !== 'object') return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function writeStoredFilters(state) {
+  try {
+    const slim = {};
+    for (const k of STICKY_KEYS) {
+      if (state[k] !== undefined) slim[k] = state[k];
+    }
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+  } catch {
+    // localStorage can be disabled (private mode, quotas) — fall through
+    // silently rather than blowing up the UI for a nice-to-have.
+  }
+}
+
 // Parse URLSearchParams into the same shape App holds in state. Unknown values
 // are dropped silently — a stale or hand-edited URL falls back to defaults
 // rather than crashing.

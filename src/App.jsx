@@ -22,7 +22,12 @@ import {
   observationSignals,
 } from './lib/incidents.js';
 import { buildStationIndex } from './lib/stations.js';
-import { buildSearch, parseUrlState } from './lib/urlState.js';
+import {
+  buildSearch,
+  parseUrlState,
+  readStoredFilters,
+  writeStoredFilters,
+} from './lib/urlState.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -44,7 +49,18 @@ export default function App() {
   const now = useNow();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const initial = useMemo(() => parseUrlState(), []);
+  // Initial state precedence: URL > localStorage > defaults. The URL wins so
+  // shareable links always render the same view. localStorage only fills in
+  // when the URL is bare (the common case of a returning visitor opening "/")
+  // — picks up their last line/bus/signal selections from the prior session.
+  const initial = useMemo(() => {
+    const fromUrl = parseUrlState();
+    const hasAnyUrl = window.location.search.length > 1;
+    if (hasAnyUrl) return fromUrl;
+    const stored = readStoredFilters();
+    if (!stored) return fromUrl;
+    return { ...fromUrl, ...stored };
+  }, []);
   const [selectedLines, setSelectedLines] = useState(initial.selectedLines); // null = all lines; [] = no lines
   const [showBus, setShowBus] = useState(initial.showBus);
   const [selectedBusRoutes, setSelectedBusRoutes] = useState(initial.selectedBusRoutes);
@@ -102,6 +118,14 @@ export default function App() {
       window.history.replaceState(null, '', next);
     }
   }, [selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay, selectedSignals, search]);
+
+  // Persist the sticky subset (lines, bus visibility, bus routes, signals)
+  // to localStorage so a returning visitor sees the same scope they last
+  // chose. dateRange / day pin / search are deliberately excluded — those
+  // are momentary, not preferences.
+  useEffect(() => {
+    writeStoredFilters({ selectedLines, showBus, selectedBusRoutes, selectedSignals });
+  }, [selectedLines, showBus, selectedBusRoutes, selectedSignals]);
 
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/alerts.json`;
