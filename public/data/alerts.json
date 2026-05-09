@@ -1,7 +1,25 @@
 {
-  "generated_at": 1778323322639,
+  "generated_at": 1778324822323,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114804",
+      "kind": "bus",
+      "routes": [
+        "87"
+      ],
+      "headline": "Temporary Reroute at 87th/Exchange",
+      "first_seen_ts": 1778324405103,
+      "last_seen_ts": 1778324406182,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlg3pcafgb2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null
+    },
     {
       "alert_id": "114803",
       "kind": "bus",
@@ -111,7 +129,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173881,
-      "last_seen_ts": 1778323202411,
+      "last_seen_ts": 1778324402391,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -151,7 +169,7 @@
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
       "first_seen_ts": 1778256171425,
-      "last_seen_ts": 1778323202411,
+      "last_seen_ts": 1778324402391,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -176,7 +194,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778323202411,
+      "last_seen_ts": 1778324402391,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
