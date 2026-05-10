@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778410562542,
+  "generated_at": 1778411642577,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -30,7 +30,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778410201749,
+      "last_seen_ts": 1778411402856,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -323,7 +323,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173881,
-      "last_seen_ts": 1778410201748,
+      "last_seen_ts": 1778411402856,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -367,7 +367,7 @@
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
       "first_seen_ts": 1778256171425,
-      "last_seen_ts": 1778410201748,
+      "last_seen_ts": 1778411402856,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -394,7 +394,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778410201748,
+      "last_seen_ts": 1778411402856,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -489,6 +489,41 @@
   ],
   "observations": [
     {
+      "id": 305,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-0-outbound",
+      "from_station": "Francisco",
+      "to_station": "Montrose (Brown)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 2,
+        "minutesSinceLastTrain": null,
+        "lookbackMin": 43,
+        "coldThresholdMin": 38,
+        "trainsOutsideRun": 3,
+        "coldStations": 5,
+        "coldStationNames": [
+          "Francisco",
+          "Rockwell",
+          "Western (Brown)",
+          "Damen (Brown)",
+          "Montrose (Brown)"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 15.000000000000002,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778411405717,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlimq3fp672i",
+      "resolved_post_url": null
+    },
+    {
       "id": 304,
       "kind": "train",
       "line": "pink",
@@ -514,11 +549,11 @@
         "held": null
       },
       "ts": 1778410505177,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778411406161,
+      "duration_ms": 900984,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlilvangy52s",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlimq45ax62l"
     },
     {
       "id": 29,
