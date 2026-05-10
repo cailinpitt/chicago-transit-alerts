@@ -263,7 +263,9 @@ export function formatRoutesLabel(kind, routes) {
 export function findIncidentById(alerts, observations, id) {
   if (!id) return null;
   const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
-  const fromMerged = merged.find((m) => postUrlRkey(m.post_url) === id);
+  const fromMerged = merged.find(
+    (m) => postUrlRkey(m.post_url) === id || postUrlRkey(m.obs_post_url) === id,
+  );
   if (fromMerged) return fromMerged;
   const fromAlert = standaloneAlerts.find((a) => postUrlRkey(a.post_url) === id);
   if (fromAlert) return fromAlert;
@@ -360,14 +362,15 @@ export function mergeMatchingIncidents(alerts, observations) {
   const merged = [];
 
   for (const alert of alerts) {
-    const alertEnd = (alert.resolved_ts || alert.last_seen_ts || Infinity) + BUFFER_MS;
-
     for (const obs of observations) {
       if (usedObsIds.has(obs.id)) continue;
       if (alert.kind !== obs.kind) continue;
       if (!alert.routes.includes(obs.line)) continue;
 
-      const inWindow = obs.ts >= alert.first_seen_ts - BUFFER_MS && obs.ts <= alertEnd;
+      // Anchor on first_seen_ts only. Stretching the window across the alert's
+      // entire lifespan let multi-day planned alerts vacuum up unrelated
+      // observations from later days as if they were the same incident.
+      const inWindow = Math.abs(obs.ts - alert.first_seen_ts) <= BUFFER_MS;
 
       if (inWindow) {
         merged.push({

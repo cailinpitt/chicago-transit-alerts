@@ -79,6 +79,13 @@ describe('findIncidentById', () => {
     expect(found.alert_id).toBe('a1');
   });
 
+  it('finds a merged incident by the observation post rkey', () => {
+    const found = findIncidentById([alert], [matchingObs], '3mkuutqcneg2h');
+    expect(found).not.toBeNull();
+    expect(found._type).toBe('merged');
+    expect(found.alert_id).toBe('a1');
+  });
+
   it('finds a standalone observation by its post rkey', () => {
     const found = findIncidentById([], [standaloneObs], '3mkomsa7xhv2i');
     expect(found).not.toBeNull();

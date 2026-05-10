@@ -335,8 +335,8 @@ export default function EventPage({ eventId }) {
         {data && !incident && (
           <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              We couldn't find an incident for this link. It may have been removed or the link may
-              be incorrect.
+              We couldn't find an incident for this link. Incidents older than 90 days are no
+              longer archived; the link may also be incorrect.
             </p>
           </div>
         )}

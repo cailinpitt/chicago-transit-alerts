@@ -243,6 +243,25 @@ describe('mergeMatchingIncidents', () => {
     expect(merged).toHaveLength(0);
   });
 
+  it('does not vacuum observations from days into a long-lived alert', () => {
+    // Long-running planned alert (e.g. multi-day reroute) shouldn't absorb
+    // unrelated observations that happen on the same line a day later.
+    const longAlert = makeAlertForMerge({
+      first_seen_ts: NOW,
+      last_seen_ts: NOW + 36 * 60 * 60_000,
+      resolved_ts: null,
+      active: true,
+    });
+    const laterObs = makeObsForMerge({ ts: NOW + 24 * 60 * 60_000 });
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      [longAlert],
+      [laterObs],
+    );
+    expect(merged).toHaveLength(0);
+    expect(standaloneAlerts).toHaveLength(1);
+    expect(standaloneObs).toHaveLength(1);
+  });
+
   it('merges bus alert and observation on the same route', () => {
     const busAlert = makeAlertForMerge({ kind: 'bus', routes: ['66'] });
     const busObs = makeObsForMerge({ kind: 'bus', line: '66' });
