@@ -109,7 +109,13 @@ function entrySummary(incident) {
 // feed-reader preview panes that render real markup — gives readers a
 // scannable card with state, segment, headline, and bot-evidence chip,
 // rather than the one-line <summary> they'd otherwise show.
-function entryContentHtml(incident) {
+//
+// Lead with an <img> when a thumbnail URL exists. Inoreader (and most other
+// readers — Feedly, The Old Reader, NetNewsWire) extract the first <img>
+// from the content as the entry thumbnail. media:thumbnail / media:content
+// declarations alone are inconsistently honored, but the first inline image
+// works everywhere.
+function entryContentHtml(incident, thumb) {
   const start = startTs(incident);
   const resolved = incident.resolved_ts ?? null;
   const stateLine = resolved
@@ -123,6 +129,10 @@ function entryContentHtml(incident) {
   const fallback = headline ? null : escapeXml(describeObservation(incident));
 
   const parts = [];
+  if (thumb) {
+    const altText = headline || fallback || 'Service disruption';
+    parts.push(`<p><img src="${escapeXml(thumb)}" alt="${altText}" width="1200" height="630"/></p>`);
+  }
   if (stateLine) parts.push(`<p>${stateLine}</p>`);
   if (headline) parts.push(`<p>${headline}</p>`);
   if (fallback) parts.push(`<p>${fallback}</p>`);
@@ -161,7 +171,7 @@ function main() {
       const published = toIso(startTs(incident));
       const updated = toIso(updatedTs(incident));
       const thumb = entryThumbnail(incident);
-      const contentHtml = entryContentHtml(incident);
+      const contentHtml = entryContentHtml(incident, thumb);
       const lines = [
         '  <entry>',
         `    <id>${escapeXml(id)}</id>`,
