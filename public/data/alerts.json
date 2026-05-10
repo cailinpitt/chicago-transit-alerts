@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778397662466,
+  "generated_at": 1778410562542,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -30,7 +30,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778397602046,
+      "last_seen_ts": 1778410201749,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -323,7 +323,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173881,
-      "last_seen_ts": 1778397602046,
+      "last_seen_ts": 1778410201748,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -367,7 +367,7 @@
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
       "first_seen_ts": 1778256171425,
-      "last_seen_ts": 1778397602046,
+      "last_seen_ts": 1778410201748,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -394,7 +394,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778397602046,
+      "last_seen_ts": 1778410201748,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -488,6 +488,38 @@
     }
   ],
   "observations": [
+    {
+      "id": 304,
+      "kind": "train",
+      "line": "pink",
+      "direction": "branch-0-outbound",
+      "from_station": "Cicero (Pink)",
+      "to_station": "Kostner",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 1,
+        "minutesSinceLastTrain": null,
+        "lookbackMin": 42,
+        "coldThresholdMin": 37,
+        "trainsOutsideRun": 2,
+        "coldStations": 2,
+        "coldStationNames": [
+          "Cicero (Pink)",
+          "Kostner"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 14.999999999999998,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778410505177,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlilvangy52s",
+      "resolved_post_url": null
+    },
     {
       "id": 29,
       "kind": "bus",
