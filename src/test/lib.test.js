@@ -291,6 +291,30 @@ describe('mergeMatchingIncidents', () => {
     expect(merged).toHaveLength(1);
     expect(standaloneObs).toHaveLength(1);
   });
+
+  it('suppresses resolution fields when alert is still active', () => {
+    // Bot observation ended before the CTA alert was even posted (e.g. a
+    // leading-edge ghost detection that cleared right before CTA announced
+    // the reroute). The merged incident must stay active with no resolved_ts
+    // or obs_resolved_post_url leaking into the UI.
+    const activeAlert = makeAlertForMerge({
+      first_seen_ts: NOW,
+      resolved_ts: null,
+      active: true,
+      resolved_reply_url: null,
+    });
+    const resolvedObs = makeObsForMerge({
+      ts: NOW - 30 * 60_000,
+      resolved_ts: NOW - 10 * 60_000,
+      active: false,
+      resolved_post_url: 'https://bsky.app/obs-resolution',
+    });
+    const { merged } = mergeMatchingIncidents([activeAlert], [resolvedObs]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].active).toBe(true);
+    expect(merged[0].resolved_ts).toBeNull();
+    expect(merged[0].obs_resolved_post_url).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------

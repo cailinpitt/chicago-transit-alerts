@@ -373,6 +373,11 @@ export function mergeMatchingIncidents(alerts, observations) {
       const inWindow = Math.abs(obs.ts - alert.first_seen_ts) <= BUFFER_MS;
 
       if (inWindow) {
+        // While the incident is active, the obs's prior resolution doesn't end
+        // the incident — surfacing it would produce a "last seen" before
+        // "first seen" and a misleading "Bot resolution" link on an ongoing
+        // event. Suppress resolution-side fields until the alert resolves.
+        const active = alert.active || obs.active;
         merged.push({
           _type: 'merged',
           _sortTs: alert.first_seen_ts,
@@ -381,8 +386,8 @@ export function mergeMatchingIncidents(alerts, observations) {
           routes: alert.routes,
           headline: alert.headline,
           first_seen_ts: alert.first_seen_ts,
-          resolved_ts: alert.resolved_ts ?? obs.resolved_ts ?? null,
-          active: alert.active || obs.active,
+          resolved_ts: active ? null : (alert.resolved_ts ?? obs.resolved_ts ?? null),
+          active,
           post_url: alert.post_url,
           resolved_reply_url: alert.resolved_reply_url,
           affected_from_station: alert.affected_from_station,
@@ -391,7 +396,7 @@ export function mergeMatchingIncidents(alerts, observations) {
           from_station: obs.from_station,
           to_station: obs.to_station,
           obs_post_url: obs.post_url,
-          obs_resolved_post_url: obs.resolved_post_url,
+          obs_resolved_post_url: active ? null : obs.resolved_post_url,
           obs_id: obs.id,
           // Carry the observation's typing info onto the merged record so
           // downstream consumers (e.g. typical-duration cohorts) can bucket
