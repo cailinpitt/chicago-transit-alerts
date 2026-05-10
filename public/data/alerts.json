@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778412482380,
+  "generated_at": 1778412902694,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -50,7 +50,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778412002024,
+      "last_seen_ts": 1778412602548,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -343,7 +343,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256173881,
-      "last_seen_ts": 1778412002023,
+      "last_seen_ts": 1778412602548,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -387,7 +387,7 @@
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
       "first_seen_ts": 1778256171425,
-      "last_seen_ts": 1778412002023,
+      "last_seen_ts": 1778412602548,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -414,7 +414,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778412002023,
+      "last_seen_ts": 1778412602547,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -537,11 +537,11 @@
         "held": null
       },
       "ts": 1778411405717,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778412603951,
+      "duration_ms": 1198234,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlimq3fp672i",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlintrqkvv2l"
     },
     {
       "id": 304,
