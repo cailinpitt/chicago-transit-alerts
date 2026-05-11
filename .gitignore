@@ -5,4 +5,6 @@ dist/
 .og-cache/
 .og-cache-pages/
 cron/*.log
+.claude/
 plan.md
+research.md
