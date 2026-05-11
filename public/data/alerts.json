@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778502902380,
+  "generated_at": 1778514962304,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -70,7 +70,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778502602046,
+      "last_seen_ts": 1778514602663,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -434,7 +434,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778502602045,
+      "last_seen_ts": 1778514602663,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -528,6 +528,43 @@
     }
   ],
   "observations": [
+    {
+      "id": 310,
+      "kind": "train",
+      "line": "p",
+      "direction": "branch-0-outbound",
+      "from_station": "Chicago (Brown/Purple)",
+      "to_station": "Quincy",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 3.5,
+        "minutesSinceLastTrain": 26,
+        "lookbackMin": 30,
+        "coldThresholdMin": 25,
+        "trainsOutsideRun": 4,
+        "coldStations": 7,
+        "coldStationNames": [
+          "Chicago (Brown/Purple)",
+          "Clark/Lake",
+          "Washington/Wabash",
+          "Adams/Wabash",
+          "Harold Washington Library-State/Van Buren",
+          "LaSalle/Van Buren",
+          "Quincy"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 10,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778514606675,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mllmtpfd562c",
+      "resolved_post_url": null
+    },
     {
       "id": 32,
       "kind": "train",
