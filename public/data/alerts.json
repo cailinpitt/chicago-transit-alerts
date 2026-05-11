@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778472841984,
+  "generated_at": 1778474522037,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -70,7 +70,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778472601543,
+      "last_seen_ts": 1778474402635,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -434,7 +434,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778472601543,
+      "last_seen_ts": 1778474402635,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -557,11 +557,11 @@
         "held": null
       },
       "ts": 1778472604549,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778474403709,
+      "duration_ms": 1799160,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlkfpx4uq72h",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlkhflcwj62c"
     },
     {
       "id": 31,
