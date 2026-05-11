@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778519222435,
+  "generated_at": 1778520902289,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -8,9 +8,9 @@
       "routes": [
         "28"
       ],
-      "headline": "#28 Stony Island Temporary Southbund Reroute near 47th/Lake Park",
+      "headline": "#28 Stony Island Temporary Southbound Reroute near 47th/Lake Park",
       "first_seen_ts": 1778518804932,
-      "last_seen_ts": 1778518806162,
+      "last_seen_ts": 1778520603102,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -90,7 +90,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778518803061,
+      "last_seen_ts": 1778520603102,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -454,7 +454,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778518803061,
+      "last_seen_ts": 1778520603102,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
