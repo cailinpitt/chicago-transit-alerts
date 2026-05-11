@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778532122121,
+  "generated_at": 1778541242237,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -110,7 +110,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778532002098,
+      "last_seen_ts": 1778541002315,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -474,7 +474,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778532002096,
+      "last_seen_ts": 1778541002314,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -568,6 +568,46 @@
     }
   ],
   "observations": [
+    {
+      "id": 33,
+      "kind": "train",
+      "line": "red",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost",
+        "gap"
+      ],
+      "evidence": null,
+      "ts": 1778540942370,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmfeluvmk2q",
+      "resolved_post_url": null
+    },
+    {
+      "id": 34,
+      "kind": "bus",
+      "line": "66",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "gap",
+        "bunching"
+      ],
+      "evidence": null,
+      "ts": 1778540942370,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmfen7c2s2q",
+      "resolved_post_url": null
+    },
     {
       "id": 310,
       "kind": "train",
