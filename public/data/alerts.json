@@ -1,7 +1,27 @@
 {
-  "generated_at": 1778516882603,
+  "generated_at": 1778519222435,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114841",
+      "kind": "bus",
+      "routes": [
+        "28"
+      ],
+      "headline": "#28 Stony Island Temporary Southbund Reroute near 47th/Lake Park",
+      "first_seen_ts": 1778518804932,
+      "last_seen_ts": 1778518806162,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mllqquehgl2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": "south",
+      "cta_event_start_ts": 1778518500000,
+      "cta_event_end_ts": null
+    },
     {
       "alert_id": "114828",
       "kind": "bus",
@@ -70,7 +90,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778516401901,
+      "last_seen_ts": 1778518803061,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -434,7 +454,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778516401901,
+      "last_seen_ts": 1778518803061,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
