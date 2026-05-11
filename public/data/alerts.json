@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778457362593,
+  "generated_at": 1778472841984,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -70,7 +70,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778457002149,
+      "last_seen_ts": 1778472601543,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -434,7 +434,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778457002148,
+      "last_seen_ts": 1778472601543,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -528,6 +528,41 @@
     }
   ],
   "observations": [
+    {
+      "id": 308,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-0-outbound",
+      "from_station": "Southport",
+      "to_station": "Fullerton",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 2.2,
+        "minutesSinceLastTrain": 35,
+        "lookbackMin": 40,
+        "coldThresholdMin": 35,
+        "trainsOutsideRun": 4,
+        "coldStations": 5,
+        "coldStationNames": [
+          "Southport",
+          "Belmont (Red/Brown/Purple)",
+          "Wellington (Brown/Purple)",
+          "Diversey (Brown/Purple)",
+          "Fullerton"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 14.000000000000002,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778472604549,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlkfpx4uq72h",
+      "resolved_post_url": null
+    },
     {
       "id": 31,
       "kind": "train",
