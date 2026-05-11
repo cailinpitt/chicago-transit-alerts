@@ -97,7 +97,7 @@ export default function BrowseMenu({ alerts, observations }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-1.5 z-30 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 w-72 max-h-[70vh] overflow-y-auto"
+          className="absolute right-0 top-full mt-1.5 z-40 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 w-72 max-h-[70vh] overflow-y-auto"
         >
           <div className="space-y-3">
             <section>
