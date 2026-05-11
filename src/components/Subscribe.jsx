@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
 const FEED_URL = 'https://chicagotransitalerts.app/feed.xml';
-const CSV_URL = 'https://chicagotransitalerts.app/data/incidents.csv';
+const CSV_URL = 'https://chicagotransitalerts.app/data/alerts.csv';
 const JSON_URL = 'https://chicagotransitalerts.app/data/alerts.json';
 
 export default function Subscribe({ open, onClose }) {

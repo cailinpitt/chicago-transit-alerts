@@ -123,7 +123,7 @@ Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/
 A flat CSV mirror of the same data — one row per alert or observation, with an explicit `type` column — is also published for spreadsheet and pandas users:
 
 ```
-https://chicagotransitalerts.app/data/incidents.csv
+https://chicagotransitalerts.app/data/alerts.csv
 ```
 
 Columns: `type, id, kind, routes, headline, detection_source, signals, from_station, to_station, direction, first_seen_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` and `signals` are semicolon-separated when multi-valued. Regenerated alongside `alerts.json`.

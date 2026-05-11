@@ -1,4 +1,4 @@
-// Generate dist/data/incidents.csv — a flat CSV mirror of alerts.json for
+// Generate dist/data/alerts.csv — a flat CSV mirror of alerts.json for
 // pandas / spreadsheet users who don't want to wrangle the JSON shape.
 // Combines alerts and observations into one row per record with a `type`
 // column to distinguish them. Columns are stable, so a downstream pipeline
@@ -15,7 +15,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const DIST = resolve(ROOT, 'dist');
 const DATA = resolve(DIST, 'data', 'alerts.json');
-const OUT = resolve(DIST, 'data', 'incidents.csv');
+const OUT = resolve(DIST, 'data', 'alerts.csv');
 
 // Order chosen so the first columns identify the row, the middle columns
 // describe what + where, and the trailing columns carry metadata.
