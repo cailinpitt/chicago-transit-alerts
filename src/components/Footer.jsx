@@ -7,8 +7,15 @@ export default function Footer() {
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   return (
     <>
-      <footer className="border-t border-slate-200 dark:border-gh-border mt-8">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 dark:text-slate-500">
+      <footer
+        className="border-t border-slate-200 dark:border-gh-border mt-8"
+        style={{
+          paddingLeft: 'env(safe-area-inset-left)',
+          paddingRight: 'env(safe-area-inset-right)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+      >
+        <div className="max-w-5xl mx-auto px-4 py-6 sm:py-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-400 dark:text-slate-500">
           <span>Built by Cailin</span>
           <button
             type="button"

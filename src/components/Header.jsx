@@ -22,7 +22,7 @@ function InfoPopover({ children, label = 'What does this mean?' }) {
   }, [open]);
 
   return (
-    <span ref={ref} className="relative inline-flex items-center ml-1">
+    <span ref={ref} className="inline-flex items-center ml-1">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -33,7 +33,7 @@ function InfoPopover({ children, label = 'What does this mean?' }) {
         ℹ️
       </button>
       {open && (
-        <span className="absolute right-0 top-full mt-1 z-20 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 w-64 text-xs text-slate-600 dark:text-slate-300 normal-case font-normal text-left whitespace-normal">
+        <span className="absolute right-0 top-full mt-1 z-20 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 w-64 max-w-[calc(100vw-2rem)] text-xs text-slate-600 dark:text-slate-300 normal-case font-normal text-left whitespace-normal">
           {children}
         </span>
       )}
@@ -79,8 +79,8 @@ export default function Header({
 
   return (
     <header className="bg-white dark:bg-gh-surface border-b border-slate-200 dark:border-gh-border">
-      <div className="max-w-5xl mx-auto px-4 py-4 flex items-start justify-between gap-4">
-        <div className="min-w-0">
+      <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 relative">
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             <button
               type="button"
@@ -120,7 +120,7 @@ export default function Header({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2 pt-1 flex-shrink-0">
+        <div className="relative flex items-center gap-2 sm:pt-1 flex-shrink-0 self-start">
           <BrowseMenu alerts={alerts} observations={observations} />
           <button
             type="button"
