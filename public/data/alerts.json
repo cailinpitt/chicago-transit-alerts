@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778598422176,
+  "generated_at": 1778604542270,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -10,7 +10,7 @@
       ],
       "headline": "#91 Austin Temporary Southbound Reroute near Austin/George",
       "first_seen_ts": 1778597404451,
-      "last_seen_ts": 1778598002869,
+      "last_seen_ts": 1778604002282,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -30,7 +30,7 @@
       ],
       "headline": "#9 Ashland Temporary Northbound Reroute near Ashland/Wilson",
       "first_seen_ts": 1778595604129,
-      "last_seen_ts": 1778598002868,
+      "last_seen_ts": 1778604002282,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -232,7 +232,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778598002868,
+      "last_seen_ts": 1778604002282,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -596,7 +596,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778598002866,
+      "last_seen_ts": 1778604002282,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -690,6 +690,39 @@
     }
   ],
   "observations": [
+    {
+      "id": 312,
+      "kind": "train",
+      "line": "y",
+      "direction": "branch-len26-42039--87752",
+      "from_station": "Howard",
+      "to_station": "Dempster-Skokie",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 4.9,
+        "minutesSinceLastTrain": null,
+        "lookbackMin": 20,
+        "coldThresholdMin": 20,
+        "trainsOutsideRun": 0,
+        "coldStations": 3,
+        "coldStationNames": [
+          "Howard",
+          "Oakton-Skokie",
+          "Dempster-Skokie"
+        ],
+        "expectedTrains": 1.1,
+        "headwayMin": 15,
+        "synthetic": true,
+        "held": null
+      },
+      "ts": 1778604306728,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mloaey3sir2s",
+      "resolved_post_url": null
+    },
     {
       "id": 37,
       "kind": "bus",
