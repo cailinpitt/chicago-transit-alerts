@@ -1,7 +1,27 @@
 {
-  "generated_at": 1778577662609,
+  "generated_at": 1778578501936,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114862",
+      "kind": "bus",
+      "routes": [
+        "26"
+      ],
+      "headline": "#26 South Shore Express Temporary Reroute at 83rd/Houston",
+      "first_seen_ts": 1778578204712,
+      "last_seen_ts": 1778578205789,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlni34d7gr2c",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": "south",
+      "cta_event_start_ts": 1778577780000,
+      "cta_event_end_ts": null
+    },
     {
       "alert_id": "114861",
       "kind": "bus",
@@ -10,7 +30,7 @@
       ],
       "headline": "#71 71st/South Shore Temporary Reroute at 83rd/Houston",
       "first_seen_ts": 1778577603679,
-      "last_seen_ts": 1778577604876,
+      "last_seen_ts": 1778578202534,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -172,7 +192,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778577601905,
+      "last_seen_ts": 1778578202534,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -536,7 +556,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778577601905,
+      "last_seen_ts": 1778578202533,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
