@@ -1,7 +1,28 @@
 {
-  "generated_at": 1778605207531,
+  "generated_at": 1778606462167,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114870",
+      "kind": "bus",
+      "routes": [
+        "15",
+        "172"
+      ],
+      "headline": "#15 Jeffery Local and #172 U. of Chicago/Kenwood Temporary Reroute at Hyde Park/Woodlawn",
+      "first_seen_ts": 1778606404059,
+      "last_seen_ts": 1778606405257,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlocdjhxah2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "cta_event_start_ts": 1778606040000,
+      "cta_event_end_ts": null
+    },
     {
       "alert_id": "114866",
       "kind": "bus",
@@ -10,7 +31,7 @@
       ],
       "headline": "#91 Austin Temporary Southbound Reroute near Austin/George",
       "first_seen_ts": 1778597404451,
-      "last_seen_ts": 1778605203515,
+      "last_seen_ts": 1778606402072,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -232,7 +253,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778605203515,
+      "last_seen_ts": 1778606402072,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -596,7 +617,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778605203515,
+      "last_seen_ts": 1778606402053,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
