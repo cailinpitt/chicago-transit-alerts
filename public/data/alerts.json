@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778560082347,
+  "generated_at": 1778561762206,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -10,12 +10,12 @@
       ],
       "headline": "Loop-bound Orange Line Service Running with Delays",
       "first_seen_ts": 1778559722225,
-      "last_seen_ts": 1778559724195,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "last_seen_ts": 1778560321886,
+      "resolved_ts": 1778561524164,
+      "duration_ms": 1801939,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmwubokyi2h",
-      "resolved_reply_url": null,
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmyjx2dzh2h",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
@@ -130,7 +130,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778559602171,
+      "last_seen_ts": 1778561402594,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -494,7 +494,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778559602168,
+      "last_seen_ts": 1778561402594,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -602,11 +602,11 @@
       ],
       "evidence": null,
       "ts": 1778558942029,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778561341525,
+      "duration_ms": 2399496,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmw4znizs24",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmyeksxfb2u"
     },
     {
       "id": 35,
