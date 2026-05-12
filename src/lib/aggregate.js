@@ -399,6 +399,50 @@ export function buildHourOfWeek(alerts, observations) {
   return { grid, maxCount, total };
 }
 
+// Per-weekday incident count over a rolling window. Returns a 7-element
+// array indexed Sun..Sat (matching JS Date.getDay conventions). Inputs are
+// expected to be scoped to a single line/route (or the whole system) by
+// the caller. Counts merged incidents at their start time.
+//
+// `numWeeks` is exposed so the caller can label the chart with an honest
+// denominator ("avg per Monday across N weeks"). Default 13 weeks ≈ 90d.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @returns {{ counts: number[], numWeeks: number, total: number, maxCount: number }}
+ */
+export function computeDayOfWeekCounts(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 91 } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+  const counts = new Array(7).fill(0);
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  function bump(ts) {
+    if (ts == null || ts < cutoff) return;
+    const { weekday } = chicagoWeekdayHour(ts);
+    if (weekday == null) return;
+    counts[weekday] += 1;
+  }
+  for (const m of merged) bump(m.first_seen_ts);
+  for (const a of standaloneAlerts) bump(a.first_seen_ts);
+  for (const o of standaloneObs) bump(o.first_seen_ts ?? o.ts);
+
+  let total = 0;
+  let maxCount = 0;
+  for (const c of counts) {
+    total += c;
+    if (c > maxCount) maxCount = c;
+  }
+  // numWeeks rounds up so a partial trailing week still feels represented.
+  const numWeeks = Math.max(1, Math.ceil(windowDays / 7));
+  return { counts, numWeeks, total, maxCount };
+}
+
 // Build per-train-line signal-type counts for the breakdown stacked bars.
 // Returns { lineId: { gap: n, bunching: n, ... }, totals: { gap: n, ... } }.
 // Bus routes are excluded because there are too many to chart usefully — the
@@ -671,6 +715,46 @@ export function computeDurationHistogram(
   return { bins, total };
 }
 
+// Worst single day within the window for the given scope. Caller hands in
+// alerts/observations already filtered to a line, route, station, or the
+// whole system; this just counts distinct merged incidents by Chicago
+// calendar day and picks the busiest. Returns null when there are no
+// incidents to rank.
+//
+// Window is anchored on the most recent `windowDays` calendar days so an
+// old "worst day" doesn't get re-crowned indefinitely.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @returns {{ dayUtc: number, count: number } | null}
+ */
+export function computeWorstDay(alerts, observations, { now = Date.now(), windowDays = 90 } = {}) {
+  const todayUtc = chicagoDayUTC(now);
+  const cutoffDayUtc = todayUtc - (windowDays - 1) * DAY_MS;
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  const dayCounts = new Map();
+  function bump(ts) {
+    if (ts == null) return;
+    const day = chicagoDayUTC(ts);
+    if (day < cutoffDayUtc || day > todayUtc) return;
+    dayCounts.set(day, (dayCounts.get(day) || 0) + 1);
+  }
+  for (const m of merged) bump(m.first_seen_ts);
+  for (const a of standaloneAlerts) bump(a.first_seen_ts);
+  for (const o of standaloneObs) bump(o.first_seen_ts ?? o.ts);
+
+  let worst = null;
+  for (const [dayUtc, count] of dayCounts) {
+    if (!worst || count > worst.count) worst = { dayUtc, count };
+  }
+  return worst;
+}
+
 // Bucket key for typical-duration cohorts: same kind, same line/route, same
 // signal "type" (single signal name, or 'roundup' for multi-signal records).
 // Returns null when the incident lacks a signal — pure CTA alerts have no
@@ -756,16 +840,22 @@ export function computeTypicalDurations(
  */
 export function buildTodaySummary(alerts, observations, now = Date.now()) {
   const todayUtc = chicagoDayUTC(now);
+  const lastWeekUtc = todayUtc - 7 * DAY_MS;
 
   const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
 
   const todays = [];
+  let lastWeekSameDayCount = 0;
   const allTs = [];
   function consider(ts, lines, active) {
     if (ts == null) return;
     allTs.push(ts);
-    if (chicagoDayUTC(ts) !== todayUtc) return;
-    todays.push({ lines: lines || [], active });
+    const day = chicagoDayUTC(ts);
+    if (day === todayUtc) {
+      todays.push({ lines: lines || [], active });
+    } else if (day === lastWeekUtc) {
+      lastWeekSameDayCount += 1;
+    }
   }
   for (const m of merged) consider(m.first_seen_ts, m.routes, m.active);
   for (const a of standaloneAlerts) consider(a.first_seen_ts, a.routes, a.active);
@@ -804,6 +894,19 @@ export function buildTodaySummary(alerts, observations, now = Date.now()) {
   }
   if (activeCount > 0) {
     head += ` · ${activeCount} still ongoing`;
+  }
+  // Same-weekday-last-week context. Skip when the count would be misleading:
+  //   - 0/0 looks meaningless ("0 incidents, 0 last X" repeats the obvious)
+  //   - early-morning today (lastWeek had a full day to accumulate; today
+  //     may have just a couple hours, so the comparison is unfair before
+  //     the day really gets going)
+  const hoursIntoToday = (now - todayUtc) / (60 * 60 * 1000);
+  if (lastWeekSameDayCount > 0 && hoursIntoToday >= 6) {
+    const weekdayName = new Intl.DateTimeFormat('en-US', {
+      timeZone: CHICAGO_TZ,
+      weekday: 'long',
+    }).format(new Date(now));
+    head += ` · ${lastWeekSameDayCount} last ${weekdayName}`;
   }
   return `${head}.`;
 }

@@ -193,6 +193,143 @@ export function buildCalendarMonths(
   return out;
 }
 
+// GitHub-contribution-style year heatmap. Returns a flat array of weeks,
+// each week a 7-cell row (Sun..Sat) — so column position is always a single
+// weekday across the entire grid. The page lays this out as a 7-row × N-col
+// CSS grid: rows become weekdays, columns become weeks moving rightward
+// through the year. Reading "are Mondays especially bad in April" reduces
+// to scanning the Monday row across the April-tagged columns.
+//
+// Weeks are emitted oldest-first so the rightmost column is the current
+// week. Cells outside the [windowStart, today] interval are flagged
+// `inRange: false` so the renderer can hide or dim them; cells before
+// `dataStartTs` get `noData: true`.
+//
+// `windowDays` is the size of the visible heatmap in days (default 364 = 52
+// weeks; we pad the leading edge to land on a Sunday boundary). Filters
+// behave identically to buildCalendarMonths.
+/**
+ * @param {Array<{ date: string, train_count: number, bus_count: number, by_line?: object, by_route?: object }>} days
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @param {number | null} [options.dataStartTs]
+ * @param {{ selectedLines: string[] | null, showBus: boolean, selectedBusRoutes: string[] } | null} [options.filters]
+ * @returns {{
+ *   weeks: Array<Array<{
+ *     date: string | null,
+ *     dayUtc: number | null,
+ *     dayOfMonth: number | null,
+ *     weekday: number,
+ *     count: number,
+ *     trainCount: number,
+ *     busCount: number,
+ *     inRange: boolean,
+ *     noData: boolean,
+ *     future: boolean,
+ *   }>>,
+ *   monthLabels: Array<{ weekIndex: number, label: string }>,
+ *   maxCount: number,
+ *   firstDayUtc: number,
+ *   lastDayUtc: number,
+ * }}
+ */
+export function buildCalendarWeeks(
+  days,
+  { now = Date.now(), windowDays = 364, dataStartTs = null, filters = null } = {},
+) {
+  const idx = indexDays(days);
+
+  // Anchor today in Chicago Y/M/D so we don't drift around midnight.
+  const todayParts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(now));
+  const todayYear = Number(todayParts.find((p) => p.type === 'year').value);
+  const todayMonth = Number(todayParts.find((p) => p.type === 'month').value);
+  const todayDay = Number(todayParts.find((p) => p.type === 'day').value);
+  const todayUtc = Date.UTC(todayYear, todayMonth - 1, todayDay);
+
+  // We want the rightmost column to contain today, with later weekdays of
+  // this week filled in as "future" cells. Find this week's Sunday, then
+  // walk back enough weeks to cover windowDays.
+  const todayWeekday = new Date(todayUtc).getUTCDay(); // 0 = Sun .. 6 = Sat
+  const thisWeekSunday = todayUtc - todayWeekday * DAY_MS;
+  // Round up to a whole number of weeks (52 by default = 364 days).
+  const numWeeks = Math.max(1, Math.ceil(windowDays / 7));
+  const firstWeekSunday = thisWeekSunday - (numWeeks - 1) * DAY_MS * 7;
+
+  const monthLabelFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'short' });
+
+  const weeks = [];
+  const monthLabels = [];
+  let lastLabeledMonth = null;
+  let maxCount = 0;
+
+  for (let w = 0; w < numWeeks; w++) {
+    const weekSunday = firstWeekSunday + w * DAY_MS * 7;
+    const cells = [];
+    for (let dow = 0; dow < 7; dow++) {
+      const dayUtc = weekSunday + dow * DAY_MS;
+      const d = new Date(dayUtc);
+      const y = d.getUTCFullYear();
+      const mo = d.getUTCMonth() + 1;
+      const dom = d.getUTCDate();
+      const date = `${y}-${String(mo).padStart(2, '0')}-${String(dom).padStart(2, '0')}`;
+      const future = dayUtc > todayUtc;
+      const inRange = dayUtc >= firstWeekSunday && !future;
+      const dayEnd = dayUtc + DAY_MS;
+      const noData = !future && dataStartTs != null && dayEnd <= dataStartTs;
+      const rec = idx.get(date);
+      const { trainCount, busCount } = rec
+        ? filters
+          ? filterCounts(rec, filters)
+          : { trainCount: rec.train_count || 0, busCount: rec.bus_count || 0 }
+        : { trainCount: 0, busCount: 0 };
+      const count = trainCount + busCount;
+      if (inRange && !noData && count > maxCount) maxCount = count;
+      cells.push({
+        date,
+        dayUtc,
+        dayOfMonth: dom,
+        weekday: dow,
+        count,
+        trainCount,
+        busCount,
+        inRange,
+        noData,
+        future,
+      });
+    }
+    weeks.push(cells);
+
+    // Tag a month label on the first week that introduces a new month — by
+    // convention, GitHub-style heatmaps label the column where the month
+    // starts. Skip the very first column when its label would crowd the
+    // weekday row.
+    for (const cell of cells) {
+      if (cell.dayOfMonth === 1) {
+        const label = monthLabelFmt.format(new Date(cell.dayUtc));
+        if (label !== lastLabeledMonth) {
+          monthLabels.push({ weekIndex: w, label });
+          lastLabeledMonth = label;
+        }
+        break;
+      }
+    }
+  }
+
+  return {
+    weeks,
+    monthLabels,
+    maxCount,
+    firstDayUtc: firstWeekSunday,
+    lastDayUtc: todayUtc,
+  };
+}
+
 // Highest count across all real cells in a calendar grid — used to scale
 // the cell-coloring intensity stops. Ignores placeholder/noData/future
 // cells so an empty future month doesn't compress the visible scale.

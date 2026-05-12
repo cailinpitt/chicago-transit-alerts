@@ -479,6 +479,32 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
 
+  // CTA's claimed end-time vs actual resolution. Pure CTA alerts and merged
+  // records carry `cta_event_end_ts` when CTA originally tagged the alert
+  // with an EventEnd. When the alert resolved before the stated end, CTA
+  // beat their own estimate; when it resolved after, they were optimistic.
+  // Skip when only one side is known or the values are >1 week apart (a
+  // stale EventEnd from a multi-day planned alert isn't a useful comparison).
+  let ctaEstimateBlock = null;
+  const ctaEnd = incident.cta_event_end_ts ?? null;
+  if (ctaEnd != null && incident.resolved_ts != null) {
+    const deltaMs = incident.resolved_ts - ctaEnd;
+    const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+    if (Math.abs(deltaMs) <= WEEK_MS) {
+      const absMin = Math.round(Math.abs(deltaMs) / 60_000);
+      const sameMinute = absMin === 0;
+      const earlyLate = deltaMs > 0 ? 'late' : 'early';
+      const minPhrase =
+        absMin < 60
+          ? `${absMin} min`
+          : `${Math.floor(absMin / 60)}h${absMin % 60 ? ` ${absMin % 60}m` : ''}`;
+      ctaEstimateBlock = {
+        sameMinute,
+        phrase: sameMinute ? 'cleared right on schedule' : `${minPhrase} ${earlyLate}`,
+      };
+    }
+  }
+
   // Stabilization delta: only meaningful when the CTA alert cleared before
   // the bot saw service return. The bot's resolved_ts represents sustained
   // recovery (CLEAR_TICKS_TO_RESET consecutive clean passes upstream); CTA
@@ -585,6 +611,22 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
               Duration
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">{duration}</dd>
+          </div>
+        )}
+        {ctaEstimateBlock && (
+          <div
+            className="sm:col-span-2"
+            title="CTA tagged this alert with an estimated end time (EventEnd) when it was first posted. This compares that estimate to when the alert actually cleared."
+          >
+            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              vs CTA's stated end
+            </dt>
+            <dd className="text-slate-700 dark:text-slate-200">
+              {ctaEstimateBlock.phrase}{' '}
+              <span className="text-slate-400 dark:text-slate-500 text-xs">
+                (estimated {formatTime(ctaEnd)} on {formatDate(ctaEnd)})
+              </span>
+            </dd>
           </div>
         )}
         {stabilizationDelta && (

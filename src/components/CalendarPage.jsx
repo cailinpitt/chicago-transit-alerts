@@ -1,12 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
-import { buildCalendarMonths, maxCountAcrossMonths } from '../lib/calendar.js';
+import { buildCalendarWeeks } from '../lib/calendar.js';
+import { formatChicagoDay } from '../lib/format.js';
 import { buildSearch, parseUrlState } from '../lib/urlState.js';
 import Filters from './Filters.jsx';
 import Header from './Header.jsx';
 
-const MONTHS_BACK = 12;
+// Days × weeks layout — rows are weekdays (Sun..Sat), columns are weeks
+// moving rightward through the year. Same shape as a GitHub contributions
+// heatmap. This is intentional: keeping a single weekday on each row makes
+// patterns like "Mondays are dark in April" visually obvious, which the
+// previous per-month strip layout (where column N meant a different
+// weekday in every row) hid.
+const WINDOW_DAYS = 364; // 52 weeks
+const WEEKDAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', '']; // sparse to keep the row compact
 
 const NO_DATA_STYLE = {
   backgroundImage:
@@ -27,70 +35,53 @@ function cellBg(count, maxCount) {
 }
 
 function CalendarCell({ cell, maxCount }) {
-  if (cell.placeholder) {
-    // Days that don't exist in this month (e.g. Feb 30). Empty slot keeps
-    // the 31-column grid aligned across months of different lengths.
-    return <div aria-hidden="true" />;
-  }
   if (cell.future) {
     return (
       <div
         aria-hidden="true"
-        className="rounded-sm aspect-square opacity-40"
+        className="w-3 h-3 rounded-sm opacity-40"
         style={{ backgroundColor: 'var(--timeline-empty)' }}
       />
     );
   }
   if (cell.noData) {
-    const label = `${cell.date}: no data`;
+    const label = `${formatChicagoDay(cell.dayUtc)}: no data`;
     return (
       <div
         role="img"
         title={label}
         aria-label={label}
-        className="rounded-sm aspect-square"
+        className="w-3 h-3 rounded-sm"
         style={NO_DATA_STYLE}
       />
     );
   }
+  const dayLabel = formatChicagoDay(cell.dayUtc);
   const label =
     cell.count === 0
-      ? `${cell.date}: no incidents`
-      : `${cell.date}: ${cell.count} incident${cell.count === 1 ? '' : 's'} (${cell.trainCount} train, ${cell.busCount} bus)`;
+      ? `${dayLabel}: no incidents`
+      : `${dayLabel}: ${cell.count} incident${cell.count === 1 ? '' : 's'} (${cell.trainCount} train, ${cell.busCount} bus)`;
+  if (cell.count === 0) {
+    return (
+      <div
+        role="img"
+        title={label}
+        aria-label={label}
+        className="w-3 h-3 rounded-sm"
+        style={{ backgroundColor: cellBg(0, maxCount) }}
+      />
+    );
+  }
   return (
     <a
       href={`/day/${cell.date}`}
       title={label}
       aria-label={label}
-      className="rounded-sm aspect-square hover:ring-1 hover:ring-slate-400 dark:hover:ring-slate-500 transition-all"
+      className="w-3 h-3 rounded-sm hover:ring-1 hover:ring-slate-400 dark:hover:ring-slate-500 transition-all"
       style={{ backgroundColor: cellBg(cell.count, maxCount) }}
     >
       <span className="sr-only">{label}</span>
     </a>
-  );
-}
-
-function CalendarMonth({ month, maxCount }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-32 flex-shrink-0 text-right">
-        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-          {month.label}
-        </span>
-      </div>
-      <div
-        className="flex-1 grid gap-1"
-        style={{ gridTemplateColumns: 'repeat(31, minmax(0, 1fr))' }}
-      >
-        {month.cells.map((cell) => (
-          <CalendarCell
-            key={`${month.year}-${month.month}-${cell.dayOfMonth}`}
-            cell={cell}
-            maxCount={maxCount}
-          />
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -175,7 +166,7 @@ export default function CalendarPage() {
     });
   }, [data]);
 
-  // Filters object passed to buildCalendarMonths. Null sentinel when every
+  // Filters object passed to buildCalendarWeeks. Null sentinel when every
   // chip is at default — keeps the original "all train + all bus" path so
   // the most common load doesn't pay for `by_line`/`by_route` traversal.
   const isFiltered =
@@ -188,29 +179,27 @@ export default function CalendarPage() {
     [isFiltered, selectedLines, showBus, selectedBusRoutes],
   );
 
-  const months = useMemo(() => {
-    if (!data) return [];
-    return buildCalendarMonths(data.days || [], {
+  const grid = useMemo(() => {
+    if (!data) return null;
+    return buildCalendarWeeks(data.days || [], {
       now,
-      monthsBack: MONTHS_BACK,
+      windowDays: WINDOW_DAYS,
       dataStartTs: data.data_start_ts ?? null,
       filters: filterArgs,
     });
   }, [data, now, filterArgs]);
 
-  const maxCount = useMemo(() => maxCountAcrossMonths(months), [months]);
-
   const totalCount = useMemo(() => {
-    if (!data) return 0;
+    if (!grid) return 0;
     let s = 0;
-    for (const m of months) {
-      for (const cell of m.cells) {
-        if (cell.placeholder || cell.noData || cell.future) continue;
+    for (const week of grid.weeks) {
+      for (const cell of week) {
+        if (!cell.inRange || cell.noData) continue;
         s += cell.count;
       }
     }
     return s;
-  }, [data, months]);
+  }, [grid]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
@@ -234,7 +223,7 @@ export default function CalendarPage() {
           </a>
           <div className="flex flex-wrap items-baseline gap-3">
             <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Calendar</h1>
-            {data && (
+            {grid && (
               <span className="text-sm text-slate-500 dark:text-slate-400">
                 {totalCount} incident{totalCount === 1 ? '' : 's'}
                 {isFiltered ? ' match the current filters' : ' on record'} · click a day to drill in
@@ -284,83 +273,110 @@ export default function CalendarPage() {
         {error && <p className="text-red-600 text-sm">Failed to load calendar data.</p>}
 
         {!error && !data && (
-          <div className="space-y-2 animate-pulse">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder rows
-                key={i}
-                className="h-8 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border"
-              />
-            ))}
-          </div>
+          <div className="h-32 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border animate-pulse" />
         )}
 
-        {data && (
-          <section>
-            <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
-              {/* Day-of-month header row */}
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-32 flex-shrink-0" />
-                <div
-                  className="flex-1 grid gap-1"
-                  style={{ gridTemplateColumns: 'repeat(31, minmax(0, 1fr))' }}
-                >
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                    <div key={d} className="text-center">
-                      {[1, 5, 10, 15, 20, 25, 30].includes(d) && (
-                        <span
-                          className="text-slate-400 dark:text-slate-500"
-                          style={{ fontSize: 10 }}
-                        >
-                          {d}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                {months.map((m) => (
-                  <CalendarMonth key={`${m.year}-${m.month}`} month={m} maxCount={maxCount} />
-                ))}
-              </div>
-
-              {/* Legend */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 pt-3 border-t border-slate-100 dark:border-gh-border">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
-                  <div className="flex gap-0.5">
-                    {[0, 0.1, 0.3, 0.55, 0.8, 1].map((r) => {
-                      const count = Math.ceil(r * Math.max(maxCount, 1));
-                      return (
-                        <div
-                          key={r}
-                          className="w-3 h-3 rounded-sm"
-                          style={{
-                            backgroundColor:
-                              r === 0
-                                ? 'var(--timeline-empty)'
-                                : cellBg(count, Math.max(maxCount, 1)),
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">More</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-sm" style={NO_DATA_STYLE} />
-                  <span className="text-xs text-slate-400 dark:text-slate-500">No data</span>
-                </div>
-                <span className="text-xs text-slate-300 dark:text-slate-600">
-                  · Each cell = one calendar day · Click to filter the homepage to that day
-                </span>
-              </div>
-            </div>
-          </section>
-        )}
+        {grid && <CalendarGrid grid={grid} />}
       </main>
     </div>
+  );
+}
+
+// Weekday-aligned year heatmap. CSS grid: an 8-column layout (one weekday-
+// label column + N week columns rendered via subgrid-ish nested grids).
+// Implemented as a flex of (label-col, weeks-flex-of-cols) so the weekday
+// labels stick at the left while the weeks scroll horizontally on narrow
+// viewports.
+function CalendarGrid({ grid }) {
+  const { weeks, monthLabels, maxCount } = grid;
+  return (
+    <section>
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
+        <div className="overflow-x-auto">
+          <div className="inline-flex flex-col">
+            {/* Month label row — one label slot per week column, only filled at
+                the column where each month starts. Uses the same template
+                grid as the cell rows below so labels align. */}
+            <div className="flex items-end gap-[3px] mb-1 pl-7">
+              {weeks.map((cells, wi) => {
+                const label = monthLabels.find((m) => m.weekIndex === wi)?.label;
+                return (
+                  <div
+                    key={`monthlabel-${cells[0].date}`}
+                    className="w-3 text-left"
+                    style={{ minWidth: 12 }}
+                  >
+                    {label && (
+                      <span
+                        className="text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                        style={{ fontSize: 10 }}
+                      >
+                        {label}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-1">
+              {/* Weekday label column. Sparse (Mon/Wed/Fri only) so the
+                  row stays readable without crowding every cell with text. */}
+              <div className="flex flex-col gap-[3px] pr-1">
+                {WEEKDAY_LABELS.map((label, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: fixed seven weekdays, position is the key
+                  <div key={i} className="h-3 flex items-center" style={{ minWidth: 24 }}>
+                    {label && (
+                      <span className="text-slate-400 dark:text-slate-500" style={{ fontSize: 10 }}>
+                        {label}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* Week columns — one column per week, each containing 7 cells
+                  Sun→Sat. */}
+              {weeks.map((cells) => (
+                <div key={cells[0].date} className="flex flex-col gap-[3px]">
+                  {cells.map((cell) => (
+                    <CalendarCell key={cell.date} cell={cell} maxCount={maxCount} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 pt-3 border-t border-slate-100 dark:border-gh-border">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
+            <div className="flex gap-0.5">
+              {[0, 0.1, 0.3, 0.55, 0.8, 1].map((r) => {
+                const count = Math.ceil(r * Math.max(maxCount, 1));
+                return (
+                  <div
+                    key={r}
+                    className="w-3 h-3 rounded-sm"
+                    style={{
+                      backgroundColor:
+                        r === 0 ? 'var(--timeline-empty)' : cellBg(count, Math.max(maxCount, 1)),
+                    }}
+                  />
+                );
+              })}
+            </div>
+            <span className="text-xs text-slate-400 dark:text-slate-500">More</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm" style={NO_DATA_STYLE} />
+            <span className="text-xs text-slate-400 dark:text-slate-500">No data</span>
+          </div>
+          <span className="text-xs text-slate-300 dark:text-slate-600">
+            · Each cell = one calendar day · Rows are weekdays, columns are weeks
+          </span>
+        </div>
+      </div>
+    </section>
   );
 }

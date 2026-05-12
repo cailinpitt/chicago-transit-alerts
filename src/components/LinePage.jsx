@@ -1,18 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import {
+  computeDayOfWeekCounts,
   computeDisruptionMinutes,
   computeDurationHistogram,
   computeLineReliability,
   computeSegmentRecurrence,
   computeSummaryStats,
   computeTypicalDurations,
+  computeWorstDay,
   computeYearOverYear,
 } from '../lib/aggregate.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
-import { formatGap, formatMinutesAsHours } from '../lib/format.js';
+import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
 import { normalizeAlertsPayload, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
@@ -23,6 +25,54 @@ import LineMap from './LineMap.jsx';
 import { SignalBreakdownSingleRoute } from './SignalBreakdown.jsx';
 import Timeline from './Timeline.jsx';
 import TrendSparkline from './TrendSparkline.jsx';
+
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Compact 7-bar weekday breakdown. Average incidents per weekday over the
+// rolling window — riders pattern-match commute days ("Fridays are bad")
+// faster from this than from the hour-of-week heatmap, which mixes weekday
+// and time-of-day into one cell.
+function DayOfWeekBars({ data }) {
+  if (!data || data.total === 0) return null;
+  const { counts, numWeeks, maxCount } = data;
+  return (
+    <section>
+      <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+        Incidents by day of week (90d)
+      </h2>
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
+        <div className="grid gap-2" style={{ gridTemplateColumns: 'auto 1fr auto' }}>
+          {counts.map((count, weekday) => {
+            const pct = maxCount > 0 ? (count / maxCount) * 100 : 0;
+            const perWeek = (count / numWeeks).toFixed(1);
+            return (
+              <Fragment key={WEEKDAY_LABELS[weekday]}>
+                <div className="text-xs text-slate-500 dark:text-slate-400 w-10 text-right tabular-nums">
+                  {WEEKDAY_LABELS[weekday]}
+                </div>
+                <div className="flex items-center">
+                  <div className="w-full h-4 rounded-sm bg-slate-100 dark:bg-gh-subtle overflow-hidden">
+                    {count > 0 && (
+                      <div
+                        className="h-full bg-slate-500 dark:bg-slate-400"
+                        style={{ width: `${Math.max(pct, 2)}%` }}
+                        role="img"
+                        aria-label={`${WEEKDAY_LABELS[weekday]}: ${count} incidents over ${numWeeks} weeks (avg ${perWeek}/wk)`}
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 tabular-nums w-20 text-right">
+                  {count} <span className="text-slate-400 dark:text-slate-500">({perWeek}/wk)</span>
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 // Distribution of resolution times for this line over the rolling window.
 // Compact horizontal bars — each row is a duration bin. Hidden when the
@@ -192,6 +242,19 @@ export default function LinePage({ kind, lineId }) {
       windowDays: 30,
       linesInScope: 1,
     });
+  }, [data, lineAlerts, lineObservations, now]);
+
+  const dayOfWeek = useMemo(() => {
+    if (!data) return null;
+    return computeDayOfWeekCounts(lineAlerts, lineObservations, { now, windowDays: 91 });
+  }, [data, lineAlerts, lineObservations, now]);
+
+  // Worst single day for this line/route in the 90d window. Surfaced as a
+  // single-line callout linking to the day-permalink — gives a quick "this
+  // is the floor we've sunk to" reference point.
+  const worstDay = useMemo(() => {
+    if (!data) return null;
+    return computeWorstDay(lineAlerts, lineObservations, { now, windowDays: 90 });
   }, [data, lineAlerts, lineObservations, now]);
 
   // Recurring trouble segments scoped to this line. Trains only — buses have
@@ -417,6 +480,18 @@ export default function LinePage({ kind, lineId }) {
                         than the same 30 days a year ago ({yoy.priorCount} → {yoy.currentCount})
                       </p>
                     )}
+                    {worstDay && worstDay.count >= 2 && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Worst day in 90d:{' '}
+                        <a
+                          href={`/day/${new Date(worstDay.dayUtc).toISOString().slice(0, 10)}`}
+                          className="text-blue-500 hover:text-blue-400 hover:underline"
+                        >
+                          <strong>{formatChicagoDay(worstDay.dayUtc)}</strong>
+                        </a>{' '}
+                        ({worstDay.count} incident{worstDay.count === 1 ? '' : 's'})
+                      </p>
+                    )}
                   </div>
                   <TrendSparkline alerts={lineAlerts} observations={lineObservations} />
                 </div>
@@ -468,6 +543,8 @@ export default function LinePage({ kind, lineId }) {
               selectedBusRoutes={!isTrain ? [lineId] : []}
               onBusRouteClick={() => {}}
             />
+
+            <DayOfWeekBars data={dayOfWeek} />
 
             <HourOfWeekHeatmap alerts={lineAlerts} observations={lineObservations} />
 

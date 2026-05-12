@@ -61,6 +61,8 @@ export function normalizeAlertsPayload(payload) {
  * @property {string | null} [affected_from_station]
  * @property {string | null} [affected_to_station]
  * @property {string | null} [affected_direction]
+ * @property {number | null} [cta_event_start_ts]  CTA's own claimed event start (from EventStart).
+ * @property {number | null} [cta_event_end_ts]    CTA's own claimed event end (from EventEnd).
  */
 
 /**
@@ -465,6 +467,12 @@ export function mergeMatchingIncidents(alerts, observations) {
           affected_from_station: alert.affected_from_station,
           affected_to_station: alert.affected_to_station,
           affected_direction: alert.affected_direction,
+          // Carry CTA's claimed event-end through so EventPage can compare
+          // their stated end to the actual resolve timestamp. Survives even
+          // when CTA later scrubs the alert (the field is persisted at
+          // first-sighting in the pipeline).
+          cta_event_start_ts: alert.cta_event_start_ts ?? null,
+          cta_event_end_ts: alert.cta_event_end_ts ?? null,
           from_station: obs.from_station,
           to_station: obs.to_station,
           obs_post_url: obs.post_url,
