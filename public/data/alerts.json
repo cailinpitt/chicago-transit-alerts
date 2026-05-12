@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778597762347,
+  "generated_at": 1778598422176,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -10,7 +10,7 @@
       ],
       "headline": "#91 Austin Temporary Southbound Reroute near Austin/George",
       "first_seen_ts": 1778597404451,
-      "last_seen_ts": 1778597405530,
+      "last_seen_ts": 1778598002869,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -30,7 +30,7 @@
       ],
       "headline": "#9 Ashland Temporary Northbound Reroute near Ashland/Wilson",
       "first_seen_ts": 1778595604129,
-      "last_seen_ts": 1778597402512,
+      "last_seen_ts": 1778598002868,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -232,7 +232,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778597402512,
+      "last_seen_ts": 1778598002868,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -596,7 +596,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778597402512,
+      "last_seen_ts": 1778598002866,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -704,11 +704,11 @@
       ],
       "evidence": null,
       "ts": 1778595841509,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778598242046,
+      "duration_ms": 2400537,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlnyippqbp2g",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlo2qbyck62s"
     },
     {
       "id": 36,
