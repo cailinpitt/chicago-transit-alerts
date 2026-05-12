@@ -59,7 +59,7 @@ function CalendarCell({ cell, maxCount }) {
       : `${cell.date}: ${cell.count} incident${cell.count === 1 ? '' : 's'} (${cell.trainCount} train, ${cell.busCount} bus)`;
   return (
     <a
-      href={`/?day=${cell.date}`}
+      href={`/day/${cell.date}`}
       title={label}
       aria-label={label}
       className="rounded-sm aspect-square hover:ring-1 hover:ring-slate-400 dark:hover:ring-slate-500 transition-all"

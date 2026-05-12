@@ -4,6 +4,7 @@ import './index.css';
 import App from './App.jsx';
 import CalendarPage from './components/CalendarPage.jsx';
 import ComparePage from './components/ComparePage.jsx';
+import DayPage from './components/DayPage.jsx';
 import EventPage from './components/EventPage.jsx';
 import LinePage from './components/LinePage.jsx';
 import StationPage from './components/StationPage.jsx';
@@ -16,6 +17,7 @@ import StatsPage from './components/StatsPage.jsx';
 //   /line/:id      → train line page (e.g. /line/red, /line/blue)
 //   /route/:id     → bus route page  (e.g. /route/66, /route/X9)
 //   /station/:slug → train station page (e.g. /station/clark-division)
+//   /day/:date     → single Chicago calendar day (YYYY-MM-DD)
 //   /calendar      → 12-month calendar heatmap of daily incident counts
 //   /stats         → leaderboard of worst day/hour/station/longest incident
 //   /compare       → side-by-side comparison of up to 3 train lines or bus routes
@@ -24,6 +26,7 @@ const eventMatch = /^\/event\/([^/?#]+)\/?$/.exec(path);
 const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
 const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
 const stationMatch = /^\/station\/([^/?#]+)\/?$/.exec(path);
+const dayMatch = /^\/day\/([^/?#]+)\/?$/.exec(path);
 const calendarMatch = /^\/calendar\/?$/.exec(path);
 const statsMatch = /^\/stats\/?$/.exec(path);
 const compareMatch = /^\/compare\/?$/.exec(path);
@@ -37,6 +40,8 @@ if (eventMatch) {
   page = <LinePage kind="bus" lineId={routeMatch[1]} />;
 } else if (stationMatch) {
   page = <StationPage slug={stationMatch[1]} />;
+} else if (dayMatch) {
+  page = <DayPage dateStr={dayMatch[1]} />;
 } else if (calendarMatch) {
   page = <CalendarPage />;
 } else if (statsMatch) {

@@ -9,6 +9,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TRAIN_LINE_ORDER } from '../src/lib/ctaLines.js';
+import { chicagoDayUTC } from '../src/lib/format.js';
 import {
   mergeMatchingIncidents,
   normalizeAlertsPayload,
@@ -91,6 +92,32 @@ function main() {
   });
   for (const slug of [...stations.keys()].sort()) {
     entries.push(urlEntry(`${SITE}/station/${slug}`, generatedIso, 'weekly', 0.5));
+  }
+
+  // Day pages — every Chicago calendar day in the last 30 days that had at
+  // least one incident. Same gating as prerender-pages.js so the sitemap and
+  // OG cards agree.
+  const DAY_WINDOW_DAYS = 30;
+  const todayUtc = chicagoDayUTC(generatedAt);
+  const dayCutoff = todayUtc - (DAY_WINDOW_DAYS - 1) * DAY_MS;
+  const daysWithIncidents = new Set();
+  function offerDay(ts) {
+    if (ts == null) return;
+    const d = chicagoDayUTC(ts);
+    if (d >= dayCutoff && d <= todayUtc) daysWithIncidents.add(d);
+  }
+  const {
+    merged: dayMerged,
+    standaloneAlerts: dayStandaloneAlerts,
+    standaloneObs: dayStandaloneObs,
+  } = mergeMatchingIncidents(payload.alerts ?? [], payload.observations ?? []);
+  for (const m of dayMerged) offerDay(m.first_seen_ts);
+  for (const a of dayStandaloneAlerts) offerDay(a.first_seen_ts);
+  for (const o of dayStandaloneObs) offerDay(o.first_seen_ts ?? o.ts);
+  for (const dayUtc of [...daysWithIncidents].sort((a, b) => b - a)) {
+    const d = new Date(dayUtc);
+    const iso = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+    entries.push(urlEntry(`${SITE}/day/${iso}`, generatedIso, 'weekly', 0.5));
   }
 
   // Per-event pages. lastmod uses resolved_ts when available, else the

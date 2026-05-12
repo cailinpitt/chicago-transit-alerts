@@ -33,8 +33,12 @@ import { computeStatsLeaderboards } from '../src/lib/aggregate.js';
 import { BUS_ROUTE_NAMES } from '../src/lib/busRoutes.js';
 import { buildCalendarMonths, maxCountAcrossMonths } from '../src/lib/calendar.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
-import { formatChicagoDay, formatDuration } from '../src/lib/format.js';
-import { formatRoutesLabel, normalizeAlertsPayload } from '../src/lib/incidents.js';
+import { chicagoDayUTC, formatChicagoDay, formatDuration } from '../src/lib/format.js';
+import {
+  formatRoutesLabel,
+  mergeMatchingIncidents,
+  normalizeAlertsPayload,
+} from '../src/lib/incidents.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -48,6 +52,7 @@ const STATION_TPL = resolve(__dirname, 'og-station-template.html');
 const CALENDAR_TPL = resolve(__dirname, 'og-calendar-template.html');
 const STATS_TPL = resolve(__dirname, 'og-stats-template.html');
 const COMPARE_TPL = resolve(__dirname, 'og-compare-template.html');
+const DAY_TPL = resolve(__dirname, 'og-day-template.html');
 const CACHE = resolve(ROOT, '.og-cache-pages');
 const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY ?? 6);
 
@@ -326,6 +331,68 @@ function planPages(payload, dailyPayload) {
     });
   }
 
+  // Day pages — every Chicago calendar day in the rolling window that had at
+  // least one incident. Skipped when the merge step yields nothing for that
+  // day, so a zero-incident day doesn't claim a share card.
+  const DAY_PRERENDER_WINDOW_DAYS = 30;
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+    payload.alerts ?? [],
+    payload.observations ?? [],
+  );
+  const daysWithIncidents = new Map(); // dayUtc → { trainLines: Set, busRoutes: Set, count }
+  function bumpDay(ts, kind, routes) {
+    if (ts == null) return;
+    const day = chicagoDayUTC(ts);
+    if (day < chicagoDayUTC(now) - (DAY_PRERENDER_WINDOW_DAYS - 1) * DAY_MS) return;
+    if (day > chicagoDayUTC(now)) return;
+    let entry = daysWithIncidents.get(day);
+    if (!entry) {
+      entry = { trainLines: new Set(), busRoutes: new Set(), count: 0 };
+      daysWithIncidents.set(day, entry);
+    }
+    entry.count += 1;
+    for (const r of routes ?? []) {
+      if (kind === 'train') entry.trainLines.add(r);
+      else if (kind === 'bus') entry.busRoutes.add(String(r));
+    }
+  }
+  for (const m of merged) bumpDay(m.first_seen_ts, m.kind, m.routes);
+  for (const a of standaloneAlerts) bumpDay(a.first_seen_ts, a.kind, a.routes);
+  for (const o of standaloneObs) bumpDay(o.first_seen_ts ?? o.ts, o.kind, o.line ? [o.line] : []);
+
+  for (const [dayUtc, entry] of [...daysWithIncidents].sort((a, b) => b[0] - a[0])) {
+    const d = new Date(dayUtc);
+    const isoDate = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+    const pillHtml = [
+      ...[...entry.trainLines]
+        .map((line) => {
+          const info = TRAIN_LINES[line];
+          if (!info) return null;
+          return `<span class="line-pill" style="background:${info.color};color:${info.textColor}">${escHtml(info.label)}</span>`;
+        })
+        .filter(Boolean),
+      ...[...entry.busRoutes]
+        .sort()
+        .slice(0, 8)
+        .map(
+          (route) =>
+            `<span class="line-pill" style="background:#475569;color:#fff">#${escHtml(route)}</span>`,
+        ),
+    ].join('');
+    pages.push({
+      kind: 'day',
+      slug: `day-${isoDate}`,
+      outDir: resolve(DIST, 'day', isoDate),
+      url: `${SITE}/day/${isoDate}`,
+      path: `/day/${isoDate}`,
+      ogTitle: `${formatChicagoDay(dayUtc)} · CTA Alert History`,
+      desc: `CTA service alerts and bot-detected disruptions on ${formatChicagoDay(dayUtc)} — archived on chicagotransitalerts.app.`,
+      title: formatChicagoDay(dayUtc),
+      subtitle: `${entry.count} incident${entry.count === 1 ? '' : 's'} across ${entry.trainLines.size + entry.busRoutes.size} line${entry.trainLines.size + entry.busRoutes.size === 1 ? '' : 's'}/route${entry.trainLines.size + entry.busRoutes.size === 1 ? '' : 's'}`,
+      pillHtml,
+    });
+  }
+
   // Stations from the index (already filtered to >=1 incident in 90d).
   const stationIndex = buildStationIndex(payload.alerts, payload.observations, {
     now,
@@ -448,6 +515,14 @@ function fillCompareTemplate(tpl) {
   return tpl;
 }
 
+function fillDayTemplate(tpl, page) {
+  return tpl
+    .replaceAll('__TITLE__', escHtml(page.title))
+    .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
+    .replaceAll('__PILLS__', page.pillHtml)
+    .replaceAll('__PATH__', escHtml(page.path));
+}
+
 function signatureFor(page, templateHash) {
   const h = createHash('sha256');
   // Hash the fields that actually affect the rendered PNG; keep the URL out
@@ -470,6 +545,8 @@ function signatureFor(page, templateHash) {
     // Static template — content is fully baked in. The template hash
     // (mixed in below) is the only thing that can change the PNG.
     payload = { kind: 'compare' };
+  } else if (page.kind === 'day') {
+    payload = { kind: 'day', title: page.title, sub: page.subtitle, pills: page.pillHtml };
   } else {
     payload = {
       kind: page.kind,
@@ -521,6 +598,8 @@ async function main() {
   const calendarTpl = existsSync(CALENDAR_TPL) ? readFileSync(CALENDAR_TPL, 'utf8') : null;
   const statsTpl = existsSync(STATS_TPL) ? readFileSync(STATS_TPL, 'utf8') : null;
   const compareTpl = existsSync(COMPARE_TPL) ? readFileSync(COMPARE_TPL, 'utf8') : null;
+  // DAY_TPL is required (ships in the repo). Treat like LINE_TPL/STATION_TPL.
+  const dayTpl = readFileSync(DAY_TPL, 'utf8');
   const lineHash = createHash('sha256').update(lineTpl).digest('hex').slice(0, 16);
   const stationHash = createHash('sha256').update(stationTpl).digest('hex').slice(0, 16);
   const calendarHash = calendarTpl
@@ -532,6 +611,7 @@ async function main() {
   const compareHash = compareTpl
     ? createHash('sha256').update(compareTpl).digest('hex').slice(0, 16)
     : '';
+  const dayHash = createHash('sha256').update(dayTpl).digest('hex').slice(0, 16);
 
   const pages = planPages(payload, dailyPayload);
   if (pages.length === 0) {
@@ -550,6 +630,7 @@ async function main() {
     else if (page.kind === 'calendar') tplHash = calendarHash;
     else if (page.kind === 'stats') tplHash = statsHash;
     else if (page.kind === 'compare') tplHash = compareHash;
+    else if (page.kind === 'day') tplHash = dayHash;
     else tplHash = lineHash;
     const sig = signatureFor(page, tplHash);
 
@@ -572,6 +653,7 @@ async function main() {
     else if (page.kind === 'calendar') html = fillCalendarTemplate(calendarTpl, page);
     else if (page.kind === 'stats') html = fillStatsTemplate(statsTpl, page);
     else if (page.kind === 'compare') html = fillCompareTemplate(compareTpl);
+    else if (page.kind === 'day') html = fillDayTemplate(dayTpl, page);
     else html = fillLineTemplate(lineTpl, page);
     renders.push({ page, html, cacheDir, cachedPng, cachedSig, sig });
   }

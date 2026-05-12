@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
-import { computeStatsLeaderboards, computeYearOverYear } from '../lib/aggregate.js';
+import {
+  computeSegmentRecurrence,
+  computeStatsLeaderboards,
+  computeYearOverYear,
+} from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay, formatDate, formatDuration, formatTime } from '../lib/format.js';
 import { formatRoutesLabel, normalizeAlertsPayload } from '../lib/incidents.js';
@@ -74,6 +78,15 @@ export default function StatsPage() {
   const leaders = useMemo(() => {
     if (!data) return null;
     return computeStatsLeaderboards(data.alerts, data.observations, { now, windowDays: 90 });
+  }, [data, now]);
+
+  const segments = useMemo(() => {
+    if (!data) return [];
+    return computeSegmentRecurrence(data.alerts, data.observations, {
+      now,
+      windowDays: 90,
+      limit: 5,
+    });
   }, [data, now]);
 
   const yoy = useMemo(() => {
@@ -155,7 +168,7 @@ export default function StatsPage() {
                 eyebrow="Worst day"
                 headline={`${formatChicagoDay(leaders.worstDay.dayUtc)} — ${leaders.worstDay.count} incident${leaders.worstDay.count === 1 ? '' : 's'}`}
                 sub="Most distinct incidents starting on a single Chicago calendar day."
-                href={`/?day=${new Date(leaders.worstDay.dayUtc).toISOString().slice(0, 10)}`}
+                href={`/day/${new Date(leaders.worstDay.dayUtc).toISOString().slice(0, 10)}`}
               />
             ) : (
               <StatCard
@@ -191,6 +204,47 @@ export default function StatsPage() {
                 eyebrow="Most-affected station (90d)"
                 headline="No station-tagged incidents in the window yet."
               />
+            )}
+
+            {segments.length > 0 && (
+              <section>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 mt-1 px-1">
+                  Recurring trouble segments (90d)
+                </h2>
+                <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border">
+                  {segments.map((s) => {
+                    const info = TRAIN_LINES[s.line];
+                    return (
+                      <a
+                        key={`${s.line}|${s.fromStation}|${s.toStation}`}
+                        href={`/line/${s.line}`}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-gh-canvas transition-colors"
+                      >
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0"
+                          style={{
+                            backgroundColor: info?.color ?? '#64748b',
+                            color: info?.textColor ?? '#fff',
+                          }}
+                        >
+                          {info?.label ?? s.line}
+                        </span>
+                        <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 min-w-0 truncate">
+                          {s.fromStation} → {s.toStation}
+                        </span>
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 tabular-nums flex-shrink-0">
+                          ×{s.count}
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 px-1">
+                  Bot-detected cold or held stretches that recurred on the same segment over the
+                  last 90 days. Direction-aware — a segment can show up twice if both directions
+                  have trouble.
+                </p>
+              </section>
             )}
 
             {leaders.longestIncident ? (

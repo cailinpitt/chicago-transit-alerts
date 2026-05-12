@@ -5,6 +5,7 @@ import {
   computeDisruptionMinutes,
   computeDurationHistogram,
   computeLineReliability,
+  computeSegmentRecurrence,
   computeSummaryStats,
   computeTypicalDurations,
   computeYearOverYear,
@@ -192,6 +193,19 @@ export default function LinePage({ kind, lineId }) {
       linesInScope: 1,
     });
   }, [data, lineAlerts, lineObservations, now]);
+
+  // Recurring trouble segments scoped to this line. Trains only — buses have
+  // far more stops and route variation than the helper's bucketing handles
+  // cleanly. Empty array on bus pages.
+  const segments = useMemo(() => {
+    if (!data || !isTrain) return [];
+    return computeSegmentRecurrence(data.alerts, data.observations, {
+      now,
+      windowDays: 90,
+      lineFilter: effectiveLineId,
+      limit: 5,
+    });
+  }, [data, isTrain, effectiveLineId, now]);
 
   // YoY for this line specifically. Gated on data_start_ts covering the
   // prior window — for a young dataset this just renders nothing rather
@@ -411,6 +425,33 @@ export default function LinePage({ kind, lineId }) {
             {/* Geographic station heatmap — train-only, since the data
                 files cover the L. Hidden on bus pages. */}
             {isTrain && <LineMap lineKey={effectiveLineId} stationIndex={stationIndex} />}
+
+            {segments.length > 0 && (
+              <section>
+                <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                  Recurring trouble segments (90d)
+                </h2>
+                <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border">
+                  {segments.map((s) => (
+                    <div
+                      key={`${s.fromStation}|${s.toStation}`}
+                      className="flex items-center gap-3 px-4 py-3"
+                    >
+                      <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 min-w-0 truncate">
+                        {s.fromStation} → {s.toStation}
+                      </span>
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 tabular-nums flex-shrink-0">
+                        ×{s.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 px-1">
+                  Cold or held stretches detected on the same segment more than once. Direction-
+                  aware — a segment can show up twice if both directions have trouble.
+                </p>
+              </section>
+            )}
 
             <DurationHistogram histogram={durationHistogram} />
 

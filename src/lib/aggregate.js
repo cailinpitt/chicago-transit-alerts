@@ -934,6 +934,77 @@ export function computeStatsLeaderboards(
   return { worstDay, worstHour, worstStation, longestIncident };
 }
 
+// Recurring segments: bucket train-only bot observations by (line,
+// from_station → to_station) and rank by raw count. The point is to surface
+// chokepoints — a stretch of track that disrupts often — which the per-
+// station leaderboard (`worstStation`) doesn't capture because every cold
+// stretch through Clark/Division also touches Chicago, North/Clybourn, etc.
+// Counting unique segments instead of stations puts the spotlight on the
+// actual recurring infrastructure problem rather than the busiest junction.
+//
+// Direction matters: the inbound and outbound sides of a segment often
+// behave differently (express tracks, peak-hour switching), so (A→B) and
+// (B→A) are kept distinct. CTA alerts are excluded — their segment endpoints
+// describe a planned-reroute scope, not a recurring detection. Roundups
+// also excluded (no segment endpoints).
+//
+// `lineFilter` lets the LinePage version reuse this helper while showing only
+// that line's segments. The /stats page passes null for system-wide.
+/**
+ * @param {import('./incidents.js').Alert[]} _alerts Reserved for future use; currently unused.
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @param {string | null} [options.lineFilter]   Restrict to a single train line key.
+ * @param {number} [options.limit]               Max rows returned (default 5).
+ * @param {number} [options.minCount]            Drop segments below this count (default 2 — singletons aren't "recurring").
+ * @returns {Array<{
+ *   line: string,
+ *   fromStation: string,
+ *   toStation: string,
+ *   count: number,
+ *   lastTs: number,
+ * }>}
+ */
+export function computeSegmentRecurrence(
+  _alerts,
+  observations,
+  { now = Date.now(), windowDays = 90, lineFilter = null, limit = 5, minCount = 2 } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+  const buckets = new Map(); // key: `line|from|to` → { count, lastTs }
+
+  for (const o of observations) {
+    if (o.kind !== 'train') continue;
+    if (!o.from_station || !o.to_station) continue;
+    if (o.detection_source === 'roundup') continue;
+    const ts = o.first_seen_ts ?? o.ts;
+    if (ts == null || ts < cutoff) continue;
+    if (lineFilter != null && o.line !== lineFilter) continue;
+    const key = `${o.line}|${o.from_station}|${o.to_station}`;
+    const cur = buckets.get(key);
+    if (cur) {
+      cur.count += 1;
+      if (ts > cur.lastTs) cur.lastTs = ts;
+    } else {
+      buckets.set(key, {
+        line: o.line,
+        fromStation: o.from_station,
+        toStation: o.to_station,
+        count: 1,
+        lastTs: ts,
+      });
+    }
+  }
+
+  const rows = [...buckets.values()].filter((r) => r.count >= minCount);
+  // Sort: most recurrences first; break ties by recency so a recent flare-up
+  // outranks a long-ago run with the same count.
+  rows.sort((a, b) => b.count - a.count || b.lastTs - a.lastTs);
+  return rows.slice(0, limit);
+}
+
 export function buildSignalsByLine(observations) {
   const byLine = {};
   const totals = {};
