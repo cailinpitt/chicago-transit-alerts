@@ -1,7 +1,29 @@
 {
-  "generated_at": 1778561762206,
+  "generated_at": 1778566861854,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114860",
+      "kind": "bus",
+      "routes": [
+        "N5",
+        "71",
+        "95"
+      ],
+      "headline": "#N5 South Shore Night Bus Temporary Reroute at 83rd/Houston.",
+      "first_seen_ts": 1778566802391,
+      "last_seen_ts": 1778566803998,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mln5hbuo3k2a",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": "south",
+      "cta_event_start_ts": 1778566380000,
+      "cta_event_end_ts": null
+    },
     {
       "alert_id": "114858",
       "kind": "train",
@@ -130,7 +152,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778561402594,
+      "last_seen_ts": 1778566802342,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -494,7 +516,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778561402594,
+      "last_seen_ts": 1778566802342,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
