@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import {
+  computeDisruptionMinutes,
   computeDurationHistogram,
   computeLineReliability,
   computeSummaryStats,
@@ -10,7 +11,7 @@ import {
 } from '../lib/aggregate.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
-import { formatGap } from '../lib/format.js';
+import { formatGap, formatMinutesAsHours } from '../lib/format.js';
 import { normalizeAlertsPayload, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
@@ -180,6 +181,18 @@ export default function LinePage({ kind, lineId }) {
     return computeDurationHistogram(lineAlerts, lineObservations, { now, windowDays: 90 });
   }, [data, lineAlerts, lineObservations, now]);
 
+  // Disruption-hours over the most recent 30 days. Severity-weighted
+  // companion to the raw incident count — a 90-minute hold and a 3-minute
+  // gap both count as 1 incident, but only the hold lands materially here.
+  const disruption = useMemo(() => {
+    if (!data) return null;
+    return computeDisruptionMinutes(lineAlerts, lineObservations, {
+      now,
+      windowDays: 30,
+      linesInScope: 1,
+    });
+  }, [data, lineAlerts, lineObservations, now]);
+
   // YoY for this line specifically. Gated on data_start_ts covering the
   // prior window — for a young dataset this just renders nothing rather
   // than a misleading "0 vs 0".
@@ -300,75 +313,100 @@ export default function LinePage({ kind, lineId }) {
               />
             )}
 
-            {summary && (summary.weeklyCount > 0 || summary.quietestLineDays > 0) && (
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 px-1">
-                <div className="space-y-1">
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <strong className="text-slate-800 dark:text-slate-100">
-                      {summary.weeklyCount}
-                    </strong>{' '}
-                    incident{summary.weeklyCount === 1 ? '' : 's'} in the last 7 days
-                    {summary.quietestLineDays >= 2 && (
-                      <>
-                        <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
-                        <span>{summary.quietestLineDays} days since last incident</span>
-                      </>
-                    )}
-                  </p>
-                  {reliability && reliability.incidentFreeDays < reliability.totalDays && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      <strong className="text-slate-700 dark:text-slate-200">
-                        {reliability.incidentFreeDays} of {reliability.totalDays} days
+            {summary &&
+              (summary.weeklyCount > 0 ||
+                (reliability?.currentStreakDays ?? 0) > 0 ||
+                (disruption?.disruptedMinutes ?? 0) > 0) && (
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 px-1">
+                  <div className="space-y-1">
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                      <strong className="text-slate-800 dark:text-slate-100">
+                        {summary.weeklyCount}
                       </strong>{' '}
-                      incident-free (90d)
-                      {reliability.longestStreakDays >= 2 && (
+                      incident{summary.weeklyCount === 1 ? '' : 's'} in the last 7 days
+                      {(reliability?.currentStreakDays ?? 0) >= 2 && (
                         <>
                           <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
-                          <span>
-                            longest streak{' '}
-                            <strong className="text-slate-700 dark:text-slate-200">
-                              {reliability.longestStreakDays} day
-                              {reliability.longestStreakDays === 1 ? '' : 's'}
-                            </strong>
-                          </span>
-                        </>
-                      )}
-                      {reliability.medianGapHours != null && (
-                        <>
-                          <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
-                          <span>
-                            median{' '}
-                            <strong className="text-slate-700 dark:text-slate-200">
-                              {formatGap(reliability.medianGapHours)}
-                            </strong>{' '}
-                            between incidents
-                          </span>
+                          <span>{reliability.currentStreakDays} days since last incident</span>
                         </>
                       )}
                     </p>
-                  )}
-                  {yoy?.enoughData && yoy.pctChange != null && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      <strong
-                        className={
-                          yoy.pctChange > 0
-                            ? 'text-red-500'
-                            : yoy.pctChange < 0
-                              ? 'text-green-600 dark:text-green-500'
-                              : 'text-slate-700 dark:text-slate-200'
-                        }
+                    {disruption && disruption.disruptedMinutes > 0 && (
+                      <p
+                        className="text-xs text-slate-500 dark:text-slate-400"
+                        title={`Total line-time spent in a detected disruption over the last 30 days, against an assumed ${21}h/day service window.`}
                       >
-                        {yoy.pctChange === 0
-                          ? 'Unchanged'
-                          : `${Math.abs(Math.round(yoy.pctChange * 100))}% ${yoy.pctChange > 0 ? 'busier' : 'quieter'}`}
-                      </strong>{' '}
-                      than the same 30 days a year ago ({yoy.priorCount} → {yoy.currentCount})
-                    </p>
-                  )}
+                        <strong className="text-slate-700 dark:text-slate-200">
+                          {formatMinutesAsHours(disruption.disruptedMinutes)}
+                        </strong>{' '}
+                        disrupted over the last 30 days
+                        {disruption.ratio > 0 && (
+                          <>
+                            {' · '}
+                            <strong className="text-slate-700 dark:text-slate-200">
+                              {disruption.ratio < 0.001
+                                ? '<0.1%'
+                                : `${(disruption.ratio * 100).toFixed(disruption.ratio < 0.01 ? 2 : 1)}%`}
+                            </strong>{' '}
+                            of service hours
+                          </>
+                        )}
+                      </p>
+                    )}
+                    {reliability && reliability.incidentFreeDays < reliability.totalDays && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <strong className="text-slate-700 dark:text-slate-200">
+                          {reliability.incidentFreeDays} of {reliability.totalDays} days
+                        </strong>{' '}
+                        incident-free (90d)
+                        {reliability.longestStreakDays >= 2 && (
+                          <>
+                            <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
+                            <span>
+                              longest streak{' '}
+                              <strong className="text-slate-700 dark:text-slate-200">
+                                {reliability.longestStreakDays} day
+                                {reliability.longestStreakDays === 1 ? '' : 's'}
+                              </strong>
+                            </span>
+                          </>
+                        )}
+                        {reliability.medianGapHours != null && (
+                          <>
+                            <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
+                            <span>
+                              median{' '}
+                              <strong className="text-slate-700 dark:text-slate-200">
+                                {formatGap(reliability.medianGapHours)}
+                              </strong>{' '}
+                              between incidents
+                            </span>
+                          </>
+                        )}
+                      </p>
+                    )}
+                    {yoy?.enoughData && yoy.pctChange != null && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <strong
+                          className={
+                            yoy.pctChange > 0
+                              ? 'text-red-500'
+                              : yoy.pctChange < 0
+                                ? 'text-green-600 dark:text-green-500'
+                                : 'text-slate-700 dark:text-slate-200'
+                          }
+                        >
+                          {yoy.pctChange === 0
+                            ? 'Unchanged'
+                            : `${Math.abs(Math.round(yoy.pctChange * 100))}% ${yoy.pctChange > 0 ? 'busier' : 'quieter'}`}
+                        </strong>{' '}
+                        than the same 30 days a year ago ({yoy.priorCount} → {yoy.currentCount})
+                      </p>
+                    )}
+                  </div>
+                  <TrendSparkline alerts={lineAlerts} observations={lineObservations} />
                 </div>
-                <TrendSparkline alerts={lineAlerts} observations={lineObservations} />
-              </div>
-            )}
+              )}
 
             {/* Geographic station heatmap — train-only, since the data
                 files cover the L. Hidden on bus pages. */}
@@ -406,6 +444,7 @@ export default function LinePage({ kind, lineId }) {
               search={search}
               onSearchChange={setSearch}
               stationIndex={stationIndex}
+              isFiltered
             />
           </>
         )}

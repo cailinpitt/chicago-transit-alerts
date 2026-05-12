@@ -45,6 +45,20 @@ export function formatDuration(ms) {
   return `~${parts.join(' ')}`;
 }
 
+// Compact "X min" / "X hr" form for stabilization-time deltas. Differs from
+// formatDuration: no `~`, rounds to whole minutes under an hour, and drops
+// stray seconds entirely. Returns null for non-positive deltas — a CTA alert
+// that cleared *after* the bot saw service return shouldn't render a
+// negative "stabilized -3 min after".
+export function formatStabilizationDelta(ms) {
+  if (ms == null || ms <= 0) return null;
+  const totalMin = Math.round(ms / 60_000);
+  if (totalMin < 60) return `${totalMin} min`;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
 // Format a duration given in *hours* for the per-line "median gap between
 // incidents" stat: minutes for sub-hour gaps, whole hours for sub-day, and
 // "Xd Yh" beyond. Differs from formatDuration: input is hours, no `~` prefix,
@@ -57,6 +71,21 @@ export function formatGap(hours) {
   const d = Math.floor(hours / 24);
   const h = Math.round(hours - d * 24);
   return h > 0 ? `${d}d ${h}h` : `${d}d`;
+}
+
+// Format an integer count of minutes as a compact "Xh Ym" / "Xh" / "Ym"
+// string. Used for disruption-hours summaries where totals can run from a few
+// minutes (light week on one line) to several hundred hours (busy month
+// system-wide). No `~` prefix — disruption totals are sums, not estimates.
+export function formatMinutesAsHours(minutes) {
+  if (minutes == null || minutes <= 0) return '0m';
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h < 24) return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  const d = Math.floor(h / 24);
+  const rem = h - d * 24;
+  return rem > 0 ? `${d}d ${rem}h` : `${d}d`;
 }
 
 export function formatDate(ts) {

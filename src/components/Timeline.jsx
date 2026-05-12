@@ -183,7 +183,7 @@ export default function Timeline({
             <thead>
               <tr>
                 {/* Corner spacer — matches the width of line label cells */}
-                <th className="sticky left-0 bg-white dark:bg-gh-surface z-10 w-16 min-w-[4rem]" />
+                <th className="sticky left-0 bg-white dark:bg-gh-surface z-10 w-12 min-w-[3rem] sm:w-16 sm:min-w-[4rem]" />
                 {/* Month label: only render text on the 1st of each month */}
                 {days.map(({ col, day, month }) => (
                   <th
@@ -210,7 +210,7 @@ export default function Timeline({
                 const incidents = incidentsByDay[lineKey] || {};
                 return (
                   <tr key={lineKey}>
-                    <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
+                    <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-2 sm:pr-3 align-middle min-w-[3rem] sm:min-w-[4rem]">
                       {/* Anchor (not button) so the label is a real link —
                           middle-click opens in a new tab, link previews
                           work, and the URL is the dedicated /line/:id
@@ -256,7 +256,7 @@ export default function Timeline({
                 const ariaLabel = routeName ? `Route ${routeId} ${routeName}` : label;
                 return (
                   <tr key={key}>
-                    <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-3 align-middle min-w-[4rem]">
+                    <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-2 sm:pr-3 align-middle min-w-[3rem] sm:min-w-[4rem]">
                       {routeId ? (
                         // Anchor to the dedicated route page. The aggregate
                         // 'Other' row has no routeId and stays inert.

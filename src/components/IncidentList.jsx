@@ -1,5 +1,12 @@
 import { Fragment, useMemo, useState } from 'react';
-import { chicagoDayUTC, formatChicagoDay, formatDuration, formatTime } from '../lib/format.js';
+import { buildCsv } from '../lib/csv.js';
+import {
+  chicagoDayUTC,
+  formatChicagoDay,
+  formatDuration,
+  formatStabilizationDelta,
+  formatTime,
+} from '../lib/format.js';
 import {
   formatEvidenceChip,
   getEventId,
@@ -20,6 +27,16 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   const startTs = incident.first_seen_ts || incident.ts;
   const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
+
+  // Only render the stabilization chip when CTA cleared the alert before the
+  // bot saw sustained recovery — that gap is the felt return-to-normal lag.
+  const stabilizationDelta =
+    isMerged &&
+    incident.resolved_ts != null &&
+    incident.obs_resolved_ts != null &&
+    incident.obs_resolved_ts > incident.resolved_ts
+      ? formatStabilizationDelta(incident.obs_resolved_ts - incident.resolved_ts)
+      : null;
 
   // The description is either highlightable text (alerts/roundups) or a JSX
   // fragment (segment endpoints, where station names may render as links).
@@ -118,6 +135,15 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
           </p>
         )}
 
+        {stabilizationDelta && (
+          <span
+            className="inline-flex items-center mt-1.5 mr-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300"
+            title="Time from CTA clearing the alert until the bot saw sustained normal service. Reflects the felt return-to-normal, not just CTA's bookkeeping."
+          >
+            stabilized {stabilizationDelta} after CTA cleared
+          </span>
+        )}
+
         {/* Bot-confidence chip — pulled from the observation's evidence
             payload. Surfaces "why the bot fired" without requiring a click
             through to Bluesky. */}
@@ -175,8 +201,57 @@ export default function IncidentList({
   onSearchChange,
   highlightedIds,
   stationIndex,
+  // True when the parent has applied any narrowing (line/route/range/day/
+  // signal). The CSV button shows a "(filtered)" hint when true OR when the
+  // local search box is non-empty, so the export's scope is obvious without
+  // inventing a row-count that mismatches the merged-incident header.
+  isFiltered = false,
 }) {
   const [page, setPage] = useState(1);
+
+  // Trigger a CSV download of the currently filtered alerts/observations.
+  // The button is wired to the same input list `combined` is built from, so
+  // what the user sees is exactly what they get — line/date/signal/search
+  // filters all already applied upstream. Object URL is revoked after the
+  // click so we don't leak a Blob URL per export.
+  function handleDownloadCsv() {
+    const csv = buildCsv(alerts, observations);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.download = `cta-alert-history-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // Always visible — `flex-shrink-0` keeps it from being crushed when the
+  // search input claims its share of the row on narrow viewports. Label
+  // includes the live row count so it's clear the export is responsive to
+  // whatever filters/search are active. Disabled (not hidden) when nothing
+  // matches so the affordance stays discoverable.
+  const rowsForDownload = (alerts?.length ?? 0) + (observations?.length ?? 0);
+  const narrowingActive = isFiltered || search.trim().length > 0;
+  const downloadButton = (
+    <button
+      type="button"
+      onClick={handleDownloadCsv}
+      disabled={rowsForDownload === 0}
+      title={
+        rowsForDownload === 0
+          ? 'No incidents match the current filters'
+          : narrowingActive
+            ? 'Download the currently filtered incidents as CSV. Same schema as /data/alerts.csv.'
+            : 'Download every incident currently shown as CSV. Same schema as /data/alerts.csv.'
+      }
+      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-gh-subtle flex-shrink-0 whitespace-nowrap"
+    >
+      ↓ CSV{narrowingActive ? ' (filtered)' : ''}
+    </button>
+  );
 
   // Search input lives in this section's header, on the same line as the
   // title, so the cause-effect of typing → results-narrowing is immediate.
@@ -255,7 +330,10 @@ export default function IncidentList({
           <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Incident History
           </h2>
-          {searchInput}
+          <div className="flex items-center gap-2">
+            {downloadButton}
+            {searchInput}
+          </div>
         </div>
         <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
           {search ? `No incidents match "${search}".` : 'No incidents in this range.'}
@@ -273,7 +351,10 @@ export default function IncidentList({
             ({total})
           </span>
         </h2>
-        {searchInput}
+        <div className="flex items-center gap-2">
+          {downloadButton}
+          {searchInput}
+        </div>
       </div>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border px-4 pt-4 pb-2">
         {groups.map((group) => (

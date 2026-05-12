@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import {
+  computeDisruptionMinutes,
   computeDurationHistogram,
   computeLineReliability,
   computeYearOverYear,
@@ -9,7 +10,7 @@ import {
 } from '../lib/aggregate.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
-import { formatGap } from '../lib/format.js';
+import { formatGap, formatMinutesAsHours } from '../lib/format.js';
 import {
   normalizeAlertsPayload,
   observationSignals,
@@ -106,7 +107,7 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-slate-200 dark:border-gh-border">
-            <th className="py-2 pr-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">
+            <th className="py-2 pr-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap sticky left-0 bg-white dark:bg-gh-surface z-10">
               Metric (90 days)
             </th>
             {selected.map((key, idx) => (
@@ -122,7 +123,7 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
         </thead>
         <tbody>
           <tr>
-            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
               Incident-free days
             </td>
             {perLine.map(({ reliability }, idx) =>
@@ -130,13 +131,13 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
             )}
           </tr>
           <tr>
-            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
               Longest streak
             </td>
             {perLine.map(({ reliability }, idx) => cell(`${reliability.longestStreakDays}d`, idx))}
           </tr>
           <tr>
-            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
               Median gap
             </td>
             {perLine.map(({ reliability }, idx) =>
@@ -147,14 +148,31 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
             )}
           </tr>
           <tr>
-            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
               Last 30 days
             </td>
             {yoyByLine.map((y, idx) => cell(`${y.currentCount}`, idx))}
           </tr>
+          <tr title="Severity-weighted: total line-time spent in a detected disruption over the last 30 days, against an assumed 21h/day service window.">
+            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
+              Disrupted (30d)
+            </td>
+            {perLine.map(({ disruption30d }, idx) =>
+              cell(
+                disruption30d.disruptedMinutes === 0
+                  ? '—'
+                  : `${formatMinutesAsHours(disruption30d.disruptedMinutes)} · ${
+                      disruption30d.ratio < 0.001
+                        ? '<0.1%'
+                        : `${(disruption30d.ratio * 100).toFixed(disruption30d.ratio < 0.01 ? 2 : 1)}%`
+                    }`,
+                idx,
+              ),
+            )}
+          </tr>
           {haveYoy && (
             <tr>
-              <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
                 YoY (vs 1y ago)
               </td>
               {yoyByLine.map((y, idx) => {
@@ -512,6 +530,11 @@ export default function ComparePage() {
         reliability: computeLineReliability(scoped.alerts, scoped.observations, {
           now,
           windowDays: 90,
+        }),
+        disruption30d: computeDisruptionMinutes(scoped.alerts, scoped.observations, {
+          now,
+          windowDays: 30,
+          linesInScope: 1,
         }),
       };
     });

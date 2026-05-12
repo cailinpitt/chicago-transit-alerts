@@ -344,6 +344,78 @@ export function findRelatedIncidents(
   return out;
 }
 
+// Find incidents whose start time falls within ±windowMs of the given event
+// AND which affect a DIFFERENT line/route. Used by the event detail page to
+// answer "was this part of a system-wide problem at the same moment?" — a
+// signal-boost when a power outage, weather event, or letout simultaneously
+// hits multiple lines. Returns sorted newest-first, deduped on event id.
+//
+// Bus and train cross-pollinate intentionally: a Red Line meltdown can spawn
+// shuttle-bus reroutes on the same hour, and surfacing that pairing helps the
+// reader piece the picture together. Each row carries its own `kind` so the
+// caller can render an appropriate line/route pill.
+/**
+ * @param {object} incident
+ * @param {Alert[]} alerts
+ * @param {Observation[]} observations
+ * @param {number} [windowMs] Time window before/after; defaults to 1h.
+ * @returns {Array<MergedIncident | Alert | Observation>}
+ */
+export function findContemporaneousOnOtherLines(
+  incident,
+  alerts,
+  observations,
+  windowMs = 60 * 60 * 1000,
+) {
+  if (!incident) return [];
+  const selfRoutes = new Set(incidentRoutes(incident));
+  const selfKind = incident.kind;
+  const ts = incident.first_seen_ts ?? incident.ts;
+  if (ts == null) return [];
+  const lo = ts - windowMs;
+  const hi = ts + windowMs;
+  const selfId = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url);
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  const inWindow = (other) => {
+    const t = other.first_seen_ts ?? other.ts;
+    return t != null && t >= lo && t <= hi;
+  };
+  const overlapsSelfRoutes = (other) => {
+    // For trains: any shared line key disqualifies (it's the same line, the
+    // RelatedIncidents section already covers that). For buses: same logic
+    // on route numbers. Cross-kind (train vs bus) is always considered
+    // different because the route key spaces are disjoint.
+    if (other.kind !== selfKind) return false;
+    return incidentRoutes(other).some((r) => selfRoutes.has(r));
+  };
+  const isSelf = (other) => {
+    const id = postUrlRkey(other.post_url) ?? postUrlRkey(other.obs_post_url);
+    return id != null && id === selfId;
+  };
+
+  const out = [];
+  for (const m of merged) {
+    if (!inWindow(m) || isSelf(m)) continue;
+    if (overlapsSelfRoutes(m)) continue;
+    out.push(m);
+  }
+  for (const a of standaloneAlerts) {
+    if (!inWindow(a) || isSelf(a)) continue;
+    if (overlapsSelfRoutes(a)) continue;
+    out.push(a);
+  }
+  for (const o of standaloneObs) {
+    if (!inWindow(o) || isSelf(o)) continue;
+    if (overlapsSelfRoutes(o)) continue;
+    out.push(o);
+  }
+
+  out.sort((a, b) => (b.first_seen_ts ?? b.ts) - (a.first_seen_ts ?? a.ts));
+  return out;
+}
+
 // Merge bot observations into their matching official CTA alerts when they
 // share the same line and overlapping time window. Returns:
 //   merged           — combined alert+observation records
@@ -397,6 +469,14 @@ export function mergeMatchingIncidents(alerts, observations) {
           to_station: obs.to_station,
           obs_post_url: obs.post_url,
           obs_resolved_post_url: active ? null : obs.resolved_post_url,
+          // Surface the observation's own clear timestamp on merged records.
+          // The bot's resolved_ts requires sustained recovery (CLEAR_TICKS_TO_RESET
+          // consecutive clean passes) before firing, so when both the CTA
+          // alert and the bot have resolved, comparing alert.resolved_ts (CTA
+          // marked the alert cleared) to obs.resolved_ts (trains running
+          // again) gives a service-stabilization delta. Null while active to
+          // avoid the same "last seen before first seen" hazard handled above.
+          obs_resolved_ts: active ? null : (obs.resolved_ts ?? null),
           obs_id: obs.id,
           // Carry the observation's typing info onto the merged record so
           // downstream consumers (e.g. typical-duration cohorts) can bucket

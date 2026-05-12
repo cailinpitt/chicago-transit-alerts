@@ -382,6 +382,14 @@ export default function App() {
               onSearchChange={setSearch}
               highlightedIds={highlightedIds}
               stationIndex={stationIndex}
+              isFiltered={
+                selectedLines !== null ||
+                !showBus ||
+                selectedBusRoutes.length > 0 ||
+                dateRange !== 7 ||
+                selectedDay !== null ||
+                selectedSignals.length > 0
+              }
             />
             <Timeline
               alerts={vizAlerts}

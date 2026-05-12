@@ -187,6 +187,7 @@ export default function StationPage({ slug }) {
               search={search}
               onSearchChange={setSearch}
               stationIndex={stationIndex}
+              isFiltered
             />
           </>
         )}

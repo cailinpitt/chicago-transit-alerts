@@ -6,10 +6,12 @@ import {
   formatChicagoDay,
   formatDate,
   formatDuration,
+  formatStabilizationDelta,
   formatTime,
   hexToRgba,
 } from '../lib/format.js';
 import {
+  findContemporaneousOnOtherLines,
   findIncidentById,
   findRelatedIncidents,
   formatRoutesLabel,
@@ -163,6 +165,84 @@ function relatedDescription(incident, stationIndex) {
   }
   if (incident.detection_source === 'roundup') return 'Multiple simultaneous disruptions';
   return 'Service disruption detected';
+}
+
+// Contemporaneous activity on OTHER lines/routes within ±1h of this event.
+// Companion to RelatedIncidents (which stays scoped to the same line) so a
+// reader can tell at a glance whether this disruption sat alongside others
+// across the system — a strong hint of a shared root cause (weather, power,
+// big-event letout) vs. an isolated incident.
+//
+// Renders nothing when the time-adjacent window is empty. The window is
+// tighter than RelatedIncidents (1h vs 24h) on purpose: cross-line
+// causation is meaningful at hour-scale, not day-scale; widening it would
+// dilute the signal into "things that happened today".
+function CrossLineContext({ incident, alerts, observations, stationIndex }) {
+  const others = useMemo(
+    () => findContemporaneousOnOtherLines(incident, alerts, observations),
+    [incident, alerts, observations],
+  );
+  if (others.length === 0) return null;
+  return (
+    <section className="mt-4">
+      <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+        Elsewhere on the system (±1h)
+      </h2>
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border">
+        {others.map((other) => {
+          const ts = other.first_seen_ts ?? other.ts;
+          const otherIsMerged = other._type === 'merged';
+          const otherIsAlert = !otherIsMerged && !!other.alert_id;
+          const eventId = other.alert_id ?? `obs-${other.id ?? other.obs_id ?? ts}`;
+          const detailsId = getEventId(other);
+          return (
+            <div key={eventId} className="flex items-start gap-3 px-4 py-3">
+              <div className="flex-shrink-0 w-20 text-right">
+                <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(ts)}</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(ts)}</p>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                  <LinePill kind={other.kind} line={other.line} routes={other.routes} />
+                  {otherIsMerged && (
+                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                      via CTA + auto-detection
+                    </span>
+                  )}
+                  {!otherIsMerged && otherIsAlert && (
+                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                      via CTA
+                    </span>
+                  )}
+                  {!otherIsMerged && !otherIsAlert && (
+                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                      via auto-detection
+                    </span>
+                  )}
+                  {other.active && (
+                    <span className="text-xs font-semibold text-red-500">ongoing</span>
+                  )}
+                </div>
+                <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
+                  {relatedDescription(other, stationIndex)}
+                </p>
+                {detailsId && (
+                  <div className="mt-1">
+                    <a
+                      href={`/event/${detailsId}`}
+                      className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
+                    >
+                      Details →
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
 
 function RelatedIncidents({ incident, alerts, observations, stationIndex }) {
@@ -335,8 +415,8 @@ export default function EventPage({ eventId }) {
         {data && !incident && (
           <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              We couldn't find an incident for this link. Incidents older than 90 days are no
-              longer archived; the link may also be incorrect.
+              We couldn't find an incident for this link. Incidents older than 90 days are no longer
+              archived; the link may also be incorrect.
             </p>
           </div>
         )}
@@ -350,6 +430,12 @@ export default function EventPage({ eventId }) {
               stationIndex={stationIndex}
             />
             <RelatedIncidents
+              incident={incident}
+              alerts={data.alerts}
+              observations={data.observations}
+              stationIndex={stationIndex}
+            />
+            <CrossLineContext
               incident={incident}
               alerts={data.alerts}
               observations={data.observations}
@@ -392,6 +478,22 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   const startTs = incident.first_seen_ts || incident.ts;
   const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
+
+  // Stabilization delta: only meaningful when the CTA alert cleared before
+  // the bot saw service return. The bot's resolved_ts represents sustained
+  // recovery (CLEAR_TICKS_TO_RESET consecutive clean passes upstream); CTA
+  // often clears its alert the moment the underlying incident ends, even if
+  // there's still a backlog working through. The gap between the two is the
+  // honest "service back to normal" delay riders feel.
+  let stabilizationDelta = null;
+  if (
+    isMerged &&
+    incident.resolved_ts != null &&
+    incident.obs_resolved_ts != null &&
+    incident.obs_resolved_ts > incident.resolved_ts
+  ) {
+    stabilizationDelta = formatStabilizationDelta(incident.obs_resolved_ts - incident.resolved_ts);
+  }
   const description = describe(incident, isMerged, isAlert, stationIndex);
   const affected = formatAffected(incident, stationIndex);
   const resolvedUrl = incident.resolved_reply_url ?? incident.resolved_post_url ?? null;
@@ -458,7 +560,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
         </p>
       )}
 
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm mt-4">
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-4">
         <div>
           <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
             First seen
@@ -483,6 +585,19 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
               Duration
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">{duration}</dd>
+          </div>
+        )}
+        {stabilizationDelta && (
+          <div
+            className="sm:col-span-2"
+            title="Time between CTA marking the alert cleared and the bot seeing sustained normal service. The bot's clear requires several consecutive clean passes, so this is closer to the felt return-to-normal than the CTA timestamp alone."
+          >
+            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Service stabilized
+            </dt>
+            <dd className="text-slate-700 dark:text-slate-200">
+              {stabilizationDelta} after CTA cleared the alert
+            </dd>
           </div>
         )}
       </dl>

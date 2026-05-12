@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { buildDailyTrend } from '../lib/aggregate.js';
+import { buildDailyTrend, computeDisruptionMinutes } from '../lib/aggregate.js';
 import { formatBusRoute } from '../lib/busRoutes.js';
-import { TRAIN_LINES } from '../lib/ctaLines.js';
+import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
+import { formatMinutesAsHours } from '../lib/format.js';
 import TrendSparkline from './TrendSparkline.jsx';
 
 // Callout threshold: only surface a "X% busier/quieter than the prior week"
@@ -51,6 +52,19 @@ export default function SummaryStats({
     [alerts, observations],
   );
 
+  // System-wide disruption-hours over the last 7 days, sized to match the
+  // existing "X incidents in the last 7 days" phrase. Line-hours, summed
+  // across all 8 train lines (buses excluded — bus routes outnumber lines
+  // 100:1 and would warp the denominator without a meaningful baseline).
+  const disruption7d = useMemo(() => {
+    if (!alerts || !observations) return null;
+    return computeDisruptionMinutes(
+      alerts.filter((a) => a.kind === 'train'),
+      observations.filter((o) => o.kind === 'train'),
+      { windowDays: 7, linesInScope: TRAIN_LINE_ORDER.length },
+    );
+  }, [alerts, observations]);
+
   const activePhrase =
     activeCount > 0 ? (
       <>
@@ -66,6 +80,18 @@ export default function SummaryStats({
       {weeklyCount === 1 ? '' : 's'} in the last 7 days
     </>
   );
+
+  // Total severity over the same 7 days. Hidden when there's nothing to
+  // report — a flat-zero week shouldn't drag a third phrase onto the line.
+  const disruptionPhrase =
+    disruption7d && disruption7d.disruptedMinutes > 0 ? (
+      <span title="Total line-time across all train lines spent in a detected disruption over the last 7 days. Assumes 21h/day of scheduled service per line.">
+        <strong className="text-slate-800 dark:text-slate-100">
+          {formatMinutesAsHours(disruption7d.disruptedMinutes)}
+        </strong>{' '}
+        of disrupted train-line time
+      </span>
+    ) : null;
 
   let affectedPhrase = null;
   if (mostAffectedKind === 'train' && TRAIN_LINES[mostAffectedId]) {
@@ -129,7 +155,7 @@ export default function SummaryStats({
   // block, so the visual reads "this number is what the line shows".
   return (
     <div className="space-y-1.5 px-1">
-      <StatRow>{[activePhrase, weekPhrase]}</StatRow>
+      <StatRow>{[activePhrase, weekPhrase, disruptionPhrase]}</StatRow>
       {alerts && observations && (trendPhrase || trend?.trendRatio != null) && (
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600 dark:text-slate-300">
           {trendPhrase ?? <span className="text-slate-500 dark:text-slate-400">Trend</span>}

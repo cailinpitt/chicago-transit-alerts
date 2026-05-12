@@ -173,6 +173,10 @@ export default function Filters({
   onClearSelectedDay,
   selectedSignals = [],
   onSignalsChange,
+  // Hide the date-range / pinned-day chips. Used by pages with a fixed time
+  // scope (calendar = 12 months) where a "7d / 30d / 60d / 90d / All" pill
+  // group would be inert and confusing.
+  hideDateRange = false,
 }) {
   const toggleLine = (line) => {
     onLinesChange((prev) => {
@@ -242,39 +246,43 @@ export default function Filters({
         )}
       </div>
 
-      <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
+      {!hideDateRange && (
+        <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
+      )}
 
       {/* Date range filter — replaced by a day chip when a single day is pinned. */}
-      <div className="flex gap-1">
-        {selectedDay != null ? (
-          <button
-            type="button"
-            onClick={onClearSelectedDay}
-            className="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 hover:opacity-80 transition-opacity"
-            aria-label={`Clear day filter: ${formatChicagoDay(selectedDay)}`}
-          >
-            <span>Showing {formatChicagoDay(selectedDay)}</span>
-            <span aria-hidden="true" className="opacity-70">
-              ×
-            </span>
-          </button>
-        ) : (
-          DATE_OPTIONS.map(({ label, value }) => (
+      {!hideDateRange && (
+        <div className="flex gap-1">
+          {selectedDay != null ? (
             <button
               type="button"
-              key={label}
-              onClick={() => onDateRangeChange(value)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                dateRange === value
-                  ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-                  : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
-              }`}
+              onClick={onClearSelectedDay}
+              className="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 hover:opacity-80 transition-opacity"
+              aria-label={`Clear day filter: ${formatChicagoDay(selectedDay)}`}
             >
-              {label}
+              <span>Showing {formatChicagoDay(selectedDay)}</span>
+              <span aria-hidden="true" className="opacity-70">
+                ×
+              </span>
             </button>
-          ))
-        )}
-      </div>
+          ) : (
+            DATE_OPTIONS.map(({ label, value }) => (
+              <button
+                type="button"
+                key={label}
+                onClick={() => onDateRangeChange(value)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  dateRange === value
+                    ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                    : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
+                }`}
+              >
+                {label}
+              </button>
+            ))
+          )}
+        </div>
+      )}
 
       <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
 

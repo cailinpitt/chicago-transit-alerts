@@ -2,6 +2,8 @@
 // produced by cta-insights/bin/export-daily.js and shapes it into a
 // 12-month grid keyed by Chicago calendar day.
 
+import { normalizeTrainLine } from './ctaLines.js';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Parse "YYYY-MM-DD" → UTC-midnight epoch encoding that Chicago Y/M/D
@@ -31,6 +33,46 @@ function indexDays(days) {
   return out;
 }
 
+// Apply the homepage filter set to a daily-counts record. Returns
+// `{ trainCount, busCount }` reflecting only the selected lines/routes.
+// Recognizes the same filter keys parseUrlState produces — line keys are
+// normalized to full names (`green`, not `g`), but daily-counts.json still
+// uses CTA short codes inside `by_line`, so the comparison walks both.
+//
+//   selectedLines     null = all train lines; [] = no train lines.
+//   showBus           false = drop all bus counts.
+//   selectedBusRoutes non-empty = restrict bus counts to these routes.
+//
+// Signal filtering is intentionally not supported here — daily-counts.json
+// doesn't carry per-signal breakdowns. The calendar page surfaces a small
+// note when signals are active so the user understands why the calendar
+// isn't responsive to that one filter chip.
+function filterCounts(day, { selectedLines, showBus, selectedBusRoutes }) {
+  let trainCount = 0;
+  if (selectedLines === null) {
+    // All train lines pass.
+    trainCount = day.train_count || 0;
+  } else if (selectedLines.length > 0 && day.by_line && typeof day.by_line === 'object') {
+    const wanted = new Set(selectedLines.map(normalizeTrainLine));
+    for (const [k, v] of Object.entries(day.by_line)) {
+      if (wanted.has(normalizeTrainLine(k))) trainCount += v;
+    }
+  }
+
+  let busCount = 0;
+  if (showBus) {
+    if (!selectedBusRoutes || selectedBusRoutes.length === 0) {
+      busCount = day.bus_count || 0;
+    } else if (day.by_route && typeof day.by_route === 'object') {
+      for (const [k, v] of Object.entries(day.by_route)) {
+        if (selectedBusRoutes.includes(k)) busCount += v;
+      }
+    }
+  }
+
+  return { trainCount, busCount };
+}
+
 // Build a calendar grid covering the most recent `monthsBack` months ending
 // in the current month. Returns an array of months, newest first, each with
 // a year/month label and a fixed-length 31-cell row. Cells covering days
@@ -41,12 +83,17 @@ function indexDays(days) {
 // `now` defaults to Date.now() — pinned to Chicago calendar terms via the
 // payload's date strings, so timezone of `now` doesn't matter for cell
 // alignment, only for "what's the current month."
+//
+// `filters` mirrors the homepage filter set; passing it narrows each cell's
+// count to only the selected lines/routes (uses each day's by_line/by_route
+// breakdowns). Default keeps the original "all train + all bus" behavior.
 /**
  * @param {{ date: string, train_count: number, bus_count: number, by_line?: object, by_route?: object }[]} days
  * @param {object} [options]
  * @param {number} [options.now]
  * @param {number} [options.monthsBack]
  * @param {number | null} [options.dataStartTs]
+ * @param {{ selectedLines: string[] | null, showBus: boolean, selectedBusRoutes: string[] } | null} [options.filters]
  * @returns {Array<{
  *   year: number,
  *   month: number,
@@ -65,7 +112,7 @@ function indexDays(days) {
  */
 export function buildCalendarMonths(
   days,
-  { now = Date.now(), monthsBack = 12, dataStartTs = null } = {},
+  { now = Date.now(), monthsBack = 12, dataStartTs = null, filters = null } = {},
 ) {
   const idx = indexDays(days);
   const today = new Date(now);
@@ -119,8 +166,11 @@ export function buildCalendarMonths(
       const dayEnd = dayUtc + DAY_MS;
       const noData = !future && dataStartTs != null && dayEnd <= dataStartTs;
       const rec = idx.get(date);
-      const trainCount = rec?.train_count || 0;
-      const busCount = rec?.bus_count || 0;
+      const { trainCount, busCount } = rec
+        ? filters
+          ? filterCounts(rec, filters)
+          : { trainCount: rec.train_count || 0, busCount: rec.bus_count || 0 }
+        : { trainCount: 0, busCount: 0 };
       cells.push({
         dayOfMonth: d,
         date,

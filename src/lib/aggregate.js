@@ -428,6 +428,7 @@ export function buildHourOfWeek(alerts, observations) {
  *   totalDays: number,
  *   medianGapHours: number | null,
  *   longestStreakDays: number,
+ *   currentStreakDays: number,
  * }}
  */
 export function computeLineReliability(
@@ -477,6 +478,16 @@ export function computeLineReliability(
     }
   }
 
+  // Current clean streak: consecutive clean days ending at today (dayIdx 0).
+  // Iterates from today backward and stops at the first day with an incident.
+  // Works for any scope (train line, bus route, system) — unlike the
+  // train-only quietestLineDays exposed by computeSummaryStats.
+  let currentStreakDays = 0;
+  for (let d = 0; d < windowDays; d++) {
+    if (daysWithIncident.has(d)) break;
+    currentStreakDays += 1;
+  }
+
   const startsInWindow = starts.filter((t) => t >= cutoffDayUTC).sort((a, b) => a - b);
   let medianGapHours = null;
   if (startsInWindow.length >= 2) {
@@ -490,7 +501,115 @@ export function computeLineReliability(
     medianGapHours = medianMs / (60 * 60 * 1000);
   }
 
-  return { incidentFreeDays, totalDays: windowDays, medianGapHours, longestStreakDays };
+  return {
+    incidentFreeDays,
+    totalDays: windowDays,
+    medianGapHours,
+    longestStreakDays,
+    currentStreakDays,
+  };
+}
+
+// CTA service runs roughly 4am–1am — 21 service hours per line per day. Used
+// as the denominator for the disruption-hours percentage so "X disrupted
+// hours" can be expressed as a fraction of when service is actually expected
+// to run. This is a single canonical number rather than a per-line schedule
+// (a fully accurate model would account for owl service on Red/Blue) — but
+// the simplification is documented in the UI and matches the level of
+// precision the rest of the site assumes.
+export const SERVICE_HOURS_PER_DAY = 21;
+
+// Disruption-hours: total line-hours of incident coverage over a rolling
+// window. Caller hands in a single scope's alerts/observations (one line,
+// one route, or the whole system). For a multi-line CTA alert (e.g. Red+
+// Purple shared trackage), each affected line counts separately — a 60-min
+// alert on Red+Purple contributes 120 line-minutes, matching the per-day
+// timeline cells which also draw on both rows.
+//
+// Spans are clamped to the window and to `now` (active spans extend to now).
+// Overlapping incidents on the same line collapse to the union of their
+// intervals so a held cluster + ghost detection don't double-count.
+//
+// `serviceMinutes` denominator: lines-in-scope × windowDays × SERVICE_HOURS_PER_DAY.
+// `linesInScope` defaults to 1 (per-line view); for system-wide views pass
+// the count of train lines + active bus routes.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @param {number} [options.linesInScope]
+ * @returns {{
+ *   disruptedMinutes: number,
+ *   serviceMinutes: number,
+ *   ratio: number,
+ * }}
+ */
+export function computeDisruptionMinutes(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 30, linesInScope = 1 } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  // Per-line interval list. Key: kind + ':' + line. Each entry is a list of
+  // [start, end] tuples clamped to the window. We union per-line so two
+  // simultaneous detections on Red Line don't both add to the total.
+  const byLine = new Map();
+  function add(lineKey, start, end) {
+    if (start == null) return;
+    const lo = Math.max(start, cutoff);
+    const hi = Math.min(end ?? now, now);
+    if (hi <= lo) return;
+    if (!byLine.has(lineKey)) byLine.set(lineKey, []);
+    byLine.get(lineKey).push([lo, hi]);
+  }
+
+  for (const m of merged) {
+    for (const route of m.routes || []) {
+      add(`${m.kind}:${route}`, m.first_seen_ts, m.resolved_ts);
+    }
+  }
+  for (const a of standaloneAlerts) {
+    for (const route of a.routes || []) {
+      add(`${a.kind}:${route}`, a.first_seen_ts, a.resolved_ts);
+    }
+  }
+  for (const o of standaloneObs) {
+    if (o.line == null) continue;
+    add(`${o.kind}:${o.line}`, o.ts, o.resolved_ts);
+  }
+
+  let disruptedMs = 0;
+  for (const intervals of byLine.values()) {
+    intervals.sort((a, b) => a[0] - b[0]);
+    // Union overlapping intervals so concurrent detections don't double-count.
+    let curStart = null;
+    let curEnd = null;
+    for (const [s, e] of intervals) {
+      if (curStart == null) {
+        curStart = s;
+        curEnd = e;
+        continue;
+      }
+      if (s <= curEnd) {
+        if (e > curEnd) curEnd = e;
+      } else {
+        disruptedMs += curEnd - curStart;
+        curStart = s;
+        curEnd = e;
+      }
+    }
+    if (curStart != null) disruptedMs += curEnd - curStart;
+  }
+
+  const disruptedMinutes = Math.round(disruptedMs / 60_000);
+  const serviceMinutes = Math.max(1, linesInScope) * windowDays * SERVICE_HOURS_PER_DAY * 60;
+  const ratio = serviceMinutes > 0 ? disruptedMs / (serviceMinutes * 60_000) : 0;
+  return { disruptedMinutes, serviceMinutes, ratio };
 }
 
 // Histogram bins for resolution-time distributions on LinePage. Tuned to
