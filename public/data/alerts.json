@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778609222709,
+  "generated_at": 1778619362699,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,7 +11,7 @@
       ],
       "headline": "#15 Jeffery Local and #172 U. of Chicago/Kenwood Temporary Reroute at Hyde Park/Woodlawn",
       "first_seen_ts": 1778606404059,
-      "last_seen_ts": 1778608802380,
+      "last_seen_ts": 1778619002775,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -253,7 +253,7 @@
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
       "first_seen_ts": 1778372404831,
-      "last_seen_ts": 1778608802380,
+      "last_seen_ts": 1778619002774,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -617,7 +617,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778608802380,
+      "last_seen_ts": 1778619002720,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -711,6 +711,38 @@
     }
   ],
   "observations": [
+    {
+      "id": 314,
+      "kind": "train",
+      "line": "p",
+      "direction": "branch-0-outbound",
+      "from_station": "Central (Purple)",
+      "to_station": "Noyes",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 0.7,
+        "minutesSinceLastTrain": null,
+        "lookbackMin": 24,
+        "coldThresholdMin": 19,
+        "trainsOutsideRun": 7,
+        "coldStations": 2,
+        "coldStationNames": [
+          "Central (Purple)",
+          "Noyes"
+        ],
+        "expectedTrains": 3,
+        "headwayMin": 7.625,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778619307130,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mloodzgpuz2g",
+      "resolved_post_url": null
+    },
     {
       "id": 312,
       "kind": "train",
