@@ -6,6 +6,7 @@ import {
   computeDisruptionMinutes,
   computeDurationHistogram,
   computeLineReliability,
+  computeRecentBurst,
   computeSegmentRecurrence,
   computeSummaryStats,
   computeTypicalDurations,
@@ -244,6 +245,25 @@ export default function LinePage({ kind, lineId }) {
     });
   }, [data, lineAlerts, lineObservations, now]);
 
+  // Flurry detector: count recent incident starts and compare to the line's
+  // own 30-day baseline. Gating combines an absolute floor (>=3 in window —
+  // a Red Line "flurry" of one incident isn't a flurry) and a relative
+  // threshold (>=2.5× baseline) so a chronically-busy line doesn't show the
+  // chip during normal-for-it activity.
+  const burst = useMemo(() => {
+    if (!data) return null;
+    return computeRecentBurst(lineAlerts, lineObservations, {
+      now,
+      windowHours: 3,
+      baselineDays: 30,
+    });
+  }, [data, lineAlerts, lineObservations, now]);
+  const burstActive =
+    burst != null &&
+    burst.recentCount >= 3 &&
+    burst.ratio != null &&
+    burst.ratio >= 2.5;
+
   const dayOfWeek = useMemo(() => {
     if (!data) return null;
     return computeDayOfWeekCounts(lineAlerts, lineObservations, { now, windowDays: 91 });
@@ -388,6 +408,18 @@ export default function LinePage({ kind, lineId }) {
                 typicalDurations={typicalDurations}
                 stationIndex={stationIndex}
               />
+            )}
+
+            {burstActive && (
+              <div
+                className="rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50/60 dark:bg-amber-950/30 px-3 py-2 text-sm text-amber-800 dark:text-amber-200"
+                title={`Compared against this line's own 30-day baseline rate. Threshold: ${'≥'}3 incidents AND ${'≥'}2.5${'×'} typical.`}
+              >
+                <strong>{burst.recentCount}</strong> incident
+                {burst.recentCount === 1 ? '' : 's'} in the last {burst.windowHours} hours —{' '}
+                <strong>{burst.ratio.toFixed(1)}×</strong> the typical rate for this{' '}
+                {isTrain ? 'line' : 'route'}.
+              </div>
             )}
 
             {summary &&

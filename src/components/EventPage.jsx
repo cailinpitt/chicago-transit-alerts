@@ -343,15 +343,38 @@ export default function EventPage({ eventId }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
 
+  // Initial fetch + 5-minute poll. Matches App.jsx's cadence so an event
+  // page left open on an active incident updates its duration / "ongoing"
+  // chip / resolution status without a reload. Only the initial fetch
+  // surfaces a hard error — silent failures after that keep the existing
+  // data visible rather than yanking the page out from under the reader.
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/alerts.json`;
-    fetch(url, { cache: 'no-store' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((raw) => setData(normalizeAlertsPayload(raw)))
-      .catch(setError);
+
+    function fetchData() {
+      fetch(url, { cache: 'no-store' })
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+        .then((raw) => {
+          const fresh = normalizeAlertsPayload(raw);
+          setData((prev) => {
+            if (!prev || fresh.generated_at !== prev.generated_at) return fresh;
+            return prev;
+          });
+        })
+        .catch((err) => {
+          setData((prev) => {
+            if (!prev) setError(err);
+            return prev;
+          });
+        });
+    }
+
+    fetchData();
+    const id = setInterval(fetchData, 5 * 60 * 1000);
+    return () => clearInterval(id);
   }, []);
 
   const incident = useMemo(() => {

@@ -399,6 +399,57 @@ export function buildHourOfWeek(alerts, observations) {
   return { grid, maxCount, total };
 }
 
+// Short-window incident burst detection. Counts merged-incident starts in
+// the last `windowHours` and the matching baseline rate over `baselineDays`.
+// Returns `{ recentCount, baselineCount, ratio }` so callers can decide
+// whether to surface a "burst" callout — the ratio is most-recent vs.
+// the same window length averaged across the baseline period.
+//
+// Inputs are expected to be scoped to one line/route by the caller (or the
+// whole system). The helper just counts.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowHours]   How recent the "burst" window is.
+ * @param {number} [options.baselineDays]  How far back the baseline cohort runs.
+ * @returns {{ recentCount: number, baselineWindowCount: number, ratio: number | null, windowHours: number }}
+ */
+export function computeRecentBurst(
+  alerts,
+  observations,
+  { now = Date.now(), windowHours = 3, baselineDays = 30 } = {},
+) {
+  const HOUR_MS = 60 * 60 * 1000;
+  const windowMs = windowHours * HOUR_MS;
+  const windowStart = now - windowMs;
+  const baselineMs = baselineDays * DAY_MS;
+  const baselineStart = now - baselineMs;
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  let recentCount = 0;
+  let baselineTotal = 0;
+  function consider(ts) {
+    if (ts == null) return;
+    if (ts >= baselineStart) baselineTotal += 1;
+    if (ts >= windowStart) recentCount += 1;
+  }
+  for (const m of merged) consider(m.first_seen_ts);
+  for (const a of standaloneAlerts) consider(a.first_seen_ts);
+  for (const o of standaloneObs) consider(o.first_seen_ts ?? o.ts);
+
+  // Baseline-window average: total over baseline, scaled to one window's
+  // length. Subtract the recent window from both numerator and denominator
+  // so the burst doesn't anchor its own baseline.
+  const baselineNonRecent = baselineTotal - recentCount;
+  const baselineWindowSize = baselineMs - windowMs;
+  const baselineWindowCount =
+    baselineWindowSize > 0 ? (baselineNonRecent * windowMs) / baselineWindowSize : 0;
+  const ratio = baselineWindowCount > 0 ? recentCount / baselineWindowCount : null;
+  return { recentCount, baselineWindowCount, ratio, windowHours };
+}
+
 // Per-weekday incident count over a rolling window. Returns a 7-element
 // array indexed Sun..Sat (matching JS Date.getDay conventions). Inputs are
 // expected to be scoped to a single line/route (or the whole system) by

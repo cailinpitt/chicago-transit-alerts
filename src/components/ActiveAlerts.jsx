@@ -1,9 +1,16 @@
 import { typicalDurationKey } from '../lib/aggregate.js';
+import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration } from '../lib/format.js';
 import { getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
+
+const BUS_COLOR = '#64748b';
+
+// Minimum visual span for the gantt — so two near-simultaneous active
+// incidents don't render as a zero-width strip the moment they appear.
+const GANTT_MIN_SPAN_MS = 15 * 60 * 1000;
 
 // Don't surface a median when fewer than this many past incidents back it.
 // Below 5, a single outlier dominates and the hint is more noise than signal.
@@ -198,6 +205,91 @@ function ActiveRow({ incident, now, isNew }) {
   return <div className={className}>{inner}</div>;
 }
 
+// Compact horizontal ribbon — one bar per active incident on a shared
+// time axis. Earliest active incident anchors the left edge; right edge is
+// "now". Lets a reader instantly see "this just started" vs "this has been
+// running for two hours" without parsing seven separate elapsed-time chips.
+// Skipped when only one incident is active (a single bar has nothing to
+// compare against and the existing card already shows elapsed time).
+function ActiveMiniGantt({ incidents, now }) {
+  if (incidents.length < 2) return null;
+
+  const starts = incidents.map((i) => i.first_seen_ts ?? i.ts).filter((t) => t != null);
+  if (starts.length === 0) return null;
+  const earliest = Math.min(...starts);
+  const span = Math.max(now - earliest, GANTT_MIN_SPAN_MS);
+
+  // Show three tick labels — left, midpoint, right — so the axis has
+  // enough reference points to read against without crowding.
+  const midLabel = formatDuration(span / 2);
+  const leftLabel = formatDuration(span);
+
+  // Oldest at top so the eye reads down the list as time progresses.
+  const sorted = [...incidents].sort(
+    (a, b) => (a.first_seen_ts ?? a.ts) - (b.first_seen_ts ?? b.ts),
+  );
+
+  return (
+    <div className="bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 px-3 py-2.5 mb-2">
+      <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+        Started
+      </p>
+      <div className="space-y-1">
+        {sorted.map((incident) => {
+          const start = incident.first_seen_ts ?? incident.ts;
+          const leftPct = ((start - earliest) / span) * 100;
+          const widthPct = ((now - start) / span) * 100;
+          const eventId = getEventId(incident);
+          const isTrain = incident.kind === 'train';
+          const lineKey =
+            (Array.isArray(incident.routes) && incident.routes[0]) || incident.line;
+          const color = isTrain ? (TRAIN_LINES[lineKey]?.color ?? BUS_COLOR) : BUS_COLOR;
+          const elapsedText = elapsed(now, start);
+          const label = `${isTrain ? TRAIN_LINES[lineKey]?.label ?? lineKey : `#${lineKey}`}: ${elapsedText} ago`;
+          const bar = (
+            <div
+              role="img"
+              className="relative h-2 rounded-full bg-slate-100 dark:bg-gh-subtle"
+              title={label}
+              aria-label={label}
+            >
+              <div
+                className="absolute top-0 bottom-0 rounded-full"
+                style={{
+                  left: `${leftPct}%`,
+                  width: `${Math.max(widthPct, 1.5)}%`,
+                  backgroundColor: color,
+                }}
+              />
+            </div>
+          );
+          return (
+            <div key={eventId ?? `${start}-${lineKey}`} className="flex items-center gap-2">
+              <div className="flex-1 min-w-0">
+                {eventId ? (
+                  <a href={`/event/${eventId}`} className="block hover:opacity-80 transition-opacity">
+                    {bar}
+                  </a>
+                ) : (
+                  bar
+                )}
+              </div>
+              <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums w-14 text-right flex-shrink-0">
+                {elapsedText}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mt-1.5 pr-16">
+        <span>{leftLabel} ago</span>
+        <span>{midLabel ? `${midLabel} ago` : ''}</span>
+        <span>now</span>
+      </div>
+    </div>
+  );
+}
+
 export default function ActiveAlerts({
   incidents,
   now = Date.now(),
@@ -227,6 +319,7 @@ export default function ActiveAlerts({
           </span>
         </h2>
       </div>
+      <ActiveMiniGantt incidents={incidents} now={now} />
       <div className="space-y-2">
         {fullCards.map((incident) => {
           const eventId = getEventId(incident);
