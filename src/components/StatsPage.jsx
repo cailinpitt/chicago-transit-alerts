@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import {
+  computeRestorationDeltas,
   computeSegmentRecurrence,
   computeStatsLeaderboards,
   computeYearOverYear,
@@ -51,6 +52,57 @@ function StatCard({ eyebrow, headline, sub, href }) {
   );
 }
 
+function RestorationDeltaList({ title, subtitle, rows }) {
+  if (rows.length === 0) {
+    return (
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+          {title}
+        </p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">{subtitle}</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500 italic">
+          No incidents in this direction.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border">
+      <div className="p-4 pb-2">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          {title}
+        </p>
+        <p className="text-xs text-slate-400 dark:text-slate-500">{subtitle}</p>
+      </div>
+      <div className="divide-y divide-slate-100 dark:divide-gh-border">
+        {rows.map((row) => {
+          const absMs = Math.abs(row.deltaMs);
+          const routesLabel = formatRoutesLabel(row.kind, row.routes);
+          return (
+            <a
+              key={row.id}
+              href={`/event/${row.id}`}
+              className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-gh-canvas transition-colors"
+            >
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
+                  {routesLabel}
+                </span>
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 tabular-nums flex-shrink-0">
+                  {formatDuration(absMs)}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {formatChicagoDay(row.firstSeenTs)} · {row.headline ?? 'Bot-corroborated incident'}
+              </p>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function StatsPage() {
   const [dark, toggleDark] = useDarkMode();
   const now = useNow();
@@ -82,7 +134,7 @@ export default function StatsPage() {
 
   const segments = useMemo(() => {
     if (!data) return [];
-    return computeSegmentRecurrence(data.alerts, data.observations, {
+    return computeSegmentRecurrence(data.observations, {
       now,
       windowDays: 90,
       limit: 5,
@@ -95,6 +147,15 @@ export default function StatsPage() {
       now,
       windowDays: 30,
       dataStartTs: data.data_start_ts ?? null,
+    });
+  }, [data, now]);
+
+  const restorationDeltas = useMemo(() => {
+    if (!data) return null;
+    return computeRestorationDeltas(data.alerts, data.observations, {
+      now,
+      windowDays: 90,
+      limit: 3,
     });
   }, [data, now]);
 
@@ -246,6 +307,34 @@ export default function StatsPage() {
                 </p>
               </section>
             )}
+
+            {restorationDeltas &&
+              (restorationDeltas.ctaClearedEarly.length > 0 ||
+                restorationDeltas.ctaClearedLate.length > 0) && (
+                <section>
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 mt-1 px-1">
+                    Service-restoration delta (90d)
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 px-1">
+                    On {restorationDeltas.matchedCount} incident
+                    {restorationDeltas.matchedCount === 1 ? '' : 's'} where both CTA and the bot
+                    have resolution timestamps, the gap between when CTA marked the alert cleared
+                    and when the bot saw sustained service recovery.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <RestorationDeltaList
+                      title="CTA cleared early"
+                      subtitle="Alert closed before trains recovered"
+                      rows={restorationDeltas.ctaClearedEarly}
+                    />
+                    <RestorationDeltaList
+                      title="CTA cleared late"
+                      subtitle="Service recovered before alert closed"
+                      rows={restorationDeltas.ctaClearedLate}
+                    />
+                  </div>
+                </section>
+              )}
 
             {leaders.longestIncident ? (
               <StatCard

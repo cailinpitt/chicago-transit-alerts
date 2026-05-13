@@ -61,7 +61,10 @@ export default function SummaryStats({
     return computeDisruptionMinutes(
       alerts.filter((a) => a.kind === 'train'),
       observations.filter((o) => o.kind === 'train'),
-      { windowDays: 7, linesInScope: TRAIN_LINE_ORDER.length },
+      {
+        windowDays: 7,
+        lines: TRAIN_LINE_ORDER.map((line) => ({ kind: 'train', line })),
+      },
     );
   }, [alerts, observations]);
 

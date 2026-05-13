@@ -120,15 +120,11 @@ export function normalizeAlertsPayload(payload) {
 // in which case the precise signal kinds live in `signals`).
 export const SIGNAL_TYPES = ['gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-held'];
 
-// Friendly labels for every signal kind. The `pulse` fallback covers any
-// legacy snapshots written before export-web.js started emitting precise
-// pulse subtypes — once data refreshes through the pipeline, only the
-// subtype keys are seen.
+// Friendly labels for every signal kind.
 export const SIGNAL_LABELS = {
   gap: 'headway gaps',
   bunching: 'bunching',
   ghost: 'missing vehicles',
-  pulse: 'stalled service',
   'pulse-cold': 'cold stretch',
   'pulse-held': 'trains held in place',
 };
@@ -463,8 +459,7 @@ export function mergeMatchingIncidents(alerts, observations) {
     // primary; the rest ride along on extra_obs so routing and the UI can
     // still reach them.
     matches.sort(
-      (a, b) =>
-        Math.abs(a.ts - alert.first_seen_ts) - Math.abs(b.ts - alert.first_seen_ts),
+      (a, b) => Math.abs(a.ts - alert.first_seen_ts) - Math.abs(b.ts - alert.first_seen_ts),
     );
     const primary = matches[0];
     const extras = matches.slice(1);
@@ -506,6 +501,7 @@ export function mergeMatchingIncidents(alerts, observations) {
       // again) gives a service-stabilization delta. Null while active to
       // avoid the same "last seen before first seen" hazard handled above.
       obs_resolved_ts: active ? null : (primary.resolved_ts ?? null),
+      obs_ts: primary.ts,
       obs_id: primary.id,
       // Carry the observation's typing info onto the merged record so
       // downstream consumers (e.g. typical-duration cohorts) can bucket

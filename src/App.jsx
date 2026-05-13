@@ -14,6 +14,7 @@ import { useDarkMode } from './hooks/useDarkMode.js';
 import { useNow } from './hooks/useNow.js';
 import {
   buildTodaySummary,
+  computeRecentBurst,
   computeSummaryStats,
   computeTypicalDurations,
 } from './lib/aggregate.js';
@@ -292,6 +293,18 @@ export default function App() {
     return computeTypicalDurations(data.alerts, data.observations, { now, windowDays: 90 });
   }, [data, now]);
 
+  // System-wide burst detector: incidents in the last 3h vs. the 30d baseline
+  // rate, scaled to the same 3h window. Used by ActiveAlerts to flash a
+  // "Z× typical rate" chip only when things are visibly worse than usual.
+  const burst = useMemo(() => {
+    if (!data) return null;
+    return computeRecentBurst(data.alerts, data.observations, {
+      now,
+      windowHours: 3,
+      baselineDays: 30,
+    });
+  }, [data, now]);
+
   // Station index — used by IncidentList to turn station names into
   // /station/:slug links when the destination page is worth visiting.
   const stationIndex = useMemo(() => {
@@ -361,6 +374,7 @@ export default function App() {
                 highlightedIds={highlightedIds}
                 typicalDurations={typicalDurations}
                 stationIndex={stationIndex}
+                burst={burst}
               />
             )}
             {/* Sticky filter bar — keeps controls reachable as the user

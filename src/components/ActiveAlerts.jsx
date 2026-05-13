@@ -303,6 +303,13 @@ function ActiveMiniGantt({ incidents, now }) {
   );
 }
 
+// Floor + threshold for the burst chip. The relative ratio alone isn't
+// enough — a single incident with zero baseline trivially crosses 2×, but
+// "1 incident in 3h" isn't a burst. Require at least 3 in-window incidents
+// before claiming anything unusual.
+const BURST_RATIO_THRESHOLD = 2;
+const BURST_MIN_RECENT = 3;
+
 export default function ActiveAlerts({
   incidents,
   longRunningIncidents = [],
@@ -310,7 +317,13 @@ export default function ActiveAlerts({
   highlightedIds,
   typicalDurations,
   stationIndex,
+  burst,
 }) {
+  const burstActive =
+    burst != null &&
+    burst.recentCount >= BURST_MIN_RECENT &&
+    burst.ratio != null &&
+    burst.ratio >= BURST_RATIO_THRESHOLD;
   // First 1-2 stay as full cards — the freshest, most-likely-to-investigate
   // incidents get visual weight. Beyond that we collapse to compact rows so
   // a system-wide bad afternoon doesn't push the rest of the page below the
@@ -328,7 +341,7 @@ export default function ActiveAlerts({
 
   return (
     <section>
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
         <div aria-hidden="true" className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
@@ -339,6 +352,14 @@ export default function ActiveAlerts({
             ({totalActive})
           </span>
         </h2>
+        {burstActive && (
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 normal-case tracking-normal"
+            title="Recent incident rate vs. the 30-day baseline rate over the same window length."
+          >
+            {`${burst.recentCount} in ${burst.windowHours}h · ${burst.ratio.toFixed(1)}× typical rate`}
+          </span>
+        )}
       </div>
       <ActiveMiniGantt incidents={incidents} now={now} />
       <div className="space-y-2">

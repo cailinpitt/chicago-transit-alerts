@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { buildBusIncidentsByDay, buildIncidentsByDay } from '../lib/aggregate.js';
+import {
+  buildBusIncidentsByDay,
+  buildIncidentsByDay,
+  computeLineReliability,
+} from '../lib/aggregate.js';
 import { busRouteName } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { chicagoDayUTC, hexToRgba } from '../lib/format.js';
@@ -109,6 +113,21 @@ export default function Timeline({
     [alerts, observations, numDays, now],
   );
 
+  // Per-line reliability (incident-free days + current clean streak) for the
+  // visible window. Scoped to train rows because bus rows are an aggregate
+  // ("top 5 + Other") rather than a single route, so a per-row reliability
+  // number would invite the obvious "Other = 45%" comparison and that's
+  // meaningless across N≥6 routes lumped together.
+  const reliabilityByLine = useMemo(() => {
+    const out = {};
+    for (const line of TRAIN_LINE_ORDER) {
+      const lineAlerts = alerts.filter((a) => a.kind === 'train' && a.routes?.includes(line));
+      const lineObs = observations.filter((o) => o.kind === 'train' && o.line === line);
+      out[line] = computeLineReliability(lineAlerts, lineObs, { now, windowDays: numDays });
+    }
+    return out;
+  }, [alerts, observations, numDays, now]);
+
   const busIncidentsByDay = useMemo(
     () => buildBusIncidentsByDay(alerts, observations, numDays, now),
     [alerts, observations, numDays, now],
@@ -208,6 +227,16 @@ export default function Timeline({
               {linesToShow.map((lineKey) => {
                 const info = TRAIN_LINES[lineKey];
                 const incidents = incidentsByDay[lineKey] || {};
+                const rel = reliabilityByLine[lineKey];
+                const pctClean =
+                  rel && rel.totalDays > 0
+                    ? Math.round((rel.incidentFreeDays / rel.totalDays) * 100)
+                    : null;
+                const streak = rel?.currentStreakDays ?? 0;
+                const relLabel =
+                  pctClean != null
+                    ? `${pctClean}% clean · current streak ${streak} day${streak === 1 ? '' : 's'} (${numDays}d window)`
+                    : null;
                 return (
                   <tr key={lineKey}>
                     <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-2 sm:pr-3 align-middle min-w-[3rem] sm:min-w-[4rem]">
@@ -218,11 +247,19 @@ export default function Timeline({
                           narrowing the existing view. */}
                       <a
                         href={`/line/${lineKey}`}
-                        title={`Open ${info.label} Line page`}
-                        className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity inline-block"
+                        title={relLabel ?? `Open ${info.label} Line page`}
+                        className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity inline-block leading-tight"
                         style={{ color: info.color }}
                       >
-                        {info.label}
+                        <span className="block">{info.label}</span>
+                        {pctClean != null && (
+                          <span
+                            className="block font-normal text-slate-400 dark:text-slate-500 tabular-nums"
+                            style={{ fontSize: 9 }}
+                          >
+                            {pctClean}% · {streak}d
+                          </span>
+                        )}
                       </a>
                     </td>
                     {days.map(({ col, dayIdx, dayUTC }) => (
@@ -320,7 +357,8 @@ export default function Timeline({
             <span className="text-xs text-slate-400 dark:text-slate-500">No data</span>
           </div>
           <span className="text-xs text-slate-300 dark:text-slate-600">
-            · Click a line name to filter
+            · Click a day to filter · Under each line: % of days with no incident · current clean
+            streak
           </span>
         </div>
       </div>

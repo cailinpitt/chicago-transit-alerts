@@ -265,9 +265,9 @@ export default function LinePage({ kind, lineId }) {
     return computeDisruptionMinutes(lineAlerts, lineObservations, {
       now,
       windowDays: 30,
-      linesInScope: 1,
+      lines: [{ kind, line: effectiveLineId }],
     });
-  }, [data, lineAlerts, lineObservations, now]);
+  }, [data, lineAlerts, lineObservations, now, kind, effectiveLineId]);
 
   // Flurry detector: count recent incident starts and compare to the line's
   // own 30-day baseline. Gating combines an absolute floor (>=3 in window —
@@ -303,7 +303,7 @@ export default function LinePage({ kind, lineId }) {
   // cleanly. Empty array on bus pages.
   const segments = useMemo(() => {
     if (!data || !isTrain) return [];
-    return computeSegmentRecurrence(data.alerts, data.observations, {
+    return computeSegmentRecurrence(data.observations, {
       now,
       windowDays: 90,
       lineFilter: effectiveLineId,

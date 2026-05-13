@@ -11,6 +11,21 @@ import {
 } from './incidents.js';
 import { buildStationIndex } from './stations.js';
 
+// Identity-based cache so the eight aggregators downstream of a single
+// `data` poll don't re-run the O(alerts × observations) merge in lockstep.
+// normalizeAlertsPayload returns fresh array references on every fetch, so
+// cache hits on the same poll cycle's references and misses cleanly the
+// next time the JSON updates. WeakMap so old payloads are GC'd.
+const _mergeCache = new WeakMap();
+function getMerge(alerts, observations) {
+  if (!alerts || !observations) return mergeMatchingIncidents(alerts, observations);
+  const entry = _mergeCache.get(alerts);
+  if (entry && entry.observations === observations) return entry.result;
+  const result = mergeMatchingIncidents(alerts, observations);
+  _mergeCache.set(alerts, { observations, result });
+  return result;
+}
+
 const CHICAGO_TZ = 'America/Chicago';
 const chicagoHourFmt = new Intl.DateTimeFormat('en-US', {
   timeZone: CHICAGO_TZ,
@@ -205,7 +220,7 @@ export function computeSummaryStats(alerts, observations, now = Date.now()) {
   const weekAgo = now - 7 * DAY_MS;
   const monthAgo = now - 30 * DAY_MS;
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
 
   const incidents = [
     ...merged.map((m) => ({
@@ -331,7 +346,7 @@ export function buildDailyTrend(alerts, observations, numDays = 30, now = Date.n
     if (dayIdx >= 0 && dayIdx < numDays) counts[dayIdx] += 1;
   }
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
   for (const m of merged) bump(m.first_seen_ts);
   for (const a of standaloneAlerts) bump(a.first_seen_ts);
   for (const o of standaloneObs) bump(o.first_seen_ts ?? o.ts);
@@ -391,7 +406,7 @@ export function buildHourOfWeek(alerts, observations) {
   }
 
   // Merge to avoid double-counting alert+observation pairs.
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
   for (const m of merged) bump(m.first_seen_ts);
   for (const a of standaloneAlerts) bump(a.first_seen_ts);
   for (const o of standaloneObs) bump(o.first_seen_ts || o.ts);
@@ -427,7 +442,7 @@ export function computeRecentBurst(
   const baselineMs = baselineDays * DAY_MS;
   const baselineStart = now - baselineMs;
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
   let recentCount = 0;
   let baselineTotal = 0;
   function consider(ts) {
@@ -472,7 +487,7 @@ export function computeDayOfWeekCounts(
 ) {
   const cutoff = now - windowDays * DAY_MS;
   const counts = new Array(7).fill(0);
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
   function bump(ts) {
     if (ts == null || ts < cutoff) return;
     const { weekday } = chicagoWeekdayHour(ts);
@@ -534,7 +549,7 @@ export function computeLineReliability(
   const todayUTC = chicagoDayUTC(now);
   const cutoffDayUTC = todayUTC - (windowDays - 1) * DAY_MS;
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
 
   const spans = []; // [startTs, endTs]
   const starts = [];
@@ -605,14 +620,28 @@ export function computeLineReliability(
   };
 }
 
-// CTA service runs roughly 4am–1am — 21 service hours per line per day. Used
-// as the denominator for the disruption-hours percentage so "X disrupted
-// hours" can be expressed as a fraction of when service is actually expected
-// to run. This is a single canonical number rather than a per-line schedule
-// (a fully accurate model would account for owl service on Red/Blue) — but
-// the simplification is documented in the UI and matches the level of
-// precision the rest of the site assumes.
-export const SERVICE_HOURS_PER_DAY = 21;
+// Default CTA service window: roughly 4am–1am, ≈ 21 hours per line per day.
+// Red and Blue run 24h owl service, so they get a 24 here — without that the
+// disruption-percentage on those lines was very slightly inflated (the
+// denominator excluded the overnight hours when service was actually running).
+// Bus routes vary too widely to model individually; they fall back to 21.
+export const DEFAULT_SERVICE_HOURS_PER_DAY = 21;
+const OWL_SERVICE_LINES = new Set(['red', 'blue']);
+
+/**
+ * Service hours per day for the denominator in `computeDisruptionMinutes`.
+ * @param {'train'|'bus'} kind
+ * @param {string} line
+ * @returns {number}
+ */
+export function serviceHoursForLine(kind, line) {
+  if (kind === 'train' && OWL_SERVICE_LINES.has(line)) return 24;
+  return DEFAULT_SERVICE_HOURS_PER_DAY;
+}
+
+// Back-compat re-export. The previous single-number constant is still used by
+// callers that pass `linesInScope` as a count rather than a list of lines.
+export const SERVICE_HOURS_PER_DAY = DEFAULT_SERVICE_HOURS_PER_DAY;
 
 // Disruption-hours: total line-hours of incident coverage over a rolling
 // window. Caller hands in a single scope's alerts/observations (one line,
@@ -625,16 +654,21 @@ export const SERVICE_HOURS_PER_DAY = 21;
 // Overlapping incidents on the same line collapse to the union of their
 // intervals so a held cluster + ghost detection don't double-count.
 //
-// `serviceMinutes` denominator: lines-in-scope × windowDays × SERVICE_HOURS_PER_DAY.
-// `linesInScope` defaults to 1 (per-line view); for system-wide views pass
-// the count of train lines + active bus routes.
+// `serviceMinutes` denominator: sum over each line in scope of that line's
+// service-hours-per-day × windowDays. Red/Blue contribute 24h/day (owl
+// service); other lines and buses contribute 21h/day. The caller specifies
+// scope via one of:
+//   - `lines: Array<{kind, line}>` (preferred) — explicit set of scope lines.
+//   - `linesInScope: number` (legacy) — bare count, multiplied by the default
+//     21h/day. Used when the caller doesn't know the exact line breakdown.
 /**
  * @param {import('./incidents.js').Alert[]} alerts
  * @param {import('./incidents.js').Observation[]} observations
  * @param {object} [options]
  * @param {number} [options.now]
  * @param {number} [options.windowDays]
- * @param {number} [options.linesInScope]
+ * @param {Array<{kind: 'train'|'bus', line: string}> | null} [options.lines]
+ * @param {number} [options.linesInScope] Ignored when `lines` is provided.
  * @returns {{
  *   disruptedMinutes: number,
  *   serviceMinutes: number,
@@ -644,11 +678,11 @@ export const SERVICE_HOURS_PER_DAY = 21;
 export function computeDisruptionMinutes(
   alerts,
   observations,
-  { now = Date.now(), windowDays = 30, linesInScope = 1 } = {},
+  { now = Date.now(), windowDays = 30, lines = null, linesInScope = 1 } = {},
 ) {
   const cutoff = now - windowDays * DAY_MS;
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
 
   // Per-line interval list. Key: kind + ':' + line. Each entry is a list of
   // [start, end] tuples clamped to the window. We union per-line so two
@@ -702,7 +736,16 @@ export function computeDisruptionMinutes(
   }
 
   const disruptedMinutes = Math.round(disruptedMs / 60_000);
-  const serviceMinutes = Math.max(1, linesInScope) * windowDays * SERVICE_HOURS_PER_DAY * 60;
+  let serviceHoursTotal;
+  if (Array.isArray(lines) && lines.length > 0) {
+    serviceHoursTotal = lines.reduce(
+      (acc, { kind, line }) => acc + serviceHoursForLine(kind, line),
+      0,
+    );
+  } else {
+    serviceHoursTotal = Math.max(1, linesInScope) * DEFAULT_SERVICE_HOURS_PER_DAY;
+  }
+  const serviceMinutes = serviceHoursTotal * windowDays * 60;
   const ratio = serviceMinutes > 0 ? disruptedMs / (serviceMinutes * 60_000) : 0;
   return { disruptedMinutes, serviceMinutes, ratio };
 }
@@ -743,7 +786,7 @@ export function computeDurationHistogram(
   const cutoff = now - windowDays * DAY_MS;
   const bins = DURATION_BINS.map((b) => ({ ...b, count: 0 }));
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
 
   function tally(start, end) {
     if (start == null || end == null) return;
@@ -786,7 +829,7 @@ export function computeWorstDay(alerts, observations, { now = Date.now(), window
   const todayUtc = chicagoDayUTC(now);
   const cutoffDayUtc = todayUtc - (windowDays - 1) * DAY_MS;
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
 
   const dayCounts = new Map();
   function bump(ts) {
@@ -836,7 +879,7 @@ export function computeCohortDurationStats(
   if (!targetKey) return null;
   const cutoff = now - windowDays * DAY_MS;
 
-  const { merged, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneObs } = getMerge(alerts, observations);
 
   const incidentEventId =
     postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url) ?? null;
@@ -932,7 +975,7 @@ export function computeTypicalDurations(
     buckets.get(key).push(duration);
   }
 
-  const { merged, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneObs } = getMerge(alerts, observations);
 
   for (const m of merged) add(m, m.first_seen_ts, m.resolved_ts);
   for (const o of standaloneObs) add(o, o.ts, o.resolved_ts);
@@ -966,7 +1009,7 @@ export function buildTodaySummary(alerts, observations, now = Date.now()) {
   const todayUtc = chicagoDayUTC(now);
   const lastWeekUtc = todayUtc - 7 * DAY_MS;
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
 
   const todays = [];
   let lastWeekSameDayCount = 0;
@@ -1077,7 +1120,7 @@ export function computeStatsLeaderboards(
 ) {
   const cutoff = now - windowDays * DAY_MS;
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
 
   // worstDay — bucket each incident by its Chicago start day.
   const dayCounts = new Map();
@@ -1178,7 +1221,6 @@ export function computeStatsLeaderboards(
 // `lineFilter` lets the LinePage version reuse this helper while showing only
 // that line's segments. The /stats page passes null for system-wide.
 /**
- * @param {import('./incidents.js').Alert[]} _alerts Reserved for future use; currently unused.
  * @param {import('./incidents.js').Observation[]} observations
  * @param {object} [options]
  * @param {number} [options.now]
@@ -1195,7 +1237,6 @@ export function computeStatsLeaderboards(
  * }>}
  */
 export function computeSegmentRecurrence(
-  _alerts,
   observations,
   { now = Date.now(), windowDays = 90, lineFilter = null, limit = 5, minCount = 2 } = {},
 ) {
@@ -1254,6 +1295,109 @@ export function buildSignalsByLine(observations) {
   return { byLine, totals };
 }
 
+// Service-restoration delta leaderboard. For every merged incident (CTA
+// alert + matching bot observation) that has both resolution timestamps,
+// compare `alert.resolved_ts` (when CTA marked the alert cleared) to
+// `obs_resolved_ts` (when the bot saw sustained service recovery). The
+// signed delta is `alert.resolved_ts - obs_resolved_ts`:
+//
+//   - positive → CTA cleared AFTER service recovered (slow to mark clear)
+//   - negative → CTA cleared BEFORE service recovered (alert closed but
+//                trains were still stuck — the bot's CLEAR_TICKS_TO_RESET
+//                gate requires sustained recovery before firing, so this
+//                isn't bot lag)
+//
+// Returns the top-N each direction. Only deltas above `minDeltaMinutes`
+// count — sub-minute clock skew between the two sources isn't accountable.
+//
+// Pairs are gated on temporal overlap: the bot observation's [ts,
+// resolved_ts] span must cover at least `minOverlapRatio` of the alert's
+// [first_seen_ts, resolved_ts] span. Without this, a brief bot detection
+// that happened to fire during a multi-day planned reroute (construction,
+// etc.) gets paired with an alert running orders of magnitude longer than
+// the actual disruption the bot saw — and the resulting "delta" compares
+// two different things, not an accountability gap. Default 0.5 means the
+// obs has to cover at least half the alert's lifespan for the comparison
+// to be meaningful.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @param {number} [options.limit]            Top-N per direction (default 3).
+ * @param {number} [options.minDeltaMinutes]  Drop tiny deltas (default 5).
+ * @param {number} [options.minOverlapRatio]  Drop pairs whose obs covers less
+ *   than this fraction of the alert's span (default 0.5).
+ * @returns {{
+ *   ctaClearedEarly: Array<RestorationDeltaRow>,
+ *   ctaClearedLate:  Array<RestorationDeltaRow>,
+ *   matchedCount: number,
+ * }}
+ */
+export function computeRestorationDeltas(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 90, limit = 3, minDeltaMinutes = 5, minOverlapRatio = 0.5 } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+  const minDeltaMs = minDeltaMinutes * 60_000;
+  const { merged } = getMerge(alerts, observations);
+  const rows = [];
+  for (const m of merged) {
+    if (m.resolved_ts == null || m.obs_resolved_ts == null) continue;
+    if (m.first_seen_ts < cutoff) continue;
+    // Overlap gate: the observation must describe roughly the same span as
+    // the alert. obs_ts may be missing on older snapshots — skip rather than
+    // assume.
+    if (m.obs_ts == null) continue;
+    const alertDuration = m.resolved_ts - m.first_seen_ts;
+    if (alertDuration <= 0) continue;
+    const overlapStart = Math.max(m.first_seen_ts, m.obs_ts);
+    const overlapEnd = Math.min(m.resolved_ts, m.obs_resolved_ts);
+    const overlapMs = Math.max(0, overlapEnd - overlapStart);
+    if (overlapMs / alertDuration < minOverlapRatio) continue;
+    const deltaMs = m.resolved_ts - m.obs_resolved_ts;
+    if (Math.abs(deltaMs) < minDeltaMs) continue;
+    const id = postUrlRkey(m.post_url) ?? postUrlRkey(m.obs_post_url);
+    if (!id) continue;
+    rows.push({
+      id,
+      kind: m.kind,
+      routes: m.routes ?? [],
+      headline: m.headline ?? null,
+      alertResolvedTs: m.resolved_ts,
+      obsResolvedTs: m.obs_resolved_ts,
+      firstSeenTs: m.first_seen_ts,
+      deltaMs,
+    });
+  }
+  // CTA cleared early: deltaMs < 0 (alert resolved before service recovered).
+  // Sort by most negative first.
+  const ctaClearedEarly = rows
+    .filter((r) => r.deltaMs < 0)
+    .sort((a, b) => a.deltaMs - b.deltaMs)
+    .slice(0, limit);
+  // CTA cleared late: deltaMs > 0. Sort by most positive first.
+  const ctaClearedLate = rows
+    .filter((r) => r.deltaMs > 0)
+    .sort((a, b) => b.deltaMs - a.deltaMs)
+    .slice(0, limit);
+  return { ctaClearedEarly, ctaClearedLate, matchedCount: rows.length };
+}
+
+/**
+ * @typedef {object} RestorationDeltaRow
+ * @property {string} id
+ * @property {'train'|'bus'} kind
+ * @property {string[]} routes
+ * @property {string|null} headline
+ * @property {number} alertResolvedTs
+ * @property {number} obsResolvedTs
+ * @property {number} firstSeenTs
+ * @property {number} deltaMs   Signed: positive = CTA cleared late, negative = CTA cleared early.
+ */
+
 // Year-over-year comparison: count merged incidents in the trailing
 // `windowDays` ending now vs the same calendar window one year prior.
 // Returns `{ enoughData: false }` when the dataset doesn't reach back far
@@ -1308,7 +1452,7 @@ export function computeYearOverYear(
     };
   }
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
   let currentCount = 0;
   let priorCount = 0;
   function bump(ts) {

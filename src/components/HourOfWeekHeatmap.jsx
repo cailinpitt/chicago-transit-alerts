@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { buildHourOfWeek } from '../lib/aggregate.js';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -20,7 +20,7 @@ function formatHour(h) {
   return h < 12 ? `${h}a` : `${h - 12}p`;
 }
 
-function cellBg(count, maxCount) {
+function cellBgAbsolute(count, maxCount) {
   if (count === 0) return 'var(--timeline-empty)';
   // Five intensity stops keyed off the max, so the busiest cell is fully
   // saturated and the rest scale linearly. Single-incident cells get a faint
@@ -33,6 +33,33 @@ function cellBg(count, maxCount) {
   return 'rgb(71, 85, 105)';
 }
 
+// Diverging palette for anomaly mode. Cool (blue) = quieter than typical,
+// warm (red) = busier than typical. Five stops each side; z=0 is neutral
+// gray so "exactly average" reads as not-interesting at a glance.
+function cellBgZScore(z) {
+  if (z == null) return 'var(--timeline-empty)';
+  const a = Math.min(Math.abs(z), 3) / 3; // saturate at |z|=3
+  if (Math.abs(z) < 0.25) return 'rgba(148, 163, 184, 0.18)';
+  if (z > 0) {
+    // red-ish (CTA brand red, dimmed)
+    return `rgba(198, 12, 48, ${0.2 + a * 0.7})`;
+  }
+  // blue-ish
+  return `rgba(0, 161, 222, ${0.2 + a * 0.7})`;
+}
+
+function computeZStats(grid) {
+  const flat = [];
+  for (let w = 0; w < 7; w++) {
+    for (let h = 0; h < 24; h++) flat.push(grid[w][h]);
+  }
+  const n = flat.length;
+  const mean = flat.reduce((a, b) => a + b, 0) / n;
+  const variance = flat.reduce((acc, v) => acc + (v - mean) ** 2, 0) / n;
+  const stddev = Math.sqrt(variance);
+  return { mean, stddev };
+}
+
 // `title` controls the section heading. Pass `null` to suppress the heading
 // entirely — used by /compare where one shared heading sits above three
 // instances of this component.
@@ -41,19 +68,58 @@ export default function HourOfWeekHeatmap({
   observations,
   title = 'When do incidents happen?',
 }) {
+  const [mode, setMode] = useState('absolute'); // 'absolute' | 'anomaly'
   const { grid, maxCount, total } = useMemo(
     () => buildHourOfWeek(alerts, observations),
     [alerts, observations],
   );
+  const zStats = useMemo(() => computeZStats(grid), [grid]);
 
   if (total === 0) return null;
+
+  const anomalyAvailable = zStats.stddev > 0;
+  const effectiveMode = mode === 'anomaly' && anomalyAvailable ? 'anomaly' : 'absolute';
 
   return (
     <section>
       {title != null && (
-        <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-          {title}
-        </h2>
+        <div className="flex items-center justify-between mb-3 gap-2">
+          <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            {title}
+          </h2>
+          <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-gh-subtle rounded-full p-0.5">
+            <button
+              type="button"
+              onClick={() => setMode('absolute')}
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
+                effectiveMode === 'absolute'
+                  ? 'bg-white dark:bg-gh-surface text-slate-700 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+              aria-pressed={effectiveMode === 'absolute'}
+            >
+              Absolute
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('anomaly')}
+              disabled={!anomalyAvailable}
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
+                effectiveMode === 'anomaly'
+                  ? 'bg-white dark:bg-gh-surface text-slate-700 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-40'
+              }`}
+              aria-pressed={effectiveMode === 'anomaly'}
+              title={
+                anomalyAvailable
+                  ? 'Highlight hours that deviate from the grid average'
+                  : 'Not enough variance yet'
+              }
+            >
+              Anomaly
+            </button>
+          </div>
+        </div>
       )}
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
         <div className="grid gap-1" style={{ gridTemplateColumns: GRID_TEMPLATE }}>
@@ -85,9 +151,16 @@ export default function HourOfWeekHeatmap({
               </div>
               {HOURS.map((hour) => {
                 const count = grid[weekday][hour];
-                const tooltip = `${label} ${formatHour(hour)}: ${count} incident${
+                const z = anomalyAvailable ? (count - zStats.mean) / zStats.stddev : 0;
+                const bg =
+                  effectiveMode === 'anomaly' ? cellBgZScore(z) : cellBgAbsolute(count, maxCount);
+                const incidentLabel = `${label} ${formatHour(hour)}: ${count} incident${
                   count === 1 ? '' : 's'
                 }`;
+                const tooltip =
+                  effectiveMode === 'anomaly'
+                    ? `${incidentLabel} (${z >= 0 ? '+' : ''}${z.toFixed(1)}σ vs. average ${zStats.mean.toFixed(1)})`
+                    : incidentLabel;
                 return (
                   <div
                     key={hour}
@@ -95,7 +168,7 @@ export default function HourOfWeekHeatmap({
                     title={tooltip}
                     aria-label={tooltip}
                     className="rounded-sm aspect-square"
-                    style={{ backgroundColor: cellBg(count, maxCount) }}
+                    style={{ backgroundColor: bg }}
                   />
                 );
               })}
@@ -103,25 +176,48 @@ export default function HourOfWeekHeatmap({
           ))}
         </div>
 
-        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-gh-border">
-          <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
-          <div className="flex gap-0.5">
-            {[0, 0.1, 0.3, 0.55, 0.8, 1].map((r) => (
-              <div
-                key={r}
-                className="w-3 h-3 rounded-sm"
-                style={{
-                  backgroundColor:
-                    r === 0 ? 'var(--timeline-empty)' : cellBg(Math.ceil(r * maxCount), maxCount),
-                }}
-              />
-            ))}
+        {/* Legend */}
+        {effectiveMode === 'absolute' ? (
+          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-gh-border">
+            <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
+            <div className="flex gap-0.5">
+              {[0, 0.1, 0.3, 0.55, 0.8, 1].map((r) => (
+                <div
+                  key={r}
+                  className="w-3 h-3 rounded-sm"
+                  style={{
+                    backgroundColor:
+                      r === 0
+                        ? 'var(--timeline-empty)'
+                        : cellBgAbsolute(Math.ceil(r * maxCount), maxCount),
+                  }}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-slate-400 dark:text-slate-500">More</span>
+            <span className="text-xs text-slate-300 dark:text-slate-600 ml-2">
+              · Each cell = incidents starting in that hour
+            </span>
           </div>
-          <span className="text-xs text-slate-400 dark:text-slate-500">More</span>
-          <span className="text-xs text-slate-300 dark:text-slate-600 ml-2">
-            · Each cell = incidents starting in that hour
-          </span>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-gh-border">
+            <span className="text-xs text-slate-400 dark:text-slate-500">Quieter</span>
+            <div className="flex gap-0.5">
+              {[-2.5, -1.5, -0.5, 0, 0.5, 1.5, 2.5].map((z) => (
+                <div
+                  key={z}
+                  className="w-3 h-3 rounded-sm"
+                  style={{ backgroundColor: cellBgZScore(z) }}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-slate-400 dark:text-slate-500">Busier</span>
+            <span className="text-xs text-slate-300 dark:text-slate-600 ml-2">
+              · Cells colored by standard deviations from the grid average ({zStats.mean.toFixed(1)}
+              )
+            </span>
+          </div>
+        )}
       </div>
     </section>
   );

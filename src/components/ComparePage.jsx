@@ -534,7 +534,7 @@ export default function ComparePage() {
         disruption30d: computeDisruptionMinutes(scoped.alerts, scoped.observations, {
           now,
           windowDays: 30,
-          linesInScope: 1,
+          lines: [{ kind, line: key }],
         }),
       };
     });
