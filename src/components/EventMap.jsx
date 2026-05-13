@@ -17,7 +17,7 @@ import { displayStationName } from '../lib/stations.js';
 // `from` / `to` station names come from either an observation (from_station/
 // to_station) or an alert (affected_from_station/affected_to_station); the
 // caller normalizes which fields to pass.
-export default function EventMap({ lineKey, fromStation, toStation }) {
+export default function EventMap({ lineKey, fromStation, toStation, active = false }) {
   const map = useMemo(
     () => buildLineMap(lineKey, null, { maxWidth: 720, maxHeight: 320 }),
     [lineKey],
@@ -41,21 +41,62 @@ export default function EventMap({ lineKey, fromStation, toStation }) {
     .filter((t) => t.length >= 2)
     .map((t) => `M${t.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`);
 
-  // When both endpoints are present and distinct, draw a bold straight
-  // chord between them in the line color. The track itself curves — the
-  // chord doesn't try to follow it (computing the polyline subset that
-  // connects two stations is fiddly), but visually the chord plus the two
-  // highlighted dots is enough to say "this is the stretch."
-  const fromDot = fromStation
-    ? affected.find((s) => normalize(s.name) === normalize(fromStation))
-    : null;
-  const toDot = toStation ? affected.find((s) => normalize(s.name) === normalize(toStation)) : null;
-  const drawChord = fromDot && toDot && fromDot !== toDot;
+  // Highlight the actual segment of track between the two affected stations
+  // (when both endpoints are present and distinct). For each polyline in
+  // map.tracks, find the points closest to the two stations and slice the
+  // polyline between those indices. A straight chord would shortcut bends
+  // — Blue Line Clark/Lake → Chicago turns 90° underground; the chord
+  // version cut across through other paths and looked wrong.
+  let highlightPath = null;
+  if (affected.length === 2) {
+    const [a, b] = affected;
+    let bestScore = Number.POSITIVE_INFINITY;
+    for (const track of map.tracks) {
+      if (!track || track.length < 2) continue;
+      let aIdx = -1;
+      let bIdx = -1;
+      let aBest = Number.POSITIVE_INFINITY;
+      let bBest = Number.POSITIVE_INFINITY;
+      for (let i = 0; i < track.length; i++) {
+        const dxa = track[i].x - a.x;
+        const dya = track[i].y - a.y;
+        const da = dxa * dxa + dya * dya;
+        if (da < aBest) {
+          aBest = da;
+          aIdx = i;
+        }
+        const dxb = track[i].x - b.x;
+        const dyb = track[i].y - b.y;
+        const db = dxb * dxb + dyb * dyb;
+        if (db < bBest) {
+          bBest = db;
+          bIdx = i;
+        }
+      }
+      // Score: how well does this polyline cover BOTH stations? Lower is
+      // better. A polyline that's the wrong branch (Forest Park when the
+      // incident is on the O'Hare side, e.g.) will have one station far
+      // off and lose to the correct branch.
+      const score = aBest + bBest;
+      if (aIdx >= 0 && bIdx >= 0 && score < bestScore) {
+        bestScore = score;
+        const lo = Math.min(aIdx, bIdx);
+        const hi = Math.max(aIdx, bIdx);
+        // Bookend with the station's exact (x, y) so the highlight visually
+        // meets the dot center rather than the closest polyline knee.
+        const slice = track.slice(lo, hi + 1);
+        const startStation = aIdx <= bIdx ? a : b;
+        const endStation = aIdx <= bIdx ? b : a;
+        const points = [startStation, ...slice, endStation];
+        highlightPath = `M${points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`;
+      }
+    }
+  }
 
   return (
     <section className="mt-4">
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-        Where this happened
+        {active ? 'Where this is happening' : 'Where this happened'}
       </h2>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
         <div className="relative overflow-x-auto">
@@ -81,16 +122,15 @@ export default function EventMap({ lineKey, fromStation, toStation }) {
                   strokeLinejoin="round"
                 />
               ))}
-              {drawChord && (
-                <line
-                  x1={fromDot.x}
-                  y1={fromDot.y}
-                  x2={toDot.x}
-                  y2={toDot.y}
+              {highlightPath && (
+                <path
+                  d={highlightPath}
+                  fill="none"
                   stroke={accent}
                   strokeWidth={5}
                   strokeLinecap="round"
-                  opacity={0.55}
+                  strokeLinejoin="round"
+                  opacity={0.85}
                 />
               )}
               {/* Quiet dots for context — every other station on the line
@@ -141,26 +181,48 @@ export default function EventMap({ lineKey, fromStation, toStation }) {
                 return <g key={s.name}>{dot}</g>;
               })}
             </svg>
-            {/* HTML labels for affected stations. With two adjacent
-                affected stations the naive "above/below by map half"
-                placement collides (Purple's Central + Noyes both label
-                above their dots and overlap). When there are exactly two,
-                force one label above and one below regardless of map
-                position so they can't overlap. */}
+            {/* HTML labels for affected stations. Each label is placed on
+                the side of its dot pointing AWAY from the other affected
+                dot — so the two labels diverge outward from the segment
+                rather than landing between the dots (which historically
+                made e.g. Blue Line Chicago/Clark-Lake look swapped).
+                Single-station events default to above. */}
             {(() => {
-              const twoAdjacent = affected.length === 2;
-              return affected.map((s, idx) => {
+              const midX =
+                affected.length > 1
+                  ? affected.reduce((sum, s) => sum + s.x, 0) / affected.length
+                  : null;
+              const midY =
+                affected.length > 1
+                  ? affected.reduce((sum, s) => sum + s.y, 0) / affected.length
+                  : null;
+              return affected.map((s) => {
                 const leftPct = (s.x / map.width) * 100;
                 const topPct = (s.y / map.height) * 100;
+                // Multi-station: bias each label away from the segment's
+                // midpoint so labels live on the outer side of each dot.
+                // Tiebreak (when stations sit on a perfectly vertical or
+                // horizontal line) defaults to upper/leftward.
+                let above;
+                let leftOfDot;
+                if (midY != null) {
+                  above = s.y <= midY;
+                  leftOfDot = s.x <= midX;
+                } else {
+                  above = s.y < map.height / 2;
+                  leftOfDot = s.x > map.width / 2;
+                }
+                // Horizontal: anchor opposite the bias direction so the
+                // label grows AWAY from the other dot — left-of-midpoint
+                // station gets a right-anchored label (grows left), and
+                // vice versa. Then clamp at the canvas edges so we never
+                // clip into card padding.
                 const xRatio = s.x / map.width;
                 let xTransform;
-                if (xRatio < 0.25) xTransform = '10px';
-                else if (xRatio > 0.75) xTransform = 'calc(-100% - 10px)';
-                else xTransform = '-50%';
-                // For two-station events: first label above, second below.
-                // For everything else: keep the map-half heuristic.
-                const above = twoAdjacent ? idx === 0 : s.y < map.height / 2;
-                const yTransform = above ? 'calc(-100% - 12px)' : '14px';
+                if (xRatio < 0.08) xTransform = '0';
+                else if (xRatio > 0.92) xTransform = '-100%';
+                else xTransform = leftOfDot ? 'calc(-100% - 6px)' : '6px';
+                const yTransform = above ? 'calc(-100% - 8px)' : '10px';
                 return (
                   <span
                     key={`label-${s.name}`}

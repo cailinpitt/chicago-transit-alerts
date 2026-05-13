@@ -842,6 +842,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           lineKey={incident.line ?? (Array.isArray(incident.routes) ? incident.routes[0] : null)}
           fromStation={incident.from_station ?? incident.affected_from_station ?? null}
           toStation={incident.to_station ?? incident.affected_to_station ?? null}
+          active={!!incident.active}
         />
       )}
 
