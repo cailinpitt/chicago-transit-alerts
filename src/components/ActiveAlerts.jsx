@@ -1,7 +1,7 @@
 import { typicalDurationKey } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration } from '../lib/format.js';
-import { getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
+import { formatEvidenceChip, getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 import LongRunningBanner from './LongRunningBanner.jsx';
@@ -138,6 +138,15 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
         <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
           {description}
         </p>
+        {(() => {
+          const chip = formatEvidenceChip(incident);
+          if (!chip) return null;
+          return (
+            <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
+              {chip}
+            </span>
+          );
+        })()}
         <div className="flex flex-wrap gap-3 mt-1.5">
           {incident.post_url && (
             <a
