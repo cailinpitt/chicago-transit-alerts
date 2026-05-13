@@ -19,6 +19,9 @@ import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format
 import { normalizeAlertsPayload, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
+import LongRunningBanner, {
+  LONG_RUNNING_THRESHOLD_MS,
+} from './LongRunningBanner.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
@@ -184,6 +187,17 @@ export default function LinePage({ kind, lineId }) {
       ...lineObservations.filter((o) => o.active),
     ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
   }, [lineAlerts, lineObservations]);
+
+  const { recentActive, longRunningActive } = useMemo(() => {
+    const recent = [];
+    const longRunning = [];
+    for (const i of activeIncidents) {
+      const startTs = i.first_seen_ts ?? i.ts;
+      if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
+      else recent.push(i);
+    }
+    return { recentActive: recent, longRunningActive: longRunning };
+  }, [activeIncidents, now]);
 
   // Title + tab title — built from the human label, not the key. The bus
   // chip uses the bare route number ("#147") so it stays compact and
@@ -401,9 +415,12 @@ export default function LinePage({ kind, lineId }) {
 
         {data && (
           <>
-            {activeIncidents.length > 0 && (
+            {longRunningActive.length > 0 && (
+              <LongRunningBanner incidents={longRunningActive} now={now} />
+            )}
+            {recentActive.length > 0 && (
               <ActiveAlerts
-                incidents={activeIncidents}
+                incidents={recentActive}
                 now={now}
                 typicalDurations={typicalDurations}
                 stationIndex={stationIndex}

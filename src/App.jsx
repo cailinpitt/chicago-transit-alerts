@@ -5,6 +5,10 @@ import Footer from './components/Footer.jsx';
 import Header from './components/Header.jsx';
 import HourOfWeekHeatmap from './components/HourOfWeekHeatmap.jsx';
 import IncidentList from './components/IncidentList.jsx';
+import LongRunningBanner, {
+  LONG_RUNNING_THRESHOLD_MS,
+} from './components/LongRunningBanner.jsx';
+import RecentActivityGantt from './components/RecentActivityGantt.jsx';
 import SignalBreakdown from './components/SignalBreakdown.jsx';
 import SummaryStats from './components/SummaryStats.jsx';
 import Timeline from './components/Timeline.jsx';
@@ -166,6 +170,21 @@ export default function App() {
     ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
   }, [data]);
 
+  // Split active incidents on the 24h elapsed mark. Long-runners (planned
+  // reroutes, multi-day construction) get their own quieter banner — left
+  // mixed with the breaking-news cards they trained users to ignore the
+  // red treatment after a day or two.
+  const { recentActive, longRunningActive } = useMemo(() => {
+    const recent = [];
+    const longRunning = [];
+    for (const i of activeIncidents) {
+      const startTs = i.first_seen_ts ?? i.ts;
+      if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
+      else recent.push(i);
+    }
+    return { recentActive: recent, longRunningActive: longRunning };
+  }, [activeIncidents, now]);
+
   // Surface the active count in the tab title so a pinned tab tells the user
   // something is wrong without them having to switch to it.
   useEffect(() => {
@@ -326,9 +345,12 @@ export default function App() {
         )}
         {data && (
           <>
-            {activeIncidents.length > 0 && (
+            {longRunningActive.length > 0 && (
+              <LongRunningBanner incidents={longRunningActive} now={now} />
+            )}
+            {recentActive.length > 0 && (
               <ActiveAlerts
-                incidents={activeIncidents}
+                incidents={recentActive}
                 now={now}
                 highlightedIds={highlightedIds}
                 typicalDurations={typicalDurations}
@@ -390,6 +412,11 @@ export default function App() {
                 selectedDay !== null ||
                 selectedSignals.length > 0
               }
+            />
+            <RecentActivityGantt
+              alerts={data.alerts}
+              observations={data.observations}
+              now={now}
             />
             <Timeline
               alerts={vizAlerts}
