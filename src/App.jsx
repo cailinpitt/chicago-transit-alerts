@@ -20,6 +20,7 @@ import {
 import {
   filterIncidents,
   getEventId,
+  mergeMatchingIncidents,
   normalizeAlertsPayload,
   observationSignals,
 } from './lib/incidents.js';
@@ -162,9 +163,18 @@ export default function App() {
 
   const activeIncidents = useMemo(() => {
     if (!data) return [];
+    // Run the same merge IncidentList uses so a CTA alert + bot detection
+    // pair becomes one ActiveAlerts card, not two. Filtering to `active`
+    // after the merge picks up both alert-only and observation-only
+    // standalones plus any merged record that still has an open side.
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      data.alerts,
+      data.observations,
+    );
     return [
-      ...data.alerts.filter((a) => a.active),
-      ...data.observations.filter((o) => o.active),
+      ...merged.filter((m) => m.active),
+      ...standaloneAlerts.filter((a) => a.active),
+      ...standaloneObs.filter((o) => o.active),
     ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
   }, [data]);
 

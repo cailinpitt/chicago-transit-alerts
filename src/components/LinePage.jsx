@@ -16,7 +16,11 @@ import {
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
-import { normalizeAlertsPayload, searchFilterIncidents } from '../lib/incidents.js';
+import {
+  mergeMatchingIncidents,
+  normalizeAlertsPayload,
+  searchFilterIncidents,
+} from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
@@ -179,10 +183,18 @@ export default function LinePage({ kind, lineId }) {
     return data.observations.filter((o) => o.kind === kind && o.line === effectiveLineId);
   }, [data, kind, effectiveLineId]);
 
+  // Merge first so an alert + bot observation pair becomes one active
+  // card, not two. Mirrors App.jsx; IncidentList already did this on its
+  // side, so without it the active section disagrees with the list below.
   const activeIncidents = useMemo(() => {
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      lineAlerts,
+      lineObservations,
+    );
     return [
-      ...lineAlerts.filter((a) => a.active),
-      ...lineObservations.filter((o) => o.active),
+      ...merged.filter((m) => m.active),
+      ...standaloneAlerts.filter((a) => a.active),
+      ...standaloneObs.filter((o) => o.active),
     ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
   }, [lineAlerts, lineObservations]);
 

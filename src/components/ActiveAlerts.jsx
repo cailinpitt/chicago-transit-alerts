@@ -111,7 +111,16 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
           <span className="sr-only">View event details</span>
         </a>
       )}
-      <div className="relative z-10 pointer-events-none">
+      {/* `pointer-events-none` on the inner wrapper lets clicks fall through
+          to the overlay <a> by default — so any blank pixel on the card
+          navigates to /event/:id. The [&_a]:pointer-events-auto and
+          [&_button]:pointer-events-auto selectors re-enable clicks on
+          actual interactive children (LinePill, StationName links in the
+          description, the Bluesky link, ShareLink button) so they keep
+          their own destinations. Previously we set `pointer-events-auto`
+          on whole wrapping rows, which made big chunks of the card
+          unclickable for navigation. */}
+      <div className="relative z-10 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
           <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
           <span className="text-xs text-slate-400 dark:text-slate-500">
@@ -126,13 +135,10 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
             )}
           </span>
         </div>
-        {/* pointer-events-auto re-enables hovering on station-name links
-            (StationName renders <a>) inside the description, which would
-            otherwise be blocked by the parent's pointer-events-none. */}
-        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug pointer-events-auto">
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
           {description}
         </p>
-        <div className="flex flex-wrap gap-3 mt-1.5 pointer-events-auto">
+        <div className="flex flex-wrap gap-3 mt-1.5">
           {incident.post_url && (
             <a
               href={incident.post_url}
@@ -313,13 +319,12 @@ export default function ActiveAlerts({
   const fullCards = incidents.slice(0, fullCount);
   const compactRows = incidents.slice(fullCount);
 
-  // Combined active set drives the section count + gantt. Both short-
-  // running (regular cards/rows below) and long-running (quieter "Day N"
-  // rows further down) live under this one heading — users want to see
-  // every active state in one place, not split across separate sections.
+  // Combined active set drives the section count. Long-running incidents
+  // are intentionally excluded from the gantt — a multi-day planned alert
+  // anchors the time axis at "-4d ago" and squishes the meaningful short-
+  // running bars into invisible right-edge slivers. The Day-N rows in the
+  // long-running section already make the duration the headline number.
   const totalActive = incidents.length + longRunningIncidents.length;
-  const ganttIncidents =
-    longRunningIncidents.length > 0 ? [...incidents, ...longRunningIncidents] : incidents;
 
   return (
     <section>
@@ -335,7 +340,7 @@ export default function ActiveAlerts({
           </span>
         </h2>
       </div>
-      <ActiveMiniGantt incidents={ganttIncidents} now={now} />
+      <ActiveMiniGantt incidents={incidents} now={now} />
       <div className="space-y-2">
         {fullCards.map((incident) => {
           const eventId = getEventId(incident);

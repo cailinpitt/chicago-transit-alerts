@@ -3,7 +3,11 @@ import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import { computeTypicalDurations } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { normalizeAlertsPayload, searchFilterIncidents } from '../lib/incidents.js';
+import {
+  mergeMatchingIncidents,
+  normalizeAlertsPayload,
+  searchFilterIncidents,
+} from '../lib/incidents.js';
 import { buildStationIndex, displayStationName } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
@@ -44,9 +48,14 @@ export default function StationPage({ slug }) {
 
   const activeIncidents = useMemo(() => {
     if (!station) return [];
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      station.alerts,
+      station.observations,
+    );
     return [
-      ...station.alerts.filter((a) => a.active),
-      ...station.observations.filter((o) => o.active),
+      ...merged.filter((m) => m.active),
+      ...standaloneAlerts.filter((a) => a.active),
+      ...standaloneObs.filter((o) => o.active),
     ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
   }, [station]);
 
