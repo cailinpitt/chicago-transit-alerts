@@ -68,10 +68,10 @@ export default function About({ open, onClose }) {
               >
                 <strong>@ctaalertinsights</strong>
               </a>{' '}
-              — republished CTA service alerts, plus the bot's own detections: cold stretches when
-              service drops out of part of a line for 15+ minutes, full-line or full-route blackouts
-              when nothing is running at all, and roundups when several smaller disruptions cluster
-              on the same line or route at once.
+              — republished CTA service alerts, plus the bot's own detections: stretches without
+              trains when service drops out of part of a line for 15+ minutes, full-line or
+              full-route blackouts when nothing is running at all, and roundups when several smaller
+              disruptions cluster on the same line or route at once.
             </li>
             <li>
               <a

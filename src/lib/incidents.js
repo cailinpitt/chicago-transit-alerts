@@ -128,7 +128,7 @@ export const SIGNAL_LABELS = {
   gap: 'headway gaps',
   bunching: 'bunching',
   ghost: 'missing vehicles',
-  'pulse-cold': 'cold stretch',
+  'pulse-cold': 'stretch without trains',
   'pulse-held': 'trains held in place',
 };
 
@@ -164,7 +164,9 @@ export function formatEvidenceChip(incident) {
   if (ev.coldStations != null || ev.expectedTrains != null) {
     const parts = [];
     if (ev.coldStations) {
-      parts.push(`${ev.coldStations} ${ev.coldStations === 1 ? 'station' : 'stations'} cold`);
+      parts.push(
+        `${ev.coldStations} ${ev.coldStations === 1 ? 'station' : 'stations'} without trains`,
+      );
     }
     if (ev.expectedTrains) {
       parts.push(`${ev.expectedTrains} ${ev.expectedTrains === 1 ? 'train' : 'trains'} missed`);

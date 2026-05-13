@@ -301,9 +301,9 @@ export default function StatsPage() {
                   })}
                 </div>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 px-1">
-                  Bot-detected cold or held stretches that recurred on the same segment over the
-                  last 90 days. Direction-aware — a segment can show up twice if both directions
-                  have trouble.
+                  Bot-detected stretches without trains, or held trains, that recurred on the same
+                  segment over the last 90 days. Direction-aware — a segment can show up twice if
+                  both directions have trouble.
                 </p>
               </section>
             )}

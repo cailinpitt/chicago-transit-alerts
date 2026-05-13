@@ -15,6 +15,7 @@ import {
   findContemporaneousOnOtherLines,
   findIncidentById,
   findRelatedIncidents,
+  formatEvidenceChip,
   formatRoutesLabel,
   getEventId,
   mergeMatchingIncidents,
@@ -830,6 +831,30 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           ))}
         </div>
       )}
+
+      {/* Bot-confidence chip — same string the IncidentList row shows
+          ("5 stations cold · 2 trains missed"). Without this the event page
+          dropped the "why was this detected" context that the row carried,
+          which made bot-only incidents look unexplained. Returns null for
+          alerts and roundups, so the section silently disappears when
+          there's no evidence payload to summarize. */}
+      {(() => {
+        const chip = formatEvidenceChip(incident);
+        if (!chip) return null;
+        return (
+          <div
+            className="flex flex-wrap items-center gap-2 mt-2"
+            title="The auto-detection signal that triggered this incident. These are derived from the bot's evidence payload at first sighting."
+          >
+            <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Detection
+            </span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-700 dark:text-slate-300">
+              {chip}
+            </span>
+          </div>
+        );
+      })()}
 
       {affected && (
         <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">

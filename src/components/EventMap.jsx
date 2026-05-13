@@ -87,11 +87,38 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
         bestScore = score;
         const lo = Math.min(aIdx, bIdx);
         const hi = Math.max(aIdx, bIdx);
-        // Bookend with the station's exact (x, y) so the highlight visually
-        // meets the dot center rather than the closest polyline knee.
-        const slice = track.slice(lo, hi + 1);
+        let slice = track.slice(lo, hi + 1);
         const startStation = aIdx <= bIdx ? a : b;
         const endStation = aIdx <= bIdx ? b : a;
+        // Trim overshoot at the boundaries. The closest polyline point to a
+        // station can sit *past* it in the direction of travel — without
+        // this, the highlight extends beyond the station before snapping
+        // back to its exact xy (visible as a stub of stroke past Fullerton
+        // on the Brown Line, for example). Drop the boundary point when its
+        // local segment direction crosses the station, indicating the point
+        // is on the wrong side.
+        if (slice.length >= 2) {
+          // Forward direction at start: slice[0] → slice[1].
+          const dxs = slice[1].x - slice[0].x;
+          const dys = slice[1].y - slice[0].y;
+          // If startStation is "ahead of" slice[0] along that direction,
+          // then slice[0] is behind the station — drawing station → slice[0]
+          // would go backward. Drop slice[0].
+          if ((startStation.x - slice[0].x) * dxs + (startStation.y - slice[0].y) * dys > 0) {
+            slice = slice.slice(1);
+          }
+        }
+        if (slice.length >= 2) {
+          const last = slice.length - 1;
+          // Forward direction at end: slice[last-1] → slice[last].
+          const dxe = slice[last].x - slice[last - 1].x;
+          const dye = slice[last].y - slice[last - 1].y;
+          // If endStation is "behind" slice[last] along that direction,
+          // then slice[last] is past the station — drop it.
+          if ((endStation.x - slice[last].x) * dxe + (endStation.y - slice[last].y) * dye < 0) {
+            slice = slice.slice(0, last);
+          }
+        }
         const points = [startStation, ...slice, endStation];
         highlightPath = `M${points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`;
       }
@@ -205,6 +232,19 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
                 affected.length > 1
                   ? affected.reduce((sum, s) => sum + s.y, 0) / affected.length
                   : null;
+              // Decide whether the segment runs more vertically or
+              // horizontally so labels can be placed on the perpendicular
+              // axis (vertical segment → labels above/below; horizontal
+              // segment → labels left/right). The previous always-left/right
+              // placement put labels near neighboring gray dots when the
+              // segment was nearly vertical, e.g. Southport → Fullerton on
+              // the Brown Line.
+              let segmentIsVertical = false;
+              if (affected.length === 2) {
+                const dx = Math.abs(affected[0].x - affected[1].x);
+                const dy = Math.abs(affected[0].y - affected[1].y);
+                segmentIsVertical = dy > dx;
+              }
               return affected.map((s) => {
                 const leftPct = (s.x / map.width) * 100;
                 const topPct = (s.y / map.height) * 100;
@@ -221,17 +261,53 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
                   above = s.y < map.height / 2;
                   leftOfDot = s.x > map.width / 2;
                 }
-                // Horizontal: anchor opposite the bias direction so the
-                // label grows AWAY from the other dot — left-of-midpoint
-                // station gets a right-anchored label (grows left), and
-                // vice versa. Then clamp at the canvas edges so we never
-                // clip into card padding.
                 const xRatio = s.x / map.width;
+                const yRatio = s.y / map.height;
+                // Override the bias-based above/below choice when the dot
+                // sits near a vertical edge of the canvas — otherwise the
+                // label clips out (Green Line "Central" near the top of
+                // the map landed above the SVG's top edge and got cut off
+                // by the card border).
+                if (yRatio < 0.12) above = false;
+                else if (yRatio > 0.88) above = true;
                 let xTransform;
-                if (xRatio < 0.08) xTransform = '0';
-                else if (xRatio > 0.92) xTransform = '-100%';
-                else xTransform = leftOfDot ? 'calc(-100% - 6px)' : '6px';
-                const yTransform = above ? 'calc(-100% - 8px)' : '10px';
+                let yTransform;
+                // Dot has r=6 plus a 2px stroke and the highlight stroke
+                // ends with a rounded cap, so the visual dot extends ~8px
+                // from center. Add a comfortable margin so the label
+                // clearly floats off the dot rather than touching it.
+                const LABEL_GAP = 14;
+                // Approximate the label's width as a fraction of the
+                // canvas so longer names ("Dempster-Skokie") clamp at a
+                // larger xRatio than short ones ("Howard"). Without this,
+                // a long label on a left-of-midpoint dot can still grow
+                // leftward past the canvas edge and clip into card
+                // padding. ~0.015 per char tuned for the worst-case 480px
+                // mobile minWidth at the current label font size.
+                const labelName = displayStationName(s.name);
+                const labelWidthRatio = labelName.length * 0.015;
+                const leftEdgeMargin = Math.max(0.05, labelWidthRatio);
+                const rightEdgeMargin = 1 - leftEdgeMargin;
+                if (segmentIsVertical) {
+                  // Center the label horizontally over/under the dot,
+                  // then clamp at the canvas edges using half the label
+                  // width (centered → only half projects past the dot
+                  // in each direction).
+                  const halfMargin = leftEdgeMargin / 2;
+                  if (xRatio < halfMargin) xTransform = '0';
+                  else if (xRatio > 1 - halfMargin) xTransform = '-100%';
+                  else xTransform = '-50%';
+                  yTransform = above ? `calc(-100% - ${LABEL_GAP}px)` : `${LABEL_GAP}px`;
+                } else {
+                  // Horizontal-ish segment: anchor opposite the bias
+                  // direction so the label grows AWAY from the other
+                  // dot. When growing outward would clip the canvas,
+                  // flip to grow inward instead.
+                  if (xRatio < leftEdgeMargin) xTransform = `${LABEL_GAP}px`;
+                  else if (xRatio > rightEdgeMargin) xTransform = `calc(-100% - ${LABEL_GAP}px)`;
+                  else xTransform = leftOfDot ? `calc(-100% - ${LABEL_GAP}px)` : `${LABEL_GAP}px`;
+                  yTransform = above ? `calc(-100% - ${LABEL_GAP}px)` : `${LABEL_GAP}px`;
+                }
                 return (
                   <span
                     key={`label-${s.name}`}
