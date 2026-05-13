@@ -1069,11 +1069,19 @@ export function buildTodaySummary(alerts, observations, now = Date.now()) {
   //     the day really gets going)
   const hoursIntoToday = (now - todayUtc) / (60 * 60 * 1000);
   if (lastWeekSameDayCount > 0 && hoursIntoToday >= 6) {
-    const weekdayName = new Intl.DateTimeFormat('en-US', {
+    // Anchor the formatter at noon Chicago a week ago so the date components
+    // can't be flipped by a UTC-vs-Chicago day boundary (lastWeekUtc is the
+    // midnight-Chicago instant for that day; formatting it directly is safe
+    // in any TZ, but noon is unambiguous regardless of DST transitions).
+    const weekAgo = new Date(lastWeekUtc + 12 * 60 * 60 * 1000);
+    const labeled = new Intl.DateTimeFormat('en-US', {
       timeZone: CHICAGO_TZ,
       weekday: 'long',
-    }).format(new Date(now));
-    head += ` · ${lastWeekSameDayCount} last ${weekdayName}`;
+      month: 'long',
+      day: 'numeric',
+    }).format(weekAgo);
+    // Intl returns "Wednesday, May 6" with a comma already.
+    head += ` · ${lastWeekSameDayCount} last ${labeled}`;
   }
   return `${head}.`;
 }

@@ -148,24 +148,101 @@ export default function SummaryStats({
     );
   }
 
-  // Three logical groups stacked vertically:
-  //   1. State + volume — "6 active · 46 incidents in the last 7 days"
-  //   2. Trend phrase + sparkline (only when we have a callout)
-  //   3. Rankings — "#66 Chicago most affected · Yellow Line quietest"
-  // Each group is flex-wrap so on narrow widths individual phrases break
-  // onto their own lines instead of one long run-on. The sparkline lives
-  // beside the trend phrase rather than at the far right of the whole
-  // block, so the visual reads "this number is what the line shows".
+  // Mobile-only: pre-compute the headline numbers as a 2x2 stat-card grid.
+  // The phrase layout below `sm` got cramped — long sentences with `·`
+  // separators wrapped mid-sentence and the page read as a wall of bold
+  // words. Big-number cards are scannable at a glance; the sparkline drops
+  // out on mobile since it can't shrink usefully into a card slot.
+  const activeCard = (
+    <StatCard
+      value={activeCount > 0 ? activeCount : '0'}
+      label={activeCount > 0 ? 'active now' : 'all clear'}
+    />
+  );
+  const weekCard = <StatCard value={weeklyCount} label="in last 7 days" />;
+  const disruptionCard =
+    disruption7d && disruption7d.disruptedMinutes > 0 ? (
+      <StatCard
+        value={formatMinutesAsHours(disruption7d.disruptedMinutes)}
+        label="disrupted (7d)"
+        title="Total line-time across all train lines spent in a detected disruption over the last 7 days."
+      />
+    ) : null;
+  const trendCard = (() => {
+    if (trend?.trendRatio == null) return null;
+    const priorTotal = trend.prior7Avg * 7;
+    const delta = trend.trendRatio - 1;
+    if (Math.abs(delta) < CALLOUT_DELTA || priorTotal < CALLOUT_MIN_PRIOR) return null;
+    const pct = Math.round(Math.abs(delta) * 100);
+    const up = delta > 0;
+    return (
+      <StatCard
+        value={
+          <span className={up ? 'text-red-500' : 'text-green-600 dark:text-green-500'}>
+            {up ? '↗' : '↘'} {pct}%
+          </span>
+        }
+        label="vs prior 7d"
+      />
+    );
+  })();
+  const mobileCards = [activeCard, weekCard, disruptionCard, trendCard].filter(Boolean);
+
+  // Two layouts share data but diverge structurally:
+  //   - Mobile (<sm): 2x2 grid of stat cards for the headline numbers,
+  //     followed by the affected/quietest sentences.
+  //   - Desktop (sm+): original phrase layout with `·` separators and the
+  //     inline sparkline beside the trend phrase.
   return (
-    <div className="space-y-1.5 px-1">
-      <StatRow>{[activePhrase, weekPhrase, disruptionPhrase]}</StatRow>
-      {alerts && observations && (trendPhrase || trend?.trendRatio != null) && (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600 dark:text-slate-300">
-          {trendPhrase ?? <span className="text-slate-500 dark:text-slate-400">Trend</span>}
-          <TrendSparkline alerts={alerts} observations={observations} trend={trend} />
+    <div className="px-1">
+      {/* Mobile */}
+      <div className="sm:hidden">
+        {mobileCards.length > 0 && (
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {mobileCards.map((card, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: cards are stable per render
+              <div key={i}>{card}</div>
+            ))}
+          </div>
+        )}
+        <div className="space-y-1">
+          {affectedPhrase && (
+            <p className="text-sm text-slate-600 dark:text-slate-300">{affectedPhrase}</p>
+          )}
+          {quietestPhrase && (
+            <p className="text-sm text-slate-600 dark:text-slate-300">{quietestPhrase}</p>
+          )}
         </div>
-      )}
-      <StatRow>{[affectedPhrase, quietestPhrase]}</StatRow>
+      </div>
+
+      {/* Desktop */}
+      <div className="hidden sm:block space-y-1.5">
+        <StatRow>{[activePhrase, weekPhrase, disruptionPhrase]}</StatRow>
+        {alerts && observations && (trendPhrase || trend?.trendRatio != null) && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600 dark:text-slate-300">
+            {trendPhrase ?? <span className="text-slate-500 dark:text-slate-400">Trend</span>}
+            <TrendSparkline alerts={alerts} observations={observations} trend={trend} />
+          </div>
+        )}
+        <StatRow>{[affectedPhrase, quietestPhrase]}</StatRow>
+      </div>
+    </div>
+  );
+}
+
+// Compact card used in the mobile grid. Big number, small label — the
+// number is the thing the eye should land on. `value` accepts a node so
+// the trend card can color/icon-prefix the figure without a custom card.
+function StatCard({ value, label, title }) {
+  return (
+    <div
+      className="rounded-md border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface px-3 py-2"
+      title={title}
+    >
+      <div className="text-lg font-semibold leading-tight text-slate-800 dark:text-slate-100 tabular-nums">
+        {value}
+      </div>
+      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{label}</div>
     </div>
   );
 }
