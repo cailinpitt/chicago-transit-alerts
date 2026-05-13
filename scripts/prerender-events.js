@@ -200,8 +200,15 @@ function buildJsonLd(incident, { ogTitle, desc, url }) {
   return JSON.stringify(ld);
 }
 
-function buildHtmlStub(shell, { id, title, subtitle, accent, incident }) {
-  const url = `${SITE}/event/${id}`;
+function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant = 'canonical' }) {
+  // Canonical always points at the bare /event/:id URL — the /resolved variant
+  // exists only as a Bluesky-card-cache target, not a separate page in its own
+  // right, so search engines should fold it back to canonical and skip indexing.
+  const canonicalUrl = `${SITE}/event/${id}`;
+  const url = variant === 'resolved' ? `${canonicalUrl}/resolved` : canonicalUrl;
+  // og.png is served alongside index.html in the same directory, so a relative
+  // path is fine here. Use the variant's directory so /event/:id/resolved/og.png
+  // (the variant's own image) ships with the variant stub.
   const image = `${url}/og.png`;
   const ogTitle = `${accent.label} · ${title}`.slice(0, 200);
   const desc = subtitle.slice(0, 280);
@@ -209,9 +216,14 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident }) {
   // because </script> in a string literal would otherwise close the tag.
   const jsonLd = buildJsonLd(incident, { ogTitle, desc, url }).replaceAll('<', '\\u003c');
   const ldTag = `<script type="application/ld+json">${jsonLd}</script>`;
-  return shell
+  // canonical always points at the bare URL even on the /resolved variant —
+  // search engines should treat /resolved as a duplicate, not a separate page.
+  let html = shell
     .replace(/<title>[^<]*<\/title>/, `<title>${escHtml(ogTitle)} — CTA Alert History</title>`)
-    .replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${escAttr(url)}" />`)
+    .replace(
+      /<link rel="canonical"[^>]*>/,
+      `<link rel="canonical" href="${escAttr(canonicalUrl)}" />`,
+    )
     .replace(
       /<meta name="description"[^>]*>/,
       `<meta name="description" content="${escAttr(desc)}" />`,
@@ -253,6 +265,13 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident }) {
       `<meta name="twitter:image:alt" content="${escAttr(ogTitle)}" />`,
     )
     .replace('</head>', `${ldTag}\n  </head>`);
+  if (variant === 'resolved') {
+    // noindex the variant — it's a Bluesky-card-cache target, not a destination
+    // page. Without this, search engines see /event/:id and /event/:id/resolved
+    // as two near-identical pages competing for the same incident.
+    html = html.replace('</head>', '<meta name="robots" content="noindex,follow" />\n  </head>');
+  }
+  return html;
 }
 
 function fillTemplate(tpl, fields) {
@@ -320,46 +339,111 @@ async function main() {
 
   // Plan each event: always emit the HTML stub; queue PNG render only on a
   // signature miss.
+  //
+  // Two variants per event:
+  //   /event/:id           — canonical URL; badge tracks `incident.active`.
+  //   /event/:id/resolved  — same view, badge HARDCODED to 'Archived'. Used
+  //     by cta-insights resolution replies so Bluesky's URL-keyed card
+  //     cache shows the correct status. The 'Active' variant of an incident
+  //     that later resolves still stays correct because the canonical URL
+  //     is re-rendered on the next build.
   const renders = [];
   const seenIds = new Set();
   for (const [id, incident] of incidents) {
     seenIds.add(id);
     const accent = accentFor(incident);
     const { title, subtitle } = summarize(incident);
-    const badge = incident.active ? 'Active' : 'Archived';
-    const sig = signatureFor({ id, title, subtitle, badge, accent, templateHash });
 
-    const outDir = resolve(DIST, 'event', id);
-    mkdirSync(outDir, { recursive: true });
+    // Variant A: canonical /event/:id (badge reflects current state).
+    const canonicalBadge = incident.active ? 'Active' : 'Archived';
+    const canonicalSig = signatureFor({
+      id,
+      title,
+      subtitle,
+      badge: canonicalBadge,
+      accent,
+      templateHash,
+    });
+    const canonicalDir = resolve(DIST, 'event', id);
+    mkdirSync(canonicalDir, { recursive: true });
     writeFileSync(
-      resolve(outDir, 'index.html'),
-      buildHtmlStub(shell, { id, title, subtitle, accent, incident }),
+      resolve(canonicalDir, 'index.html'),
+      buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant: 'canonical' }),
     );
-
     const cacheDir = resolve(CACHE, id);
     const cachedPng = resolve(cacheDir, 'og.png');
     const cachedSig = resolve(cacheDir, 'sig');
-    const sigMatches =
-      existsSync(cachedPng) && existsSync(cachedSig) && readFileSync(cachedSig, 'utf8') === sig;
-
-    if (sigMatches) {
-      copyFileSync(cachedPng, resolve(outDir, 'og.png'));
-      continue;
+    const canonicalCached =
+      existsSync(cachedPng) &&
+      existsSync(cachedSig) &&
+      readFileSync(cachedSig, 'utf8') === canonicalSig;
+    if (canonicalCached) {
+      copyFileSync(cachedPng, resolve(canonicalDir, 'og.png'));
+    } else {
+      renders.push({
+        id,
+        html: fillTemplate(template, { id, title, subtitle, badge: canonicalBadge, accent }),
+        outDir: canonicalDir,
+        cacheDir,
+        cachedPng,
+        cachedSig,
+        sig: canonicalSig,
+      });
     }
 
-    renders.push({
-      id,
-      html: fillTemplate(template, { id, title, subtitle, badge, accent }),
-      outDir,
-      cacheDir,
-      cachedPng,
-      cachedSig,
-      sig,
-    });
+    // Variant B: /event/:id/resolved (always 'Archived'). Skip when the
+    // canonical variant is *also* Archived — the URL exists either way, but
+    // the PNG is byte-identical to canonical, so just copy it instead of
+    // burning a second render.
+    const resolvedDir = resolve(DIST, 'event', id, 'resolved');
+    mkdirSync(resolvedDir, { recursive: true });
+    writeFileSync(
+      resolve(resolvedDir, 'index.html'),
+      buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant: 'resolved' }),
+    );
+    if (canonicalBadge === 'Archived') {
+      // PNG will be written to canonicalDir at render time; copy after.
+      renders.push({
+        id: `${id}#resolved-mirror`,
+        // The mirror copy is queued as a post-render step. Mark with a sentinel
+        // html=null so the worker pool can no-op the playwright render and
+        // instead copy from the canonical output.
+        html: null,
+        outDir: resolvedDir,
+        mirrorFrom: canonicalDir,
+      });
+    } else {
+      const resolvedSig = signatureFor({
+        id: `${id}/resolved`,
+        title,
+        subtitle,
+        badge: 'Archived',
+        accent,
+        templateHash,
+      });
+      const resolvedCachedPng = resolve(cacheDir, 'og-resolved.png');
+      const resolvedCachedSig = resolve(cacheDir, 'sig-resolved');
+      const resolvedCacheHit =
+        existsSync(resolvedCachedPng) &&
+        existsSync(resolvedCachedSig) &&
+        readFileSync(resolvedCachedSig, 'utf8') === resolvedSig;
+      if (resolvedCacheHit) {
+        copyFileSync(resolvedCachedPng, resolve(resolvedDir, 'og.png'));
+      } else {
+        renders.push({
+          id: `${id}/resolved`,
+          html: fillTemplate(template, { id, title, subtitle, badge: 'Archived', accent }),
+          outDir: resolvedDir,
+          cacheDir,
+          cachedPng: resolvedCachedPng,
+          cachedSig: resolvedCachedSig,
+          sig: resolvedSig,
+        });
+      }
+    }
   }
 
   let rendered = 0;
-  const cached = incidents.size - renders.length;
 
   if (renders.length > 0) {
     const browser = await chromium.launch();
@@ -371,8 +455,14 @@ async function main() {
     const pages = await Promise.all(
       Array.from({ length: Math.min(CONCURRENCY, renders.length) }, () => ctx.newPage()),
     );
+    // Render-pass first, then mirror-pass — a /resolved mirror that copies from
+    // canonical needs the canonical render to have already happened. Splitting
+    // by html != null gives that ordering without explicit dependency tracking.
+    const realRenders = renders.filter((r) => r.html != null);
+    const mirrorJobs = renders.filter((r) => r.html == null);
+
     let i = 0;
-    await workerPool(renders, pages.length, async (item) => {
+    await workerPool(realRenders, pages.length, async (item) => {
       const page = pages[i++ % pages.length];
       const out = resolve(item.outDir, 'og.png');
       await renderPng(page, item.html, out);
@@ -381,6 +471,15 @@ async function main() {
       writeFileSync(item.cachedSig, item.sig);
       rendered++;
     });
+
+    for (const item of mirrorJobs) {
+      // Mirror = canonical was Archived already, so /resolved's PNG is identical.
+      // The canonical PNG is now on disk (either freshly rendered above or copied
+      // from cache earlier in the planning loop), so just copy it across.
+      const src = resolve(item.mirrorFrom, 'og.png');
+      const dst = resolve(item.outDir, 'og.png');
+      if (existsSync(src)) copyFileSync(src, dst);
+    }
 
     await browser.close();
   }
@@ -397,7 +496,7 @@ async function main() {
   }
 
   console.log(
-    `prerender-events: ${rendered} rendered, ${cached} cache-hit, ${pruned} pruned (concurrency=${CONCURRENCY})`,
+    `prerender-events: ${incidents.size} events · ${rendered} rendered · ${pruned} pruned (concurrency=${CONCURRENCY})`,
   );
 }
 

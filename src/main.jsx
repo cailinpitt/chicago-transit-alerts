@@ -13,7 +13,12 @@ import StatsPage from './components/StatsPage.jsx';
 // Client-side routing. GitHub Pages serves `404.html` (a copy of `index.html`)
 // for any unknown path, so the SPA boots and we dispatch to the right page
 // here. Match patterns:
-//   /event/:id     → individual event detail
+//   /event/:id            → individual event detail
+//   /event/:id/resolved   → same view, but the prerendered OG card has the
+//                           'Archived' badge hardcoded. Used by cta-insights
+//                           resolution replies so Bluesky's URL-keyed card
+//                           cache doesn't keep showing the original
+//                           'Active' image after the incident resolves.
 //   /line/:id      → train line page (e.g. /line/red, /line/blue)
 //   /route/:id     → bus route page  (e.g. /route/66, /route/X9)
 //   /station/:slug → train station page (e.g. /station/clark-division)
@@ -22,7 +27,7 @@ import StatsPage from './components/StatsPage.jsx';
 //   /stats         → leaderboard of worst day/hour/station/longest incident
 //   /compare       → side-by-side comparison of up to 3 train lines or bus routes
 const path = window.location.pathname;
-const eventMatch = /^\/event\/([^/?#]+)\/?$/.exec(path);
+const eventMatch = /^\/event\/([^/?#]+)(?:\/resolved)?\/?$/.exec(path);
 const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
 const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
 const stationMatch = /^\/station\/([^/?#]+)\/?$/.exec(path);
