@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778636945127,
+  "generated_at": 1778638085020,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -8,9 +8,9 @@
       "routes": [
         "blue"
       ],
-      "headline": "Blue Line Service Delayed at Grand",
+      "headline": "Blue Line Delays",
       "first_seen_ts": 1778631722375,
-      "last_seen_ts": 1778636522484,
+      "last_seen_ts": 1778637722595,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -637,7 +637,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778636402592,
+      "last_seen_ts": 1778637602895,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
