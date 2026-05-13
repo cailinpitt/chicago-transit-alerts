@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { hexToRgba } from '../lib/format.js';
 import { buildLineMap } from '../lib/lineMap.js';
@@ -34,6 +34,11 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
 
   const affected = map.stations.filter((s) => wantedNames.has(normalize(s.name)));
   if (affected.length === 0) return null;
+
+  // Center of the affected segment in SVG coords. Used by the scroll-on-mount
+  // effect below to put the impacted section in view on narrow screens where
+  // the map's minWidth (480px) exceeds the viewport.
+  const affectedCenterX = affected.reduce((sum, s) => sum + s.x, 0) / affected.length;
 
   const info = TRAIN_LINES[lineKey];
   const accent = info?.color ?? '#475569';
@@ -99,7 +104,11 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
         {active ? 'Where this is happening' : 'Where this happened'}
       </h2>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
-        <div className="relative overflow-x-auto">
+        <MapScroller
+          mapWidth={map.width}
+          affectedCenterX={affectedCenterX}
+          affectedKey={affected.map((s) => s.name).join('|')}
+        >
           <div className="relative" style={{ minWidth: Math.min(map.width, 480), width: '100%' }}>
             <svg
               viewBox={`0 0 ${map.width} ${map.height}`}
@@ -239,9 +248,40 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
               });
             })()}
           </div>
-        </div>
+        </MapScroller>
       </div>
     </section>
+  );
+}
+
+// Horizontally-scrollable wrapper that, on mount, scrolls the affected
+// segment into view. The map's inner content has a 480px minWidth, which
+// exceeds many phone viewports — without this, narrow viewports default to
+// scrollLeft: 0, hiding incidents that sit on the right side of the line
+// (e.g. Blue Line's O'Hare branch). `affectedKey` re-runs the scroll when
+// the highlighted stations change, so navigating between events updates
+// the framing instead of stuck at the previous segment's position.
+function MapScroller({ mapWidth, affectedCenterX, affectedKey, children }) {
+  const ref = useRef(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: affectedKey captures the affected-stations identity
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // Inner content is `width: 100%` with `minWidth: min(mapWidth, 480)`, so
+    // the rendered width equals max(visible, 480) up to mapWidth. Use the
+    // actual scrollWidth so the math is correct regardless.
+    const innerWidth = el.scrollWidth;
+    const visible = el.clientWidth;
+    if (innerWidth <= visible) return; // nothing to scroll
+    const targetPx = (affectedCenterX / mapWidth) * innerWidth;
+    const desired = targetPx - visible / 2;
+    const max = innerWidth - visible;
+    el.scrollLeft = Math.max(0, Math.min(max, desired));
+  }, [affectedKey, affectedCenterX, mapWidth]);
+  return (
+    <div ref={ref} className="relative overflow-x-auto">
+      {children}
+    </div>
   );
 }
 
