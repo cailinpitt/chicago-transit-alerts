@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778638206374,
+  "generated_at": 1778640124462,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -10,12 +10,12 @@
       ],
       "headline": "Blue Line Delays",
       "first_seen_ts": 1778631722375,
-      "last_seen_ts": 1778637722595,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "last_seen_ts": 1778638922302,
+      "resolved_ts": 1778640123733,
+      "duration_ms": 8401358,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlozw2exta2c",
-      "resolved_reply_url": null,
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlpbqfaj3n2h",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
@@ -637,7 +637,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778638202628,
+      "last_seen_ts": 1778640002884,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
