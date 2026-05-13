@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778634544523,
+  "generated_at": 1778636945127,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -10,7 +10,7 @@
       ],
       "headline": "Blue Line Service Delayed at Grand",
       "first_seen_ts": 1778631722375,
-      "last_seen_ts": 1778634122245,
+      "last_seen_ts": 1778636522484,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -637,7 +637,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778634003003,
+      "last_seen_ts": 1778636402592,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -745,11 +745,11 @@
       ],
       "evidence": null,
       "ts": 1778634541878,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778636941921,
+      "duration_ms": 2400043,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp4k3gfvp2h",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp6rmkk6t2s"
     },
     {
       "id": 316,
