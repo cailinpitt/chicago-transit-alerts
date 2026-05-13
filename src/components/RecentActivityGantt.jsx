@@ -116,34 +116,41 @@ export default function RecentActivityGantt({ alerts, observations, now }) {
             const headlineLabel =
               i.headline ?? (i.from && i.to ? `${i.from} → ${i.to}` : 'Service disruption');
             const tooltip = `${routeLabel}: ${headlineLabel}${i.active ? ' · ongoing' : ''}`;
-            const bar = (
+            // Track is a passive background; only the colored bar itself
+            // is interactive. Earlier version wrapped the whole row in an
+            // <a>, which made empty time-of-day space navigate to that row's
+            // event — clicking 8am on a 6pm incident shouldn't take you to
+            // the 6pm incident.
+            const barStyle = {
+              left: `${leftPct}%`,
+              width: `${widthPct}%`,
+              backgroundColor: color,
+              opacity: i.active ? 1 : 0.7,
+            };
+            return (
               <div
+                key={i.eventId ? `${i.eventId}-${i.startTs}` : `${i.startTs}-${i.line ?? 'none'}`}
                 role="img"
-                className="relative h-2.5 rounded-sm bg-slate-100 dark:bg-gh-subtle"
-                title={tooltip}
                 aria-label={tooltip}
+                className="relative h-2.5 rounded-sm bg-slate-100 dark:bg-gh-subtle"
               >
-                <div
-                  className="absolute top-0 bottom-0 rounded-sm"
-                  style={{
-                    left: `${leftPct}%`,
-                    width: `${widthPct}%`,
-                    backgroundColor: color,
-                    opacity: i.active ? 1 : 0.7,
-                  }}
-                />
+                {i.eventId ? (
+                  <a
+                    href={`/event/${i.eventId}`}
+                    title={tooltip}
+                    className="absolute top-0 bottom-0 rounded-sm hover:opacity-80 transition-opacity"
+                    style={barStyle}
+                  >
+                    <span className="sr-only">{tooltip}</span>
+                  </a>
+                ) : (
+                  <div
+                    title={tooltip}
+                    className="absolute top-0 bottom-0 rounded-sm"
+                    style={barStyle}
+                  />
+                )}
               </div>
-            );
-            return i.eventId ? (
-              <a
-                key={`${i.eventId}-${i.startTs}`}
-                href={`/event/${i.eventId}`}
-                className="block hover:opacity-80 transition-opacity"
-              >
-                {bar}
-              </a>
-            ) : (
-              <div key={`${i.startTs}-${i.line ?? 'none'}`}>{bar}</div>
             );
           })}
         </div>

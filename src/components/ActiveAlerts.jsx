@@ -246,33 +246,39 @@ function ActiveMiniGantt({ incidents, now }) {
           const color = isTrain ? (TRAIN_LINES[lineKey]?.color ?? BUS_COLOR) : BUS_COLOR;
           const elapsedText = elapsed(now, start);
           const label = `${isTrain ? TRAIN_LINES[lineKey]?.label ?? lineKey : `#${lineKey}`}: ${elapsedText} ago`;
-          const bar = (
-            <div
-              role="img"
-              className="relative h-2 rounded-full bg-slate-100 dark:bg-gh-subtle"
-              title={label}
-              aria-label={label}
-            >
-              <div
-                className="absolute top-0 bottom-0 rounded-full"
-                style={{
-                  left: `${leftPct}%`,
-                  width: `${Math.max(widthPct, 1.5)}%`,
-                  backgroundColor: color,
-                }}
-              />
-            </div>
-          );
+          // Only the colored bar is interactive — wrapping the whole track
+          // would make empty time-of-day space (gray area on either side of
+          // the bar) navigate to the incident, which is misleading.
+          const barStyle = {
+            left: `${leftPct}%`,
+            width: `${Math.max(widthPct, 1.5)}%`,
+            backgroundColor: color,
+          };
           return (
             <div key={eventId ?? `${start}-${lineKey}`} className="flex items-center gap-2">
               <div className="flex-1 min-w-0">
-                {eventId ? (
-                  <a href={`/event/${eventId}`} className="block hover:opacity-80 transition-opacity">
-                    {bar}
-                  </a>
-                ) : (
-                  bar
-                )}
+                <div
+                  role="img"
+                  aria-label={label}
+                  className="relative h-2 rounded-full bg-slate-100 dark:bg-gh-subtle"
+                >
+                  {eventId ? (
+                    <a
+                      href={`/event/${eventId}`}
+                      title={label}
+                      className="absolute top-0 bottom-0 rounded-full hover:opacity-80 transition-opacity"
+                      style={barStyle}
+                    >
+                      <span className="sr-only">{label}</span>
+                    </a>
+                  ) : (
+                    <div
+                      title={label}
+                      className="absolute top-0 bottom-0 rounded-full"
+                      style={barStyle}
+                    />
+                  )}
+                </div>
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums w-14 text-right flex-shrink-0">
                 {elapsedText}
