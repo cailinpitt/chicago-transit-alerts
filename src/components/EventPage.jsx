@@ -42,11 +42,17 @@ function incidentRoutes(incident) {
 // Build a fixed-window day-by-day count of incidents on the given line/route,
 // centered on the event's day. Used for the mini timeline that puts the event
 // in the context of the surrounding ~2 weeks of activity on the same line.
+//
+// When the incident affects multiple routes, counts are kept *per route* so
+// the renderer can draw one row per affected line. Collapsing into a single
+// row paints "any of these routes had an incident" with one color, which
+// misrepresents alerts that touch the lines unevenly (e.g. Pink+Green where
+// only Pink had prior days of trouble).
 function buildEventLineWindow(incident, alerts, observations, numDays = 14, now = Date.now()) {
-  const routes = new Set(incidentRoutes(incident));
+  const routes = incidentRoutes(incident);
   const kind = incident.kind;
   const startTs = incident.first_seen_ts ?? incident.ts;
-  if (routes.size === 0 || startTs == null) return null;
+  if (routes.length === 0 || startTs == null) return null;
   const centerDayUtc = chicagoDayUTC(startTs);
   const todayUtc = chicagoDayUTC(now);
   // Center the window on the event day, but never show future days past today
@@ -59,25 +65,92 @@ function buildEventLineWindow(incident, alerts, observations, numDays = 14, now 
   const endDay = Math.min(desiredEnd, todayUtc);
   const startDay = endDay - (numDays - 1) * DAY_MS;
 
-  const days = [];
-  for (let i = 0; i < numDays; i++) {
-    days.push({ dayUtc: startDay + i * DAY_MS, count: 0 });
-  }
+  const dayUtcs = [];
+  for (let i = 0; i < numDays; i++) dayUtcs.push(startDay + i * DAY_MS);
+
+  // perRoute[route] = number[] aligned to dayUtcs.
+  const perRoute = Object.fromEntries(routes.map((r) => [r, new Array(numDays).fill(0)]));
+  const routeSet = new Set(routes);
 
   const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
   function bump(ts, incRoutes, incKind) {
     if (incKind !== kind) return;
-    if (!incRoutes.some((r) => routes.has(r))) return;
     const dayUtc = chicagoDayUTC(ts);
     const idx = Math.round((dayUtc - startDay) / DAY_MS);
     if (idx < 0 || idx >= numDays) return;
-    days[idx].count += 1;
+    for (const r of incRoutes) {
+      if (routeSet.has(r)) perRoute[r][idx] += 1;
+    }
   }
   for (const m of merged) bump(m.first_seen_ts, m.routes || [], m.kind);
   for (const a of standaloneAlerts) bump(a.first_seen_ts, a.routes || [], a.kind);
   for (const o of standaloneObs) bump(o.first_seen_ts ?? o.ts, [o.line], o.kind);
 
-  return { days, centerDayUtc };
+  return { dayUtcs, perRoute, routes, centerDayUtc };
+}
+
+// Color picker for a single route's cell. Train routes get their brand color;
+// bus routes share the slate tint Timeline uses for the bus row.
+function routeColor(kind, route) {
+  if (kind === 'train') {
+    const info = TRAIN_LINES[route];
+    if (info) return info.color;
+  }
+  return BUS_COLOR;
+}
+
+// Compact pill label for the row gutter — just the line name, no link. The
+// EventDetail card above already has linked LinePills for navigation; here
+// the pill is purely a legend so the reader can match row to color.
+function RowLabel({ kind, route }) {
+  if (kind === 'train') {
+    const info = TRAIN_LINES[route];
+    if (info) {
+      return (
+        <span
+          className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
+          style={{ backgroundColor: info.color, color: info.textColor }}
+        >
+          {info.label}
+        </span>
+      );
+    }
+  }
+  return (
+    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap bg-slate-700 text-white">
+      {kind === 'bus' ? `#${route}` : route}
+    </span>
+  );
+}
+
+function TimelineRow({ counts, dayUtcs, centerDayUtc, color }) {
+  function cellBg(count) {
+    if (count === 0) return 'var(--timeline-empty)';
+    if (count === 1) return hexToRgba(color, 0.4);
+    return color;
+  }
+  return (
+    <div
+      className="grid gap-1 flex-1 min-w-0"
+      style={{ gridTemplateColumns: `repeat(${dayUtcs.length}, minmax(0, 1fr))` }}
+    >
+      {dayUtcs.map((dayUtc, i) => {
+        const count = counts[i];
+        const isPinned = dayUtc === centerDayUtc;
+        const label = `${formatChicagoDay(dayUtc)}: ${count} incident${count === 1 ? '' : 's'}`;
+        return (
+          <div
+            key={dayUtc}
+            title={label}
+            className={`aspect-square rounded-sm ${
+              isPinned ? 'ring-1 ring-slate-700 dark:ring-slate-200' : ''
+            }`}
+            style={{ backgroundColor: cellBg(count) }}
+          />
+        );
+      })}
+    </div>
+  );
 }
 
 function MiniTimeline({ incident, alerts, observations }) {
@@ -86,23 +159,15 @@ function MiniTimeline({ incident, alerts, observations }) {
     [incident, alerts, observations],
   );
   if (!windowData) return null;
-  const { days, centerDayUtc } = windowData;
-  const lineKey = incidentRoutes(incident)[0];
-  const trainInfo = incident.kind === 'train' ? TRAIN_LINES[lineKey] : null;
-  const color = trainInfo ? trainInfo.color : BUS_COLOR;
-
-  function cellBg(count) {
-    if (count === 0) return 'var(--timeline-empty)';
-    if (count === 1) return hexToRgba(color, 0.4);
-    return color;
-  }
+  const { dayUtcs, perRoute, routes, centerDayUtc } = windowData;
+  const multi = routes.length > 1;
 
   // Short month/day labels for the range endpoints. The full formatDate
   // ("Apr 24, 2026") is overkill at 14-day scale and crowds the row, but the
   // year is needed when the range straddles a year boundary so a Dec→Jan
   // window doesn't read as 2026 → 2026.
-  const firstDay = days[0].dayUtc;
-  const lastDay = days[days.length - 1].dayUtc;
+  const firstDay = dayUtcs[0];
+  const lastDay = dayUtcs[dayUtcs.length - 1];
   const sameYear = new Date(firstDay).getUTCFullYear() === new Date(lastDay).getUTCFullYear();
   // dayUtc is a UTC-midnight epoch by construction (chicagoDayUTC builds it
   // from Chicago Y/M/D), so format it as UTC to read those date components
@@ -120,32 +185,47 @@ function MiniTimeline({ incident, alerts, observations }) {
   return (
     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gh-border">
       <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
-        Surrounding {days.length} days on{' '}
-        {formatRoutesLabel(incident.kind, incidentRoutes(incident))}
+        Surrounding {dayUtcs.length} days on {formatRoutesLabel(incident.kind, routes)}
       </p>
-      <div
-        className="grid gap-1"
-        style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
-      >
-        {days.map(({ dayUtc, count }) => {
-          const isPinned = dayUtc === centerDayUtc;
-          const label = `${formatChicagoDay(dayUtc)}: ${count} incident${count === 1 ? '' : 's'}`;
-          return (
-            <div
-              key={dayUtc}
-              title={label}
-              className={`aspect-square rounded-sm ${
-                isPinned ? 'ring-1 ring-slate-700 dark:ring-slate-200' : ''
-              }`}
-              style={{ backgroundColor: cellBg(count) }}
-            />
-          );
-        })}
-      </div>
-      <div className="flex justify-between mt-1.5 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
-        <span>{firstLabel}</span>
-        <span>{lastLabel}</span>
-      </div>
+      {multi ? (
+        // Stacked rows: one per route. A fixed-width label column keeps every
+        // row's grid aligned so cells stack vertically by day.
+        <div className="space-y-1">
+          {routes.map((route) => (
+            <div key={route} className="flex items-center gap-2">
+              <div className="w-12 flex-shrink-0 flex justify-end">
+                <RowLabel kind={incident.kind} route={route} />
+              </div>
+              <TimelineRow
+                counts={perRoute[route]}
+                dayUtcs={dayUtcs}
+                centerDayUtc={centerDayUtc}
+                color={routeColor(incident.kind, route)}
+              />
+            </div>
+          ))}
+          <div className="flex">
+            <div className="w-12 flex-shrink-0" />
+            <div className="flex-1 flex justify-between mt-1.5 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+              <span>{firstLabel}</span>
+              <span>{lastLabel}</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <TimelineRow
+            counts={perRoute[routes[0]]}
+            dayUtcs={dayUtcs}
+            centerDayUtc={centerDayUtc}
+            color={routeColor(incident.kind, routes[0])}
+          />
+          <div className="flex justify-between mt-1.5 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+            <span>{firstLabel}</span>
+            <span>{lastLabel}</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
