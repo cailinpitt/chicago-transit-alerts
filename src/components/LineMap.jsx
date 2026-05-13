@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { hexToRgba } from '../lib/format.js';
 import { buildLineMap } from '../lib/lineMap.js';
+import { displayStationName } from '../lib/stations.js';
 
 // Five intensity stops keyed off the line's max station count so the
 // busiest station is fully saturated and the rest scale linearly. Mirrors
@@ -25,10 +26,11 @@ function pathFor(track) {
 
 function StationDot({ station, maxCount, accent, radius = 5 }) {
   const fill = stationFill(station.count, maxCount, accent);
+  const display = displayStationName(station.name);
   const label =
     station.count === 0
-      ? `${station.name}: no incidents (last 90 days)`
-      : `${station.name}: ${station.count} incident${station.count === 1 ? '' : 's'} (last 90 days)`;
+      ? `${display}: no incidents (last 90 days)`
+      : `${display}: ${station.count} incident${station.count === 1 ? '' : 's'} (last 90 days)`;
   const href = station.slug ? `/station/${station.slug}` : null;
   const circle = (
     <circle
@@ -105,7 +107,7 @@ function TerminalLabel({ station, mapWidth, mapHeight, radius }) {
         transform: `translate(${xTransform}, ${yTransform})`,
       }}
     >
-      {station.name}
+      {displayStationName(station.name)}
     </span>
   );
 }

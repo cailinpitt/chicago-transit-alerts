@@ -1,4 +1,4 @@
-import { slugifyStation } from '../lib/stations.js';
+import { displayStationName, slugifyStation } from '../lib/stations.js';
 import HighlightedText from './HighlightedText.jsx';
 
 // Below this threshold a station's page would be near-empty and the link
@@ -14,7 +14,12 @@ export default function StationName({ name, stationIndex, searchQuery = '' }) {
   if (!name) return null;
   const slug = slugifyStation(name);
   const rec = slug && stationIndex ? stationIndex.get(slug) : null;
-  const inner = <HighlightedText text={name} query={searchQuery} />;
+  // Display drops the "(Purple)"-style qualifier — line context is already
+  // visible elsewhere on every render site that uses this component.
+  // Slug still derives from the full name so /station/central-purple stays
+  // distinct from /station/central-green.
+  const display = displayStationName(name);
+  const inner = <HighlightedText text={display} query={searchQuery} />;
   if (rec && rec.count >= STATION_LINK_MIN_COUNT) {
     // Dotted underline as a "this text is interactive" cue without going as
     // loud as full blue-link styling — these names appear inline inside

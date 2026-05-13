@@ -4,7 +4,7 @@ import { useNow } from '../hooks/useNow.js';
 import { computeTypicalDurations } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { normalizeAlertsPayload, searchFilterIncidents } from '../lib/incidents.js';
-import { buildStationIndex } from '../lib/stations.js';
+import { buildStationIndex, displayStationName } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
@@ -70,7 +70,7 @@ export default function StationPage({ slug }) {
       return;
     }
     const prefix = activeIncidents.length > 0 ? `(${activeIncidents.length}) ` : '';
-    document.title = `${prefix}${station.name} · ${base}`;
+    document.title = `${prefix}${displayStationName(station.name)} · ${base}`;
     return () => {
       document.title = base;
     };
@@ -134,7 +134,7 @@ export default function StationPage({ slug }) {
           {station && (
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                {station.name}
+                {displayStationName(station.name)}
               </h1>
               <div className="flex flex-wrap gap-1.5">
                 {station.lines.map((line) => {

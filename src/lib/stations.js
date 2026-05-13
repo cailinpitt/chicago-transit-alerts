@@ -13,6 +13,23 @@
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Drop the parenthetical line qualifier upstream uses to disambiguate
+// same-named stations across lines: `Central (Purple)` → `Central`. Used
+// everywhere we display a station name *next to* a line pill or under a
+// line-page heading — the suffix is redundant noise in those contexts.
+// The StationPage heading still uses the raw name (with the suffix) since
+// that page can be linked to standalone and needs to be unambiguous.
+/**
+ * @param {string | null | undefined} name
+ * @returns {string}
+ */
+export function displayStationName(name) {
+  if (!name) return '';
+  return String(name)
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .trim();
+}
+
 // Slugify a station name for use in URLs. Lowercase, collapse runs of
 // non-alphanumeric chars to '-', trim. `Central (Green)` → `central-green`,
 // `Clark/Division` → `clark-division`, `O'Hare` → `o-hare`.

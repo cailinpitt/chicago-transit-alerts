@@ -21,7 +21,7 @@ import {
   normalizeAlertsPayload,
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
-import { buildStationIndex, slugifyStation } from '../lib/stations.js';
+import { buildStationIndex, displayStationName, slugifyStation } from '../lib/stations.js';
 import BrowseMenu from './BrowseMenu.jsx';
 import EventMap from './EventMap.jsx';
 import LinePill from './LinePill.jsx';
@@ -312,7 +312,7 @@ function RelatedIncidents({ incident, alerts, observations, stationIndex }) {
 function describeText(incident, isMerged, isAlert) {
   if (isMerged || isAlert) return incident.headline;
   if (incident.from_station && incident.to_station) {
-    return `${incident.from_station} → ${incident.to_station}`;
+    return `${displayStationName(incident.from_station)} → ${displayStationName(incident.to_station)}`;
   }
   if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
     return `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
@@ -495,16 +495,6 @@ function collectAffectedStations(incident) {
   return out;
 }
 
-// Strip the parenthetical line qualifier from station names ("Central
-// (Purple)" → "Central"). The line is already obvious from the line pill
-// at the top of the card — the qualifier just clutters the chip row.
-function trimLineQualifier(name) {
-  if (!name) return '';
-  return String(name)
-    .replace(/\s*\([^)]*\)\s*$/, '')
-    .trim();
-}
-
 // Quiet inline row of affected station links. No chunky pills — the line
 // pill above already carries the brand color, so loud per-station chips
 // just compete with it. These are supplementary navigation: dotted-
@@ -520,7 +510,7 @@ function StationChips({ stations }) {
       </span>
       {stations.map((name, i) => {
         const slug = slugifyStation(name);
-        const display = trimLineQualifier(name);
+        const display = displayStationName(name);
         const isLast = i === stations.length - 1;
         const link = slug ? (
           <a

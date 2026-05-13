@@ -2,6 +2,7 @@ import { typicalDurationKey } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration } from '../lib/format.js';
 import { getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
+import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 import LongRunningBanner from './LongRunningBanner.jsx';
 import ShareLink from './ShareLink.jsx';
@@ -47,14 +48,14 @@ function describeIncident(incident, stationIndex) {
           <StationName name={incident.to_station} stationIndex={stationIndex} />
         </>
       ),
-      descriptionText: `${incident.from_station} → ${incident.to_station}`,
+      descriptionText: `${displayStationName(incident.from_station)} → ${displayStationName(incident.to_station)}`,
     };
   }
   if (incident.from_station || incident.to_station) {
     const name = incident.from_station ?? incident.to_station;
     return {
       description: <StationName name={name} stationIndex={stationIndex} />,
-      descriptionText: name,
+      descriptionText: displayStationName(name),
     };
   }
   if (incident.detection_source === 'roundup' && signalsText) {

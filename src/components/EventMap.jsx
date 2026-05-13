@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { hexToRgba } from '../lib/format.js';
 import { buildLineMap } from '../lib/lineMap.js';
+import { displayStationName } from '../lib/stations.js';
 
 // Light-touch event-scoped map: full line track in muted color, with the
 // stations involved in this incident highlighted as bold dots with labels.
@@ -106,7 +107,7 @@ export default function EventMap({ lineKey, fromStation, toStation }) {
                     fill="#cbd5e1"
                     className="dark:[fill:#475569]"
                   >
-                    <title>{s.name}</title>
+                    <title>{displayStationName(s.name)}</title>
                   </circle>
                 ))}
               {/* Affected stations — bold, brand color, larger radius. */}
@@ -122,12 +123,16 @@ export default function EventMap({ lineKey, fromStation, toStation }) {
                     strokeWidth={2}
                     className="dark:[stroke:#0d1117]"
                   >
-                    <title>{s.name}</title>
+                    <title>{displayStationName(s.name)}</title>
                   </circle>
                 );
                 if (href) {
                   return (
-                    <a key={s.name} href={href} aria-label={`${s.name} station page`}>
+                    <a
+                      key={s.name}
+                      href={href}
+                      aria-label={`${displayStationName(s.name)} station page`}
+                    >
                       {dot}
                     </a>
                   );
@@ -166,7 +171,7 @@ export default function EventMap({ lineKey, fromStation, toStation }) {
                       transform: `translate(${xTransform}, ${yTransform})`,
                     }}
                   >
-                    {s.name}
+                    {displayStationName(s.name)}
                   </span>
                 );
               });

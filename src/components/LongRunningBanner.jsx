@@ -1,5 +1,6 @@
 import { formatDuration } from '../lib/format.js';
 import { getEventId } from '../lib/incidents.js';
+import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -39,7 +40,7 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
           const headline =
             incident.headline ??
             (incident.from_station && incident.to_station
-              ? `${incident.from_station} → ${incident.to_station}`
+              ? `${displayStationName(incident.from_station)} → ${displayStationName(incident.to_station)}`
               : 'Ongoing disruption');
           const allRoutes =
             Array.isArray(incident.routes) && incident.routes.length > 0
