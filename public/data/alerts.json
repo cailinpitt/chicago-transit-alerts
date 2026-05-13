@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778693351436,
+  "generated_at": 1778709908099,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -690,7 +690,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778692802081,
+      "last_seen_ts": 1778709602736,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -788,6 +788,40 @@
     }
   ],
   "observations": [
+    {
+      "id": 318,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-0-outbound",
+      "from_station": "Francisco",
+      "to_station": "Damen (Brown)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 1.7,
+        "minutesSinceLastTrain": 16,
+        "lookbackMin": 20,
+        "coldThresholdMin": 15,
+        "trainsOutsideRun": 10,
+        "coldStations": 4,
+        "coldStationNames": [
+          "Francisco",
+          "Rockwell",
+          "Western (Brown)",
+          "Damen (Brown)"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 5.583333333333333,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778709905878,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlrcq3b5av2a",
+      "resolved_post_url": null
+    },
     {
       "id": 41,
       "kind": "bus",
