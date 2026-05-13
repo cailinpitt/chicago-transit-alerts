@@ -16,18 +16,19 @@ export const LONG_RUNNING_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 // Mirrors the same cap used by ActiveRow in ActiveAlerts.jsx.
 const COMPACT_PILL_LIMIT = 1;
 
-// Banner row for active incidents older than the threshold. Visually
-// quieter than ActiveAlerts (no red accent / pulsing dot) — these are
-// structural conditions, not breaking news, and the pulsing-red treatment
-// trained on them stops feeling actionable. The "Day N" framing makes
-// the duration the headline number.
+// Compact row list for active incidents older than the threshold. Lives
+// inside the "Active Now" section (under a sub-label) so users see all
+// active state in one place, but visually quieter than the red ActiveCards
+// — these are structural conditions, not breaking news, and the
+// pulsing-red treatment trained on them stops feeling actionable. The
+// "Day N" framing makes the duration the headline number.
 export default function LongRunningBanner({ incidents, now = Date.now() }) {
   if (!incidents || incidents.length === 0) return null;
   return (
-    <section>
-      <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 px-1">
+    <div className="pt-2">
+      <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5 px-1">
         Long-running ({incidents.length})
-      </h2>
+      </p>
       <div className="space-y-1.5">
         {incidents.map((incident) => {
           const startTs = incident.first_seen_ts ?? incident.ts;
@@ -49,13 +50,10 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
           const shownRoutes = allRoutes.slice(0, COMPACT_PILL_LIMIT);
           const overflowCount = allRoutes.length - shownRoutes.length;
           const content = (
+            // biome-ignore lint/correctness/useJsxKeyInIterable: returned wrapper (<a> / <div>) carries the key for each iteration
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <LinePill
-                  kind={incident.kind}
-                  line={incident.line}
-                  routes={shownRoutes}
-                />
+                <LinePill kind={incident.kind} line={incident.line} routes={shownRoutes} />
                 {overflowCount > 0 && (
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
                     +{overflowCount}
@@ -88,6 +86,6 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

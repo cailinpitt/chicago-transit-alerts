@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
+import { computeCohortDurationStats } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import {
   chicagoDayUTC,
@@ -20,8 +21,9 @@ import {
   normalizeAlertsPayload,
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
-import { buildStationIndex } from '../lib/stations.js';
+import { buildStationIndex, slugifyStation } from '../lib/stations.js';
 import BrowseMenu from './BrowseMenu.jsx';
+import EventMap from './EventMap.jsx';
 import LinePill from './LinePill.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
@@ -471,28 +473,154 @@ export default function EventPage({ eventId }) {
   );
 }
 
-function formatAffected(incident, stationIndex) {
-  const from = incident.affected_from_station;
-  const to = incident.affected_to_station;
-  const dir = incident.affected_direction;
-  if (!from && !to && !dir) return null;
-  const segment =
-    from && to ? (
-      <>
-        <StationName name={from} stationIndex={stationIndex} /> →{' '}
-        <StationName name={to} stationIndex={stationIndex} />
-      </>
-    ) : from || to ? (
-      <StationName name={from ?? to} stationIndex={stationIndex} />
-    ) : null;
-  if (segment && dir) {
-    return (
-      <>
-        {dir} · {segment}
-      </>
-    );
+// Pull both alert-side (affected_*) and observation-side (from/to) station
+// names off an incident into a single ordered, deduped list. Keeps the
+// callout self-contained — formerly the alert's affected_* line and the
+// merged record's observation from/to displayed in two different places,
+// neither truly chip-styled.
+function collectAffectedStations(incident) {
+  const seen = new Set();
+  const out = [];
+  function add(name) {
+    if (!name) return;
+    const key = name.toLowerCase().trim();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(name);
   }
-  return segment ?? dir;
+  add(incident.affected_from_station);
+  add(incident.affected_to_station);
+  add(incident.from_station);
+  add(incident.to_station);
+  return out;
+}
+
+// Strip the parenthetical line qualifier from station names ("Central
+// (Purple)" → "Central"). The line is already obvious from the line pill
+// at the top of the card — the qualifier just clutters the chip row.
+function trimLineQualifier(name) {
+  if (!name) return '';
+  return String(name)
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .trim();
+}
+
+// Quiet inline row of affected station links. No chunky pills — the line
+// pill above already carries the brand color, so loud per-station chips
+// just compete with it. These are supplementary navigation: dotted-
+// underline links that match the rest of the site's station-name style.
+// Caller decides whether to render at all (only useful when the headline
+// doesn't already spell the stations out — see EventDetail).
+function StationChips({ stations }) {
+  if (!stations || stations.length === 0) return null;
+  return (
+    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+      <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-1">
+        Stations
+      </span>
+      {stations.map((name, i) => {
+        const slug = slugifyStation(name);
+        const display = trimLineQualifier(name);
+        const isLast = i === stations.length - 1;
+        const link = slug ? (
+          <a
+            href={`/station/${slug}`}
+            className="underline decoration-dotted decoration-slate-400 dark:decoration-slate-500 underline-offset-[3px] hover:decoration-solid hover:decoration-blue-500 hover:text-blue-500"
+          >
+            {display}
+          </a>
+        ) : (
+          <span>{display}</span>
+        );
+        return (
+          <span key={name} className="inline-flex items-center gap-1.5">
+            {link}
+            {!isLast && stations.length === 2 && (
+              <span className="text-slate-400 dark:text-slate-500">→</span>
+            )}
+            {!isLast && stations.length !== 2 && (
+              <span className="text-slate-300 dark:text-slate-600">·</span>
+            )}
+          </span>
+        );
+      })}
+    </p>
+  );
+}
+
+// The affected_* stations now render as chips at the top of the card;
+// formatAffected is only left to surface the direction string (e.g.
+// "Northbound only") for alerts that carry one without station scoping.
+function formatAffected(incident) {
+  return incident.affected_direction ?? null;
+}
+
+// Compact horizontal scale showing where this incident's duration sits in
+// its cohort of similar resolved incidents (same kind/line/signal). Gives a
+// "was this bad or normal?" gut check beyond the bare duration number.
+// Hidden when:
+//   - The incident is still active (no final duration yet).
+//   - The cohort is below the helper's minCohort threshold (any median is
+//     too volatile to anchor a comparison).
+//   - The incident has no signal to bucket on (pure CTA alerts).
+function DurationScale({ stats }) {
+  if (!stats || stats.thisMs == null) return null;
+  // Scale extends to the max of (this incident, cohort p90) so a much-
+  // worse-than-normal incident pushes the bar past the cohort's whisker
+  // without inflating the median's apparent position.
+  const scaleMax = Math.max(stats.thisMs, stats.p90Ms, stats.medianMs * 2);
+  if (scaleMax <= 0) return null;
+  const pct = (v) => Math.min(100, Math.max(0, (v / scaleMax) * 100));
+
+  const ratio = stats.medianMs > 0 ? stats.thisMs / stats.medianMs : null;
+  let summary;
+  if (ratio == null) summary = null;
+  else if (ratio >= 1.5) summary = `${ratio.toFixed(1)}× longer than typical`;
+  else if (ratio <= 0.67) summary = `${(1 / ratio).toFixed(1)}× shorter than typical`;
+  else summary = 'about typical';
+
+  return (
+    <div
+      className="mt-4 pt-4 border-t border-slate-100 dark:border-gh-border"
+      title={`Cohort: ${stats.count} resolved incidents of this signal type on this line in the last 90 days. Median ${formatDuration(stats.medianMs)}, p90 ${formatDuration(stats.p90Ms)}.`}
+    >
+      <div className="flex items-baseline justify-between gap-2 mb-2">
+        <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          Duration vs typical
+        </p>
+        {summary && (
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            <strong className="text-slate-700 dark:text-slate-200">{summary}</strong> ({stats.count}{' '}
+            similar in 90d)
+          </p>
+        )}
+      </div>
+      <div className="relative h-2 rounded-full bg-slate-100 dark:bg-gh-subtle">
+        {/* Median tick */}
+        <div
+          className="absolute top-0 bottom-0 w-px bg-slate-400 dark:bg-slate-500"
+          style={{ left: `${pct(stats.medianMs)}%` }}
+          title={`Cohort median: ${formatDuration(stats.medianMs)}`}
+        />
+        {/* p90 tick */}
+        <div
+          className="absolute top-0 bottom-0 w-px bg-slate-300 dark:bg-slate-600"
+          style={{ left: `${pct(stats.p90Ms)}%` }}
+          title={`Cohort p90: ${formatDuration(stats.p90Ms)}`}
+        />
+        {/* This incident's marker — colored, on top of the cohort ticks */}
+        <div
+          className="absolute -top-0.5 -bottom-0.5 w-1 rounded-sm bg-blue-500"
+          style={{ left: `calc(${pct(stats.thisMs)}% - 2px)` }}
+        />
+      </div>
+      <div className="flex justify-between mt-1 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+        <span>0</span>
+        <span>median {formatDuration(stats.medianMs)}</span>
+        <span>p90 {formatDuration(stats.p90Ms)}</span>
+      </div>
+    </div>
+  );
 }
 
 function EventDetail({ incident, alerts, observations, stationIndex }) {
@@ -501,6 +629,37 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   const startTs = incident.first_seen_ts || incident.ts;
   const endTs = incident.resolved_ts ?? null;
   const duration = endTs ? formatDuration(endTs - startTs) : null;
+  const cohortStats = useMemo(
+    () => computeCohortDurationStats(incident, alerts, observations, { windowDays: 90 }),
+    [incident, alerts, observations],
+  );
+
+  // CTA-planned-start callout. When CTA tagged the alert with an EventStart
+  // that meaningfully predates our first sighting, the disruption was a
+  // planned event scheduled in advance rather than a live reactive post.
+  // Skipped when the gap is < 10 minutes (CTA fired effectively in real
+  // time) or > 14 days (a stale EventStart from a long-running planned
+  // alert isn't informative).
+  let ctaPlannedPhrase = null;
+  const ctaStart = incident.cta_event_start_ts ?? null;
+  if (ctaStart != null && startTs != null) {
+    const aheadMs = startTs - ctaStart;
+    const TEN_MIN = 10 * 60 * 1000;
+    const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
+    if (aheadMs >= TEN_MIN && aheadMs <= FOURTEEN_DAYS) {
+      const aheadMin = Math.round(aheadMs / 60_000);
+      if (aheadMin < 60) ctaPlannedPhrase = `${aheadMin} min ahead`;
+      else if (aheadMin < 24 * 60) {
+        const h = Math.floor(aheadMin / 60);
+        const m = aheadMin % 60;
+        ctaPlannedPhrase = m > 0 ? `${h}h ${m}m ahead` : `${h}h ahead`;
+      } else {
+        const d = Math.floor(aheadMin / (24 * 60));
+        const hours = Math.round((aheadMin - d * 24 * 60) / 60);
+        ctaPlannedPhrase = hours > 0 ? `${d}d ${hours}h ahead` : `${d}d ahead`;
+      }
+    }
+  }
 
   // CTA's claimed end-time vs actual resolution. Pure CTA alerts and merged
   // records carry `cta_event_end_ts` when CTA originally tagged the alert
@@ -544,7 +703,8 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
     stabilizationDelta = formatStabilizationDelta(incident.obs_resolved_ts - incident.resolved_ts);
   }
   const description = describe(incident, isMerged, isAlert, stationIndex);
-  const affected = formatAffected(incident, stationIndex);
+  const affected = formatAffected(incident);
+  const affectedStations = collectAffectedStations(incident);
   const resolvedUrl = incident.resolved_reply_url ?? incident.resolved_post_url ?? null;
   const obsResolvedUrl = isMerged ? (incident.obs_resolved_post_url ?? null) : null;
   const eventId = getEventId(incident);
@@ -577,12 +737,13 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
         {description}
       </h1>
 
-      {isMerged && incident.from_station && incident.to_station && (
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-          <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
-          <StationName name={incident.to_station} stationIndex={stationIndex} />
-        </p>
-      )}
+      {/* Chips only when the headline isn't already the station pair. For
+          pure observations the description IS "From → To" — rendering the
+          same stations a second time as chunky chips is just redundant
+          visual noise. CTA alerts (headlines like "Temporary Reroute" or
+          "Service Change") are the case where the chips actually add
+          information that isn't already in the headline. */}
+      {(isMerged || isAlert) && <StationChips stations={affectedStations} />}
 
       {!isMerged && !isAlert && incident.signals?.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -603,7 +764,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
       {affected && (
         <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">
           <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-2">
-            Affected
+            Direction
           </span>
           {affected}
         </p>
@@ -636,6 +797,22 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
             <dd className="text-slate-700 dark:text-slate-200">{duration}</dd>
           </div>
         )}
+        {ctaPlannedPhrase && (
+          <div
+            className="sm:col-span-2"
+            title="CTA's EventStart predates our first sighting — the alert was planned in advance rather than fired live."
+          >
+            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              CTA scheduled
+            </dt>
+            <dd className="text-slate-700 dark:text-slate-200">
+              <strong>{ctaPlannedPhrase}</strong> of the first sighting{' '}
+              <span className="text-slate-400 dark:text-slate-500 text-xs">
+                (tagged {formatTime(ctaStart)} on {formatDate(ctaStart)})
+              </span>
+            </dd>
+          </div>
+        )}
         {ctaEstimateBlock && (
           <div
             className="sm:col-span-2"
@@ -666,6 +843,19 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           </div>
         )}
       </dl>
+
+      {/* Geographic map for train incidents with at least one named
+          station. Bus incidents (no geometry data) and alerts that don't
+          tag a station fall through to just the mini timeline below. */}
+      {incident.kind === 'train' && (
+        <EventMap
+          lineKey={incident.line ?? (Array.isArray(incident.routes) ? incident.routes[0] : null)}
+          fromStation={incident.from_station ?? incident.affected_from_station ?? null}
+          toStation={incident.to_station ?? incident.affected_to_station ?? null}
+        />
+      )}
+
+      <DurationScale stats={cohortStats} />
 
       <MiniTimeline incident={incident} alerts={alerts} observations={observations} />
 

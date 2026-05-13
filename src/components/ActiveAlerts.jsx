@@ -3,6 +3,7 @@ import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration } from '../lib/format.js';
 import { getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
 import LinePill from './LinePill.jsx';
+import LongRunningBanner from './LongRunningBanner.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
 
@@ -241,11 +242,10 @@ function ActiveMiniGantt({ incidents, now }) {
           const widthPct = ((now - start) / span) * 100;
           const eventId = getEventId(incident);
           const isTrain = incident.kind === 'train';
-          const lineKey =
-            (Array.isArray(incident.routes) && incident.routes[0]) || incident.line;
+          const lineKey = (Array.isArray(incident.routes) && incident.routes[0]) || incident.line;
           const color = isTrain ? (TRAIN_LINES[lineKey]?.color ?? BUS_COLOR) : BUS_COLOR;
           const elapsedText = elapsed(now, start);
-          const label = `${isTrain ? TRAIN_LINES[lineKey]?.label ?? lineKey : `#${lineKey}`}: ${elapsedText} ago`;
+          const label = `${isTrain ? (TRAIN_LINES[lineKey]?.label ?? lineKey) : `#${lineKey}`}: ${elapsedText} ago`;
           // Only the colored bar is interactive — wrapping the whole track
           // would make empty time-of-day space (gray area on either side of
           // the bar) navigate to the incident, which is misleading.
@@ -298,6 +298,7 @@ function ActiveMiniGantt({ incidents, now }) {
 
 export default function ActiveAlerts({
   incidents,
+  longRunningIncidents = [],
   now = Date.now(),
   highlightedIds,
   typicalDurations,
@@ -311,6 +312,14 @@ export default function ActiveAlerts({
   const fullCards = incidents.slice(0, fullCount);
   const compactRows = incidents.slice(fullCount);
 
+  // Combined active set drives the section count + gantt. Both short-
+  // running (regular cards/rows below) and long-running (quieter "Day N"
+  // rows further down) live under this one heading — users want to see
+  // every active state in one place, not split across separate sections.
+  const totalActive = incidents.length + longRunningIncidents.length;
+  const ganttIncidents =
+    longRunningIncidents.length > 0 ? [...incidents, ...longRunningIncidents] : incidents;
+
   return (
     <section>
       <div className="flex items-center gap-2 mb-2">
@@ -321,11 +330,11 @@ export default function ActiveAlerts({
         <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wider">
           Active Now
           <span className="ml-2 normal-case font-normal text-slate-400 dark:text-slate-500">
-            ({incidents.length})
+            ({totalActive})
           </span>
         </h2>
       </div>
-      <ActiveMiniGantt incidents={incidents} now={now} />
+      <ActiveMiniGantt incidents={ganttIncidents} now={now} />
       <div className="space-y-2">
         {fullCards.map((incident) => {
           const eventId = getEventId(incident);
@@ -355,6 +364,7 @@ export default function ActiveAlerts({
             })}
           </div>
         )}
+        <LongRunningBanner incidents={longRunningIncidents} now={now} />
       </div>
     </section>
   );

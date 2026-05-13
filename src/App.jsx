@@ -5,9 +5,7 @@ import Footer from './components/Footer.jsx';
 import Header from './components/Header.jsx';
 import HourOfWeekHeatmap from './components/HourOfWeekHeatmap.jsx';
 import IncidentList from './components/IncidentList.jsx';
-import LongRunningBanner, {
-  LONG_RUNNING_THRESHOLD_MS,
-} from './components/LongRunningBanner.jsx';
+import { LONG_RUNNING_THRESHOLD_MS } from './components/LongRunningBanner.jsx';
 import RecentActivityGantt from './components/RecentActivityGantt.jsx';
 import SignalBreakdown from './components/SignalBreakdown.jsx';
 import SummaryStats from './components/SummaryStats.jsx';
@@ -345,12 +343,10 @@ export default function App() {
         )}
         {data && (
           <>
-            {longRunningActive.length > 0 && (
-              <LongRunningBanner incidents={longRunningActive} now={now} />
-            )}
-            {recentActive.length > 0 && (
+            {(recentActive.length > 0 || longRunningActive.length > 0) && (
               <ActiveAlerts
                 incidents={recentActive}
+                longRunningIncidents={longRunningActive}
                 now={now}
                 highlightedIds={highlightedIds}
                 typicalDurations={typicalDurations}
@@ -413,11 +409,7 @@ export default function App() {
                 selectedSignals.length > 0
               }
             />
-            <RecentActivityGantt
-              alerts={data.alerts}
-              observations={data.observations}
-              now={now}
-            />
+            <RecentActivityGantt alerts={data.alerts} observations={data.observations} now={now} />
             <Timeline
               alerts={vizAlerts}
               observations={vizObservations}

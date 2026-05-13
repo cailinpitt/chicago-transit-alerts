@@ -1,10 +1,6 @@
 import { useMemo } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import {
-  formatRoutesLabel,
-  getEventId,
-  mergeMatchingIncidents,
-} from '../lib/incidents.js';
+import { formatRoutesLabel, getEventId, mergeMatchingIncidents } from '../lib/incidents.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 const WINDOW_MS = 24 * HOUR_MS;

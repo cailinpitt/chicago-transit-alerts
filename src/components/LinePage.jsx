@@ -19,13 +19,11 @@ import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format
 import { normalizeAlertsPayload, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
-import LongRunningBanner, {
-  LONG_RUNNING_THRESHOLD_MS,
-} from './LongRunningBanner.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
 import LineMap from './LineMap.jsx';
+import { LONG_RUNNING_THRESHOLD_MS } from './LongRunningBanner.jsx';
 import { SignalBreakdownSingleRoute } from './SignalBreakdown.jsx';
 import Timeline from './Timeline.jsx';
 import TrendSparkline from './TrendSparkline.jsx';
@@ -273,10 +271,7 @@ export default function LinePage({ kind, lineId }) {
     });
   }, [data, lineAlerts, lineObservations, now]);
   const burstActive =
-    burst != null &&
-    burst.recentCount >= 3 &&
-    burst.ratio != null &&
-    burst.ratio >= 2.5;
+    burst != null && burst.recentCount >= 3 && burst.ratio != null && burst.ratio >= 2.5;
 
   const dayOfWeek = useMemo(() => {
     if (!data) return null;
@@ -415,12 +410,10 @@ export default function LinePage({ kind, lineId }) {
 
         {data && (
           <>
-            {longRunningActive.length > 0 && (
-              <LongRunningBanner incidents={longRunningActive} now={now} />
-            )}
-            {recentActive.length > 0 && (
+            {(recentActive.length > 0 || longRunningActive.length > 0) && (
               <ActiveAlerts
                 incidents={recentActive}
+                longRunningIncidents={longRunningActive}
                 now={now}
                 typicalDurations={typicalDurations}
                 stationIndex={stationIndex}

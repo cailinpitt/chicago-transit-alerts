@@ -806,6 +806,79 @@ export function computeWorstDay(alerts, observations, { now = Date.now(), window
   return worst;
 }
 
+// Distribution of resolved-incident durations in the same cohort as
+// `incident` (same kind / line / signal). Returns the cohort's median +
+// p90 alongside this incident's duration — caller picks how to render the
+// comparison ("47m vs 22m median, 2.1× longer than typical"). Returns null
+// when there's no usable cohort: the incident has no signal to bucket on,
+// or fewer than `minCohort` resolved peers in the window.
+//
+// Counted peers exclude this incident itself (caller passes its own
+// reference so we can match it by post_url and skip).
+/**
+ * @param {object} incident
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @param {number} [options.minCohort]   Below this peer count the comparison is too noisy to display.
+ * @returns {{ thisMs: number | null, medianMs: number, p90Ms: number, maxMs: number, count: number } | null}
+ */
+export function computeCohortDurationStats(
+  incident,
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 90, minCohort = 5 } = {},
+) {
+  if (!incident) return null;
+  const targetKey = typicalDurationKey(incident);
+  if (!targetKey) return null;
+  const cutoff = now - windowDays * DAY_MS;
+
+  const { merged, standaloneObs } = mergeMatchingIncidents(alerts, observations);
+
+  const incidentEventId =
+    postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url) ?? null;
+  const isSelf = (other) => {
+    const otherId = postUrlRkey(other.post_url) ?? postUrlRkey(other.obs_post_url) ?? null;
+    return otherId != null && incidentEventId != null && otherId === incidentEventId;
+  };
+
+  const durations = [];
+  function offer(peer, startTs, resolvedTs) {
+    if (resolvedTs == null || startTs == null) return;
+    if (startTs < cutoff) return;
+    if (typicalDurationKey(peer) !== targetKey) return;
+    if (isSelf(peer)) return;
+    const dur = resolvedTs - startTs;
+    if (dur <= 0) return;
+    durations.push(dur);
+  }
+  for (const m of merged) offer(m, m.first_seen_ts, m.resolved_ts);
+  for (const o of standaloneObs) offer(o, o.ts, o.resolved_ts);
+
+  if (durations.length < minCohort) return null;
+
+  durations.sort((a, b) => a - b);
+  const pickAt = (p) => {
+    const idx = Math.min(durations.length - 1, Math.floor(p * durations.length));
+    return durations[idx];
+  };
+  const medianMs =
+    durations.length % 2 === 0
+      ? (durations[durations.length / 2 - 1] + durations[durations.length / 2]) / 2
+      : durations[(durations.length - 1) / 2];
+  const p90Ms = pickAt(0.9);
+  const maxMs = durations[durations.length - 1];
+
+  const thisStart = incident.first_seen_ts ?? incident.ts ?? null;
+  const thisEnd = incident.resolved_ts ?? null;
+  const thisMs = thisStart != null && thisEnd != null ? thisEnd - thisStart : null;
+
+  return { thisMs, medianMs, p90Ms, maxMs, count: durations.length };
+}
+
 // Bucket key for typical-duration cohorts: same kind, same line/route, same
 // signal "type" (single signal name, or 'roundup' for multi-signal records).
 // Returns null when the incident lacks a signal — pure CTA alerts have no
