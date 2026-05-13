@@ -49,7 +49,7 @@ function BusRoutePopover({ availableBusRoutes, selectedBusRoutes, onBusRoutesCha
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1.5 z-20 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 min-w-[160px]">
+        <div className="absolute top-full left-0 mt-1.5 z-20 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 min-w-[160px] max-w-[calc(100vw-1rem)]">
           <div className="flex flex-wrap gap-1.5">
             {selectedCount > 0 && (
               <button
@@ -124,7 +124,7 @@ function SignalsPopover({ selectedSignals, onSignalsChange }) {
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1.5 z-20 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 min-w-[200px]">
+        <div className="absolute top-full right-0 mt-1.5 z-20 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 min-w-[200px] max-w-[calc(100vw-1rem)]">
           <div className="flex flex-wrap gap-1.5">
             {selectedCount > 0 && (
               <button

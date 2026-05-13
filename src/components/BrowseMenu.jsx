@@ -45,7 +45,7 @@ function topStations(alerts, observations, now) {
 // always shown (stable set of 8); bus routes and stations are scoped to
 // the rolling 90-day window so the menu reflects what's actually been
 // happening recently and matches the OG-card prerendering scope.
-export default function BrowseMenu({ alerts, observations }) {
+export default function BrowseMenu({ alerts, observations, align = 'right' }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   // Snapshot `now` once at mount so the 90-day window cutoff is stable
@@ -97,9 +97,15 @@ export default function BrowseMenu({ alerts, observations }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-1.5 z-40 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 w-72 max-h-[70vh] overflow-y-auto"
+          className={`absolute ${
+            align === 'left'
+              ? 'left-0'
+              : align === 'responsive'
+                ? 'left-0 sm:left-auto sm:right-0'
+                : 'right-0'
+          } top-full mt-1.5 z-40 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 w-72 max-w-[calc(100vw-1rem)] max-h-[70vh] overflow-y-auto`}
         >
-          <div className="space-y-3">
+          <div className="divide-y divide-slate-200 dark:divide-gh-border [&>section]:py-4 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
             <section>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                 Views

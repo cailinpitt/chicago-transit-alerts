@@ -121,7 +121,7 @@ export default function Header({
           )}
         </div>
         <div className="relative flex items-center gap-2 sm:pt-1 flex-shrink-0 self-start">
-          <BrowseMenu alerts={alerts} observations={observations} />
+          <BrowseMenu alerts={alerts} observations={observations} align="responsive" />
           <button
             type="button"
             onClick={onToggleDark}
