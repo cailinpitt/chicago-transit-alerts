@@ -176,9 +176,28 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
               rel="noopener noreferrer"
               className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
             >
-              Bot detection →
+              {(incident.extra_obs?.length ?? 0) > 0 && incident.obs_detection_source
+                ? `Bot detection (${incident.obs_detection_source}) →`
+                : 'Bot detection →'}
             </a>
           )}
+          {isMerged &&
+            (incident.extra_obs ?? []).map(
+              (e) =>
+                e.post_url && (
+                  <a
+                    key={e.id}
+                    href={e.post_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
+                  >
+                    {e.detection_source
+                      ? `Bot detection (${e.detection_source}) →`
+                      : 'Bot detection →'}
+                  </a>
+                ),
+            )}
           {getEventId(incident) && (
             <a
               href={`/event/${getEventId(incident)}`}

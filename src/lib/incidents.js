@@ -111,6 +111,7 @@ export function normalizeAlertsPayload(payload) {
  * @property {string} [obs_post_url]
  * @property {string | null} [obs_resolved_post_url]
  * @property {number} obs_id
+ * @property {Array<{id: number, post_url?: string, resolved_post_url?: string | null, ts: number, resolved_ts?: number | null, detection_source?: string, signals?: string[], from_station?: string | null, to_station?: string | null, line?: string}>} [extra_obs]
  */
 
 // User-visible signal categories — the chips and stacked-bar segments.
@@ -266,7 +267,10 @@ export function findIncidentById(alerts, observations, id) {
   if (!id) return null;
   const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
   const fromMerged = merged.find(
-    (m) => postUrlRkey(m.post_url) === id || postUrlRkey(m.obs_post_url) === id,
+    (m) =>
+      postUrlRkey(m.post_url) === id ||
+      postUrlRkey(m.obs_post_url) === id ||
+      (m.extra_obs ?? []).some((e) => postUrlRkey(e.post_url) === id),
   );
   if (fromMerged) return fromMerged;
   const fromAlert = standaloneAlerts.find((a) => postUrlRkey(a.post_url) === id);
@@ -436,68 +440,94 @@ export function mergeMatchingIncidents(alerts, observations) {
   const merged = [];
 
   for (const alert of alerts) {
+    // Collect every observation that overlaps this alert's window. A single
+    // outage commonly trips multiple detectors (pulse-cold + roundup, etc.);
+    // taking only the first match left the others orphaned as standalone
+    // cards that read as a separate incident.
+    const matches = [];
     for (const obs of observations) {
       if (usedObsIds.has(obs.id)) continue;
       if (alert.kind !== obs.kind) continue;
       if (!alert.routes.includes(obs.line)) continue;
-
       // Anchor on first_seen_ts only. Stretching the window across the alert's
       // entire lifespan let multi-day planned alerts vacuum up unrelated
       // observations from later days as if they were the same incident.
-      const inWindow = Math.abs(obs.ts - alert.first_seen_ts) <= BUFFER_MS;
-
-      if (inWindow) {
-        // While the incident is active, the obs's prior resolution doesn't end
-        // the incident — surfacing it would produce a "last seen" before
-        // "first seen" and a misleading "Bot resolution" link on an ongoing
-        // event. Suppress resolution-side fields until the alert resolves.
-        const active = alert.active || obs.active;
-        merged.push({
-          _type: 'merged',
-          _sortTs: alert.first_seen_ts,
-          alert_id: alert.alert_id,
-          kind: alert.kind,
-          routes: alert.routes,
-          headline: alert.headline,
-          first_seen_ts: alert.first_seen_ts,
-          resolved_ts: active ? null : (alert.resolved_ts ?? obs.resolved_ts ?? null),
-          active,
-          post_url: alert.post_url,
-          resolved_reply_url: alert.resolved_reply_url,
-          affected_from_station: alert.affected_from_station,
-          affected_to_station: alert.affected_to_station,
-          affected_direction: alert.affected_direction,
-          // Carry CTA's claimed event-end through so EventPage can compare
-          // their stated end to the actual resolve timestamp. Survives even
-          // when CTA later scrubs the alert (the field is persisted at
-          // first-sighting in the pipeline).
-          cta_event_start_ts: alert.cta_event_start_ts ?? null,
-          cta_event_end_ts: alert.cta_event_end_ts ?? null,
-          from_station: obs.from_station,
-          to_station: obs.to_station,
-          obs_post_url: obs.post_url,
-          obs_resolved_post_url: active ? null : obs.resolved_post_url,
-          // Surface the observation's own clear timestamp on merged records.
-          // The bot's resolved_ts requires sustained recovery (CLEAR_TICKS_TO_RESET
-          // consecutive clean passes) before firing, so when both the CTA
-          // alert and the bot have resolved, comparing alert.resolved_ts (CTA
-          // marked the alert cleared) to obs.resolved_ts (trains running
-          // again) gives a service-stabilization delta. Null while active to
-          // avoid the same "last seen before first seen" hazard handled above.
-          obs_resolved_ts: active ? null : (obs.resolved_ts ?? null),
-          obs_id: obs.id,
-          // Carry the observation's typing info onto the merged record so
-          // downstream consumers (e.g. typical-duration cohorts) can bucket
-          // by signal without re-resolving the observation by id.
-          obs_line: obs.line,
-          obs_detection_source: obs.detection_source,
-          obs_signals: obs.signals,
-        });
-        usedObsIds.add(obs.id);
-        usedAlertIds.add(alert.alert_id);
-        break; // one observation per alert
-      }
+      if (Math.abs(obs.ts - alert.first_seen_ts) > BUFFER_MS) continue;
+      matches.push(obs);
     }
+    if (matches.length === 0) continue;
+
+    // Primary obs = the one closest in time to the alert (most likely the
+    // detection that caught the same onset CTA published). The existing
+    // single-obs schema (obs_post_url, from_station, …) reflects this
+    // primary; the rest ride along on extra_obs so routing and the UI can
+    // still reach them.
+    matches.sort(
+      (a, b) =>
+        Math.abs(a.ts - alert.first_seen_ts) - Math.abs(b.ts - alert.first_seen_ts),
+    );
+    const primary = matches[0];
+    const extras = matches.slice(1);
+    // While the incident is active, the obs's prior resolution doesn't end
+    // the incident — surfacing it would produce a "last seen" before
+    // "first seen" and a misleading "Bot resolution" link on an ongoing
+    // event. Suppress resolution-side fields until the alert resolves.
+    const active = alert.active || matches.some((o) => o.active);
+    merged.push({
+      _type: 'merged',
+      _sortTs: alert.first_seen_ts,
+      alert_id: alert.alert_id,
+      kind: alert.kind,
+      routes: alert.routes,
+      headline: alert.headline,
+      first_seen_ts: alert.first_seen_ts,
+      resolved_ts: active ? null : (alert.resolved_ts ?? primary.resolved_ts ?? null),
+      active,
+      post_url: alert.post_url,
+      resolved_reply_url: alert.resolved_reply_url,
+      affected_from_station: alert.affected_from_station,
+      affected_to_station: alert.affected_to_station,
+      affected_direction: alert.affected_direction,
+      // Carry CTA's claimed event-end through so EventPage can compare
+      // their stated end to the actual resolve timestamp. Survives even
+      // when CTA later scrubs the alert (the field is persisted at
+      // first-sighting in the pipeline).
+      cta_event_start_ts: alert.cta_event_start_ts ?? null,
+      cta_event_end_ts: alert.cta_event_end_ts ?? null,
+      from_station: primary.from_station,
+      to_station: primary.to_station,
+      obs_post_url: primary.post_url,
+      obs_resolved_post_url: active ? null : primary.resolved_post_url,
+      // Surface the observation's own clear timestamp on merged records.
+      // The bot's resolved_ts requires sustained recovery (CLEAR_TICKS_TO_RESET
+      // consecutive clean passes) before firing, so when both the CTA
+      // alert and the bot have resolved, comparing alert.resolved_ts (CTA
+      // marked the alert cleared) to obs.resolved_ts (trains running
+      // again) gives a service-stabilization delta. Null while active to
+      // avoid the same "last seen before first seen" hazard handled above.
+      obs_resolved_ts: active ? null : (primary.resolved_ts ?? null),
+      obs_id: primary.id,
+      // Carry the observation's typing info onto the merged record so
+      // downstream consumers (e.g. typical-duration cohorts) can bucket
+      // by signal without re-resolving the observation by id.
+      obs_line: primary.line,
+      obs_detection_source: primary.detection_source,
+      obs_signals: primary.signals,
+      extra_obs: extras.map((e) => ({
+        id: e.id,
+        post_url: e.post_url,
+        resolved_post_url: active ? null : e.resolved_post_url,
+        ts: e.ts,
+        resolved_ts: active ? null : (e.resolved_ts ?? null),
+        detection_source: e.detection_source,
+        signals: e.signals,
+        from_station: e.from_station,
+        to_station: e.to_station,
+        line: e.line,
+      })),
+    });
+    for (const o of matches) usedObsIds.add(o.id);
+    usedAlertIds.add(alert.alert_id);
   }
 
   return {

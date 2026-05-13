@@ -284,12 +284,19 @@ describe('mergeMatchingIncidents', () => {
     expect(merged).toHaveLength(0);
   });
 
-  it('each alert merges with at most one observation', () => {
+  it('absorbs every overlapping observation onto the alert', () => {
+    // A single outage commonly trips multiple detectors (pulse-cold + roundup,
+    // etc.). Each one needs to fold into the alert's card, otherwise the
+    // extras orphan as standalone "second incident" cards.
     const obs1 = makeObsForMerge({ id: 1, ts: NOW + 1 * 60_000 });
     const obs2 = makeObsForMerge({ id: 2, ts: NOW + 2 * 60_000 });
     const { merged, standaloneObs } = mergeMatchingIncidents([makeAlertForMerge()], [obs1, obs2]);
     expect(merged).toHaveLength(1);
-    expect(standaloneObs).toHaveLength(1);
+    expect(standaloneObs).toHaveLength(0);
+    // Closest-to-alert wins primary; the rest go onto extra_obs.
+    expect(merged[0].obs_id).toBe(1);
+    expect(merged[0].extra_obs).toHaveLength(1);
+    expect(merged[0].extra_obs[0].id).toBe(2);
   });
 
   it('suppresses resolution fields when alert is still active', () => {
