@@ -1,7 +1,27 @@
 {
-  "generated_at": 1778631242746,
+  "generated_at": 1778632082826,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114877",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "headline": "Blue Line Service Delayed at Grand",
+      "first_seen_ts": 1778631722375,
+      "last_seen_ts": 1778631724033,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlozw2exta2c",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "cta_event_start_ts": 1778631360000,
+      "cta_event_end_ts": null
+    },
     {
       "alert_id": "114870",
       "kind": "bus",
@@ -617,7 +637,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778631002378,
+      "last_seen_ts": 1778631602345,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -711,6 +731,39 @@
     }
   ],
   "observations": [
+    {
+      "id": 316,
+      "kind": "train",
+      "line": "blue",
+      "direction": "all",
+      "from_station": "Chicago (Blue)",
+      "to_station": "Clark/Lake",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 1.7,
+        "minutesSinceLastTrain": null,
+        "lookbackMin": 24,
+        "coldThresholdMin": 19,
+        "trainsOutsideRun": 27,
+        "coldStations": 3,
+        "coldStationNames": [
+          "Chicago (Blue)",
+          "Grand (Blue)",
+          "Clark/Lake"
+        ],
+        "expectedTrains": 3,
+        "headwayMin": 7.5,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778631906412,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp23jab3o2c",
+      "resolved_post_url": null
+    },
     {
       "id": 38,
       "kind": "bus",
