@@ -20,9 +20,45 @@ import StationName from './StationName.jsx';
 
 const PAGE_SIZE = 25;
 
+// Build the list of Bluesky sources for this incident. CTA's own alert post
+// first (when present), then the bot observation that paired with it, then
+// any extra bot observations merged into the same incident. Each entry has
+// `url` and `label` so the renderer doesn't have to re-derive labels.
+function getSources(incident) {
+  const isMerged = incident._type === 'merged';
+  const out = [];
+  if (incident.post_url) {
+    out.push({
+      url: incident.post_url,
+      label: isMerged ? 'Via CTA' : 'View on Bluesky',
+    });
+  }
+  if (isMerged && incident.obs_post_url) {
+    out.push({
+      url: incident.obs_post_url,
+      label: incident.obs_detection_source
+        ? `Bot detection (${incident.obs_detection_source})`
+        : 'Bot detection',
+    });
+  }
+  if (isMerged && Array.isArray(incident.extra_obs)) {
+    for (const e of incident.extra_obs) {
+      if (!e.post_url) continue;
+      out.push({
+        url: e.post_url,
+        label: e.detection_source ? `Bot detection (${e.detection_source})` : 'Bot detection',
+        key: e.id,
+      });
+    }
+  }
+  return out;
+}
+
 function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   const isMerged = incident._type === 'merged';
   const isAlert = !isMerged && !!incident.alert_id;
+  const eventId = getEventId(incident);
+  const sources = getSources(incident);
 
   const startTs = incident.first_seen_ts || incident.ts;
   const endTs = incident.resolved_ts ?? null;
@@ -74,139 +110,155 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
 
   return (
     <div
-      className={`flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0 ${
-        isNew ? 'animate-fade-highlight' : ''
-      }`}
+      className={`relative flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0 ${
+        eventId ? 'hover:bg-slate-50 dark:hover:bg-gh-subtle/40 -mx-2 px-2 rounded' : ''
+      } ${isNew ? 'animate-fade-highlight' : ''}`}
     >
-      <div className="flex-shrink-0 w-14 text-right">
-        <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(startTs)}</p>
-      </div>
+      {/* Row-wide overlay link — same pattern as ActiveCard. Sits at z-0
+          behind the content wrapper (which is pointer-events-none on blank
+          pixels). Real interactive children re-enable pointer events via
+          [&_a]/[&_button]/[&_summary] so they keep their own destinations
+          and don't double-navigate. */}
+      {/* No explicit z-index on overlay or content wrapper: an explicit
+          z-index would create a stacking context that traps the Sources
+          popover inside this row, so the next row's own stacking context
+          would paint over it. With z-auto on both, document order alone
+          places content above the overlay, and the popover's `z-20`
+          escapes to the page root and floats over neighboring rows. */}
+      {eventId && (
+        <a href={`/event/${eventId}`} className="absolute inset-0 rounded">
+          <span className="sr-only">View event details</span>
+        </a>
+      )}
+      <div className="relative flex items-start gap-3 flex-1 min-w-0 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto [&_summary]:pointer-events-auto">
+        <div className="flex-shrink-0 w-14 text-right">
+          <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(startTs)}</p>
+        </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-1.5 mb-1">
-          <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
-          {isMerged && (
-            <>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5 mb-1">
+            <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
+            {isMerged && (
+              <>
+                <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
+                <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                  via auto-detection
+                </span>
+              </>
+            )}
+            {!isMerged && isAlert && (
               <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
-              <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+            )}
+            {!isMerged && !isAlert && (
               <span className="text-xs text-slate-400 dark:text-slate-500 italic">
                 via auto-detection
               </span>
-            </>
+            )}
+            {duration && (
+              <>
+                <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500">
+                  {duration} duration
+                </span>
+              </>
+            )}
+            {!endTs && !incident.active && (
+              <span className="text-xs text-slate-400 dark:text-slate-500">duration unknown</span>
+            )}
+            {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
+          </div>
+
+          <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">{description}</p>
+
+          {/* Merged: show the specific segment from the bot observation */}
+          {isMerged && incident.from_station && incident.to_station && (
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+              <StationName
+                name={incident.from_station}
+                stationIndex={stationIndex}
+                searchQuery={searchQuery}
+              />{' '}
+              →{' '}
+              <StationName
+                name={incident.to_station}
+                stationIndex={stationIndex}
+                searchQuery={searchQuery}
+              />
+            </p>
           )}
-          {!isMerged && isAlert && (
-            <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
-          )}
-          {!isMerged && !isAlert && (
-            <span className="text-xs text-slate-400 dark:text-slate-500 italic">
-              via auto-detection
+
+          {stabilizationDelta && (
+            <span
+              className="inline-flex items-center mt-1.5 mr-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300"
+              title="Time from CTA clearing the alert until the bot saw sustained normal service. Reflects the felt return-to-normal, not just CTA's bookkeeping."
+            >
+              stabilized {stabilizationDelta} after CTA cleared
             </span>
           )}
-          {duration && (
-            <>
-              <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-              <span className="text-xs text-slate-400 dark:text-slate-500">
-                {duration} duration
-              </span>
-            </>
-          )}
-          {!endTs && !incident.active && (
-            <span className="text-xs text-slate-400 dark:text-slate-500">duration unknown</span>
-          )}
-          {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
-        </div>
 
-        <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">{description}</p>
-
-        {/* Merged: show the specific segment from the bot observation */}
-        {isMerged && incident.from_station && incident.to_station && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-            <StationName
-              name={incident.from_station}
-              stationIndex={stationIndex}
-              searchQuery={searchQuery}
-            />{' '}
-            →{' '}
-            <StationName
-              name={incident.to_station}
-              stationIndex={stationIndex}
-              searchQuery={searchQuery}
-            />
-          </p>
-        )}
-
-        {stabilizationDelta && (
-          <span
-            className="inline-flex items-center mt-1.5 mr-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300"
-            title="Time from CTA clearing the alert until the bot saw sustained normal service. Reflects the felt return-to-normal, not just CTA's bookkeeping."
-          >
-            stabilized {stabilizationDelta} after CTA cleared
-          </span>
-        )}
-
-        {/* Bot-confidence chip — pulled from the observation's evidence
+          {/* Bot-confidence chip — pulled from the observation's evidence
             payload. Surfaces "why the bot fired" without requiring a click
             through to Bluesky. */}
-        {(() => {
-          const chip = formatEvidenceChip(incident);
-          if (!chip) return null;
-          return (
-            <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
-              {chip}
-            </span>
-          );
-        })()}
+          {(() => {
+            const chip = formatEvidenceChip(incident);
+            if (!chip) return null;
+            return (
+              <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
+                {chip}
+              </span>
+            );
+          })()}
 
-        {/* Links */}
-        <div className="flex flex-wrap gap-3 mt-1.5">
-          {incident.post_url && (
-            <a
-              href={incident.post_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
-            >
-              {isMerged ? 'Via CTA →' : 'View on Bluesky →'}
-            </a>
-          )}
-          {isMerged && incident.obs_post_url && (
-            <a
-              href={incident.obs_post_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
-            >
-              {(incident.extra_obs?.length ?? 0) > 0 && incident.obs_detection_source
-                ? `Bot detection (${incident.obs_detection_source}) →`
-                : 'Bot detection →'}
-            </a>
-          )}
-          {isMerged &&
-            (incident.extra_obs ?? []).map(
-              (e) =>
-                e.post_url && (
-                  <a
-                    key={e.id}
-                    href={e.post_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
-                  >
-                    {e.detection_source
-                      ? `Bot detection (${e.detection_source}) →`
-                      : 'Bot detection →'}
-                  </a>
-                ),
+          {/* Links — Details is the primary action and leads. A single
+            Bluesky source renders inline; 2+ collapse into a Sources
+            disclosure so the row doesn't sprout three trailing links. */}
+          <div className="flex flex-wrap items-center gap-3 mt-1.5">
+            {eventId && (
+              <a
+                href={`/event/${eventId}`}
+                className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
+              >
+                Details →
+              </a>
             )}
-          {getEventId(incident) && (
-            <a
-              href={`/event/${getEventId(incident)}`}
-              className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
-            >
-              Details →
-            </a>
-          )}
-          <ShareLink eventId={getEventId(incident)} />
+            {sources.length === 1 && (
+              <a
+                href={sources[0].url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
+              >
+                {sources[0].label} →
+              </a>
+            )}
+            {sources.length >= 2 && (
+              // `<details>` is the no-JS toggle; the panel is positioned
+              // `absolute` so opening it floats above the row instead of
+              // pushing the row's height (and the day's stacked rows below
+              // it) down. `z-20` keeps it above the row's overlay link.
+              <details className="text-xs group relative">
+                <summary className="cursor-pointer list-none text-blue-500 hover:text-blue-400 hover:underline marker:hidden select-none">
+                  Sources ({sources.length}){' '}
+                  <span className="inline-block group-open:rotate-180 transition-transform">▾</span>
+                </summary>
+                <div className="absolute left-0 top-full mt-1 z-20 min-w-[12rem] flex flex-col gap-1 p-2 rounded-md border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface shadow-lg whitespace-nowrap">
+                  {sources.map((s, i) => (
+                    <a
+                      key={s.key ?? `${s.url}-${i}`}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-400 hover:underline"
+                    >
+                      {s.label} →
+                    </a>
+                  ))}
+                </div>
+              </details>
+            )}
+            <ShareLink eventId={eventId} />
+          </div>
         </div>
       </div>
     </div>
