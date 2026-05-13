@@ -760,6 +760,23 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
         </p>
       )}
 
+      {/* CTA's own body text for the alert — the reroute/closure details the
+          CTA published alongside the headline. Rendered verbatim in a quoted
+          block so it's visually distinct from the page's derived data and
+          attributable to the CTA. Newlines preserved via whitespace-pre-line
+          since the CTA feed sometimes uses line breaks to separate
+          instructions. */}
+      {incident.short_description && (
+        <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
+          <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+            Per CTA
+          </p>
+          <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
+            {incident.short_description}
+          </p>
+        </blockquote>
+      )}
+
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-4">
         <div>
           <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">

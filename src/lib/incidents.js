@@ -51,6 +51,8 @@ export function normalizeAlertsPayload(payload) {
  * @property {'train' | 'bus'} kind
  * @property {string[]} routes              Train line keys ('red', 'g', …) or bus route numbers.
  * @property {string} headline
+ * @property {string | null} [short_description]  CTA's own body text for the alert (ShortDescription,
+ *   falling back to FullDescription) — the reroute/closure details published with the headline.
  * @property {number} first_seen_ts
  * @property {number} [last_seen_ts]
  * @property {number | null} resolved_ts    null = still open.
@@ -98,6 +100,7 @@ export function normalizeAlertsPayload(payload) {
  * @property {'train' | 'bus'} kind
  * @property {string[]} routes
  * @property {string} headline
+ * @property {string | null} [short_description]
  * @property {number} first_seen_ts
  * @property {number | null} resolved_ts
  * @property {boolean} active
@@ -475,6 +478,7 @@ export function mergeMatchingIncidents(alerts, observations) {
       kind: alert.kind,
       routes: alert.routes,
       headline: alert.headline,
+      short_description: alert.short_description ?? null,
       first_seen_ts: alert.first_seen_ts,
       resolved_ts: active ? null : (alert.resolved_ts ?? primary.resolved_ts ?? null),
       active,
