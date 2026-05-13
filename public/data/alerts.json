@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778677744944,
+  "generated_at": 1778680144857,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -637,7 +637,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778677202458,
+      "last_seen_ts": 1778679602662,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -745,11 +745,11 @@
       ],
       "evidence": null,
       "ts": 1778677742268,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778680142087,
+      "duration_ms": 2399819,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlqerkfrly2s",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlqgz43itk2g"
     },
     {
       "id": 40,
