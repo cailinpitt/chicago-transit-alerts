@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778688125283,
+  "generated_at": 1778693351436,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -31,7 +31,7 @@
         "blue"
       ],
       "headline": "Blue Line Delays",
-      "short_description": null,
+      "short_description": "Blue Line trains are standing at Grand due to unauthorized person on tracks. Crews working to restore service. Crews working to restore service.",
       "first_seen_ts": 1778631722375,
       "last_seen_ts": 1778638922302,
       "resolved_ts": 1778640123733,
@@ -53,7 +53,7 @@
         "172"
       ],
       "headline": "#15 Jeffery Local and #172 U. of Chicago/Kenwood Temporary Reroute at Hyde Park/Woodlawn",
-      "short_description": null,
+      "short_description": "15 Jeffery Local buses rrted via 51st, Woodlawn, and Lake Pk. and 172 U. of Chicago/Kenwood buses rrted via Woodlawn, 53rd, and Lake Pk nr Hyde Park/Woodlawn.",
       "first_seen_ts": 1778606404059,
       "last_seen_ts": 1778622602746,
       "resolved_ts": 1778623203455,
@@ -74,7 +74,7 @@
         "91"
       ],
       "headline": "#91 Austin Temporary Southbound Reroute near Austin/George",
-      "short_description": null,
+      "short_description": "Southbound 91 Austin buses are temporarily rerouted via Austin, Belmont, Central, Diversey, and Austin, due to, construction near Austin/George.",
       "first_seen_ts": 1778597404451,
       "last_seen_ts": 1778607602616,
       "resolved_ts": 1778608804188,
@@ -95,7 +95,7 @@
         "9"
       ],
       "headline": "#9 Ashland Temporary Northbound Reroute near Ashland/Wilson",
-      "short_description": null,
+      "short_description": "Northbound 9 Ashland buses are temporarily rerouted via Ashland, Montrose, and Ravenswood into the terminal, due to, construction near Ashland/Wilson.",
       "first_seen_ts": 1778595604129,
       "last_seen_ts": 1778604601892,
       "resolved_ts": 1778605204021,
@@ -116,7 +116,7 @@
         "26"
       ],
       "headline": "#26 South Shore Express Temporary Reroute at 83rd/Houston",
-      "short_description": null,
+      "short_description": "#26 South Shore Express buses are rerouted via Commercial, Exchange, 79th, South Shore, then resume their normal route due to street blockage near 83rd/Houston.",
       "first_seen_ts": 1778578204712,
       "last_seen_ts": 1778590203036,
       "resolved_ts": 1778591404016,
@@ -137,7 +137,7 @@
         "71"
       ],
       "headline": "#71 71st/South Shore Temporary Reroute at 83rd/Houston",
-      "short_description": null,
+      "short_description": "71 71st/South Shore buses are temp rerouted via South Shore, 79th, Exchange, 83rd, then resume their normal route due to street blockage near 83rd/Houston.",
       "first_seen_ts": 1778577603679,
       "last_seen_ts": 1778590203036,
       "resolved_ts": 1778591403867,
@@ -160,7 +160,7 @@
         "95"
       ],
       "headline": "#N5 South Shore Night Bus Temporary Reroute at 83rd/Houston.",
-      "short_description": null,
+      "short_description": "N5 South Shore Night buses are temporarily rerouted in both directions via South Shore, 79th, Exchange, 83rd, then resume their normal route.",
       "first_seen_ts": 1778566802391,
       "last_seen_ts": 1778576402714,
       "resolved_ts": 1778577605186,
@@ -181,7 +181,7 @@
         "org"
       ],
       "headline": "Loop-bound Orange Line Service Running with Delays",
-      "short_description": null,
+      "short_description": "Loop-bound Orange Line trains are moving with delays near Midway due to signal problems.",
       "first_seen_ts": 1778559722225,
       "last_seen_ts": 1778560321886,
       "resolved_ts": 1778561524164,
@@ -202,7 +202,7 @@
         "3"
       ],
       "headline": "#3 King Drive Temporary Reroute near King Drive / 71st",
-      "short_description": null,
+      "short_description": "3 King Drive buses temp. rrtd NB: King Drive, 75th, 71st & King Drive; SB: King Drive, Lafayette, 71st & King Drive, due to police activity at King Drive / 71st",
       "first_seen_ts": 1778524803840,
       "last_seen_ts": 1778524804956,
       "resolved_ts": 1778525402743,
@@ -223,7 +223,7 @@
         "28"
       ],
       "headline": "#28 Stony Island Temporary Southbound Reroute near 47th/Lake Park",
-      "short_description": null,
+      "short_description": "Southbound 28 Stony Island buses are temporarily rerouted via 47th, Woodlawn, 51st, Lake Park and over normal route, due to street blockage near 47th/Lake Park.",
       "first_seen_ts": 1778518804932,
       "last_seen_ts": 1778531402611,
       "resolved_ts": 1778532002560,
@@ -244,7 +244,7 @@
         "82"
       ],
       "headline": "#82 Kimball/Homan Temporary Reroute at McCormick/Devon",
-      "short_description": null,
+      "short_description": "#82 Kimball/Homan buses are temporarily rerouted via Kimball, Devon, Kedzie, Lincoln and Kimball due to fire department activity near McCormick/Devon.",
       "first_seen_ts": 1778421004734,
       "last_seen_ts": 1778421602623,
       "resolved_ts": 1778422803387,
@@ -265,7 +265,7 @@
         "p"
       ],
       "headline": "Purple Line Service Delayed near Foster",
-      "short_description": null,
+      "short_description": "Purple Line trains are experiencing delays due to police activity near the area of Foster. Crews working to restore service.",
       "first_seen_ts": 1778412122672,
       "last_seen_ts": 1778412123497,
       "resolved_ts": 1778413323801,
@@ -286,7 +286,7 @@
         "53"
       ],
       "headline": "#53 Pulaski Temporary Reroute near Pulaski/Diversey",
-      "short_description": null,
+      "short_description": "#53 Pulaski buses are temporarily rerouted in both directions due to street blockage near Pulaski/Diversey.",
       "first_seen_ts": 1778390403299,
       "last_seen_ts": 1778396402502,
       "resolved_ts": 1778397604054,
@@ -307,7 +307,7 @@
         "72"
       ],
       "headline": "#72 North Temporary Eastbound Reroute near North Ave./Kolmar",
-      "short_description": null,
+      "short_description": "EB 72 North buses are temporarily rerouted via North Avenue, Cicero, Grand, North Avenue and over regular route, due to street blockage near North Ave./Kolmar.",
       "first_seen_ts": 1778372404831,
       "last_seen_ts": 1778622602745,
       "resolved_ts": 1778623203455,
@@ -328,7 +328,7 @@
         "94"
       ],
       "headline": "94 California Temporary Reroute at California/31st",
-      "short_description": null,
+      "short_description": "94 California buses are temporarily rerouted in both directions due to a street blockage near California/31st.",
       "first_seen_ts": 1778364602762,
       "last_seen_ts": 1778376602106,
       "resolved_ts": 1778377803568,
@@ -350,7 +350,7 @@
         "15"
       ],
       "headline": "#J14 Jeffery Jump & #15 Jeffery Local Temporary Southbound Reroute near Jeffrey/94th",
-      "short_description": null,
+      "short_description": "SB J14 Jeffery Jump & 15 Jeffery Local buses are temporarily rerouted due to a street blockage near Jeffery/94th.",
       "first_seen_ts": 1778362204208,
       "last_seen_ts": 1778378402850,
       "resolved_ts": 1778379603867,
@@ -371,7 +371,7 @@
         "60"
       ],
       "headline": "#60 Blue Island/26th Temporary Reroute near Harrison/Racine",
-      "short_description": null,
+      "short_description": "60 Blue Island/26th buses temporarily rerouted due to, street blockage near Harrison/Racine.",
       "first_seen_ts": 1778349723994,
       "last_seen_ts": 1778379602233,
       "resolved_ts": 1778380804168,
@@ -392,7 +392,7 @@
         "brn"
       ],
       "headline": "Brown Line Service Experiencing Significant Delays Due to Raised Bridge",
-      "short_description": null,
+      "short_description": "Brown Line service is experiencing delays due to a raised bridge at the Chicago River, downtown.",
       "first_seen_ts": 1778338321876,
       "last_seen_ts": 1778338323791,
       "resolved_ts": 1778339523569,
@@ -414,7 +414,7 @@
         "66"
       ],
       "headline": "#54 Cicero and #66 Chicago Temporary Reroute near Chicago/Laramie",
-      "short_description": null,
+      "short_description": "54 Cicero and 66 Chicago buses are temporarily rerouted due to street blockage near Chicago/Laramie.",
       "first_seen_ts": 1778338204112,
       "last_seen_ts": 1778360402019,
       "resolved_ts": 1778361604306,
@@ -435,7 +435,7 @@
         "67"
       ],
       "headline": "Temporary Westbound Reroute near 76th/Pulaski",
-      "short_description": null,
+      "short_description": "Westbound #67 67th-69th-71st buses are temporarily rerouted via 71st, Pulaski, 76th, Cicero, 76th and the Ford City terminal due to a street blockage.",
       "first_seen_ts": 1778327406619,
       "last_seen_ts": 1778355602640,
       "resolved_ts": 1778356803442,
@@ -456,7 +456,7 @@
         "53"
       ],
       "headline": "Temporary Southbound Reroute near 76th/Pulaski",
-      "short_description": null,
+      "short_description": "Southbound #53 buses are temporarily rerouted via Pulaski, 79th, Cicero, 76th and the Ford City terminal due to a street blockage.",
       "first_seen_ts": 1778327403731,
       "last_seen_ts": 1778338202134,
       "resolved_ts": 1778339404201,
@@ -477,7 +477,7 @@
         "87"
       ],
       "headline": "Temporary Reroute at 87th/Exchange",
-      "short_description": null,
+      "short_description": "#87 buses are temporarily rerouted via 87th, Yates, 83rd, Commercial and 87th due to police activity near 87th/Exchange.",
       "first_seen_ts": 1778324405103,
       "last_seen_ts": 1778343422537,
       "resolved_ts": 1778344023455,
@@ -498,7 +498,7 @@
         "94"
       ],
       "headline": "#94 California Temporary Reroute at California/Fullerton",
-      "short_description": null,
+      "short_description": "#94 California buses are rerouted via California, Fullerton, Western, Diversey, and over regular route, due to street blockage near California/Fullerton.",
       "first_seen_ts": 1778306405672,
       "last_seen_ts": 1778321402621,
       "resolved_ts": 1778322603955,
@@ -519,7 +519,7 @@
         "75"
       ],
       "headline": "#75 74th/75th Temporary Reroute at 75/Harvard",
-      "short_description": null,
+      "short_description": "75 74th/75th buses are temp rerouted in both directions via Vincennes, 76th, Halsted, 75th, and over normal route, due to police activity near 75th/Harvard.",
       "first_seen_ts": 1778273403756,
       "last_seen_ts": 1778290801954,
       "resolved_ts": 1778292003762,
@@ -540,7 +540,7 @@
         "81"
       ],
       "headline": "#81 Lawrence Temporary Reroute near Lawrence/Avandale",
-      "short_description": null,
+      "short_description": "81 Lawrence buses temp. rerouted: due to, police activity near Lawrence/Avandale.",
       "first_seen_ts": 1778262603485,
       "last_seen_ts": 1778291402455,
       "resolved_ts": 1778292603871,
@@ -561,7 +561,7 @@
         "103"
       ],
       "headline": "#103 West 103rd Temporary Reroute at 103rd/Sangamon",
-      "short_description": null,
+      "short_description": "103 West 103rd buses are temporarily rerouted via 103rd, Vincennes, 99th, Halsted and 103rd: due to, a Festival near 103rd/Sangamon.",
       "first_seen_ts": 1778259004788,
       "last_seen_ts": 1778292002144,
       "resolved_ts": 1778293204055,
@@ -582,7 +582,7 @@
         "84"
       ],
       "headline": "#84 Peterson Temporary Reroute near Bryn Mawr/Sheridan",
-      "short_description": null,
+      "short_description": "84 Peterson buses temp. rerouted: due to, police activity near Bryn Mawr/Sheridan.",
       "first_seen_ts": 1778256175167,
       "last_seen_ts": 1778271001889,
       "resolved_ts": 1778272204294,
@@ -614,7 +614,7 @@
         "X4"
       ],
       "headline": "Temporary Reroute",
-      "short_description": null,
+      "short_description": "SB buses via Michigan, Ida B. Wells, State, Balbo; 1, 3, 4, X4 resume rte on Michigan; 7, 126, 143, 147 end at Congress Plz; J14, 26, 28 continue on Balbo.",
       "first_seen_ts": 1778256173881,
       "last_seen_ts": 1778449802406,
       "resolved_ts": 1778451003643,
@@ -637,7 +637,7 @@
         "151"
       ],
       "headline": "Temporary Reroute",
-      "short_description": null,
+      "short_description": "#136, #147 and #151 buses are rerouted between Devon/Sheridan-Broadway and Foster/Sheridan due to a CPD Funeral Service.",
       "first_seen_ts": 1778256173158,
       "last_seen_ts": 1778273402305,
       "resolved_ts": 1778274604226,
@@ -660,7 +660,7 @@
         "62"
       ],
       "headline": "Pulaski Orange Line Station – Bus Terminal Temporary Bus Stop Relocations",
-      "short_description": null,
+      "short_description": "The bus terminal at the Pulaski Orange Line station will temporarily close for maintenance. #53, #53A, #62 buses will be rerouted.",
       "first_seen_ts": 1778256171425,
       "last_seen_ts": 1778422802020,
       "resolved_ts": 1778423402982,
@@ -690,7 +690,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778688003117,
+      "last_seen_ts": 1778692802081,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -709,7 +709,7 @@
         "g"
       ],
       "headline": "Green Line Service Delayed near Ridgeland",
-      "short_description": null,
+      "short_description": "Green Line trains are standing near Ridgeland due to an unauthorized person on the tracks. Crews working to restore service.",
       "first_seen_ts": 1778028722645,
       "last_seen_ts": 1778029922374,
       "resolved_ts": 1778031123859,
@@ -730,7 +730,7 @@
         "brn"
       ],
       "headline": "Brown Line Service Experiencing Significant Delays Due to Raised Bridge",
-      "short_description": null,
+      "short_description": "Brown Line service is experiencing delays due to a raised bridge at the Chicago River, downtown. Crews working to restore service.",
       "first_seen_ts": 1777732922818,
       "last_seen_ts": 1777733522449,
       "resolved_ts": 1777734723844,
@@ -751,7 +751,7 @@
         "blue"
       ],
       "headline": "Boarding Change, Delays Between LaSalle and Grand",
-      "short_description": null,
+      "short_description": "Blue Line trains will operate on the same track between LaSalle and Grand, resulting in boarding changes and minor delays.",
       "first_seen_ts": 1777518123500,
       "last_seen_ts": 1777539121836,
       "resolved_ts": 1777540323801,
@@ -772,7 +772,7 @@
         "y"
       ],
       "headline": "Bus Substitution Between Dempster-Skokie and Howard Stations",
-      "short_description": null,
+      "short_description": "Shuttle buses replace Yellow Line service between Dempster-Skokie and Howard. Trains will not operate between Dempster-Skokie and Howard.",
       "first_seen_ts": 1777234323058,
       "last_seen_ts": 1777263722308,
       "resolved_ts": 1777264924056,
