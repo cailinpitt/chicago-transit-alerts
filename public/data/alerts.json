@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778686924463,
+  "generated_at": 1778688125283,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -13,11 +13,11 @@
       "short_description": "Green and Pink Line service is experiencing delays due to a raised bridge at the Chicago River, downtown",
       "first_seen_ts": 1778686922078,
       "last_seen_ts": 1778686923559,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778688124481,
+      "duration_ms": 1202403,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlqnd4w37n2s",
-      "resolved_reply_url": null,
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlqogvtsc72s",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
@@ -690,7 +690,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778686803200,
+      "last_seen_ts": 1778688003117,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
