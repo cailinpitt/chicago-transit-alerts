@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778640545490,
+  "generated_at": 1778677744944,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -637,7 +637,7 @@
       ],
       "headline": "Temporary Reroute",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778640002884,
+      "last_seen_ts": 1778677202458,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -731,6 +731,26 @@
     }
   ],
   "observations": [
+    {
+      "id": 41,
+      "kind": "bus",
+      "line": "66",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost",
+        "bunching"
+      ],
+      "evidence": null,
+      "ts": 1778677742268,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlqerkfrly2s",
+      "resolved_post_url": null
+    },
     {
       "id": 40,
       "kind": "bus",
