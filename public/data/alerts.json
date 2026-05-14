@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778728587591,
+  "generated_at": 1778729525525,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -12,11 +12,11 @@
       "short_description": "Red Line trains are standing at Sox-35th due to police activity. Crews working to restore service.",
       "first_seen_ts": 1778728586200,
       "last_seen_ts": 1778728586539,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778729524806,
+      "duration_ms": 938606,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlru4swox32q",
-      "resolved_reply_url": null,
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlruyreill2i",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
@@ -711,7 +711,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778728202656,
+      "last_seen_ts": 1778729403540,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
