@@ -12,7 +12,11 @@
 // data-quality issue upstream, not something to paper over here.
 
 import { normalizeTrainLine, TRAIN_LINE_ORDER } from './ctaLines.js';
-import trainStations from './trainStations.json';
+// Node 22+ ESM requires the explicit import attribute when loading JSON;
+// without it the postbuild prerender scripts (which import this file
+// transitively via scripts/prerender-pages.js and scripts/generate-sitemap.js)
+// crash with ERR_IMPORT_ATTRIBUTE_MISSING. Vite 6 understands the same syntax.
+import trainStations from './trainStations.json' with { type: 'json' };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
