@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778719744729,
+  "generated_at": 1778719808858,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -690,7 +690,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778719203150,
+      "last_seen_ts": 1778719802638,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -788,6 +788,44 @@
     }
   ],
   "observations": [
+    {
+      "id": 320,
+      "kind": "train",
+      "line": "p",
+      "direction": "branch-0-outbound",
+      "from_station": "Sedgwick (Brown/Purple)",
+      "to_station": "Quincy",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 3.7,
+        "minutesSinceLastTrain": 26,
+        "lookbackMin": 31,
+        "coldThresholdMin": 26,
+        "trainsOutsideRun": 2,
+        "coldStations": 8,
+        "coldStationNames": [
+          "Sedgwick (Brown/Purple)",
+          "Chicago (Brown/Purple)",
+          "Clark/Lake",
+          "Washington/Wabash",
+          "Adams/Wabash",
+          "Harold Washington Library-State/Van Buren",
+          "LaSalle/Van Buren",
+          "Quincy"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 10.333333333333334,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778719807568,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlrlx6cx3j2i",
+      "resolved_post_url": null
+    },
     {
       "id": 43,
       "kind": "bus",
