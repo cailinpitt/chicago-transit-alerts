@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { hexToRgba } from '../lib/format.js';
 import { buildLineMap } from '../lib/lineMap.js';
@@ -125,6 +125,31 @@ export default function LineMap({ lineKey, stationIndex }) {
     () => buildLineMap(lineKey, stationIndex, { maxWidth: 720, maxHeight: 540 }),
     [lineKey, stationIndex],
   );
+  // Track whether the map's horizontal scroll has more content to the right.
+  // The fade overlay is `position: absolute; right: 0` inside the scroll
+  // container, which pins it to the visible right edge — handy as a "scroll
+  // right for more" hint, but it stays put as the SVG scrolls underneath,
+  // dimming arbitrary parts of the track. Hide it once we've scrolled to the
+  // right end (and at mount, when content fits without scrolling).
+  const scrollRef = useRef(null);
+  const [showRightFade, setShowRightFade] = useState(false);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const update = () => {
+      const overflowed = el.scrollWidth - el.clientWidth > 1;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+      setShowRightFade(overflowed && !atEnd);
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener('scroll', update);
+      ro.disconnect();
+    };
+  }, [map]);
   if (!map) return null;
   const info = TRAIN_LINES[lineKey];
   const accent = info?.color ?? '#475569';
@@ -152,10 +177,12 @@ export default function LineMap({ lineKey, stationIndex }) {
               padding turns that negative offset into a positive one inside
               the padding-box (where `overflow-x: auto` is coerced to clip
               both axes). */}
-          <div className="relative overflow-x-auto flex-1 min-w-0 py-6">
+          <div ref={scrollRef} className="relative overflow-x-auto flex-1 min-w-0 py-6">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-gh-surface to-transparent sm:hidden z-20"
+              className={`pointer-events-none absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-gh-surface to-transparent sm:hidden z-20 transition-opacity ${
+                showRightFade ? 'opacity-100' : 'opacity-0'
+              }`}
             />
             {/* SVG sized container — labels are HTML siblings of the SVG,
                 positioned in % of this container so they scale with the
