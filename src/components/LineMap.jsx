@@ -143,7 +143,16 @@ export default function LineMap({ lineKey, stationIndex }) {
             The main map has its own horizontal scroll affordance so dots
             stay tappable even at phone width. */}
         <div className="flex flex-col lg:flex-row gap-4 lg:items-start">
-          <div className="relative overflow-x-auto flex-1 min-w-0">
+          {/* py-6 reserves space inside the scroll container's clip box so
+              HTML terminal labels can overflow above/below the SVG without
+              being chopped. The labels translate up to ~labelHeight + 6 px
+              above the top-edge dot; on a landscape line like Yellow whose
+              SVG can render only ~190 px tall at narrow widths, that places
+              the label at negative y relative to the inner container. The
+              padding turns that negative offset into a positive one inside
+              the padding-box (where `overflow-x: auto` is coerced to clip
+              both axes). */}
+          <div className="relative overflow-x-auto flex-1 min-w-0 py-6">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-gh-surface to-transparent sm:hidden z-20"
