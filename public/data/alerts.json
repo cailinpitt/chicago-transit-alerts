@@ -1,7 +1,31 @@
 {
-  "generated_at": 1778795345277,
+  "generated_at": 1778796004526,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114839",
+      "kind": "bus",
+      "routes": [
+        "2",
+        "J14",
+        "26",
+        "28"
+      ],
+      "headline": "Temporary Reroute",
+      "short_description": "NB #2, #J14, #26, and #28 buses will operate via Columbus, Roosevelt, and Michigan to Balbo. SB via Michigan and Roosevelt, normal route on Columbus.",
+      "first_seen_ts": 1778796003479,
+      "last_seen_ts": 1778796003764,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mltsvyzlzx2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "cta_event_start_ts": 1778796000000,
+      "cta_event_end_ts": null
+    },
     {
       "alert_id": "114905",
       "kind": "train",
@@ -711,7 +735,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778794803822,
+      "last_seen_ts": 1778796003127,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
