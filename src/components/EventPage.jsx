@@ -622,8 +622,13 @@ function StationChips({ stations }) {
 // The affected_* stations now render as chips at the top of the card;
 // formatAffected is only left to surface the direction string (e.g.
 // "Northbound only") for alerts that carry one without station scoping.
+// Upstream stores the direction as a lowercase keyword (north/south/east/
+// west/in/out) — title-case it so the rendered chip reads "South" not
+// "south".
 function formatAffected(incident) {
-  return incident.affected_direction ?? null;
+  const d = incident.affected_direction;
+  if (!d) return null;
+  return d.charAt(0).toUpperCase() + d.slice(1);
 }
 
 // Compact horizontal scale showing where this incident's duration sits in
