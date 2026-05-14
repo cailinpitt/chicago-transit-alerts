@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778719808858,
+  "generated_at": 1778721006760,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -690,7 +690,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778719802638,
+      "last_seen_ts": 1778721002555,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -820,11 +820,11 @@
         "held": null
       },
       "ts": 1778719807568,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778721005423,
+      "duration_ms": 1197855,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlrlx6cx3j2i",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlrn2uzzmf2l"
     },
     {
       "id": 43,
