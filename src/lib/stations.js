@@ -11,7 +11,35 @@
 // different stations ever share the exact same name in the data, that's a
 // data-quality issue upstream, not something to paper over here.
 
+import { normalizeTrainLine, TRAIN_LINE_ORDER } from './ctaLines.js';
+import trainStations from './trainStations.json';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+// slug → array of normalized line keys that physically serve this station,
+// derived from the bundled trainStations.json roster. Without this, the
+// station's `lines` set would be inferred purely from incidents in the
+// rolling window — so a multi-line station like Ashland (Green/Pink)
+// renders only the Pink pill when only Pink had a recent incident, even
+// though the station physically serves Green too.
+const SERVED_LINES_BY_SLUG = (() => {
+  const map = new Map();
+  for (const s of trainStations) {
+    const slug = slugifyStation(s.name);
+    if (!slug) continue;
+    map.set(
+      slug,
+      (s.lines || []).map(normalizeTrainLine).filter((l) => TRAIN_LINE_ORDER.includes(l)),
+    );
+  }
+  return map;
+})();
+
+function compareByCtaOrder(a, b) {
+  const ia = TRAIN_LINE_ORDER.indexOf(a);
+  const ib = TRAIN_LINE_ORDER.indexOf(b);
+  return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+}
 
 // Drop the parenthetical line qualifier upstream uses to disambiguate
 // same-named stations across lines: `Central (Purple)` → `Central`. Used
@@ -78,13 +106,19 @@ export function buildStationIndex(
       index.set(slug, {
         slug,
         name,
-        lines: new Set(),
+        // Seed from the master roster so every line that physically serves
+        // this station renders a pill, not just the ones that happened to
+        // have an incident in the window.
+        lines: new Set(SERVED_LINES_BY_SLUG.get(slug) || []),
         alerts: [],
         observations: [],
       });
     }
     const rec = index.get(slug);
-    if (line) rec.lines.add(line);
+    // Normalize so a raw short-code (`'p'`) coming from a caller that
+    // bypassed normalizeAlertsPayload doesn't co-exist with the full-name
+    // (`'purple'`) seeded from the master roster.
+    if (line) rec.lines.add(normalizeTrainLine(line));
     return rec;
   }
 
@@ -117,7 +151,7 @@ export function buildStationIndex(
     out.set(slug, {
       slug: rec.slug,
       name: rec.name,
-      lines: [...rec.lines].sort(),
+      lines: [...rec.lines].sort(compareByCtaOrder),
       alerts: rec.alerts,
       observations: rec.observations,
       count: rec.alerts.length + rec.observations.length,

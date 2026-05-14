@@ -60,13 +60,25 @@ describe('buildStationIndex', () => {
     expect(r.has('jarvis')).toBe(true);
   });
 
-  it('accumulates lines a station appears on', () => {
-    const obs = [
-      makeObs({ id: 1, line: 'red' }),
-      makeObs({ id: 2, line: 'p' }), // Howard is shared by Red + Purple
-    ];
+  it('includes every line that physically serves the station, not just lines with recent incidents', () => {
+    // Howard serves Purple + Red + Yellow per the master roster. A station
+    // page that only had a Pink (sorry, Red) incident in the window should
+    // still surface Purple and Yellow pills so visitors see the full
+    // line context — this is the Ashland (Green/Pink) bug class.
+    const obs = [makeObs({ id: 1, line: 'red' })];
     const r = buildStationIndex([], obs, { now: NOW });
-    expect(r.get('howard').lines.sort()).toEqual(['p', 'red']);
+    // Sorted in CTA canonical order: red, brown, green, orange, pink, purple, yellow.
+    // Howard's served set after normalization: red, purple, yellow.
+    expect(r.get('howard').lines).toEqual(['red', 'purple', 'yellow']);
+  });
+
+  it('normalizes raw short-code line keys so they merge with the master roster', () => {
+    // A caller bypassing normalizeAlertsPayload passes `line: 'p'` (raw
+    // CTA short code). The index should not end up with both `'p'` and
+    // `'purple'` as distinct entries.
+    const r = buildStationIndex([], [makeObs({ line: 'p' })], { now: NOW });
+    expect(r.get('howard').lines).not.toContain('p');
+    expect(r.get('howard').lines).toContain('purple');
   });
 
   it('drops observations outside the rolling window', () => {

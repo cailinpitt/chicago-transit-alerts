@@ -5,7 +5,10 @@ import { buildStationIndex } from '../lib/stations.js';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WINDOW_DAYS = 90;
 const BUS_ROUTE_LIMIT = 15;
-const STATION_LIMIT = 10;
+// Comfortably above typical 90d activity (~24 stations as of 2026-05) so the
+// long tail of single-incident stations doesn't get pushed off the menu by
+// alphabetical tie-break. Menu scrolls when it gets longer than the viewport.
+const STATION_LIMIT = 30;
 
 // Top bus routes by incident count within the rolling window. Mirrors
 // what `prerender-pages.js` would emit a per-route OG card for, so the
