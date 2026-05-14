@@ -813,8 +813,16 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           same stations a second time as chunky chips is just redundant
           visual noise. CTA alerts (headlines like "Temporary Reroute" or
           "Service Change") are the case where the chips actually add
-          information that isn't already in the headline. */}
-      {(isMerged || isAlert) && <StationChips stations={affectedStations} />}
+          information that isn't already in the headline.
+          Skipped for bus events: upstream's affected_from/to_station for
+          bus alerts holds cross-street labels (e.g. "Wacker", "Randolph"),
+          not rail-station names. The station index is train-only by
+          design — linking them produces /station/wacker pages with no
+          incidents on record. The cross-street info is already in the bus
+          alert headline, so the chips row adds nothing useful. */}
+      {(isMerged || isAlert) && incident.kind !== 'bus' && (
+        <StationChips stations={affectedStations} />
+      )}
 
       {!isMerged && !isAlert && incident.signals?.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mt-2">

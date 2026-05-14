@@ -18,6 +18,19 @@ const PAYLOAD = {
       active: false,
       post_url: 'https://bsky.app/profile/did:plc:abc/post/abc123',
     },
+    {
+      alert_id: 'a2',
+      kind: 'bus',
+      routes: ['2', '6'],
+      headline: 'Temporary Reroute',
+      short_description: 'SB State will be closed between Wacker and Randolph.',
+      affected_from_station: 'Wacker',
+      affected_to_station: 'Randolph',
+      first_seen_ts: NOW - 30 * 60_000,
+      resolved_ts: NOW - 5 * 60_000,
+      active: false,
+      post_url: 'https://bsky.app/profile/did:plc:abc/post/busreroute',
+    },
   ],
   observations: [
     {
@@ -86,5 +99,19 @@ describe('EventPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/couldn't find an incident/i)).toBeInTheDocument();
     });
+  });
+
+  it('does not render a station chips row for bus alerts', async () => {
+    // affected_from_station / affected_to_station on bus alerts hold
+    // cross-street labels, not rail stations — linking them produces
+    // /station/wacker pages with no incidents. The chips are suppressed
+    // for kind=bus so the broken links never appear.
+    render(<EventPage eventId="busreroute" />);
+    await waitFor(() => {
+      expect(screen.getByText('Temporary Reroute')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Stations')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Wacker' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Randolph' })).not.toBeInTheDocument();
   });
 });
