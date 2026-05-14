@@ -1,7 +1,13 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
+import { installStaleAssetReload } from './lib/staleAssetReload.js';
 import App from './App.jsx';
+
+// Reload long-open tabs after a deploy invalidates the cached HTML's
+// hashed asset URLs. Without this, a tab left open overnight 404s on the
+// CSS bundle and renders unstyled until the user hard-refreshes.
+installStaleAssetReload();
 import CalendarPage from './components/CalendarPage.jsx';
 import ComparePage from './components/ComparePage.jsx';
 import DayPage from './components/DayPage.jsx';
