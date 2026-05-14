@@ -1,7 +1,54 @@
 {
-  "generated_at": 1778796004526,
+  "generated_at": 1778796007677,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114846",
+      "kind": "bus",
+      "routes": [
+        "7",
+        "126",
+        "143",
+        "147"
+      ],
+      "headline": "Temporary Reroute",
+      "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Corporate Challenge. Visit transitchicago.com for details.",
+      "first_seen_ts": 1778796007260,
+      "last_seen_ts": 1778796007299,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mltsw4fkmu2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "cta_event_start_ts": 1778796000000,
+      "cta_event_end_ts": 1778814000000
+    },
+    {
+      "alert_id": "114842",
+      "kind": "bus",
+      "routes": [
+        "134",
+        "135",
+        "136"
+      ],
+      "headline": "Temporary Reroute",
+      "short_description": "NB #134, NB #135, and NB #136 buses will operate via Wacker and Michigan, then resume their normal route on DuSable Lake Shore Drive.",
+      "first_seen_ts": 1778796005535,
+      "last_seen_ts": 1778796007179,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mltsw3tvck2l",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "cta_event_start_ts": 1778796000000,
+      "cta_event_end_ts": 1778814000000
+    },
     {
       "alert_id": "114839",
       "kind": "bus",
