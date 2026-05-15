@@ -14,6 +14,34 @@ const BUS_COLOR = '#64748b';
 // incidents don't render as a zero-width strip the moment they appear.
 const GANTT_MIN_SPAN_MS = 15 * 60 * 1000;
 
+// Snap-up ladder for the active-incidents gantt axis. The span anchors on
+// the longest-running active incident, then ceiling-rounds to the next rung
+// so the axis labels read as predictable round numbers ("1h ago", "6h ago")
+// and don't jiggle every render as `now - earliest` ticks forward. Without
+// this, a 3h47m-old alert produced a left-edge label of "3h 47m ago" that
+// shifted every minute, and the longest bar always reached the literal left
+// edge — making any 5-minute-old alert in the same view collapse to a dot.
+const GANTT_SPAN_LADDER_MS = [
+  15 * 60 * 1000, // 15m
+  30 * 60 * 1000, // 30m
+  60 * 60 * 1000, // 1h
+  2 * 60 * 60 * 1000, // 2h
+  3 * 60 * 60 * 1000, // 3h
+  6 * 60 * 60 * 1000, // 6h
+  12 * 60 * 60 * 1000, // 12h
+  24 * 60 * 60 * 1000, // 24h
+];
+
+function ceilToGanttSpan(rawSpanMs) {
+  for (const step of GANTT_SPAN_LADDER_MS) {
+    if (rawSpanMs <= step) return step;
+  }
+  // Past 24h falls through — incidents older than that are already lifted
+  // into LongRunningBanner, so the gantt shouldn't see them. Cap at the
+  // ladder's top rung as a graceful fallback if the threshold ever moves.
+  return GANTT_SPAN_LADDER_MS[GANTT_SPAN_LADDER_MS.length - 1];
+}
+
 // Don't surface a median when fewer than this many past incidents back it.
 // Below 5, a single outlier dominates and the hint is more noise than signal.
 const TYPICAL_MIN_COUNT = 5;
@@ -245,7 +273,8 @@ function ActiveMiniGantt({ incidents, now }) {
   const starts = incidents.map((i) => i.first_seen_ts ?? i.ts).filter((t) => t != null);
   if (starts.length === 0) return null;
   const earliest = Math.min(...starts);
-  const span = Math.max(now - earliest, GANTT_MIN_SPAN_MS);
+  const rawSpan = Math.max(now - earliest, GANTT_MIN_SPAN_MS);
+  const span = ceilToGanttSpan(rawSpan);
 
   // Show three tick labels — left, midpoint, right — so the axis has
   // enough reference points to read against without crowding.
@@ -265,7 +294,12 @@ function ActiveMiniGantt({ incidents, now }) {
       <div className="space-y-1">
         {sorted.map((incident) => {
           const start = incident.first_seen_ts ?? incident.ts;
-          const leftPct = ((start - earliest) / span) * 100;
+          // Position bars against the bucketed axis (left edge = now - span)
+          // rather than the literal earliest start, so the longest-running
+          // incident no longer pins to 0% and there's a small visible gap
+          // between it and the left edge — the cue that the axis is rounded.
+          const axisStart = now - span;
+          const leftPct = ((start - axisStart) / span) * 100;
           const widthPct = ((now - start) / span) * 100;
           const eventId = getEventId(incident);
           const isTrain = incident.kind === 'train';
