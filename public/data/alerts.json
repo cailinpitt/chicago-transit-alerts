@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778881930790,
+  "generated_at": 1778881984626,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,7 +11,7 @@
       "headline": "Brown Line Service Running with Delays",
       "short_description": "Brown Line trains are running with significant delays following an earlier delay at Adams/ Wabash.",
       "first_seen_ts": 1778880662811,
-      "last_seen_ts": 1778881862764,
+      "last_seen_ts": 1778881982052,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -35,11 +35,11 @@
       "short_description": "O'Hare-bound Blue Line trains are running with significant delays following an earlier delay at Western(Congress).",
       "first_seen_ts": 1778879943321,
       "last_seen_ts": 1778881622864,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778881744110,
+      "duration_ms": 1800789,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwb3mddyr2a",
-      "resolved_reply_url": null,
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwcyflnve2q",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
