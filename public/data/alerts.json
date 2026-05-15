@@ -1,7 +1,53 @@
 {
-  "generated_at": 1778863744774,
+  "generated_at": 1778865124671,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114933",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "headline": "Forest Park bound Blue Line Line Service Delayed at UIC Halsted",
+      "short_description": "Forest Park bound Blue Line trains are standing with significant delays at UIC Halsted due to a sick customer. Crews working to restore service.",
+      "first_seen_ts": 1778865123634,
+      "last_seen_ts": 1778865123820,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlvtbx23vs2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "cta_event_start_ts": 1778864760000,
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
+    {
+      "alert_id": "114932",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "headline": "95th-bound Red Line Service Standing with Delays",
+      "short_description": "95th-bound Red Line trains are standing with significant delays at Monroe due to a sick customer.",
+      "first_seen_ts": 1778865122379,
+      "last_seen_ts": 1778865123633,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlvtbvxlpf2g",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "cta_event_start_ts": 1778864640000,
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "114846",
       "kind": "bus",
@@ -852,7 +898,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778863202662,
+      "last_seen_ts": 1778865002758,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
