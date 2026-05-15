@@ -140,7 +140,7 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
               <>
                 {' · '}
                 <span title="CTA tagged this alert with an estimated end time when it was posted.">
-                  ends {estimatedEndText}
+                  CTA estimated end {estimatedEndText}
                 </span>
               </>
             )}

@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TRAIN_LINES } from '../src/lib/ctaLines.js';
-import { formatDuration } from '../src/lib/format.js';
+import { formatDuration, formatEstimatedEnd } from '../src/lib/format.js';
 import {
   formatEvidenceChip,
   formatRoutesLabel,
@@ -179,10 +179,21 @@ function entrySummary(incident) {
 function entryContentHtml(incident, thumb) {
   const start = startTs(incident);
   const resolved = incident.resolved_ts ?? null;
+  // For still-ongoing incidents, append CTA's posted EventEnd ("estimated
+  // end") when present and meaningfully in the future. Skipped on resolved
+  // entries: the actual resolution time is more useful than a stale
+  // estimate at that point.
+  const estimatedEndText = !resolved
+    ? formatEstimatedEnd(incident.cta_event_end_ts, undefined, {
+        dateOnly: incident.cta_event_end_is_date_only === true,
+      })
+    : null;
   const stateLine = resolved
     ? `<strong>Resolved</strong> after ${escapeXml(formatDuration(resolved - start) ?? '')}`
     : incident.active
-      ? '<strong>Ongoing</strong>'
+      ? estimatedEndText
+        ? `<strong>Ongoing</strong> · CTA estimated end ${escapeXml(estimatedEndText)}`
+        : '<strong>Ongoing</strong>'
       : '';
   const stations = [incident.from_station, incident.to_station].filter(Boolean).join(' → ');
   const chip = formatEvidenceChip(incident);

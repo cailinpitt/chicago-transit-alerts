@@ -24,6 +24,13 @@ export const CSV_COLUMNS = [
   'active', // 'true' | 'false'
   'post_url',
   'resolved_post_url',
+  // CTA's own posted EventStart/EventEnd (alerts only — observations don't
+  // carry these). Date-only flags signal when CTA only provided a calendar
+  // day; in that case the timestamp anchors to end-of-day Chicago time.
+  'cta_event_start_ts', // ISO 8601 (UTC) or empty
+  'cta_event_end_ts', // ISO 8601 (UTC) or empty
+  'cta_event_start_is_date_only', // 'true' | 'false' | ''
+  'cta_event_end_is_date_only', // 'true' | 'false' | ''
 ];
 
 export function csvEscape(value) {
@@ -63,6 +70,12 @@ export function alertRow(a) {
     active: a.active ? 'true' : 'false',
     post_url: a.post_url ?? '',
     resolved_post_url: a.resolved_reply_url ?? '',
+    cta_event_start_ts: isoOrEmpty(a.cta_event_start_ts),
+    cta_event_end_ts: isoOrEmpty(a.cta_event_end_ts),
+    cta_event_start_is_date_only:
+      a.cta_event_start_ts != null ? (a.cta_event_start_is_date_only ? 'true' : 'false') : '',
+    cta_event_end_is_date_only:
+      a.cta_event_end_ts != null ? (a.cta_event_end_is_date_only ? 'true' : 'false') : '',
   };
 }
 

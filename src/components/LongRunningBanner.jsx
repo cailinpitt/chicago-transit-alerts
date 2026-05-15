@@ -1,4 +1,4 @@
-import { formatDuration } from '../lib/format.js';
+import { formatDuration, formatEstimatedEnd } from '../lib/format.js';
 import { getEventId } from '../lib/incidents.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
@@ -50,6 +50,9 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
                 : [];
           const shownRoutes = allRoutes.slice(0, COMPACT_PILL_LIMIT);
           const overflowCount = allRoutes.length - shownRoutes.length;
+          const estimatedEndText = formatEstimatedEnd(incident.cta_event_end_ts, now, {
+            dateOnly: incident.cta_event_end_is_date_only === true,
+          });
           const content = (
             // biome-ignore lint/correctness/useJsxKeyInIterable: returned wrapper (<a> / <div>) carries the key for each iteration
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
@@ -69,6 +72,14 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
                 >
                   · {duration}
                 </span>
+                {estimatedEndText && (
+                  <span
+                    className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                    title="CTA tagged this alert with an estimated end time when it was posted."
+                  >
+                    · CTA estimated end {estimatedEndText}
+                  </span>
+                )}
               </div>
               <p className="flex-1 min-w-0 text-sm text-slate-700 dark:text-slate-200 truncate whitespace-nowrap">
                 {headline}
