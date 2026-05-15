@@ -300,7 +300,13 @@ function planPages(payload, dailyPayload) {
       title: 'Train system health',
       subtitle: 'All eight L lines at a glance — active disruptions, recent activity, and 30-day disruption time.',
       pillHtml: trainPills,
-      accent: { color: '#0f172a', soft: 'rgba(15, 23, 42, 0.10)' },
+      // Trains: a wash of the L brand colors across the card, plus a
+      // vertical multi-stop bar mirroring the same palette so the card
+      // reads as "the L" at a glance.
+      bgGradient:
+        'linear-gradient(120deg, rgba(198, 12, 48, 0.12) 0%, rgba(249, 70, 28, 0.10) 28%, rgba(0, 161, 222, 0.12) 55%, rgba(82, 35, 152, 0.12) 82%, rgba(0, 155, 58, 0.10) 100%)',
+      accentBar:
+        'linear-gradient(180deg, #C60C30 0%, #F9461C 18%, #62361B 32%, #009B3A 50%, #00A1DE 68%, #522398 82%, #E27EA6 92%, #F9E300 100%)',
     });
     pages.push({
       kind: 'system',
@@ -317,7 +323,12 @@ function planPages(payload, dailyPayload) {
           ? `${totalBusRoutes} bus route${totalBusRoutes === 1 ? '' : 's'} with recent activity — active disruptions, incident counts, and 30-day disruption time.`
           : 'Active disruptions, incident counts, and 30-day disruption time for every bus route on record.',
       pillHtml: busPills,
-      accent: { color: '#475569', soft: 'rgba(71, 85, 105, 0.14)' },
+      // Buses share the muted slate identity used for bus pills on the
+      // site itself, with a hint of warmth toward the bottom to keep the
+      // card from reading as monochrome.
+      bgGradient:
+        'linear-gradient(135deg, rgba(71, 85, 105, 0.18) 0%, rgba(100, 116, 139, 0.10) 45%, rgba(249, 115, 22, 0.10) 100%)',
+      accentBar: 'linear-gradient(180deg, #334155 0%, #64748b 60%, #f97316 100%)',
     });
   }
 
@@ -587,8 +598,8 @@ function fillCompareTemplate(tpl) {
 
 function fillSystemTemplate(tpl, page) {
   return tpl
-    .replaceAll('__ACCENT__', page.accent.color)
-    .replaceAll('__ACCENT_SOFT__', page.accent.soft)
+    .replaceAll('__BG_GRADIENT__', page.bgGradient)
+    .replaceAll('__ACCENT_BAR__', page.accentBar)
     .replaceAll('__TITLE__', escHtml(page.title))
     .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
     .replaceAll('__PILLS__', page.pillHtml)
@@ -634,7 +645,8 @@ function signatureFor(page, templateHash) {
       title: page.title,
       sub: page.subtitle,
       pills: page.pillHtml,
-      accent: page.accent,
+      bg: page.bgGradient,
+      bar: page.accentBar,
     };
   } else {
     payload = {
