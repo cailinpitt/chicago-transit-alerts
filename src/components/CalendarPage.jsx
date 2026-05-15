@@ -3,6 +3,7 @@ import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import { buildCalendarWeeks } from '../lib/calendar.js';
 import { formatChicagoDay } from '../lib/format.js';
+import { SOURCE_TYPES } from '../lib/incidents.js';
 import { buildSearch, parseUrlState } from '../lib/urlState.js';
 import Filters from './Filters.jsx';
 import Header from './Header.jsx';
@@ -102,6 +103,7 @@ export default function CalendarPage() {
   const [showBus, setShowBus] = useState(initial.showBus);
   const [selectedBusRoutes, setSelectedBusRoutes] = useState(initial.selectedBusRoutes);
   const [selectedSignals, setSelectedSignals] = useState(initial.selectedSignals);
+  const [selectedSources, setSelectedSources] = useState(initial.selectedSources);
 
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/daily-counts.json`;
@@ -142,12 +144,13 @@ export default function CalendarPage() {
       dateRange: 7, // calendar ignores dateRange — pin to default so it's omitted from the URL
       selectedDay: null,
       selectedSignals,
+      selectedSources,
       search: '',
     });
     const next = `${window.location.pathname}${qs}${window.location.hash}`;
     const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     if (next !== current) window.history.replaceState(null, '', next);
-  }, [selectedLines, showBus, selectedBusRoutes, selectedSignals]);
+  }, [selectedLines, showBus, selectedBusRoutes, selectedSignals, selectedSources]);
 
   const availableBusRoutes = useMemo(() => {
     const routes = new Set();
@@ -173,7 +176,8 @@ export default function CalendarPage() {
     selectedLines !== null ||
     !showBus ||
     selectedBusRoutes.length > 0 ||
-    selectedSignals.length > 0;
+    selectedSignals.length > 0 ||
+    selectedSources.length < SOURCE_TYPES.length;
   const filterArgs = useMemo(
     () => (isFiltered ? { selectedLines, showBus, selectedBusRoutes } : null),
     [isFiltered, selectedLines, showBus, selectedBusRoutes],
@@ -260,11 +264,15 @@ export default function CalendarPage() {
               onSignalsChange={(next) =>
                 setSelectedSignals(typeof next === 'function' ? next(selectedSignals) : next)
               }
+              selectedSources={selectedSources}
+              onSourcesChange={(next) =>
+                setSelectedSources(typeof next === 'function' ? next(selectedSources) : next)
+              }
             />
-            {selectedSignals.length > 0 && (
+            {(selectedSignals.length > 0 || selectedSources.length < SOURCE_TYPES.length) && (
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-                Signal filter doesn't apply to the calendar — daily breakdowns aren't kept per
-                signal. Cell counts reflect line/route filters only.
+                Signal and source filters don't apply to the calendar — daily breakdowns aren't kept
+                per signal or source. Cell counts reflect line/route filters only.
               </p>
             )}
           </div>

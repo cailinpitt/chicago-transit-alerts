@@ -125,6 +125,20 @@ export function normalizeAlertsPayload(payload) {
 // in which case the precise signal kinds live in `signals`).
 export const SIGNAL_TYPES = ['gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-held', 'thin-gap'];
 
+// Source categories for the filter chip. Each incident falls into exactly
+// one bucket after `mergeMatchingIncidents` runs:
+//   'cta'    — CTA alert with no matching bot detection
+//   'bot'    — bot detection with no matching CTA alert
+//   'merged' — CTA alert and bot detection that paired up
+// Order is the display order in the popover; keep it CTA → bot → merged so
+// the "they agreed" row sits at the end as the strongest signal.
+export const SOURCE_TYPES = ['cta', 'bot', 'merged'];
+export const SOURCE_LABELS = {
+  cta: 'CTA reported',
+  bot: 'Bot observation',
+  merged: 'Both',
+};
+
 // Friendly labels for every signal kind.
 export const SIGNAL_LABELS = {
   gap: 'headway gaps',
@@ -671,6 +685,7 @@ export function filterIncidents(
     busRoutes = null,
     selectedDay = null,
     signals = null,
+    sources = null,
     search = '',
     now = Date.now(),
   } = {},
@@ -729,6 +744,46 @@ export function filterIncidents(
     if (startTs && o.ts < startTs && !o.active) return false;
     return true;
   });
+
+  // Source filter (CTA / bot / merged). "merged" is a post-merge category, so
+  // we run the same pairing the renderer does and then keep only the alerts
+  // and observations that fall into a selected bucket. Skipped only when
+  // every category is selected — that's the default "show everything"
+  // state. An empty `sources` array means "show nothing" (user toggled all
+  // chips off) and falls through the same code path with empty keep-sets.
+  if (sources && sources.length < SOURCE_TYPES.length) {
+    const want = new Set(sources);
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      filteredAlerts,
+      filteredObs,
+    );
+    const keepAlertIds = new Set();
+    const keepObsIds = new Set();
+    if (want.has('merged')) {
+      for (const m of merged) {
+        keepAlertIds.add(m.alert_id);
+        keepObsIds.add(m.obs_id);
+        // Multi-detection incidents carry extra observations alongside the
+        // primary; retain them so the downstream re-merge in IncidentList
+        // can reassemble the full merged record instead of dropping them
+        // into the standalone bucket (where the source filter would hide
+        // them again).
+        if (Array.isArray(m.extra_obs)) {
+          for (const e of m.extra_obs) keepObsIds.add(e.id);
+        }
+      }
+    }
+    if (want.has('cta')) {
+      for (const a of standaloneAlerts) keepAlertIds.add(a.alert_id);
+    }
+    if (want.has('bot')) {
+      for (const o of standaloneObs) keepObsIds.add(o.id);
+    }
+    return {
+      alerts: filteredAlerts.filter((a) => keepAlertIds.has(a.alert_id)),
+      observations: filteredObs.filter((o) => keepObsIds.has(o.id)),
+    };
+  }
 
   return { alerts: filteredAlerts, observations: filteredObs };
 }

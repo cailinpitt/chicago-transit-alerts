@@ -1,9 +1,17 @@
 import { normalizeTrainLine, TRAIN_LINE_ORDER } from './ctaLines.js';
-import { SIGNAL_TYPES } from './incidents.js';
+import { SIGNAL_TYPES, SOURCE_TYPES } from './incidents.js';
+
+// Source filter uses "selected = shown" semantics: an empty URL/state means
+// "everything is shown", which we represent internally as all SOURCE_TYPES
+// being present (so the popover chips all read as active by default rather
+// than all inactive — the latter was confusing and made the default state
+// look like a destructive empty filter).
+const DEFAULT_SOURCES = [...SOURCE_TYPES];
 
 const VALID_RANGES = new Set([7, 30, 60, 90]);
 const TRAIN_LINE_SET = new Set(TRAIN_LINE_ORDER);
 const SIGNAL_SET = new Set(SIGNAL_TYPES);
+const SOURCE_SET = new Set(SOURCE_TYPES);
 const DAY_PARAM_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 // Format a UTC epoch (Chicago day midnight) as a YYYY-MM-DD string. Cleaner in
@@ -52,7 +60,13 @@ export { defaultShowBus };
 // pinned day are deliberately excluded: a stale "30d" choice from last
 // month feels more confusing than helpful.
 const STORAGE_KEY = 'cta-alert-history:filters';
-const STICKY_KEYS = ['selectedLines', 'showBus', 'selectedBusRoutes', 'selectedSignals'];
+const STICKY_KEYS = [
+  'selectedLines',
+  'showBus',
+  'selectedBusRoutes',
+  'selectedSignals',
+  'selectedSources',
+];
 
 export function readStoredFilters() {
   try {
@@ -91,6 +105,7 @@ export function parseUrlState(search = window.location.search) {
     dateRange: 7,
     selectedDay: null,
     selectedSignals: [],
+    selectedSources: [...DEFAULT_SOURCES],
     search: '',
   };
 
@@ -144,6 +159,20 @@ export function parseUrlState(search = window.location.search) {
       .filter((s) => SIGNAL_SET.has(s));
   }
 
+  // `sources=none` is an explicit "show nothing" choice (the user
+  // deselected every chip). Any other value yields the listed subset.
+  // When the parameter is absent we fall through to DEFAULT_SOURCES — the
+  // URL stays clean for the common "show everything" state.
+  const sourcesParam = params.get('sources');
+  if (sourcesParam === 'none') {
+    out.selectedSources = [];
+  } else if (sourcesParam) {
+    out.selectedSources = sourcesParam
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => SOURCE_SET.has(s));
+  }
+
   const qParam = params.get('q');
   if (qParam) out.search = qParam;
 
@@ -160,6 +189,7 @@ export function buildSearch({
   dateRange,
   selectedDay,
   selectedSignals,
+  selectedSources,
   search,
 }) {
   const params = new URLSearchParams();
@@ -185,6 +215,16 @@ export function buildSearch({
   }
   if (selectedSignals && selectedSignals.length > 0) {
     params.set('signals', selectedSignals.join(','));
+  }
+  // Only serialize when the selection narrows from the default. All-three
+  // selected = default = omit. None selected = explicit empty = 'none'
+  // (mirrors the lines= behavior so the URL still round-trips).
+  if (selectedSources) {
+    if (selectedSources.length === 0) {
+      params.set('sources', 'none');
+    } else if (selectedSources.length < SOURCE_TYPES.length) {
+      params.set('sources', selectedSources.join(','));
+    }
   }
   if (search && search.trim().length > 0) {
     params.set('q', search.trim());

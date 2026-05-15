@@ -10,6 +10,7 @@ describe('parseUrlState', () => {
       dateRange: 7,
       selectedDay: null,
       selectedSignals: [],
+      selectedSources: ['cta', 'bot', 'merged'],
       search: '',
     });
   });
@@ -175,6 +176,7 @@ describe('buildSearch', () => {
       dateRange: 30,
       selectedDay: null,
       selectedSignals: [],
+      selectedSources: ['cta', 'bot', 'merged'],
       search: '',
     };
     expect(parseUrlState(buildSearch(state))).toEqual(state);
@@ -189,6 +191,7 @@ describe('buildSearch', () => {
       dateRange: 7,
       selectedDay: dayUtc,
       selectedSignals: [],
+      selectedSources: ['cta', 'bot', 'merged'],
       search: '',
     };
     const search = buildSearch(state);

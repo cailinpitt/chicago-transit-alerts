@@ -24,6 +24,7 @@ import {
   mergeMatchingIncidents,
   normalizeAlertsPayload,
   observationSignals,
+  SOURCE_TYPES,
 } from './lib/incidents.js';
 import { buildStationIndex } from './lib/stations.js';
 import {
@@ -63,6 +64,14 @@ export default function App() {
     if (hasAnyUrl) return fromUrl;
     const stored = readStoredFilters();
     if (!stored) return fromUrl;
+    // Migration: a legacy localStorage payload from before the source-filter
+    // flip carries `selectedSources: []`, which under the new "selected =
+    // shown" semantics would render an empty page. Drop the empty value so
+    // the URL/state default (all sources) takes over for that visitor.
+    if (Array.isArray(stored.selectedSources) && stored.selectedSources.length === 0) {
+      const { selectedSources: _drop, ...rest } = stored;
+      return { ...fromUrl, ...rest };
+    }
     return { ...fromUrl, ...stored };
   }, []);
   const [selectedLines, setSelectedLines] = useState(initial.selectedLines); // null = all lines; [] = no lines
@@ -74,6 +83,7 @@ export default function App() {
   // single day from the timeline.
   const [selectedDay, setSelectedDay] = useState(initial.selectedDay);
   const [selectedSignals, setSelectedSignals] = useState(initial.selectedSignals);
+  const [selectedSources, setSelectedSources] = useState(initial.selectedSources);
   const [search, setSearch] = useState(initial.search);
 
   function resetFilters() {
@@ -83,6 +93,7 @@ export default function App() {
     setDateRange(7);
     setSelectedDay(null);
     setSelectedSignals([]);
+    setSelectedSources([...SOURCE_TYPES]);
     setSearch('');
   }
 
@@ -115,21 +126,37 @@ export default function App() {
       dateRange,
       selectedDay,
       selectedSignals,
+      selectedSources,
       search,
     });
     const next = `${window.location.pathname}${queryString}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.replaceState(null, '', next);
     }
-  }, [selectedLines, showBus, selectedBusRoutes, dateRange, selectedDay, selectedSignals, search]);
+  }, [
+    selectedLines,
+    showBus,
+    selectedBusRoutes,
+    dateRange,
+    selectedDay,
+    selectedSignals,
+    selectedSources,
+    search,
+  ]);
 
   // Persist the sticky subset (lines, bus visibility, bus routes, signals)
   // to localStorage so a returning visitor sees the same scope they last
   // chose. dateRange / day pin / search are deliberately excluded — those
   // are momentary, not preferences.
   useEffect(() => {
-    writeStoredFilters({ selectedLines, showBus, selectedBusRoutes, selectedSignals });
-  }, [selectedLines, showBus, selectedBusRoutes, selectedSignals]);
+    writeStoredFilters({
+      selectedLines,
+      showBus,
+      selectedBusRoutes,
+      selectedSignals,
+      selectedSources,
+    });
+  }, [selectedLines, showBus, selectedBusRoutes, selectedSignals, selectedSources]);
 
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/alerts.json`;
@@ -322,6 +349,9 @@ export default function App() {
       busRoutes: selectedBusRoutes.length > 0 ? selectedBusRoutes : null,
       selectedDay,
       signals: selectedSignals.length > 0 ? selectedSignals : null,
+      // Only narrow when the user picked a subset; default (all three) ⇒
+      // pass null so filterIncidents short-circuits the merge pass.
+      sources: selectedSources.length < SOURCE_TYPES.length ? selectedSources : null,
       search,
       now,
     });
@@ -333,6 +363,7 @@ export default function App() {
     dateRange,
     selectedDay,
     selectedSignals,
+    selectedSources,
     search,
     now,
   ]);
@@ -400,6 +431,8 @@ export default function App() {
                 onClearSelectedDay={() => setSelectedDay(null)}
                 selectedSignals={selectedSignals}
                 onSignalsChange={setSelectedSignals}
+                selectedSources={selectedSources}
+                onSourcesChange={setSelectedSources}
               />
             </div>
             {todaySummary && (
@@ -430,7 +463,8 @@ export default function App() {
                 selectedBusRoutes.length > 0 ||
                 dateRange !== 7 ||
                 selectedDay !== null ||
-                selectedSignals.length > 0
+                selectedSignals.length > 0 ||
+                selectedSources.length < SOURCE_TYPES.length
               }
             />
             <RecentActivityGantt alerts={data.alerts} observations={data.observations} now={now} />
