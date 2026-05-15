@@ -684,12 +684,24 @@ export function computeDisruptionMinutes(
 
   const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
 
+  // When `lines` is provided as scope, only intervals on those routes count
+  // toward the numerator. Without this filter, a multi-route reroute alert
+  // (a typical CTA bus reroute can list 10+ affected routes) would have its
+  // full duration added once per route in the alert's `routes` array, even
+  // when the caller is asking about a single route — inflating the total
+  // disruption time by a factor equal to the alert's route-count.
+  const scopeSet =
+    Array.isArray(lines) && lines.length > 0
+      ? new Set(lines.map(({ kind, line }) => `${kind}:${line}`))
+      : null;
+
   // Per-line interval list. Key: kind + ':' + line. Each entry is a list of
   // [start, end] tuples clamped to the window. We union per-line so two
   // simultaneous detections on Red Line don't both add to the total.
   const byLine = new Map();
   function add(lineKey, start, end) {
     if (start == null) return;
+    if (scopeSet && !scopeSet.has(lineKey)) return;
     const lo = Math.max(start, cutoff);
     const hi = Math.min(end ?? now, now);
     if (hi <= lo) return;

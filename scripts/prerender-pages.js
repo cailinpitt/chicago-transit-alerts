@@ -12,6 +12,8 @@
 //   - Stations from buildStationIndex (already filtered to >=1 incident)
 //   - /calendar (singleton, always rendered)
 //   - /stats (singleton, always rendered)
+//   - /compare (singleton, always rendered)
+//   - /system/trains and /system/buses (singletons, always rendered)
 //
 // Anything outside the scope falls back to the generic homepage OG card,
 // which the SPA shell at the unknown route serves by default.
@@ -53,6 +55,7 @@ const CALENDAR_TPL = resolve(__dirname, 'og-calendar-template.html');
 const STATS_TPL = resolve(__dirname, 'og-stats-template.html');
 const COMPARE_TPL = resolve(__dirname, 'og-compare-template.html');
 const DAY_TPL = resolve(__dirname, 'og-day-template.html');
+const SYSTEM_TPL = resolve(__dirname, 'og-system-template.html');
 const CACHE = resolve(ROOT, '.og-cache-pages');
 const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY ?? 6);
 
@@ -248,6 +251,73 @@ function planPages(payload, dailyPayload) {
       ogTitle: 'Compare CTA lines · Chicago Transit Alerts',
       desc: 'Side-by-side reliability, signal mix, and resolution time for up to 3 CTA train lines or bus routes — archived on chicagotransitalerts.app.',
       subtitle: '',
+    });
+  }
+
+  // System-health pages — one card per mode (train / bus). Trains get the
+  // 8 brand-color line pills; buses get the top-N most-active route pills,
+  // capped so the card never overflows. Both share a single template.
+  {
+    const trainPills = TRAIN_LINE_ORDER.map((lineId) => {
+      const info = TRAIN_LINES[lineId];
+      if (!info) return '';
+      return `<span class="pill" style="background:${info.color};color:${info.textColor}">${escHtml(info.label)}</span>`;
+    }).join('');
+    // Bus pill set: generic service-type categories rather than specific
+    // route numbers. Naming a handful of routes on the card implied those
+    // were the only ones covered — they're not; every route with recent
+    // activity gets a row on the page. Categories convey the breadth of
+    // the bus network without singling anyone out.
+    const BUS_CATEGORIES = ['Local', 'Express', 'Limited', 'Owl service'];
+    const busPills = BUS_CATEGORIES.map(
+      (label) =>
+        `<span class="pill" style="background:#475569;color:#fff">${escHtml(label)}</span>`,
+    ).join('');
+    // Total bus-route count drives the subtitle. Computed across the same
+    // 90-day window the page itself uses, so the card's claim matches what
+    // a visitor sees when they arrive.
+    const busRoutesInWindow = new Set();
+    const cutoffNinety = now - WINDOW_DAYS * DAY_MS;
+    for (const a of payload.alerts ?? []) {
+      if (a.kind !== 'bus' || (a.first_seen_ts ?? 0) < cutoffNinety) continue;
+      for (const r of a.routes ?? []) busRoutesInWindow.add(String(r));
+    }
+    for (const o of payload.observations ?? []) {
+      if (o.kind !== 'bus' || !o.line || (o.ts ?? 0) < cutoffNinety) continue;
+      busRoutesInWindow.add(String(o.line));
+    }
+    const totalBusRoutes = busRoutesInWindow.size;
+
+    pages.push({
+      kind: 'system',
+      mode: 'train',
+      slug: 'system-trains',
+      outDir: resolve(DIST, 'system', 'trains'),
+      url: `${SITE}/system/trains`,
+      path: '/system/trains',
+      ogTitle: 'Train system health · Chicago Transit Alerts',
+      desc: 'System-wide health for the L: active disruptions, per-line incident counts, disruption hours, and 30-day trends — archived on chicagotransitalerts.app.',
+      title: 'Train system health',
+      subtitle: 'All eight L lines at a glance — active disruptions, recent activity, and 30-day disruption time.',
+      pillHtml: trainPills,
+      accent: { color: '#0f172a', soft: 'rgba(15, 23, 42, 0.10)' },
+    });
+    pages.push({
+      kind: 'system',
+      mode: 'bus',
+      slug: 'system-buses',
+      outDir: resolve(DIST, 'system', 'buses'),
+      url: `${SITE}/system/buses`,
+      path: '/system/buses',
+      ogTitle: 'Bus system health · Chicago Transit Alerts',
+      desc: 'System-wide health for CTA buses: active disruptions, per-route incident counts, disruption hours, and 30-day trends — archived on chicagotransitalerts.app.',
+      title: 'Bus system health',
+      subtitle:
+        totalBusRoutes > 0
+          ? `${totalBusRoutes} bus route${totalBusRoutes === 1 ? '' : 's'} with recent activity — active disruptions, incident counts, and 30-day disruption time.`
+          : 'Active disruptions, incident counts, and 30-day disruption time for every bus route on record.',
+      pillHtml: busPills,
+      accent: { color: '#475569', soft: 'rgba(71, 85, 105, 0.14)' },
     });
   }
 
@@ -515,6 +585,16 @@ function fillCompareTemplate(tpl) {
   return tpl;
 }
 
+function fillSystemTemplate(tpl, page) {
+  return tpl
+    .replaceAll('__ACCENT__', page.accent.color)
+    .replaceAll('__ACCENT_SOFT__', page.accent.soft)
+    .replaceAll('__TITLE__', escHtml(page.title))
+    .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
+    .replaceAll('__PILLS__', page.pillHtml)
+    .replaceAll('__PATH__', escHtml(page.path));
+}
+
 function fillDayTemplate(tpl, page) {
   return tpl
     .replaceAll('__TITLE__', escHtml(page.title))
@@ -547,6 +627,15 @@ function signatureFor(page, templateHash) {
     payload = { kind: 'compare' };
   } else if (page.kind === 'day') {
     payload = { kind: 'day', title: page.title, sub: page.subtitle, pills: page.pillHtml };
+  } else if (page.kind === 'system') {
+    payload = {
+      kind: 'system',
+      mode: page.mode,
+      title: page.title,
+      sub: page.subtitle,
+      pills: page.pillHtml,
+      accent: page.accent,
+    };
   } else {
     payload = {
       kind: page.kind,
@@ -600,6 +689,7 @@ async function main() {
   const compareTpl = existsSync(COMPARE_TPL) ? readFileSync(COMPARE_TPL, 'utf8') : null;
   // DAY_TPL is required (ships in the repo). Treat like LINE_TPL/STATION_TPL.
   const dayTpl = readFileSync(DAY_TPL, 'utf8');
+  const systemTpl = readFileSync(SYSTEM_TPL, 'utf8');
   const lineHash = createHash('sha256').update(lineTpl).digest('hex').slice(0, 16);
   const stationHash = createHash('sha256').update(stationTpl).digest('hex').slice(0, 16);
   const calendarHash = calendarTpl
@@ -612,6 +702,7 @@ async function main() {
     ? createHash('sha256').update(compareTpl).digest('hex').slice(0, 16)
     : '';
   const dayHash = createHash('sha256').update(dayTpl).digest('hex').slice(0, 16);
+  const systemHash = createHash('sha256').update(systemTpl).digest('hex').slice(0, 16);
 
   const pages = planPages(payload, dailyPayload);
   if (pages.length === 0) {
@@ -631,6 +722,7 @@ async function main() {
     else if (page.kind === 'stats') tplHash = statsHash;
     else if (page.kind === 'compare') tplHash = compareHash;
     else if (page.kind === 'day') tplHash = dayHash;
+    else if (page.kind === 'system') tplHash = systemHash;
     else tplHash = lineHash;
     const sig = signatureFor(page, tplHash);
 
@@ -654,6 +746,7 @@ async function main() {
     else if (page.kind === 'stats') html = fillStatsTemplate(statsTpl, page);
     else if (page.kind === 'compare') html = fillCompareTemplate(compareTpl);
     else if (page.kind === 'day') html = fillDayTemplate(dayTpl, page);
+    else if (page.kind === 'system') html = fillSystemTemplate(systemTpl, page);
     else html = fillLineTemplate(lineTpl, page);
     renders.push({ page, html, cacheDir, cachedPng, cachedSig, sig });
   }

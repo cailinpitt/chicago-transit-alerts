@@ -140,6 +140,20 @@ export default function BrowseMenu({ alerts, observations, align = 'right' }) {
               >
                 Compare lines
               </a>
+              <a
+                href="/system/trains"
+                role="menuitem"
+                className="block px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
+              >
+                Train system health
+              </a>
+              <a
+                href="/system/buses"
+                role="menuitem"
+                className="block px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
+              >
+                Bus system health
+              </a>
             </section>
 
             <section>

@@ -15,6 +15,7 @@ import EventPage from './components/EventPage.jsx';
 import LinePage from './components/LinePage.jsx';
 import StationPage from './components/StationPage.jsx';
 import StatsPage from './components/StatsPage.jsx';
+import SystemHealthPage from './components/SystemHealthPage.jsx';
 
 // Client-side routing. GitHub Pages serves `404.html` (a copy of `index.html`)
 // for any unknown path, so the SPA boots and we dispatch to the right page
@@ -32,6 +33,8 @@ import StatsPage from './components/StatsPage.jsx';
 //   /calendar      → 12-month calendar heatmap of daily incident counts
 //   /stats         → leaderboard of worst day/hour/station/longest incident
 //   /compare       → side-by-side comparison of up to 3 train lines or bus routes
+//   /system/trains → mode-wide health dashboard for the L
+//   /system/buses  → mode-wide health dashboard for buses
 const path = window.location.pathname;
 const eventMatch = /^\/event\/([^/?#]+)(?:\/resolved)?\/?$/.exec(path);
 const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
@@ -41,6 +44,7 @@ const dayMatch = /^\/day\/([^/?#]+)\/?$/.exec(path);
 const calendarMatch = /^\/calendar\/?$/.exec(path);
 const statsMatch = /^\/stats\/?$/.exec(path);
 const compareMatch = /^\/compare\/?$/.exec(path);
+const systemMatch = /^\/system\/(trains|buses)\/?$/.exec(path);
 
 let page;
 if (eventMatch) {
@@ -59,6 +63,8 @@ if (eventMatch) {
   page = <StatsPage />;
 } else if (compareMatch) {
   page = <ComparePage />;
+} else if (systemMatch) {
+  page = <SystemHealthPage kind={systemMatch[1] === 'trains' ? 'train' : 'bus'} />;
 } else {
   page = <App />;
 }

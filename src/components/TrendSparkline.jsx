@@ -37,7 +37,7 @@ function trendLabel(ratio, band) {
   return `${pct}% ${band === 'up' ? 'higher' : 'lower'} vs prior 7 days`;
 }
 
-export default function TrendSparkline({ alerts, observations, trend }) {
+export default function TrendSparkline({ alerts, observations, trend, reserveLabel = false }) {
   // Accept a precomputed trend from the parent (SummaryStats lifts the
   // computation so the WoW callout sentence and the sparkline share a single
   // source of truth) but stay independently usable when no parent provides it.
@@ -93,13 +93,35 @@ export default function TrendSparkline({ alerts, observations, trend }) {
           strokeLinejoin="round"
         />
       </svg>
-      {arrow && (
-        <span className={`text-xs font-medium tabular-nums ${trendColorClass(band)}`}>
-          {arrow}
-          {band !== 'flat' && (
-            <span className="ml-0.5">{Math.round(Math.abs(trendRatio - 1) * 100)}%</span>
+      {/* When `reserveLabel` is set, always render a fixed-width label slot
+          so a column of sparklines stays aligned even on rows without a
+          prior-window baseline. Without that prop, the label only renders
+          when there's a band (legacy inline behavior — keeps single-shot
+          callers like SummaryStats unchanged). */}
+      {reserveLabel ? (
+        <span
+          className={`text-xs font-medium tabular-nums w-12 text-left ${arrow ? trendColorClass(band) : 'text-slate-300 dark:text-slate-600'}`}
+        >
+          {arrow ? (
+            <>
+              {arrow}
+              {band !== 'flat' && (
+                <span className="ml-0.5">{Math.round(Math.abs(trendRatio - 1) * 100)}%</span>
+              )}
+            </>
+          ) : (
+            <span title="No incidents in the prior 7-day window to compare against.">N/A</span>
           )}
         </span>
+      ) : (
+        arrow && (
+          <span className={`text-xs font-medium tabular-nums ${trendColorClass(band)}`}>
+            {arrow}
+            {band !== 'flat' && (
+              <span className="ml-0.5">{Math.round(Math.abs(trendRatio - 1) * 100)}%</span>
+            )}
+          </span>
+        )
       )}
     </div>
   );
