@@ -1,7 +1,30 @@
 {
-  "generated_at": 1778880544495,
+  "generated_at": 1778880664432,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114963",
+      "kind": "train",
+      "routes": [
+        "brn"
+      ],
+      "headline": "Brown Line Service Running with Delays",
+      "short_description": "Brown Line trains are running with significant delays following an earlier delay at Adams/ Wabash.",
+      "first_seen_ts": 1778880662811,
+      "last_seen_ts": 1778880663550,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwbr2iwla2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "cta_event_start_ts": 1778880540000,
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "114962",
       "kind": "train",
@@ -11,7 +34,7 @@
       "headline": "O'Hare-bound Blue Line Service Running with Delays",
       "short_description": "O'Hare-bound Blue Line trains are running with significant delays following an earlier delay at Western(Congress).",
       "first_seen_ts": 1778879943321,
-      "last_seen_ts": 1778880542260,
+      "last_seen_ts": 1778880662380,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -921,7 +944,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778880483133,
+      "last_seen_ts": 1778880603297,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
