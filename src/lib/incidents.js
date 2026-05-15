@@ -482,6 +482,16 @@ export function mergeMatchingIncidents(alerts, observations) {
       // entire lifespan let multi-day planned alerts vacuum up unrelated
       // observations from later days as if they were the same incident.
       if (Math.abs(obs.ts - alert.first_seen_ts) > BUFFER_MS) continue;
+      // Require the obs and alert intervals to actually overlap (with a small
+      // grace). Without this, a bot observation that fully resolved before the
+      // alert fired — or fired after the alert already cleared — could still
+      // satisfy the ±2h proximity test and get merged onto an unrelated
+      // alert, surfacing bot post links into a different thread.
+      const obsEnd = obs.resolved_ts ?? obs.ts;
+      const alertEnd = alert.resolved_ts ?? Number.POSITIVE_INFINITY;
+      const GRACE_MS = 10 * 60 * 1000;
+      if (obsEnd + GRACE_MS < alert.first_seen_ts) continue;
+      if (alertEnd + GRACE_MS < obs.ts) continue;
       matches.push(obs);
     }
     if (matches.length === 0) continue;

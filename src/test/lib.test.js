@@ -299,6 +299,41 @@ describe('mergeMatchingIncidents', () => {
     expect(merged[0].extra_obs[0].id).toBe(2);
   });
 
+  it('does not merge an observation that fully resolved before the alert fired', () => {
+    // Regression: event 3mlvtbvxlpf2g had a bot observation (rkey
+    // 3mlvqm3qc4m2s) that started ~48 min before the alert's first_seen_ts
+    // and resolved ~23 min before the alert fired. The two incidents were
+    // sequential, not concurrent, but the proximity-only window merged them
+    // and surfaced bot post links pointing into an unrelated thread.
+    const alert = makeAlertForMerge({ first_seen_ts: NOW, resolved_ts: NOW + 20 * 60_000 });
+    const staleObs = makeObsForMerge({
+      ts: NOW - 48 * 60_000,
+      resolved_ts: NOW - 23 * 60_000,
+    });
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      [alert],
+      [staleObs],
+    );
+    expect(merged).toHaveLength(0);
+    expect(standaloneAlerts).toHaveLength(1);
+    expect(standaloneObs).toHaveLength(1);
+  });
+
+  it('does not merge an observation that started after the alert resolved', () => {
+    const alert = makeAlertForMerge({ first_seen_ts: NOW, resolved_ts: NOW + 10 * 60_000 });
+    const laterObs = makeObsForMerge({
+      ts: NOW + 45 * 60_000,
+      resolved_ts: NOW + 60 * 60_000,
+    });
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      [alert],
+      [laterObs],
+    );
+    expect(merged).toHaveLength(0);
+    expect(standaloneAlerts).toHaveLength(1);
+    expect(standaloneObs).toHaveLength(1);
+  });
+
   it('suppresses resolution fields when alert is still active', () => {
     // Bot observation ended before the CTA alert was even posted (e.g. a
     // leading-edge ghost detection that cleared right before CTA announced
@@ -372,8 +407,8 @@ describe('buildIncidentsByDay', () => {
     const obs = {
       kind: 'train',
       line: 'green',
-      ts: base + 60 * 60_000,
-      resolved_ts: base + 90 * 60_000,
+      ts: base + 5 * 60_000,
+      resolved_ts: base + 35 * 60_000,
     };
     const result = buildIncidentsByDay([alert], [obs], 7, NOW);
     expect(result.green[2]).toBe(1);
