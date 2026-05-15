@@ -196,12 +196,16 @@ function RouteGrid({ kind, rows, sortKey, onSortChange }) {
   const isTrain = kind === 'train';
   const hrefFor = (route) => (isTrain ? `/line/${route}` : `/route/${route}`);
 
-  // One shared template for the header and every row so the columns line
-  // up. Label is `1fr` (truncates on narrow viewports), the numeric cells
-  // are fixed widths sized to the worst-case content ("12h 49m"), and the
-  // sparkline gets its own fixed column. Trend % from TrendSparkline can
-  // tack on ~46px, so we reserve room for it inside the trend column.
-  const COL_TEMPLATE = 'minmax(0, 1fr) 56px 48px 72px 180px';
+  // Two layouts. Mobile drops the sparkline + trend-% column entirely
+  // (180px is the bulk of the row width and was overflowing on phones —
+  // the same trend info is visible on the per-line page one tap away).
+  // The numeric columns are also tightened on mobile to claw back space.
+  // Worst-case content: "12h 49m" in the 30d column, "11" in the 7d
+  // column, "•1" / "—" in the active column.
+  const ROW_GRID =
+    'grid items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 ' +
+    'grid-cols-[minmax(0,1fr)_36px_32px_64px] ' +
+    'sm:grid-cols-[minmax(0,1fr)_56px_48px_72px_180px]';
 
   return (
     <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border overflow-hidden">
@@ -228,26 +232,24 @@ function RouteGrid({ kind, rows, sortKey, onSortChange }) {
         ))}
       </div>
       {/* Column header — short numeric labels so the empty cells in the
-          data rows read as "no value" rather than dead space. Hidden on
-          narrow viewports where the row already wraps; the footer caption
-          carries the same info there. */}
+          data rows read as "no value" rather than dead space. Mobile
+          uses a 4-col variant matching the row template (no trend
+          column). */}
       <div
-        className="hidden sm:grid items-end gap-3 px-4 py-2 border-b border-slate-100 dark:border-gh-border text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500"
-        style={{ gridTemplateColumns: COL_TEMPLATE }}
+        className={`${ROW_GRID} py-2 border-b border-slate-100 dark:border-gh-border text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500`}
       >
         <span>{isTrain ? 'Line' : 'Route'}</span>
         <span className="text-right">Active</span>
         <span className="text-right">7d</span>
         <span className="text-right">30d hrs</span>
-        <span className="text-right">30d trend</span>
+        <span className="text-right hidden sm:inline">30d trend</span>
       </div>
       <div className="divide-y divide-slate-100 dark:divide-gh-border">
         {rows.map((row) => (
           <a
             key={row.route}
             href={hrefFor(row.route)}
-            className="grid items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-gh-canvas transition-colors"
-            style={{ gridTemplateColumns: COL_TEMPLATE }}
+            className={`${ROW_GRID} hover:bg-slate-50 dark:hover:bg-gh-canvas transition-colors`}
           >
             <div className="min-w-0">
               <RouteLabel kind={kind} route={row.route} />
@@ -285,14 +287,14 @@ function RouteGrid({ kind, rows, sortKey, onSortChange }) {
                 <span className="text-slate-300 dark:text-slate-600">—</span>
               )}
             </div>
-            <div className="flex justify-end">
+            <div className="hidden sm:flex justify-end">
               <TrendSparkline alerts={row.alerts} observations={row.observations} reserveLabel />
             </div>
           </a>
         ))}
       </div>
       <div className="sm:hidden px-4 py-2 border-t border-slate-100 dark:border-gh-border text-[11px] text-slate-400 dark:text-slate-500">
-        Active · 7-day count · 30-day disrupted time · 30-day trend
+        Tap a row for the 30-day trend.
       </div>
     </div>
   );
