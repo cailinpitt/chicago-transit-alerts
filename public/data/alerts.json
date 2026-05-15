@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778884247759,
+  "generated_at": 1778884509725,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -46,7 +46,9 @@
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
-      "mentioned_stations": [],
+      "mentioned_stations": [
+        "Western (Blue - Forest Park Branch)"
+      ],
       "cta_event_start_ts": 1778879820000,
       "cta_event_end_ts": null,
       "cta_event_start_is_date_only": false,
@@ -995,7 +997,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778884202890,
+      "last_seen_ts": 1778884442319,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
