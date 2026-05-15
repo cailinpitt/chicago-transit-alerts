@@ -560,6 +560,79 @@ export default function EventPage({ eventId }) {
 // callout self-contained — formerly the alert's affected_* line and the
 // merged record's observation from/to displayed in two different places,
 // neither truly chip-styled.
+// Wrap each mention of a known station in the alert text with a StationName
+// component so the same dotted-underline that links bot observations also
+// links the inline names in CTA's own description ("delays at Monroe" →
+// "delays at <link>Monroe</link>"). Match against the canonical names in
+// `mentions` (already line-scoped upstream so "Halsted" doesn't bleed across
+// lines) plus their base form (without the parenthetical disambiguator),
+// since CTA writes "Monroe" not "Monroe (Red)". Longest-first scan prevents
+// "UIC" from matching inside "UIC-Halsted". Whole-word boundaries on either
+// side keep "Howard" from matching inside "Howards" or station-suffix tokens.
+function linkifyMentionedStations(text, mentions, stationIndex) {
+  if (!text) return text;
+  if (!mentions || mentions.length === 0) return text;
+  // Pair each canonical name with its display alias(es) that might appear in
+  // the text. Display form (no parenthetical) is what CTA writes; canonical
+  // form is what we link to. Same canonical can have one or both forms.
+  const aliases = [];
+  for (const canonical of mentions) {
+    const display = displayStationName(canonical);
+    aliases.push({ alias: canonical, canonical });
+    if (display && display !== canonical) {
+      aliases.push({ alias: display, canonical });
+    }
+  }
+  // Longest-first so substring aliases ("Halsted") don't shadow longer ones
+  // ("UIC-Halsted") that share a prefix.
+  aliases.sort((a, b) => b.alias.length - a.alias.length);
+  // Slash and hyphen handling: CTA sometimes writes "Adams/ Wabash" or
+  // "UIC Halsted" where the canonical name uses "Adams/Wabash" or
+  // "UIC-Halsted". Build a regex per alias that tolerates whitespace
+  // around slashes and treats `-`/space as interchangeable.
+  function aliasPattern(alias) {
+    return alias
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      // CTA writes "Adams/ Wabash" with a stray space; the canonical name is
+      // "Adams/Wabash". Allow whitespace around any `/` in the alias.
+      .replace(/\//g, '\\s*/\\s*')
+      // Hyphens and runs of whitespace are interchangeable: canonical
+      // "UIC-Halsted" matches CTA's "UIC Halsted".
+      .replace(/[\s-]+/g, '[\\s-]+');
+  }
+  const combined = new RegExp(
+    `(?<![A-Za-z0-9])(?:${aliases.map((a) => aliasPattern(a.alias)).join('|')})(?![A-Za-z0-9])`,
+    'g',
+  );
+  const parts = [];
+  let cursor = 0;
+  let m = combined.exec(text);
+  while (m !== null) {
+    if (m.index > cursor) parts.push(text.slice(cursor, m.index));
+    // Re-match the captured chunk against each alias to recover the
+    // canonical name — alias order isn't preserved in the alternation match.
+    const matched = m[0];
+    let canonical = null;
+    for (const a of aliases) {
+      if (new RegExp(`^${aliasPattern(a.alias)}$`).test(matched)) {
+        canonical = a.canonical;
+        break;
+      }
+    }
+    parts.push(
+      <StationName
+        key={`${m.index}-${matched}`}
+        name={canonical ?? matched}
+        stationIndex={stationIndex}
+      />,
+    );
+    cursor = m.index + matched.length;
+    m = combined.exec(text);
+  }
+  if (cursor < text.length) parts.push(text.slice(cursor));
+  return parts.length > 0 ? parts : text;
+}
+
 function collectAffectedStations(incident) {
   const seen = new Set();
   const out = [];
@@ -574,6 +647,11 @@ function collectAffectedStations(incident) {
   add(incident.affected_to_station);
   add(incident.from_station);
   add(incident.to_station);
+  // mentioned_stations carries impact-context matches the upstream extractor
+  // pulled from the alert text ("delays at Monroe"). Include after the
+  // segment endpoints so the canonical "from → to" still renders first when
+  // both are present; the dedupe keeps overlap from doubling up.
+  for (const name of incident.mentioned_stations || []) add(name);
   return out;
 }
 
@@ -906,7 +984,11 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
             Per CTA
           </p>
           <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-            {incident.short_description}
+            {linkifyMentionedStations(
+              incident.short_description,
+              incident.mentioned_stations,
+              stationIndex,
+            )}
           </p>
         </blockquote>
       )}

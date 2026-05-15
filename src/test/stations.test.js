@@ -105,4 +105,30 @@ describe('buildStationIndex', () => {
     const r = buildStationIndex([], [o], { now: NOW });
     expect(r.get('howard').count).toBe(1);
   });
+
+  it('indexes alert mentioned_stations alongside the segment endpoints', () => {
+    // The Monroe sick-customer alert names a single station ("delays at
+    // Monroe") so it has no segment endpoints, only mentioned_stations.
+    // Without indexing mentions, /station/monroe-red would show no CTA
+    // alerts for this incident.
+    const a = makeAlert({
+      affected_from_station: null,
+      affected_to_station: null,
+      mentioned_stations: ['Monroe (Red)'],
+    });
+    const r = buildStationIndex([a], [], { now: NOW });
+    expect(r.get('monroe-red').alerts).toContain(a);
+  });
+
+  it('mentioned_stations dedupes against the segment endpoints', () => {
+    // Upstream extractor includes between/from-to results in
+    // mentioned_stations too — overlap shouldn't double-count.
+    const a = makeAlert({
+      affected_from_station: 'Howard',
+      affected_to_station: null,
+      mentioned_stations: ['Howard'],
+    });
+    const r = buildStationIndex([a], [], { now: NOW });
+    expect(r.get('howard').alerts).toHaveLength(1);
+  });
 });

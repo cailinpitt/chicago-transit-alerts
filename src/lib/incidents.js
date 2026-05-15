@@ -63,6 +63,7 @@ export function normalizeAlertsPayload(payload) {
  * @property {string | null} [affected_from_station]
  * @property {string | null} [affected_to_station]
  * @property {string | null} [affected_direction]
+ * @property {string[]} [mentioned_stations]  Canonical station names extracted from the alert text (line-scoped). Empty/missing when nothing resolved.
  * @property {number | null} [cta_event_start_ts]  CTA's own claimed event start (from EventStart).
  * @property {number | null} [cta_event_end_ts]    CTA's own claimed event end (from EventEnd).
  * @property {boolean} [cta_event_start_is_date_only]  CTA posted EventStart as a date with no time.
@@ -111,6 +112,7 @@ export function normalizeAlertsPayload(payload) {
  * @property {string | null} [affected_from_station]
  * @property {string | null} [affected_to_station]
  * @property {string | null} [affected_direction]
+ * @property {string[]} [mentioned_stations]
  * @property {string | null} [from_station]
  * @property {string | null} [to_station]
  * @property {string} [obs_post_url]
@@ -527,6 +529,7 @@ export function mergeMatchingIncidents(alerts, observations) {
       affected_from_station: alert.affected_from_station,
       affected_to_station: alert.affected_to_station,
       affected_direction: alert.affected_direction,
+      mentioned_stations: alert.mentioned_stations ?? [],
       // Carry CTA's claimed event-end through so EventPage can compare
       // their stated end to the actual resolve timestamp. Survives even
       // when CTA later scrubs the alert (the field is persisted at

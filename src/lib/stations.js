@@ -138,7 +138,16 @@ export function buildStationIndex(
   for (const a of alerts || []) {
     if (a.kind !== 'train') continue;
     if (a.first_seen_ts < cutoff) continue;
-    for (const name of [a.affected_from_station, a.affected_to_station]) {
+    // affected_from/to_station carry the segment endpoints upstream extracts
+    // for "between X and Y" alerts. mentioned_stations carries everything
+    // else — single-station impact mentions ("delays at Monroe") plus the
+    // segment endpoints again. The Set on the bucket dedupes overlap.
+    const names = [
+      a.affected_from_station,
+      a.affected_to_station,
+      ...(a.mentioned_stations || []),
+    ];
+    for (const name of names) {
       for (const line of a.routes || []) {
         const rec = bucket(name, line);
         if (rec && !rec.alerts.includes(a)) rec.alerts.push(a);
