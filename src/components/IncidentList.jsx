@@ -227,7 +227,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
               className="inline-flex items-center mt-1.5 mr-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300"
               title="Time from CTA clearing the alert until the bot saw sustained normal service. Reflects the felt return-to-normal, not just CTA's bookkeeping."
             >
-              stabilized {stabilizationDelta} after CTA cleared
+              Stabilized {stabilizationDelta} after CTA cleared
             </span>
           )}
 
