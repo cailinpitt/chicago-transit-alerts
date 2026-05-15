@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778815208214,
+  "generated_at": 1778816865148,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -24,7 +24,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778796000000,
-      "cta_event_end_ts": 1778814000000
+      "cta_event_end_ts": 1778814000000,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114842",
@@ -47,7 +49,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778796000000,
-      "cta_event_end_ts": 1778814000000
+      "cta_event_end_ts": 1778814000000,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114839",
@@ -71,7 +75,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778796000000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114905",
@@ -92,7 +98,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778727480000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114886",
@@ -114,7 +122,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778686620000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114877",
@@ -135,7 +145,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778631360000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114870",
@@ -157,7 +169,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778606040000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114866",
@@ -178,7 +192,9 @@
       "affected_to_station": null,
       "affected_direction": "south",
       "cta_event_start_ts": 1778597220000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114865",
@@ -199,7 +215,9 @@
       "affected_to_station": null,
       "affected_direction": "north",
       "cta_event_start_ts": 1778595420000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114862",
@@ -220,7 +238,9 @@
       "affected_to_station": null,
       "affected_direction": "south",
       "cta_event_start_ts": 1778577780000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114861",
@@ -241,7 +261,9 @@
       "affected_to_station": null,
       "affected_direction": "south",
       "cta_event_start_ts": 1778577600000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114860",
@@ -264,7 +286,9 @@
       "affected_to_station": null,
       "affected_direction": "south",
       "cta_event_start_ts": 1778566380000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114858",
@@ -285,7 +309,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778559000000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114850",
@@ -306,7 +332,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778524020000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114841",
@@ -327,7 +355,9 @@
       "affected_to_station": null,
       "affected_direction": "south",
       "cta_event_start_ts": 1778518500000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114828",
@@ -348,7 +378,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778420400000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114827",
@@ -369,7 +401,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778411700000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114825",
@@ -390,7 +424,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778390100000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114821",
@@ -411,7 +447,9 @@
       "affected_to_station": null,
       "affected_direction": "north",
       "cta_event_start_ts": 1778372040000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114819",
@@ -432,7 +470,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778363880000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114818",
@@ -454,7 +494,9 @@
       "affected_to_station": null,
       "affected_direction": "south",
       "cta_event_start_ts": 1778361900000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114815",
@@ -475,7 +517,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778349660000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114808",
@@ -496,7 +540,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114809",
@@ -518,7 +564,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778337900000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114806",
@@ -539,7 +587,9 @@
       "affected_to_station": null,
       "affected_direction": "west",
       "cta_event_start_ts": 1778324400000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114805",
@@ -560,7 +610,9 @@
       "affected_to_station": null,
       "affected_direction": "south",
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114804",
@@ -581,7 +633,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778321700000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114803",
@@ -602,7 +656,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114797",
@@ -623,7 +679,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114794",
@@ -644,7 +702,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114788",
@@ -665,7 +725,9 @@
       "affected_to_station": null,
       "affected_direction": "west",
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114783",
@@ -686,7 +748,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114749",
@@ -718,7 +782,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1778248800000,
-      "cta_event_end_ts": 1778450400000
+      "cta_event_end_ts": 1778450400000,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114743",
@@ -741,7 +807,9 @@
       "affected_to_station": "Foster/Sheridan",
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114529",
@@ -764,7 +832,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": 1777899600000,
-      "cta_event_end_ts": 1778533200000
+      "cta_event_end_ts": 1778533200000,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114213",
@@ -782,7 +852,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778815203079,
+      "last_seen_ts": 1778816402264,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -792,7 +862,9 @@
       "affected_to_station": "Randolph",
       "affected_direction": "south",
       "cta_event_start_ts": 1776088800000,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114735",
@@ -813,7 +885,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114651",
@@ -834,7 +908,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114493",
@@ -855,7 +931,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     },
     {
       "alert_id": "114344",
@@ -876,7 +954,9 @@
       "affected_to_station": null,
       "affected_direction": null,
       "cta_event_start_ts": null,
-      "cta_event_end_ts": null
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
     }
   ],
   "observations": [
