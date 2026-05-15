@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778816984647,
+  "generated_at": 1778817251081,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -853,9 +853,9 @@
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
       "last_seen_ts": 1778816402264,
-      "resolved_ts": 1778816896960,
-      "duration_ms": 560725925,
-      "active": false,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle45qq3x22h",
       "resolved_reply_url": null,
       "affected_from_station": "Wacker",
