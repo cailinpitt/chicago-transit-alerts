@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778813345260,
+  "generated_at": 1778814547266,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -14,7 +14,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Corporate Challenge. Visit transitchicago.com for details.",
       "first_seen_ts": 1778796007260,
-      "last_seen_ts": 1778812803502,
+      "last_seen_ts": 1778814003170,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -37,7 +37,7 @@
       "headline": "Temporary Reroute",
       "short_description": "NB #134, NB #135, and NB #136 buses will operate via Wacker and Michigan, then resume their normal route on DuSable Lake Shore Drive.",
       "first_seen_ts": 1778796005535,
-      "last_seen_ts": 1778812803502,
+      "last_seen_ts": 1778814003170,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -61,7 +61,7 @@
       "headline": "Temporary Reroute",
       "short_description": "NB #2, #J14, #26, and #28 buses will operate via Columbus, Roosevelt, and Michigan to Balbo. SB via Michigan and Roosevelt, normal route on Columbus.",
       "first_seen_ts": 1778796003479,
-      "last_seen_ts": 1778812803501,
+      "last_seen_ts": 1778814003170,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -782,7 +782,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778812803501,
+      "last_seen_ts": 1778814002840,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -880,6 +880,27 @@
     }
   ],
   "observations": [
+    {
+      "id": 55,
+      "kind": "bus",
+      "line": "9",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost",
+        "gap",
+        "bunching"
+      ],
+      "evidence": null,
+      "ts": 1778814542659,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlue6jfxy72i",
+      "resolved_post_url": null
+    },
     {
       "id": 54,
       "kind": "bus",
