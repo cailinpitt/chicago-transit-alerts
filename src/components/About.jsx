@@ -114,7 +114,7 @@ export default function About({ open, onClose }) {
             Source on{' '}
             <a
               className={LINK}
-              href="https://github.com/cailinpitt/cta-alert-history"
+              href="https://github.com/cailinpitt/chicago-transit-alerts"
               target="_blank"
               rel="noopener noreferrer"
             >

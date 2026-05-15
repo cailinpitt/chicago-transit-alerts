@@ -15,6 +15,10 @@ export default function Footer() {
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
+        <div className="max-w-5xl mx-auto px-4 pt-6 sm:pt-4 text-xs text-slate-500 dark:text-slate-400">
+          Data provided by CTA. Unofficial — not affiliated with, endorsed by, or sponsored by the
+          Chicago Transit Authority.
+        </div>
         <div className="max-w-5xl mx-auto px-4 py-6 sm:py-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-400 dark:text-slate-500">
           <span>Built by Cailin</span>
           <button
@@ -40,7 +44,7 @@ export default function Footer() {
             Bluesky
           </a>
           <a
-            href="https://github.com/cailinpitt/cta-alert-history"
+            href="https://github.com/cailinpitt/chicago-transit-alerts"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
