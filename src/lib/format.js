@@ -118,3 +118,50 @@ export function formatTime(ts) {
     timeZone: 'America/Chicago',
   });
 }
+
+// Render CTA's posted EventEnd ("estimated end") relative to `now`.
+// Returns null when the estimate is already past or within 2 minutes of now —
+// at that point a "CTA expects to end at …" label is misleading rather than
+// useful, and the alert will either resolve or extend on its own shortly.
+//
+// CTA sometimes posts EventEnd as a date with no time (e.g. "2026-05-25").
+// Pass `dateOnly: true` so the helper renders weekday + month/day ("Sun May 25")
+// instead of the time-of-day form — date-only values get parsed to end-of-day
+// upstream, and "11:59 PM" would read as a precision CTA didn't actually post.
+//
+// Otherwise: within 2 hours, render as compact relative ("in ~45m" / "in ~1h
+// 20m"); beyond that, render Chicago weekday + time, with the weekday dropped
+// when the estimate falls on the same Chicago calendar day as `now`.
+export function formatEstimatedEnd(endTs, nowTs = Date.now(), { dateOnly = false } = {}) {
+  if (endTs == null) return null;
+  if (dateOnly) {
+    // Compare on the Chicago calendar day to avoid a noon-UTC ts that's the
+    // "next day" in UTC but the current day in CT registering as future.
+    if (chicagoDayUTC(endTs) < chicagoDayUTC(nowTs)) return null;
+    if (chicagoDayUTC(endTs) === chicagoDayUTC(nowTs)) return 'later today';
+    return new Date(endTs).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'America/Chicago',
+    });
+  }
+  const deltaMs = endTs - nowTs;
+  const TWO_MIN = 2 * 60 * 1000;
+  if (deltaMs < TWO_MIN) return null;
+  const TWO_HOURS = 2 * 60 * 60 * 1000;
+  if (deltaMs <= TWO_HOURS) {
+    const min = Math.round(deltaMs / 60_000);
+    if (min < 60) return `in ~${min}m`;
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m > 0 ? `in ~${h}h ${m}m` : `in ~${h}h`;
+  }
+  const time = formatTime(endTs);
+  if (chicagoDayUTC(endTs) === chicagoDayUTC(nowTs)) return time;
+  const weekday = new Date(endTs).toLocaleDateString('en-US', {
+    weekday: 'short',
+    timeZone: 'America/Chicago',
+  });
+  return `${weekday} ${time}`;
+}

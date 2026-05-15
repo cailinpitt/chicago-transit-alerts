@@ -7,6 +7,7 @@ import {
   formatChicagoDay,
   formatDate,
   formatDuration,
+  formatEstimatedEnd,
   formatStabilizationDelta,
   formatTime,
   hexToRgba,
@@ -743,9 +744,24 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   // beat their own estimate; when it resolved after, they were optimistic.
   // Skip when only one side is known or the values are >1 week apart (a
   // stale EventEnd from a multi-day planned alert isn't a useful comparison).
+  // For still-active incidents, surface CTA's posted end-time as a
+  // forward-looking "expected to clear" line rather than the retrospective
+  // comparison below. `formatEstimatedEnd` returns null when the estimate
+  // is already past or imminent (≤2 min), so an alert running past its
+  // estimate quietly hides the now-stale label instead of advertising it.
+  const ctaEndIsDateOnly = incident.cta_event_end_is_date_only === true;
+  const activeEndPhrase =
+    incident.active && incident.cta_event_end_ts != null
+      ? formatEstimatedEnd(incident.cta_event_end_ts, undefined, { dateOnly: ctaEndIsDateOnly })
+      : null;
+
   let ctaEstimateBlock = null;
   const ctaEnd = incident.cta_event_end_ts ?? null;
-  if (ctaEnd != null && incident.resolved_ts != null) {
+  // The retrospective "X min early/late" comparison is only meaningful when
+  // CTA posted a time. Date-only EventEnd ("through May 25") has no minute
+  // precision to compare against, so we skip the early/late framing in that
+  // case and just show the date as context.
+  if (ctaEnd != null && incident.resolved_ts != null && !ctaEndIsDateOnly) {
     const deltaMs = incident.resolved_ts - ctaEnd;
     const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
     if (Math.abs(deltaMs) <= WEEK_MS) {
@@ -936,6 +952,47 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
                 (tagged {formatTime(ctaStart)} on {formatDate(ctaStart)})
               </span>
             </dd>
+          </div>
+        )}
+        {activeEndPhrase && (
+          <div
+            className="sm:col-span-2"
+            title="CTA tagged this alert with an estimated end time (EventEnd) when it was posted."
+          >
+            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              CTA estimated end
+            </dt>
+            <dd className="text-slate-700 dark:text-slate-200">
+              {ctaEndIsDateOnly ? (
+                <>
+                  <strong>{formatDate(ctaEnd)}</strong>{' '}
+                  <span className="text-slate-400 dark:text-slate-500 text-xs">
+                    ({activeEndPhrase})
+                  </span>
+                </>
+              ) : (
+                <>
+                  <strong>{formatTime(ctaEnd)}</strong> on {formatDate(ctaEnd)}{' '}
+                  <span className="text-slate-400 dark:text-slate-500 text-xs">
+                    ({activeEndPhrase})
+                  </span>
+                </>
+              )}
+            </dd>
+          </div>
+        )}
+        {/* Date-only EventEnd on a resolved alert: no minute-precision
+            comparison to make, so just show CTA's stated through-date as
+            context. Skipped when the active block already covered it. */}
+        {!incident.active && ctaEndIsDateOnly && ctaEnd != null && incident.resolved_ts != null && (
+          <div
+            className="sm:col-span-2"
+            title="CTA posted this alert's EventEnd as a date with no time, so there's no minute-level comparison to make."
+          >
+            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              CTA estimated end
+            </dt>
+            <dd className="text-slate-700 dark:text-slate-200">{formatDate(ctaEnd)}</dd>
           </div>
         )}
         {ctaEstimateBlock && (

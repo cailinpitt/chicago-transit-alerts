@@ -1,6 +1,6 @@
 import { typicalDurationKey } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { formatDuration } from '../lib/format.js';
+import { formatDuration, formatEstimatedEnd } from '../lib/format.js';
 import { formatEvidenceChip, getEventId, SIGNAL_LABELS } from '../lib/incidents.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
@@ -94,6 +94,9 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
   const typical = typicalKey && typicalDurations ? typicalDurations.get(typicalKey) : null;
   const typicalText =
     typical && typical.count >= TYPICAL_MIN_COUNT ? formatDuration(typical.medianMs) : null;
+  const estimatedEndText = formatEstimatedEnd(incident.cta_event_end_ts, now, {
+    dateOnly: incident.cta_event_end_is_date_only === true,
+  });
   const { description } = describeIncident(incident, stationIndex);
   const eventId = getEventId(incident);
 
@@ -130,6 +133,14 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
                 {' · '}
                 <span title={`Median over ${typical.count} past similar incidents (last 90 days)`}>
                   typically {typicalText}
+                </span>
+              </>
+            )}
+            {estimatedEndText && (
+              <>
+                {' · '}
+                <span title="CTA tagged this alert with an estimated end time when it was posted.">
+                  ends {estimatedEndText}
                 </span>
               </>
             )}

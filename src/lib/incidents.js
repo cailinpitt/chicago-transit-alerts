@@ -65,6 +65,8 @@ export function normalizeAlertsPayload(payload) {
  * @property {string | null} [affected_direction]
  * @property {number | null} [cta_event_start_ts]  CTA's own claimed event start (from EventStart).
  * @property {number | null} [cta_event_end_ts]    CTA's own claimed event end (from EventEnd).
+ * @property {boolean} [cta_event_start_is_date_only]  CTA posted EventStart as a date with no time.
+ * @property {boolean} [cta_event_end_is_date_only]    CTA posted EventEnd as a date with no time.
  */
 
 /**
@@ -507,6 +509,8 @@ export function mergeMatchingIncidents(alerts, observations) {
       // first-sighting in the pipeline).
       cta_event_start_ts: alert.cta_event_start_ts ?? null,
       cta_event_end_ts: alert.cta_event_end_ts ?? null,
+      cta_event_start_is_date_only: alert.cta_event_start_is_date_only === true,
+      cta_event_end_is_date_only: alert.cta_event_end_is_date_only === true,
       from_station: primary.from_station,
       to_station: primary.to_station,
       obs_post_url: primary.post_url,

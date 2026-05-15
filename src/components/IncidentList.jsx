@@ -167,6 +167,20 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
               <span className="text-xs text-slate-400 dark:text-slate-500">duration unknown</span>
             )}
             {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
+            {!incident.active && incident.cta_event_end_ts != null && (
+              <>
+                <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+                <span
+                  className="text-xs text-slate-400 dark:text-slate-500"
+                  title="CTA tagged this alert with an estimated end time when it was posted."
+                >
+                  CTA est. ended{' '}
+                  {incident.cta_event_end_is_date_only === true
+                    ? formatChicagoDay(chicagoDayUTC(incident.cta_event_end_ts))
+                    : formatTime(incident.cta_event_end_ts)}
+                </span>
+              </>
+            )}
           </div>
 
           <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">{description}</p>
