@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778880664432,
+  "generated_at": 1778881329958,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,7 +11,7 @@
       "headline": "Brown Line Service Running with Delays",
       "short_description": "Brown Line trains are running with significant delays following an earlier delay at Adams/ Wabash.",
       "first_seen_ts": 1778880662811,
-      "last_seen_ts": 1778880663550,
+      "last_seen_ts": 1778881263283,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -34,7 +34,7 @@
       "headline": "O'Hare-bound Blue Line Service Running with Delays",
       "short_description": "O'Hare-bound Blue Line trains are running with significant delays following an earlier delay at Western(Congress).",
       "first_seen_ts": 1778879943321,
-      "last_seen_ts": 1778880662380,
+      "last_seen_ts": 1778881262954,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -944,7 +944,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778880603297,
+      "last_seen_ts": 1778881323059,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1052,6 +1052,39 @@
     }
   ],
   "observations": [
+    {
+      "id": 326,
+      "kind": "train",
+      "line": "p",
+      "direction": "branch-0-outbound",
+      "from_station": "Wellington (Brown/Purple)",
+      "to_station": "Fullerton",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 1.2,
+        "minutesSinceLastTrain": 17,
+        "lookbackMin": 21,
+        "coldThresholdMin": 16,
+        "trainsOutsideRun": 5,
+        "coldStations": 3,
+        "coldStationNames": [
+          "Wellington (Brown/Purple)",
+          "Diversey (Brown/Purple)",
+          "Fullerton"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 6.5,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778881082448,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwceusece2l",
+      "resolved_post_url": null
+    },
     {
       "id": 62,
       "kind": "bus",
