@@ -55,8 +55,12 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
           });
           const content = (
             // biome-ignore lint/correctness/useJsxKeyInIterable: returned wrapper (<a> / <div>) carries the key for each iteration
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
-              <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5 rounded-md border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+              {/* Meta cluster wraps internally on narrow screens so the
+                  CTA estimated-end chip doesn't push the row off-screen.
+                  Headline sits in its own flex item with flex-1 so it
+                  drops to a second visual line on small viewports. */}
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
                 <LinePill kind={incident.kind} line={incident.line} routes={shownRoutes} />
                 {overflowCount > 0 && (
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
