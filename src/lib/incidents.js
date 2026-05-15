@@ -121,7 +121,7 @@ export function normalizeAlertsPayload(payload) {
 // Order is the display order. Aligns with the cta-bot pipeline's pulse
 // subtypes: an observation's detection_source is one of these (or 'roundup',
 // in which case the precise signal kinds live in `signals`).
-export const SIGNAL_TYPES = ['gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-held'];
+export const SIGNAL_TYPES = ['gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-held', 'thin-gap'];
 
 // Friendly labels for every signal kind.
 export const SIGNAL_LABELS = {
@@ -130,6 +130,11 @@ export const SIGNAL_LABELS = {
   ghost: 'missing vehicles',
   'pulse-cold': 'stretch without trains',
   'pulse-held': 'trains held in place',
+  // thin-gap fires when a low-frequency bus route has zero observations for a
+  // full headway-derived window — the route effectively stopped running. It
+  // covers the 47 routes outside the curated gap/ghost lists, which have no
+  // other detector coverage.
+  'thin-gap': 'low-frequency route silent',
 };
 
 // Compact human-readable summary of the bot's evidence for this observation
@@ -174,6 +179,13 @@ export function formatEvidenceChip(incident) {
       parts.push(`${ev.minutesSinceLastTrain} min since last train`);
     }
     return parts.length > 0 ? parts.join(' · ') : null;
+  }
+  // Thin-gap evidence: low-frequency route with zero observations across the
+  // headway-derived window.
+  if (ev.windowMin != null && ev.headwayMin != null && ev.missedTrips != null) {
+    const win = Math.round(ev.windowMin);
+    const hw = Math.round(ev.headwayMin);
+    return `no buses in ${win} min · scheduled every ~${hw} min`;
   }
   // Bus blackout shape.
   if (ev.kind === 'cold' && ev.lookbackMin != null) {

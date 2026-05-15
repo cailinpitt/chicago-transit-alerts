@@ -12,6 +12,7 @@ const SIGNAL_COLORS = {
   ghost: '#6366f1', // indigo-500
   'pulse-cold': '#94a3b8', // slate-400
   'pulse-held': '#64748b', // slate-500
+  'thin-gap': '#8b5cf6', // violet-500 — most extreme absence (whole route silent)
 };
 
 function lineTotal(counts) {
