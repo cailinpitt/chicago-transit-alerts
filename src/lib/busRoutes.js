@@ -163,3 +163,23 @@ export function formatBusRoute(routeId) {
   const name = busRouteName(routeId);
   return name ? `#${routeId} ${name}` : `#${routeId}`;
 }
+
+// Compare two bus route IDs by their embedded number, then by the full
+// string. Letter-prefixed variants (X9, J14, N20) and letter-suffixed
+// variants (8A) share their parent's numeric component, so the comparator
+// groups them next to the plain-number route: `9, X9, 10, 11, 12, J14, 15`
+// instead of pushing every letter-bearing route to the tail. A pure-number
+// route always sorts before its prefixed siblings (digit < letter codepoints
+// under localeCompare), and prefixed siblings tie-break alphabetically.
+export function compareBusRoutes(a, b) {
+  const sa = String(a);
+  const sb = String(b);
+  const ma = sa.match(/\d+/);
+  const mb = sb.match(/\d+/);
+  const na = ma ? parseInt(ma[0], 10) : Number.NaN;
+  const nb = mb ? parseInt(mb[0], 10) : Number.NaN;
+  if (Number.isNaN(na) && Number.isNaN(nb)) return sa.localeCompare(sb);
+  if (Number.isNaN(na)) return 1;
+  if (Number.isNaN(nb)) return -1;
+  return na - nb || sa.localeCompare(sb);
+}

@@ -18,6 +18,7 @@ import {
   computeSummaryStats,
   computeTypicalDurations,
 } from './lib/aggregate.js';
+import { compareBusRoutes } from './lib/busRoutes.js';
 import {
   filterIncidents,
   getEventId,
@@ -35,19 +36,6 @@ import {
 } from './lib/urlState.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-// Sort routes by leading numeric component, falling back to alpha for
-// letter-prefixed variants ('X9', 'J14', '8A'). The previous `+a - +b` sort
-// produced `NaN` comparisons for any route that didn't parse as a pure integer,
-// scattering them randomly through the list.
-function busRouteCompare(a, b) {
-  const na = parseInt(a, 10);
-  const nb = parseInt(b, 10);
-  if (Number.isNaN(na) && Number.isNaN(nb)) return a.localeCompare(b);
-  if (Number.isNaN(na)) return 1;
-  if (Number.isNaN(nb)) return -1;
-  return na - nb || a.localeCompare(b);
-}
 
 export default function App() {
   const [dark, toggleDark] = useDarkMode();
@@ -269,7 +257,7 @@ export default function App() {
       ...data.observations.filter((o) => o.kind === 'bus').map((o) => o.line),
       ...data.alerts.filter((a) => a.kind === 'bus').flatMap((a) => a.routes),
     ]);
-    return [...routes].sort(busRouteCompare);
+    return [...routes].sort(compareBusRoutes);
   }, [data]);
 
   // Prune any selected bus routes that don't exist in the current data —

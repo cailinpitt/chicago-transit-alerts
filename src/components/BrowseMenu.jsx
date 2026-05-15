@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 
@@ -12,7 +13,10 @@ const STATION_LIMIT = 30;
 
 // Top bus routes by incident count within the rolling window. Mirrors
 // what `prerender-pages.js` would emit a per-route OG card for, so the
-// menu only links to pages that actually have prerendered cards.
+// menu only links to pages that actually have prerendered cards. The
+// resulting slice is sorted alphabetically (numerically for pure-number
+// routes) so users can scan it like a directory rather than mentally
+// re-ordering the most-active-first list every visit.
 function topBusRoutes(alerts, observations, now) {
   if (!alerts || !observations) return [];
   const cutoff = now - WINDOW_DAYS * DAY_MS;
@@ -33,7 +37,8 @@ function topBusRoutes(alerts, observations, now) {
   return [...counts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, BUS_ROUTE_LIMIT)
-    .map(([id]) => id);
+    .map(([id]) => id)
+    .sort(compareBusRoutes);
 }
 
 function topStations(alerts, observations, now) {
@@ -41,7 +46,8 @@ function topStations(alerts, observations, now) {
   const idx = buildStationIndex(alerts, observations, { now, windowDays: WINDOW_DAYS });
   return [...idx.values()]
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-    .slice(0, STATION_LIMIT);
+    .slice(0, STATION_LIMIT)
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // Browse dropdown surfaced in the Header on every page. Train lines are
