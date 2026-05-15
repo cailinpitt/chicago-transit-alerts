@@ -88,7 +88,7 @@ export default function Header({
               className="text-left hover:opacity-70 transition-opacity"
               aria-label="Reset filters and return to default view"
             >
-              CTA Alert History
+              Chicago Transit Alerts
             </button>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">

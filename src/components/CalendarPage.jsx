@@ -129,9 +129,9 @@ export default function CalendarPage() {
   }, []);
 
   useEffect(() => {
-    document.title = 'Calendar · CTA Alert History';
+    document.title = 'Calendar · Chicago Transit Alerts';
     return () => {
-      document.title = 'CTA Alert History';
+      document.title = 'Chicago Transit Alerts';
     };
   }, []);
 

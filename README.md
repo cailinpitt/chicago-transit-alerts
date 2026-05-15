@@ -1,4 +1,4 @@
-# CTA Alert History
+# Chicago Transit Alerts
 
 A public archive of Chicago Transit Authority service alerts and bot-detected disruptions, with a GitHub-style heatmap of incident frequency over the last 90 days.
 

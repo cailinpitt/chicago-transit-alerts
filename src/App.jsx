@@ -212,7 +212,7 @@ export default function App() {
   // Surface the active count in the tab title so a pinned tab tells the user
   // something is wrong without them having to switch to it.
   useEffect(() => {
-    const base = 'CTA Alert History';
+    const base = 'Chicago Transit Alerts';
     document.title = activeIncidents.length > 0 ? `(${activeIncidents.length}) ${base}` : base;
   }, [activeIncidents.length]);
 

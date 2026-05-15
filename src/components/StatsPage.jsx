@@ -121,9 +121,9 @@ export default function StatsPage() {
   }, []);
 
   useEffect(() => {
-    document.title = 'Stats · CTA Alert History';
+    document.title = 'Stats · Chicago Transit Alerts';
     return () => {
-      document.title = 'CTA Alert History';
+      document.title = 'Chicago Transit Alerts';
     };
   }, []);
 

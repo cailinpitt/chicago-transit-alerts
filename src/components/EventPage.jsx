@@ -474,7 +474,7 @@ export default function EventPage({ eventId }) {
   // Set the tab title from the incident so bookmarks and shared links land in
   // browser history with something readable, not the generic site title.
   useEffect(() => {
-    const base = 'CTA Alert History';
+    const base = 'Chicago Transit Alerts';
     if (!incident) {
       document.title = base;
       return;

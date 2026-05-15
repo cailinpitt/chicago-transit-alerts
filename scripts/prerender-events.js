@@ -194,7 +194,7 @@ function buildJsonLd(incident, { ogTitle, desc, url }) {
   }
   ld.organizer = {
     '@type': 'Organization',
-    name: 'CTA Alert History (unofficial)',
+    name: 'Chicago Transit Alerts (unofficial)',
     url: SITE,
   };
   return JSON.stringify(ld);
@@ -219,7 +219,7 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant =
   // canonical always points at the bare URL even on the /resolved variant —
   // search engines should treat /resolved as a duplicate, not a separate page.
   let html = shell
-    .replace(/<title>[^<]*<\/title>/, `<title>${escHtml(ogTitle)} — CTA Alert History</title>`)
+    .replace(/<title>[^<]*<\/title>/, `<title>${escHtml(ogTitle)} — Chicago Transit Alerts</title>`)
     .replace(
       /<link rel="canonical"[^>]*>/,
       `<link rel="canonical" href="${escAttr(canonicalUrl)}" />`,

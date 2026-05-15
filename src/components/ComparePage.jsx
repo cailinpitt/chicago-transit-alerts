@@ -477,9 +477,9 @@ export default function ComparePage() {
   const [selected, setSelected] = useState(initial.selected);
 
   useEffect(() => {
-    document.title = 'Compare · CTA Alert History';
+    document.title = 'Compare · Chicago Transit Alerts';
     return () => {
-      document.title = 'CTA Alert History';
+      document.title = 'Chicago Transit Alerts';
     };
   }, []);
 

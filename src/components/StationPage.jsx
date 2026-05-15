@@ -73,7 +73,7 @@ export default function StationPage({ slug }) {
   }, [station, search]);
 
   useEffect(() => {
-    const base = 'CTA Alert History';
+    const base = 'Chicago Transit Alerts';
     if (!station) {
       document.title = base;
       return;

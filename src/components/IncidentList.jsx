@@ -326,7 +326,7 @@ export default function IncidentList({
     const a = document.createElement('a');
     a.href = url;
     const stamp = new Date().toISOString().slice(0, 10);
-    a.download = `cta-alert-history-${stamp}.csv`;
+    a.download = `chicago-transit-alerts-${stamp}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

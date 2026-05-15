@@ -218,7 +218,7 @@ export default function LinePage({ kind, lineId }) {
   // unambiguous in the OS tab strip ("#147 Outer DuSable Lake Shore Exp.").
   const tabHeading = isTrain ? heading : busName ? formatBusRoute(lineId) : lineId;
   useEffect(() => {
-    const base = 'CTA Alert History';
+    const base = 'Chicago Transit Alerts';
     if (!isKnown) {
       document.title = `${base}`;
       return;

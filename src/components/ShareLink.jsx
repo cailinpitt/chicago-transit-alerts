@@ -25,7 +25,7 @@ export default function ShareLink({ eventId, title }) {
     // Falls through to clipboard on desktop browsers without navigator.share.
     if (canShare) {
       try {
-        await navigator.share({ url, title: title || 'CTA Alert History' });
+        await navigator.share({ url, title: title || 'Chicago Transit Alerts' });
         return;
       } catch (err) {
         // User canceled the share sheet — don't fall through to clipboard.

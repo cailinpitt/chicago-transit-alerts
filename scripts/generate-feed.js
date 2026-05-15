@@ -349,14 +349,14 @@ function emitAtom(records, feedUpdatedIso) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
   <id>${FEED_ID}</id>
-  <title>CTA Alert History</title>
+  <title>Chicago Transit Alerts</title>
   <subtitle>Chicago Transit Authority service alerts and bot-detected disruptions.</subtitle>
   <link rel="alternate" type="text/html" href="${SITE}/"/>
   <link rel="self" type="application/atom+xml" href="${SITE}/feed.xml"/>
   <link rel="alternate" type="application/feed+json" href="${SITE}/feed.json"/>
   <link rel="hub" href="https://pubsubhubbub.superfeedr.com/"/>
   <updated>${feedUpdatedIso}</updated>
-  <author><name>cta-alert-history</name></author>
+  <author><name>chicago-transit-alerts</name></author>
 ${entries}
 </feed>
 `;
@@ -365,12 +365,12 @@ ${entries}
 function emitJsonFeed(records) {
   return {
     version: 'https://jsonfeed.org/version/1.1',
-    title: 'CTA Alert History',
+    title: 'Chicago Transit Alerts',
     description: 'Chicago Transit Authority service alerts and bot-detected disruptions.',
     home_page_url: `${SITE}/`,
     feed_url: `${SITE}/feed.json`,
     language: 'en-US',
-    authors: [{ name: 'cta-alert-history' }],
+    authors: [{ name: 'chicago-transit-alerts' }],
     hubs: [{ type: 'WebSub', url: 'https://pubsubhubbub.superfeedr.com/' }],
     items: records.map((r) => ({
       id: r.id,

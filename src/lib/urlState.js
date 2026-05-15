@@ -59,7 +59,8 @@ export { defaultShowBus };
 // selections — that's worth carrying across visits. dateRange and the
 // pinned day are deliberately excluded: a stale "30d" choice from last
 // month feels more confusing than helpful.
-const STORAGE_KEY = 'cta-alert-history:filters';
+const STORAGE_KEY = 'chicago-transit-alerts:filters';
+const LEGACY_STORAGE_KEY = 'cta-alert-history:filters';
 const STICKY_KEYS = [
   'selectedLines',
   'showBus',
@@ -70,8 +71,14 @@ const STICKY_KEYS = [
 
 export function readStoredFilters() {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
+    let raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (!legacy) return null;
+      window.localStorage.setItem(STORAGE_KEY, legacy);
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+      raw = legacy;
+    }
     const parsed = JSON.parse(raw);
     if (parsed == null || typeof parsed !== 'object') return null;
     return parsed;

@@ -227,7 +227,7 @@ function planPages(payload, dailyPayload) {
       outDir: resolve(DIST, 'calendar'),
       url: `${SITE}/calendar`,
       path: '/calendar',
-      ogTitle: '12-Month Calendar · CTA Alert History',
+      ogTitle: '12-Month Calendar · Chicago Transit Alerts',
       desc: 'A 12-month heatmap of daily CTA service alerts and bot-detected disruptions — archived on chicagotransitalerts.app.',
       subtitle,
       gridHtml,
@@ -245,7 +245,7 @@ function planPages(payload, dailyPayload) {
       outDir: resolve(DIST, 'compare'),
       url: `${SITE}/compare`,
       path: '/compare',
-      ogTitle: 'Compare CTA lines · CTA Alert History',
+      ogTitle: 'Compare CTA lines · Chicago Transit Alerts',
       desc: 'Side-by-side reliability, signal mix, and resolution time for up to 3 CTA train lines or bus routes — archived on chicagotransitalerts.app.',
       subtitle: '',
     });
@@ -264,7 +264,7 @@ function planPages(payload, dailyPayload) {
     outDir: resolve(DIST, 'stats'),
     url: `${SITE}/stats`,
     path: '/stats',
-    ogTitle: 'Stats · CTA Alert History',
+    ogTitle: 'Stats · Chicago Transit Alerts',
     desc: 'Worst days, hours, stations, and longest incidents on the CTA — archived on chicagotransitalerts.app.',
     subtitle: statsSubtitle(payload),
     statsHtml,
@@ -285,7 +285,7 @@ function planPages(payload, dailyPayload) {
       // Train pill already says "Red Line"; an additional headline would
       // be redundant. Leave the title empty so the template hides it.
       title: '',
-      ogTitle: `${info.label} Line · CTA Alert History`,
+      ogTitle: `${info.label} Line · Chicago Transit Alerts`,
       desc: `Service alerts and bot-detected disruptions on the ${info.label} Line — archived on chicagotransitalerts.app.`,
       subtitle: active
         ? 'Active disruption right now — see live status.'
@@ -321,7 +321,7 @@ function planPages(payload, dailyPayload) {
       path: `/route/${route}`,
       label: `#${route}`,
       title: name ?? '',
-      ogTitle: `${ogLabel} · CTA Alert History`,
+      ogTitle: `${ogLabel} · Chicago Transit Alerts`,
       desc: `Service alerts and bot-detected disruptions on the ${ogLabel} bus route — archived on chicagotransitalerts.app.`,
       subtitle: active
         ? 'Active disruption right now — see live status.'
@@ -385,7 +385,7 @@ function planPages(payload, dailyPayload) {
       outDir: resolve(DIST, 'day', isoDate),
       url: `${SITE}/day/${isoDate}`,
       path: `/day/${isoDate}`,
-      ogTitle: `${formatChicagoDay(dayUtc)} · CTA Alert History`,
+      ogTitle: `${formatChicagoDay(dayUtc)} · Chicago Transit Alerts`,
       desc: `CTA service alerts and bot-detected disruptions on ${formatChicagoDay(dayUtc)} — archived on chicagotransitalerts.app.`,
       title: formatChicagoDay(dayUtc),
       subtitle: `${entry.count} incident${entry.count === 1 ? '' : 's'} across ${entry.trainLines.size + entry.busRoutes.size} line${entry.trainLines.size + entry.busRoutes.size === 1 ? '' : 's'}/route${entry.trainLines.size + entry.busRoutes.size === 1 ? '' : 's'}`,
@@ -415,7 +415,7 @@ function planPages(payload, dailyPayload) {
       path: `/station/${slug}`,
       stationName: rec.name,
       linePills,
-      ogTitle: `${rec.name} · CTA Alert History`,
+      ogTitle: `${rec.name} · Chicago Transit Alerts`,
       desc: `Service alerts and bot-detected disruptions at ${rec.name} — archived on chicagotransitalerts.app.`,
       subtitle: `Train station · ${rec.count} incident${rec.count === 1 ? '' : 's'} on record (90d)`,
     });

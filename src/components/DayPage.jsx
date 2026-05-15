@@ -92,7 +92,7 @@ export default function DayPage({ dateStr }) {
   const totalCount = filtered.alerts.length + filtered.observations.length;
 
   useEffect(() => {
-    const base = 'CTA Alert History';
+    const base = 'Chicago Transit Alerts';
     if (!dayLabel) {
       document.title = base;
       return;
