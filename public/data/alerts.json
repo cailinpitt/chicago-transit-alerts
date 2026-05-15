@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778881984626,
+  "generated_at": 1778882705446,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,12 +11,12 @@
       "headline": "Brown Line Service Running with Delays",
       "short_description": "Brown Line trains are running with significant delays following an earlier delay at Adams/ Wabash.",
       "first_seen_ts": 1778880662811,
-      "last_seen_ts": 1778881982052,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "last_seen_ts": 1778882343581,
+      "resolved_ts": 1778882463405,
+      "duration_ms": 1800594,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwbr2iwla2s",
-      "resolved_reply_url": null,
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwdnv5gwc2h",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
@@ -944,7 +944,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778881923400,
+      "last_seen_ts": 1778882643199,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
