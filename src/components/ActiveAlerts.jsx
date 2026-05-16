@@ -10,6 +10,40 @@ import StationName from './StationName.jsx';
 
 const BUS_COLOR = '#64748b';
 
+// Per-incident colors for the gantt bar. Train incidents that touch multiple
+// lines (e.g. Red+Purple shared trackage) get one color per route so the bar
+// renders as alternating bands rather than collapsing to the first line's
+// color. Buses always slot into the shared slate tint — bus alerts can also
+// span multiple routes, but the routes don't have per-route brand colors.
+function incidentColors(incident) {
+  if (incident.kind === 'train' && Array.isArray(incident.routes) && incident.routes.length > 0) {
+    return incident.routes.map((r) => TRAIN_LINES[r]?.color ?? BUS_COLOR);
+  }
+  const fallback = (Array.isArray(incident.routes) && incident.routes[0]) || incident.line;
+  return [incident.kind === 'train' ? (TRAIN_LINES[fallback]?.color ?? BUS_COLOR) : BUS_COLOR];
+}
+
+// Background style for an N-color bar. One color → solid fill. Two-or-more
+// → a 45° repeating gradient with stops sized in percentages (not pixels)
+// so the tile period divides the gradient axis exactly. That guarantees
+// each color renders with the same total area regardless of the bar's
+// width — absolute-px stripes would leave one color with a partial stripe
+// on the trailing end, biasing its area on bars whose width isn't an
+// integer multiple of the tile period.
+const STRIPE_CYCLES = 1;
+function bandedBackground(colors) {
+  if (colors.length === 1) return { backgroundColor: colors[0] };
+  const total = colors.length * STRIPE_CYCLES;
+  const stops = colors
+    .map((c, i) => {
+      const start = ((i / total) * 100).toFixed(4);
+      const end = (((i + 1) / total) * 100).toFixed(4);
+      return `${c} ${start}% ${end}%`;
+    })
+    .join(', ');
+  return { backgroundImage: `repeating-linear-gradient(45deg, ${stops})` };
+}
+
 // Minimum visual span for the gantt — so two near-simultaneous active
 // incidents don't render as a zero-width strip the moment they appear.
 const GANTT_MIN_SPAN_MS = 15 * 60 * 1000;
@@ -294,26 +328,38 @@ function ActiveMiniGantt({ incidents, now }) {
       <div className="space-y-1">
         {sorted.map((incident) => {
           const start = incident.first_seen_ts ?? incident.ts;
-          // Position bars against the bucketed axis (left edge = now - span)
-          // rather than the literal earliest start, so the longest-running
-          // incident no longer pins to 0% and there's a small visible gap
-          // between it and the left edge — the cue that the axis is rounded.
-          const axisStart = now - span;
-          const leftPct = ((start - axisStart) / span) * 100;
-          const widthPct = ((now - start) / span) * 100;
+          // Position bars against the bucketed axis: a bar's natural width
+          // is its duration over the rounded span, anchored to the right edge
+          // (`now`). The longest-running incident no longer pins to 0% — its
+          // width is < span so its left edge sits at a small positive %, the
+          // cue that the axis is rounded.
+          const naturalWidthPct = ((now - start) / span) * 100;
+          // Floor very-short bars so a just-started incident still renders
+          // visibly. Anchor to the right edge (now) rather than the natural
+          // start: a 4-minute bar grown to the 1.5% floor would otherwise
+          // overshoot the chart's right edge (its natural left ≈ 99.7%, so
+          // 99.7% + 1.5% = 101.2%). Aligning to `now` instead keeps every
+          // bar's right edge on the same vertical line.
+          const widthPct = Math.max(naturalWidthPct, 1.5);
+          const leftPct = 100 - widthPct;
           const eventId = getEventId(incident);
           const isTrain = incident.kind === 'train';
-          const lineKey = (Array.isArray(incident.routes) && incident.routes[0]) || incident.line;
-          const color = isTrain ? (TRAIN_LINES[lineKey]?.color ?? BUS_COLOR) : BUS_COLOR;
+          const routesForLabel =
+            Array.isArray(incident.routes) && incident.routes.length > 0
+              ? incident.routes
+              : [incident.line].filter(Boolean);
+          const routesLabel = isTrain
+            ? routesForLabel.map((r) => TRAIN_LINES[r]?.label ?? r).join(' + ')
+            : routesForLabel.map((r) => `#${r}`).join(' + ');
           const elapsedText = elapsed(now, start);
-          const label = `${isTrain ? (TRAIN_LINES[lineKey]?.label ?? lineKey) : `#${lineKey}`}: ${elapsedText} ago`;
+          const label = `${routesLabel}: ${elapsedText} ago`;
           // Only the colored bar is interactive — wrapping the whole track
           // would make empty time-of-day space (gray area on either side of
           // the bar) navigate to the incident, which is misleading.
           const barStyle = {
             left: `${leftPct}%`,
-            width: `${Math.max(widthPct, 1.5)}%`,
-            backgroundColor: color,
+            width: `${widthPct}%`,
+            ...bandedBackground(incidentColors(incident)),
           };
           return (
             <div key={eventId ?? `${start}-${lineKey}`} className="flex items-center gap-2">
