@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778940544406,
+  "generated_at": 1778941745419,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,7 +11,7 @@
       "headline": "Yellow Line Service Delayed at Dodge",
       "short_description": "Yellow Line trains are still standing at Dempster-Skokie due to an obstruction at Dodge. Crews working to restore service.",
       "first_seen_ts": 1778937663213,
-      "last_seen_ts": 1778940543455,
+      "last_seen_ts": 1778941744071,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -41,7 +41,7 @@
       "headline": "Temporary Reroute",
       "short_description": "NB J14 and 56, and WB 20, 60 and 124 buses will operate via Madison, Franklin, Randolph, and Clinton; J14, 20, 56 via Madison. 60, 124 via Clinton.",
       "first_seen_ts": 1778936524415,
-      "last_seen_ts": 1778940484469,
+      "last_seen_ts": 1778941683946,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -66,7 +66,7 @@
       "headline": "Green and Pink Line Service Experiencing Significant Delays Due to Raised Bridge",
       "short_description": "Green and Pink Line service is experiencing delays due to a raised bridge at the Chicago River, downtown.",
       "first_seen_ts": 1778936463725,
-      "last_seen_ts": 1778940543455,
+      "last_seen_ts": 1778941744071,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -90,7 +90,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1778940543455,
+      "last_seen_ts": 1778941743441,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1103,7 +1103,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778940484469,
+      "last_seen_ts": 1778941683946,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1224,6 +1224,26 @@
     }
   ],
   "observations": [
+    {
+      "id": 69,
+      "kind": "bus",
+      "line": "60",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "gap",
+        "bunching"
+      ],
+      "evidence": null,
+      "ts": 1778941744134,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mly2ngf56u24",
+      "resolved_post_url": null
+    },
     {
       "id": 68,
       "kind": "train",
