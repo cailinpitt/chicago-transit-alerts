@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778958844322,
+  "generated_at": 1778959690190,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,7 +11,7 @@
       "headline": "Green Line Service Delayed near Garfield",
       "short_description": "Green Line trains are standing near Garfield due to track conditions.",
       "first_seen_ts": 1778955543027,
-      "last_seen_ts": 1778958783658,
+      "last_seen_ts": 1778959623211,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -140,7 +140,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1778958783229,
+      "last_seen_ts": 1778959623206,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1153,7 +1153,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778958844075,
+      "last_seen_ts": 1778959684000,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1274,6 +1274,39 @@
     }
   ],
   "observations": [
+    {
+      "id": 330,
+      "kind": "train",
+      "line": "pink",
+      "direction": "branch-0-outbound",
+      "from_station": "Morgan (Green/Pink)",
+      "to_station": "Clark/Lake",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 1.7,
+        "minutesSinceLastTrain": 26,
+        "lookbackMin": 30,
+        "coldThresholdMin": 25,
+        "trainsOutsideRun": 5,
+        "coldStations": 3,
+        "coldStationNames": [
+          "Morgan (Green/Pink)",
+          "Clinton (Green/Pink)",
+          "Clark/Lake"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 10,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778959442160,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlyle73ami2l",
+      "resolved_post_url": null
+    },
     {
       "id": 74,
       "kind": "train",
