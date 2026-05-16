@@ -13,6 +13,7 @@ import {
   hexToRgba,
 } from '../lib/format.js';
 import {
+  describeBotObservation,
   findContemporaneousOnOtherLines,
   findIncidentById,
   findRelatedIncidents,
@@ -1027,6 +1028,27 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           attributable to the CTA. Newlines preserved via whitespace-pre-line
           since the CTA feed sometimes uses line breaks to separate
           instructions. */}
+      {/* Plain-English narrative for pure bot observations — the "Per bot"
+          counterpart to "Per CTA" below. Lives next to the signal/detection
+          chips so the reader sees both *what* the bot detected (chips) and
+          *what that combination means* (sentence) without having to translate
+          the chip salad themselves. Returns null for alerts/merged so it
+          doesn't duplicate the CTA short_description. */}
+      {(() => {
+        const summary = describeBotObservation(incident);
+        if (!summary) return null;
+        return (
+          <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
+            <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+              Per bot
+            </p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+              {summary}
+            </p>
+          </blockquote>
+        );
+      })()}
+
       {incident.short_description && (
         <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
           <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">

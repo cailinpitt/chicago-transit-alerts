@@ -16,6 +16,7 @@ import {
 import { formatDuration, formatGap } from '../lib/format.js';
 import {
   buildSearchMatchers,
+  describeBotObservation,
   filterIncidents,
   findRelatedIncidents,
   mergeMatchingIncidents,
@@ -1218,5 +1219,81 @@ describe('computeYearOverYear', () => {
     expect(r.pctChange).toBeNull();
     expect(r.currentCount).toBe(1);
     expect(r.priorCount).toBe(0);
+  });
+});
+
+describe('describeBotObservation', () => {
+  it('summarizes a roundup on a train line with multiple signals', () => {
+    const obs = {
+      id: 1,
+      kind: 'train',
+      line: 'blue',
+      detection_source: 'roundup',
+      signals: ['ghost', 'gap'],
+      ts: 0,
+      resolved_ts: null,
+      active: true,
+    };
+    const out = describeBotObservation(obs);
+    expect(out).toBe(
+      'Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.',
+    );
+  });
+
+  it('summarizes a single-signal train observation', () => {
+    const obs = {
+      id: 2,
+      kind: 'train',
+      line: 'brn',
+      detection_source: 'pulse-cold',
+      ts: 0,
+      resolved_ts: null,
+      active: true,
+    };
+    const out = describeBotObservation(obs);
+    expect(out).toBe('Brown Line service appears degraded — a stretch of the line without trains.');
+  });
+
+  it('summarizes a bus observation by route', () => {
+    const obs = {
+      id: 3,
+      kind: 'bus',
+      line: '66',
+      detection_source: 'bunching',
+      ts: 0,
+      resolved_ts: null,
+      active: true,
+    };
+    const out = describeBotObservation(obs);
+    expect(out).toBe('Route 66 service appears degraded — buses running bunched together.');
+  });
+
+  it('returns null for CTA alerts', () => {
+    expect(
+      describeBotObservation({
+        alert_id: 'x',
+        kind: 'train',
+        routes: ['red'],
+        headline: 'Howard delays',
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null for merged incidents', () => {
+    expect(
+      describeBotObservation({
+        _type: 'merged',
+        alert_id: 'x',
+        kind: 'train',
+        line: 'red',
+        detection_source: 'gap',
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null when there is no recognizable signal', () => {
+    expect(
+      describeBotObservation({ id: 4, kind: 'train', line: 'red', ts: 0, active: true }),
+    ).toBeNull();
   });
 });
