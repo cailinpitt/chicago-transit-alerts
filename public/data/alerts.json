@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778960945138,
+  "generated_at": 1778961572820,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -12,7 +12,7 @@
       "headline": "Pink and Green Line Service Delayed near Ashland/Lake",
       "short_description": "Pink and Green Line trains are standing near Ashland/Lake due to signal problems. Crews working to restore service.",
       "first_seen_ts": 1778959743526,
-      "last_seen_ts": 1778960944029,
+      "last_seen_ts": 1778961543718,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -33,10 +33,10 @@
       "routes": [
         "g"
       ],
-      "headline": "Green Line Service Delayed near Garfield",
-      "short_description": "Green Line trains are standing near Garfield due to track conditions.",
+      "headline": "Green Line Delays",
+      "short_description": "Green Line trains are running w/residual delays following an earlier track condition near Garfield. Service is resuming, allow extra time.",
       "first_seen_ts": 1778955543027,
-      "last_seen_ts": 1778960944029,
+      "last_seen_ts": 1778961543718,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -165,7 +165,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1778960944029,
+      "last_seen_ts": 1778961543289,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1178,7 +1178,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778960883152,
+      "last_seen_ts": 1778961482366,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
