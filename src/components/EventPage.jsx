@@ -658,7 +658,22 @@ function collectAffectedStations(incident) {
   // segment endpoints so the canonical "from → to" still renders first when
   // both are present; the dedupe keeps overlap from doubling up.
   for (const name of incident.mentioned_stations || []) add(name);
-  return out;
+  // Upstream sometimes carries both a bare name (e.g. "Garfield" from the
+  // headline) and its fully qualified counterpart ("Garfield (Green)" from
+  // the extracted mentions) for the same physical station. Drop the bare
+  // entry when a qualified version of the same display name exists — it's
+  // the same station, just less disambiguated. Distinct qualified entries
+  // ("Garfield (Red)" + "Garfield (Green)") stay, since those are two
+  // physically different stations.
+  const QUALIFIER = /\s*\([^)]*\)\s*$/;
+  const qualifiedDisplays = new Set();
+  for (const name of out) {
+    if (QUALIFIER.test(name)) qualifiedDisplays.add(displayStationName(name).toLowerCase());
+  }
+  return out.filter((name) => {
+    if (QUALIFIER.test(name)) return true;
+    return !qualifiedDisplays.has(name.toLowerCase());
+  });
 }
 
 // Quiet inline row of affected station links. No chunky pills — the line
