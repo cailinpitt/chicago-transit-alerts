@@ -341,17 +341,27 @@ function ActiveMiniGantt({ incidents, now }) {
                   )}
                 </div>
               </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums w-14 text-right flex-shrink-0">
+              <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums w-24 min-w-0 text-right flex-shrink-0 whitespace-nowrap overflow-hidden">
                 {elapsedText}
               </span>
             </div>
           );
         })}
       </div>
-      <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mt-1.5 pr-16">
-        <span>{leftLabel} ago</span>
-        <span>{midLabel ? `${midLabel} ago` : ''}</span>
-        <span>now</span>
+      {/* Mirror the row layout (bar=flex-1, then gap-2, then w-24 elapsed
+          column) so the axis labels track the bars exactly. The trailing
+          spacer reserves the same width as the elapsed column, keeping
+          `now` aligned with the bars' right edge. `min-w-0` on both the
+          elapsed-text span and this spacer is needed because flex items
+          default to `min-width: auto`, which lets `whitespace-nowrap`
+          content blow past `w-24` and pull the axis out of alignment. */}
+      <div className="flex items-center gap-2 mt-1.5">
+        <div className="flex-1 flex justify-between text-xs text-slate-400 dark:text-slate-500 min-w-0">
+          <span>{leftLabel} ago</span>
+          <span>{midLabel ? `${midLabel} ago` : ''}</span>
+          <span>now</span>
+        </div>
+        <div className="w-24 min-w-0 flex-shrink-0" aria-hidden="true" />
       </div>
     </div>
   );
