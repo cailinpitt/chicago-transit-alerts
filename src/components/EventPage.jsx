@@ -867,6 +867,13 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
     incident.active && incident.cta_event_end_ts != null
       ? formatEstimatedEnd(incident.cta_event_end_ts, undefined, { dateOnly: ctaEndIsDateOnly })
       : null;
+  // Only show the parenthetical when it adds genuinely new info (a short
+  // countdown like "in ~45m", or "later today"). For far-future estimates
+  // it falls back to "Mon 4:00 AM", which just duplicates the time and date
+  // we already render in bold.
+  const showRelativeParenthetical =
+    activeEndPhrase != null &&
+    (activeEndPhrase.startsWith('in ~') || activeEndPhrase === 'later today');
 
   let ctaEstimateBlock = null;
   const ctaEnd = incident.cta_event_end_ts ?? null;
@@ -1090,17 +1097,27 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
             <dd className="text-slate-700 dark:text-slate-200">
               {ctaEndIsDateOnly ? (
                 <>
-                  <strong>{formatDate(ctaEnd)}</strong>{' '}
-                  <span className="text-slate-400 dark:text-slate-500 text-xs">
-                    ({activeEndPhrase})
-                  </span>
+                  <strong>{formatDate(ctaEnd)}</strong>
+                  {showRelativeParenthetical && (
+                    <>
+                      {' '}
+                      <span className="text-slate-400 dark:text-slate-500 text-xs">
+                        ({activeEndPhrase})
+                      </span>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
-                  <strong>{formatTime(ctaEnd)}</strong> on {formatDate(ctaEnd)}{' '}
-                  <span className="text-slate-400 dark:text-slate-500 text-xs">
-                    ({activeEndPhrase})
-                  </span>
+                  <strong>{formatTime(ctaEnd)}</strong> on {formatDate(ctaEnd)}
+                  {showRelativeParenthetical && (
+                    <>
+                      {' '}
+                      <span className="text-slate-400 dark:text-slate-500 text-xs">
+                        ({activeEndPhrase})
+                      </span>
+                    </>
+                  )}
                 </>
               )}
             </dd>
