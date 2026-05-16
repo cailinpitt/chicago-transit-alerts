@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778945369169,
+  "generated_at": 1778946545057,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -65,7 +65,7 @@
       "headline": "Temporary Reroute",
       "short_description": "NB J14 and 56, and WB 20, 60 and 124 buses will operate via Madison, Franklin, Randolph, and Clinton; J14, 20, 56 via Madison. 60, 124 via Clinton.",
       "first_seen_ts": 1778936524415,
-      "last_seen_ts": 1778945283239,
+      "last_seen_ts": 1778946483085,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -114,7 +114,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1778945342808,
+      "last_seen_ts": 1778946543607,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1127,7 +1127,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778945282709,
+      "last_seen_ts": 1778946482653,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1262,11 +1262,11 @@
       ],
       "evidence": null,
       "ts": 1778944142327,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778945943535,
+      "duration_ms": 1801208,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mly4uvdkii2s",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mly74gzrcb2a"
     },
     {
       "id": 69,
