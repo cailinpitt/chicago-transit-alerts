@@ -39,6 +39,23 @@ const SERVED_LINES_BY_SLUG = (() => {
   return map;
 })();
 
+// All roster station names that physically serve any of the given lines.
+// Used to broaden the alert-text linkify pool beyond the upstream
+// extractor's `mentioned_stations` — CTA's prose often names stations
+// (e.g. "Garfield", "Ashland/63") that the extractor missed, and we still
+// want them clickable. Line-scoped so cross-line same-named stops like
+// "Halsted" don't bleed in.
+export function stationsServingLines(lines) {
+  if (!lines || lines.length === 0) return [];
+  const wanted = new Set(lines.map(normalizeTrainLine));
+  const out = [];
+  for (const s of trainStations) {
+    const served = (s.lines || []).map(normalizeTrainLine);
+    if (served.some((l) => wanted.has(l))) out.push(s.name);
+  }
+  return out;
+}
+
 function compareByCtaOrder(a, b) {
   const ia = TRAIN_LINE_ORDER.indexOf(a);
   const ib = TRAIN_LINE_ORDER.indexOf(b);

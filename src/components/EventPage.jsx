@@ -23,7 +23,12 @@ import {
   normalizeAlertsPayload,
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
-import { buildStationIndex, displayStationName, slugifyStation } from '../lib/stations.js';
+import {
+  buildStationIndex,
+  displayStationName,
+  slugifyStation,
+  stationsServingLines,
+} from '../lib/stations.js';
 import BrowseMenu from './BrowseMenu.jsx';
 import EventMap from './EventMap.jsx';
 import LinePill from './LinePill.jsx';
@@ -568,12 +573,16 @@ export default function EventPage({ eventId }) {
 // side keep "Howard" from matching inside "Howards" or station-suffix tokens.
 function linkifyMentionedStations(text, mentions, stationIndex) {
   if (!text) return text;
-  if (!mentions || mentions.length === 0) return text;
   // Pair each canonical name with its display alias(es) that might appear in
   // the text. Display form (no parenthetical) is what CTA writes; canonical
   // form is what we link to. Same canonical can have one or both forms.
   const aliases = [];
-  for (const canonical of mentions) {
+  // Dedupe across the upstream-extracted mentions and any roster-derived
+  // additions so the same canonical doesn't appear twice in the alias pool.
+  const seenCanonical = new Set();
+  for (const canonical of mentions || []) {
+    if (seenCanonical.has(canonical)) continue;
+    seenCanonical.add(canonical);
     const display = displayStationName(canonical);
     aliases.push({ alias: canonical, canonical });
     if (display && display !== canonical) {
@@ -660,6 +669,14 @@ function collectAffectedStations(incident) {
 // doesn't already spell the stations out — see EventDetail).
 function StationChips({ stations }) {
   if (!stations || stations.length === 0) return null;
+  // Two distinct stations (e.g. Garfield Red vs Garfield Green) collapse to
+  // the same displayStationName, so show the raw qualifier-bearing name for
+  // any station whose stripped label collides with another in this list.
+  const displayCounts = new Map();
+  for (const name of stations) {
+    const d = displayStationName(name);
+    displayCounts.set(d, (displayCounts.get(d) || 0) + 1);
+  }
   return (
     <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
       <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-1">
@@ -667,7 +684,8 @@ function StationChips({ stations }) {
       </span>
       {stations.map((name, i) => {
         const slug = slugifyStation(name);
-        const display = displayStationName(name);
+        const stripped = displayStationName(name);
+        const display = displayCounts.get(stripped) > 1 ? name : stripped;
         const isLast = i === stations.length - 1;
         const link = slug ? (
           <a
@@ -983,7 +1001,15 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
             {linkifyMentionedStations(
               incident.short_description,
-              incident.mentioned_stations,
+              [
+                ...(incident.mentioned_stations || []),
+                // Broaden beyond the upstream extractor's list so any roster
+                // station physically on this incident's line gets linked when
+                // CTA's prose names it (e.g. "Garfield", "Ashland/63" on a
+                // Green Line event that the extractor missed). Line-scoped to
+                // avoid cross-line same-name bleed ("Halsted").
+                ...stationsServingLines(incidentRoutes(incident)),
+              ],
               stationIndex,
             )}
           </p>
