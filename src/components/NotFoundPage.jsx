@@ -69,7 +69,10 @@ function Row({ label, value, delay, valueClass = 'text-amber-300', href }) {
     'flex items-baseline gap-4 font-mono text-base sm:text-xl border-b border-amber-900/40 py-2 last:border-b-0';
   if (href) {
     return (
-      <a href={href} className={`${base} hover:bg-amber-900/10 transition-colors -mx-2 px-2 rounded`}>
+      <a
+        href={href}
+        className={`${base} hover:bg-amber-900/10 transition-colors -mx-2 px-2 rounded`}
+      >
         {inner}
       </a>
     );

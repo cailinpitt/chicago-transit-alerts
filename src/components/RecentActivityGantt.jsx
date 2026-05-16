@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TRAIN_LINES, TRAIN_LINE_ORDER } from '../lib/ctaLines.js';
+import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatRoutesLabel, getEventId, mergeMatchingIncidents } from '../lib/incidents.js';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -126,10 +126,7 @@ export default function RecentActivityGantt({ alerts, observations, now }) {
                     const startClamped = Math.max(i.startTs, windowStart);
                     const endClamped = Math.min(i.endTs ?? now, now);
                     const leftPct = ((startClamped - windowStart) / WINDOW_MS) * 100;
-                    const widthPct = Math.max(
-                      ((endClamped - startClamped) / WINDOW_MS) * 100,
-                      0.5,
-                    );
+                    const widthPct = Math.max(((endClamped - startClamped) / WINDOW_MS) * 100, 0.5);
                     const routeLabel = formatRoutesLabel(i.kind, i.routes);
                     const headlineLabel =
                       i.headline ?? (i.from && i.to ? `${i.from} → ${i.to}` : 'Service disruption');
@@ -140,9 +137,7 @@ export default function RecentActivityGantt({ alerts, observations, now }) {
                       backgroundColor: color,
                       opacity: i.active ? 1 : 0.7,
                     };
-                    const barKey = i.eventId
-                      ? `${i.eventId}-${i.startTs}`
-                      : `${i.startTs}-${key}`;
+                    const barKey = i.eventId ? `${i.eventId}-${i.startTs}` : `${i.startTs}-${key}`;
                     return i.eventId ? (
                       <a
                         key={barKey}
@@ -157,6 +152,7 @@ export default function RecentActivityGantt({ alerts, observations, now }) {
                     ) : (
                       <div
                         key={barKey}
+                        role="img"
                         title={tooltip}
                         aria-label={tooltip}
                         className="absolute top-0 bottom-0 rounded-sm"

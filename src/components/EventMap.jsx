@@ -213,7 +213,6 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
                     </a>
                   );
                 }
-                // biome-ignore lint/correctness/useJsxKeyInIterable: parent <g> carries the key for this iteration
                 return <g key={s.name}>{dot}</g>;
               })}
             </svg>

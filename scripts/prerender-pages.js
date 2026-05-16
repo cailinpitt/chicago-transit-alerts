@@ -298,7 +298,8 @@ function planPages(payload, dailyPayload) {
       ogTitle: 'Train system health · Chicago Transit Alerts',
       desc: 'System-wide health for the L: active disruptions, per-line incident counts, disruption hours, and 30-day trends — archived on chicagotransitalerts.app.',
       title: 'Train system health',
-      subtitle: 'All eight L lines at a glance — active disruptions, recent activity, and 30-day disruption time.',
+      subtitle:
+        'All eight L lines at a glance — active disruptions, recent activity, and 30-day disruption time.',
       pillHtml: trainPills,
       // Trains: a wash of the L brand colors across the card, plus a
       // vertical multi-stop bar mirroring the same palette so the card

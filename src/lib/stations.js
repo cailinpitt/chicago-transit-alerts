@@ -191,11 +191,7 @@ export function buildStationIndex(
     // for "between X and Y" alerts. mentioned_stations carries everything
     // else — single-station impact mentions ("delays at Monroe") plus the
     // segment endpoints again. The Set on the bucket dedupes overlap.
-    const names = [
-      a.affected_from_station,
-      a.affected_to_station,
-      ...(a.mentioned_stations || []),
-    ];
+    const names = [a.affected_from_station, a.affected_to_station, ...(a.mentioned_stations || [])];
     for (const name of names) {
       for (const line of a.routes || []) {
         const rec = bucket(name, line);

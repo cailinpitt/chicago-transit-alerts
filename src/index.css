@@ -31,6 +31,7 @@ html.dark {
   .animate-ping,
   .animate-pulse,
   .animate-fade-highlight {
+    /* biome-ignore lint/complexity/noImportantStyles: needed to override Tailwind's animation utilities, which carry equal specificity */
     animation: none !important;
   }
 }

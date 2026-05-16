@@ -149,7 +149,7 @@ export default function LineMap({ lineKey, stationIndex }) {
       el.removeEventListener('scroll', update);
       ro.disconnect();
     };
-  }, [map]);
+  }, []);
   if (!map) return null;
   const info = TRAIN_LINES[lineKey];
   const accent = info?.color ?? '#475569';

@@ -93,11 +93,7 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
 
   // Helper to render a single value cell for a line.
   const cell = (text, idx) => (
-    <td
-      // biome-ignore lint/suspicious/noArrayIndexKey: column position is the key
-      key={idx}
-      className="py-2 pr-3 text-sm text-slate-700 dark:text-slate-200 tabular-nums"
-    >
+    <td key={idx} className="py-2 pr-3 text-sm text-slate-700 dark:text-slate-200 tabular-nums">
       {text}
     </td>
   );
