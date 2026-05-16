@@ -567,6 +567,13 @@ export default function EventPage({ eventId }) {
 // side keep "Howard" from matching inside "Howards" or station-suffix tokens.
 function linkifyMentionedStations(text, mentions, stationIndex) {
   if (!text) return text;
+  // No aliases to match → return text as-is. Without this short-circuit,
+  // the alternation below becomes `(?:)`, which matches the empty string
+  // at every position and produces 2N entries in `parts` for a text of
+  // length N — fast in isolation, but multiplied across every render of a
+  // bus alert (which never has mentioned_stations and whose
+  // stationsServingLines pool is empty) it blew the vitest worker's heap.
+  if (!mentions || mentions.length === 0) return text;
   // Pair each canonical name with its display alias(es) that might appear in
   // the text. Display form (no parenthetical) is what CTA writes; canonical
   // form is what we link to. Same canonical can have one or both forms.

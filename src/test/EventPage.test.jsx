@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import EventPage from '../components/EventPage.jsx';
 
@@ -85,6 +85,11 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // Unmount before restoring globals — EventPage installs a 5-minute
+  // setInterval polling fetch, and the closure pins data + station index
+  // until React tears the tree down. Without this, each test leaves a
+  // multi-MB graph alive and the suite OOMs in CI.
+  cleanup();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
