@@ -243,9 +243,7 @@ export function describeBotObservation(incident) {
   // fall through to the chip rendering rather than producing a malformed
   // sentence.
   const kind = incident.kind === 'bus' ? 'bus' : 'train';
-  const phrases = signals
-    .map((s) => signalPhrase(s, kind))
-    .filter((p) => p != null);
+  const phrases = signals.map((s) => signalPhrase(s, kind)).filter((p) => p != null);
   if (phrases.length === 0) return null;
 
   const subject = botObservationSubject(incident);

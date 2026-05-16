@@ -259,6 +259,74 @@ function relatedDescription(incident, stationIndex) {
 }
 
 // Contemporaneous activity on OTHER lines/routes within ±1h of this event.
+// Shared row layout for the "Surrounding 24h" and "Elsewhere on system"
+// sections. Both render the same skeleton — date column, metadata chips,
+// description, Details link — and both need the whole card to be a link to
+// the row's event page. Uses the stretched-link pattern from IncidentList:
+// an absolute-positioned overlay anchor sits behind the content; real
+// interactive children (StationName, Details) re-enable pointer events so
+// they keep their own destinations. Keeping `showLinePill` out of
+// RelatedIncidents preserves the existing convention there (the section
+// header already names the line, so a pill on every row would be noise).
+function ContextRow({ other, stationIndex, showLinePill }) {
+  const ts = other.first_seen_ts ?? other.ts;
+  const otherIsMerged = other._type === 'merged';
+  const otherIsAlert = !otherIsMerged && !!other.alert_id;
+  const detailsId = getEventId(other);
+  return (
+    <div className="relative flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-gh-subtle/40 transition-colors">
+      {detailsId && (
+        <a href={`/event/${detailsId}`} className="absolute inset-0 rounded">
+          <span className="sr-only">View event details</span>
+        </a>
+      )}
+      <div className="relative flex items-start gap-3 flex-1 min-w-0 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
+        <div className="flex-shrink-0 w-20 text-right">
+          <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(ts)}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(ts)}</p>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5 mb-1">
+            {showLinePill && <LinePill kind={other.kind} line={other.line} routes={other.routes} />}
+            {otherIsMerged && (
+              <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                via CTA + auto-detection
+              </span>
+            )}
+            {!otherIsMerged && otherIsAlert && (
+              <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
+            )}
+            {!otherIsMerged && !otherIsAlert && (
+              <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                via auto-detection
+              </span>
+            )}
+            {other.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
+          </div>
+          <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
+            {relatedDescription(other, stationIndex)}
+          </p>
+          {detailsId && (
+            <div className="mt-1">
+              <a
+                href={`/event/${detailsId}`}
+                className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
+              >
+                Details →
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function rowKey(other) {
+  const ts = other.first_seen_ts ?? other.ts;
+  return other.alert_id ?? `obs-${other.id ?? other.obs_id ?? ts}`;
+}
+
 // Companion to RelatedIncidents (which stays scoped to the same line) so a
 // reader can tell at a glance whether this disruption sat alongside others
 // across the system — a strong hint of a shared root cause (weather, power,
@@ -279,58 +347,15 @@ function CrossLineContext({ incident, alerts, observations, stationIndex }) {
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
         Elsewhere on the system (±1h)
       </h2>
-      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border">
-        {others.map((other) => {
-          const ts = other.first_seen_ts ?? other.ts;
-          const otherIsMerged = other._type === 'merged';
-          const otherIsAlert = !otherIsMerged && !!other.alert_id;
-          const eventId = other.alert_id ?? `obs-${other.id ?? other.obs_id ?? ts}`;
-          const detailsId = getEventId(other);
-          return (
-            <div key={eventId} className="flex items-start gap-3 px-4 py-3">
-              <div className="flex-shrink-0 w-20 text-right">
-                <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(ts)}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(ts)}</p>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                  <LinePill kind={other.kind} line={other.line} routes={other.routes} />
-                  {otherIsMerged && (
-                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
-                      via CTA + auto-detection
-                    </span>
-                  )}
-                  {!otherIsMerged && otherIsAlert && (
-                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
-                      via CTA
-                    </span>
-                  )}
-                  {!otherIsMerged && !otherIsAlert && (
-                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
-                      via auto-detection
-                    </span>
-                  )}
-                  {other.active && (
-                    <span className="text-xs font-semibold text-red-500">ongoing</span>
-                  )}
-                </div>
-                <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
-                  {relatedDescription(other, stationIndex)}
-                </p>
-                {detailsId && (
-                  <div className="mt-1">
-                    <a
-                      href={`/event/${detailsId}`}
-                      className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
-                    >
-                      Details →
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border overflow-hidden">
+        {others.map((other) => (
+          <ContextRow
+            key={rowKey(other)}
+            other={other}
+            stationIndex={stationIndex}
+            showLinePill={true}
+          />
+        ))}
       </div>
     </section>
   );
@@ -351,46 +376,15 @@ function RelatedIncidents({ incident, alerts, observations, stationIndex }) {
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
         Surrounding 24 hours on {lineLabel}
       </h2>
-      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border">
-        {related.map((other) => {
-          const ts = other.first_seen_ts ?? other.ts;
-          const otherIsMerged = other._type === 'merged';
-          const otherIsAlert = !otherIsMerged && !!other.alert_id;
-          const eventId = other.alert_id ? other.alert_id : `obs-${other.id ?? other.obs_id ?? ts}`;
-          return (
-            <div key={eventId} className="flex items-start gap-3 px-4 py-3">
-              <div className="flex-shrink-0 w-20 text-right">
-                <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(ts)}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(ts)}</p>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                  {otherIsMerged && (
-                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
-                      via CTA + auto-detection
-                    </span>
-                  )}
-                  {!otherIsMerged && otherIsAlert && (
-                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
-                      via CTA
-                    </span>
-                  )}
-                  {!otherIsMerged && !otherIsAlert && (
-                    <span className="text-xs text-slate-400 dark:text-slate-500 italic">
-                      via auto-detection
-                    </span>
-                  )}
-                  {other.active && (
-                    <span className="text-xs font-semibold text-red-500">ongoing</span>
-                  )}
-                </div>
-                <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
-                  {relatedDescription(other, stationIndex)}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border overflow-hidden">
+        {related.map((other) => (
+          <ContextRow
+            key={rowKey(other)}
+            other={other}
+            stationIndex={stationIndex}
+            showLinePill={false}
+          />
+        ))}
       </div>
     </section>
   );
@@ -530,7 +524,6 @@ export default function EventPage({ eventId }) {
           <div className="h-32 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border animate-pulse" />
         )}
 
-
         {incident && (
           <>
             <EventDetail
@@ -598,14 +591,16 @@ function linkifyMentionedStations(text, mentions, stationIndex) {
   // "UIC-Halsted". Build a regex per alias that tolerates whitespace
   // around slashes and treats `-`/space as interchangeable.
   function aliasPattern(alias) {
-    return alias
-      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      // CTA writes "Adams/ Wabash" with a stray space; the canonical name is
-      // "Adams/Wabash". Allow whitespace around any `/` in the alias.
-      .replace(/\//g, '\\s*/\\s*')
-      // Hyphens and runs of whitespace are interchangeable: canonical
-      // "UIC-Halsted" matches CTA's "UIC Halsted".
-      .replace(/[\s-]+/g, '[\\s-]+');
+    return (
+      alias
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        // CTA writes "Adams/ Wabash" with a stray space; the canonical name is
+        // "Adams/Wabash". Allow whitespace around any `/` in the alias.
+        .replace(/\//g, '\\s*/\\s*')
+        // Hyphens and runs of whitespace are interchangeable: canonical
+        // "UIC-Halsted" matches CTA's "UIC Halsted".
+        .replace(/[\s-]+/g, '[\\s-]+')
+    );
   }
   // Suffix denylist: short single-word station names like "Chicago" or
   // "Loop" collide with geographic features ("Chicago River", "Chicago
@@ -1042,9 +1037,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
             <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
               Per bot
             </p>
-            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-              {summary}
-            </p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">{summary}</p>
           </blockquote>
         );
       })()}

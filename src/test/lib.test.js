@@ -311,10 +311,7 @@ describe('mergeMatchingIncidents', () => {
       ts: NOW - 48 * 60_000,
       resolved_ts: NOW - 23 * 60_000,
     });
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      [alert],
-      [staleObs],
-    );
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents([alert], [staleObs]);
     expect(merged).toHaveLength(0);
     expect(standaloneAlerts).toHaveLength(1);
     expect(standaloneObs).toHaveLength(1);
@@ -326,10 +323,7 @@ describe('mergeMatchingIncidents', () => {
       ts: NOW + 45 * 60_000,
       resolved_ts: NOW + 60 * 60_000,
     });
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      [alert],
-      [laterObs],
-    );
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents([alert], [laterObs]);
     expect(merged).toHaveLength(0);
     expect(standaloneAlerts).toHaveLength(1);
     expect(standaloneObs).toHaveLength(1);
