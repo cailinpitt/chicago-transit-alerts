@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778959745111,
+  "generated_at": 1778960530795,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -12,7 +12,7 @@
       "headline": "Pink and Green Line Service Delayed near Ashland/Lake",
       "short_description": "Pink and Green Line trains are standing near Ashland/Lake due to signal problems. Crews working to restore service.",
       "first_seen_ts": 1778959743526,
-      "last_seen_ts": 1778959744165,
+      "last_seen_ts": 1778960463324,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -36,7 +36,7 @@
       "headline": "Green Line Service Delayed near Garfield",
       "short_description": "Green Line trains are standing near Garfield due to track conditions.",
       "first_seen_ts": 1778955543027,
-      "last_seen_ts": 1778959743525,
+      "last_seen_ts": 1778960463324,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -165,7 +165,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1778959743096,
+      "last_seen_ts": 1778960462894,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1178,7 +1178,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778959684000,
+      "last_seen_ts": 1778960523239,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1299,6 +1299,40 @@
     }
   ],
   "observations": [
+    {
+      "id": 331,
+      "kind": "train",
+      "line": "g",
+      "direction": "branch-len92-41780--87606",
+      "from_station": "Indiana",
+      "to_station": "51st",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 2.5,
+        "minutesSinceLastTrain": null,
+        "lookbackMin": 55,
+        "coldThresholdMin": 50,
+        "trainsOutsideRun": 13,
+        "coldStations": 4,
+        "coldStationNames": [
+          "Indiana",
+          "43rd",
+          "47th (Green)",
+          "51st"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 20,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1778960282577,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlym57t3fp2u",
+      "resolved_post_url": null
+    },
     {
       "id": 330,
       "kind": "train",
