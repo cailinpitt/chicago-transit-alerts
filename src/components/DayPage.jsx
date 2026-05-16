@@ -8,6 +8,7 @@ import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc } from '../lib/urlState.js';
 import Header from './Header.jsx';
 import IncidentList from './IncidentList.jsx';
+import NotFoundPage from './NotFoundPage.jsx';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -104,31 +105,7 @@ export default function DayPage({ dateStr }) {
   }, [dayLabel]);
 
   if (dayUtc == null) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
-        <Header
-          generatedAt={null}
-          dark={dark}
-          onToggleDark={toggleDark}
-          onResetFilters={() => {
-            window.location.href = '/';
-          }}
-          alerts={null}
-          observations={null}
-        />
-        <main className="max-w-3xl mx-auto px-4 py-6 w-full flex-1">
-          <a href="/" className="text-sm text-blue-500 hover:text-blue-400 hover:underline">
-            ← Back to all incidents
-          </a>
-          <div className="mt-4 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              That doesn't look like a valid date. Use the form{' '}
-              <code className="text-xs">/day/YYYY-MM-DD</code>.
-            </p>
-          </div>
-        </main>
-      </div>
-    );
+    return <NotFoundPage />;
   }
 
   if (error) {

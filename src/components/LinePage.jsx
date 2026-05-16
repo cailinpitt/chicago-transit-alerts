@@ -28,6 +28,7 @@ import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
 import LineMap from './LineMap.jsx';
 import { LONG_RUNNING_THRESHOLD_MS } from './LongRunningBanner.jsx';
+import NotFoundPage from './NotFoundPage.jsx';
 import { SignalBreakdownSingleRoute } from './SignalBreakdown.jsx';
 import Timeline from './Timeline.jsx';
 import TrendSparkline from './TrendSparkline.jsx';
@@ -349,30 +350,7 @@ export default function LinePage({ kind, lineId }) {
   }
 
   if (!isKnown) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
-        <Header
-          generatedAt={data?.generated_at}
-          dark={dark}
-          onToggleDark={toggleDark}
-          onResetFilters={() => {
-            window.location.href = '/';
-          }}
-          alerts={data?.alerts}
-          observations={data?.observations}
-        />
-        <main className="max-w-3xl mx-auto px-4 py-6 w-full flex-1">
-          <a href="/" className="text-sm text-blue-500 hover:text-blue-400 hover:underline">
-            ← Back to all incidents
-          </a>
-          <div className="mt-4 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              We don't recognize {kind === 'train' ? 'that line' : 'that route'} ({lineId}).
-            </p>
-          </div>
-        </main>
-      </div>
-    );
+    return <NotFoundPage />;
   }
 
   // Color used for the heading pill + accents. Trains use their CTA brand

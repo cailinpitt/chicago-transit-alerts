@@ -13,6 +13,7 @@ import ComparePage from './components/ComparePage.jsx';
 import DayPage from './components/DayPage.jsx';
 import EventPage from './components/EventPage.jsx';
 import LinePage from './components/LinePage.jsx';
+import NotFoundPage from './components/NotFoundPage.jsx';
 import StationPage from './components/StationPage.jsx';
 import StatsPage from './components/StatsPage.jsx';
 import SystemHealthPage from './components/SystemHealthPage.jsx';
@@ -65,8 +66,10 @@ if (eventMatch) {
   page = <ComparePage />;
 } else if (systemMatch) {
   page = <SystemHealthPage kind={systemMatch[1] === 'trains' ? 'train' : 'bus'} />;
-} else {
+} else if (path === '/' || path === '') {
   page = <App />;
+} else {
+  page = <NotFoundPage />;
 }
 
 createRoot(document.getElementById('root')).render(<StrictMode>{page}</StrictMode>);

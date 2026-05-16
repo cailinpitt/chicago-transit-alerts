@@ -27,6 +27,7 @@ import { buildStationIndex, displayStationName, slugifyStation } from '../lib/st
 import BrowseMenu from './BrowseMenu.jsx';
 import EventMap from './EventMap.jsx';
 import LinePill from './LinePill.jsx';
+import NotFoundPage from './NotFoundPage.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
 
@@ -492,6 +493,10 @@ export default function EventPage({ eventId }) {
     };
   }, [incident]);
 
+  if (data && !incident) {
+    return <NotFoundPage />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
       <main className="max-w-3xl mx-auto px-4 py-6 w-full flex-1">
@@ -519,14 +524,6 @@ export default function EventPage({ eventId }) {
           <div className="h-32 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border animate-pulse" />
         )}
 
-        {data && !incident && (
-          <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              We couldn't find an incident for this link. Incidents older than 90 days are no longer
-              archived; the link may also be incorrect.
-            </p>
-          </div>
-        )}
 
         {incident && (
           <>
