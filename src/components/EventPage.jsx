@@ -1049,28 +1049,95 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
         );
       })()}
 
-      {incident.short_description && (
-        <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
-          <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
-            Per CTA
-          </p>
-          <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-            {linkifyMentionedStations(
-              incident.short_description,
-              [
-                ...(incident.mentioned_stations || []),
-                // Broaden beyond the upstream extractor's list so any roster
-                // station physically on this incident's line gets linked when
-                // CTA's prose names it (e.g. "Garfield", "Ashland/63" on a
-                // Green Line event that the extractor missed). Line-scoped to
-                // avoid cross-line same-name bleed ("Halsted").
-                ...stationsServingLines(incidentRoutes(incident)),
-              ],
-              stationIndex,
-            )}
-          </p>
-        </blockquote>
-      )}
+      {(() => {
+        // Linkify pool — same set used for the single-version block below,
+        // hoisted so multi-version rendering can apply it per entry without
+        // recomputing.
+        const linkPool = [
+          ...(incident.mentioned_stations || []),
+          ...stationsServingLines(incidentRoutes(incident)),
+        ];
+        const versions = Array.isArray(incident.versions) ? incident.versions : null;
+        // Multi-version: CTA edited the alert text after first post. Show
+        // each version as a timestamped entry, newest at top so the most
+        // recent message is what the reader sees first. Single-version
+        // alerts fall through to the regular "Per CTA" quote block below.
+        if (versions && versions.length > 1) {
+          const sorted = [...versions].sort((a, b) => b.ts - a.ts);
+          return (
+            <section className="mt-4">
+              <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+                Per CTA · {versions.length} updates
+              </p>
+              {/* LinkedIn-style rail: each <li> renders its own connector
+                  segment running from just below its dot down into the
+                  space-y gap to meet the next dot. The last (oldest)
+                  entry skips the segment so the rail ends cleanly at its
+                  dot instead of trailing past it. */}
+              <ol className="space-y-6">
+                {sorted.map((v, i) => {
+                  const isLatest = i === 0;
+                  const isOldest = i === sorted.length - 1;
+                  const prev = sorted[i + 1];
+                  // Headline only re-shown when it changed from the prior
+                  // (older) version. Most edits keep the same headline and
+                  // only revise the body; reprinting it on every entry
+                  // would be noise.
+                  const showHeadline = !prev || prev.headline !== v.headline;
+                  return (
+                    <li key={v.ts} className="relative pl-6">
+                      {!isOldest && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute left-[3px] top-2 w-px bg-slate-200 dark:bg-gh-border"
+                          style={{ bottom: '-1.5rem' }}
+                        />
+                      )}
+                      <span
+                        aria-hidden="true"
+                        className={`absolute left-0 top-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white dark:ring-gh-surface ${
+                          isLatest ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-500'
+                        }`}
+                      />
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                          {formatDate(v.ts)} · {formatTime(v.ts)}
+                        </p>
+                        {isLatest && (
+                          <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-500">
+                            Latest
+                          </span>
+                        )}
+                      </div>
+                      {showHeadline && v.headline && (
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mb-1">
+                          {v.headline}
+                        </p>
+                      )}
+                      {v.short_description && (
+                        <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
+                          {linkifyMentionedStations(v.short_description, linkPool, stationIndex)}
+                        </p>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          );
+        }
+        if (!incident.short_description) return null;
+        return (
+          <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
+            <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+              Per CTA
+            </p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
+              {linkifyMentionedStations(incident.short_description, linkPool, stationIndex)}
+            </p>
+          </blockquote>
+        );
+      })()}
 
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-4">
         <div>

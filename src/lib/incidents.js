@@ -608,6 +608,10 @@ export function mergeMatchingIncidents(alerts, observations) {
       affected_to_station: alert.affected_to_station,
       affected_direction: alert.affected_direction,
       mentioned_stations: alert.mentioned_stations ?? [],
+      // Successive edits CTA made to the alert text. Only present on the
+      // wire when there's more than one version; absent for fresh alerts
+      // that CTA never edited.
+      versions: alert.versions,
       // Carry CTA's claimed event-end through so EventPage can compare
       // their stated end to the actual resolve timestamp. Survives even
       // when CTA later scrubs the alert (the field is persisted at
