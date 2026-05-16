@@ -1,7 +1,35 @@
 {
-  "generated_at": 1778936464993,
+  "generated_at": 1778936525979,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114960",
+      "kind": "bus",
+      "routes": [
+        "J14",
+        "20",
+        "56",
+        "60",
+        "124"
+      ],
+      "headline": "Temporary Reroute",
+      "short_description": "NB J14 and 56, and WB 20, 60 and 124 buses will operate via Madison, Franklin, Randolph, and Clinton; J14, 20, 56 via Madison. 60, 124 via Clinton.",
+      "first_seen_ts": 1778936524415,
+      "last_seen_ts": 1778936524863,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlxvruetvq2h",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "mentioned_stations": [],
+      "cta_event_start_ts": 1778936400000,
+      "cta_event_end_ts": 1778947200000,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "114967",
       "kind": "train",
@@ -1049,7 +1077,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778936403788,
+      "last_seen_ts": 1778936524198,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
