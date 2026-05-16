@@ -44,9 +44,13 @@ jobs:
         run: |
           before="${{ github.event.before }}"
           after="${{ github.sha }}"
-          # Initial / force pushes have a zero SHA for `before`; play it safe
-          # and run the full gate.
-          if [[ -z "$before" || "$before" == "0000000000000000000000000000000000000000" ]]; then
+          # Initial pushes have a zero SHA for `before`; play it safe and run
+          # the full gate. Force-pushes carry a non-zero `before` that points
+          # at a commit that's been rewritten out of the repo — `git diff`
+          # against a missing object fails the whole job, so verify the
+          # object exists first and fall back to the full gate when it doesn't.
+          if [[ -z "$before" || "$before" == "0000000000000000000000000000000000000000" ]] \
+              || ! git cat-file -e "$before^{commit}" 2>/dev/null; then
             echo "data_only=false" >> "$GITHUB_OUTPUT"
             echo "No usable before-SHA; running full gate."
             exit 0
