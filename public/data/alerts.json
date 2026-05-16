@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778900465603,
+  "generated_at": 1778902100972,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,7 +11,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1778900464851,
+      "last_seen_ts": 1778902022711,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1024,7 +1024,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778900403430,
+      "last_seen_ts": 1778902083119,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1164,43 +1164,6 @@
       "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlws4xzsgk2h",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwtjqsyaf2s"
-    },
-    {
-      "id": 328,
-      "kind": "train",
-      "line": "p",
-      "direction": "branch-1-inbound",
-      "from_station": "Howard",
-      "to_station": "Armitage (Brown/Purple)",
-      "detection_source": "pulse-cold",
-      "signals": null,
-      "evidence": {
-        "runLengthMi": 8.4,
-        "minutesSinceLastTrain": 26,
-        "lookbackMin": 31,
-        "coldThresholdMin": 26,
-        "trainsOutsideRun": 6,
-        "coldStations": 7,
-        "coldStationNames": [
-          "Howard",
-          "Wilson",
-          "Belmont (Red/Brown/Purple)",
-          "Wellington (Brown/Purple)",
-          "Diversey (Brown/Purple)",
-          "Fullerton",
-          "Armitage (Brown/Purple)"
-        ],
-        "expectedTrains": 2,
-        "headwayMin": 10.5,
-        "synthetic": false,
-        "held": null
-      },
-      "ts": 1778891042184,
-      "resolved_ts": 1778891402331,
-      "duration_ms": 360147,
-      "active": false,
-      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwlnp6ils2x",
-      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwm7k3xa72h"
     },
     {
       "id": 66,
