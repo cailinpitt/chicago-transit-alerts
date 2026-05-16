@@ -19,6 +19,19 @@ const PAYLOAD = {
       post_url: 'https://bsky.app/profile/did:plc:abc/post/abc123',
     },
     {
+      alert_id: 'a3',
+      kind: 'train',
+      routes: ['brn'],
+      headline: 'Brown Line Delays',
+      short_description:
+        'Brown Line service is experiencing delays due to a raised bridge at the Chicago River, downtown. Trains stopped near Chicago.',
+      mentioned_stations: ['Chicago (Brown)'],
+      first_seen_ts: NOW - 45 * 60_000,
+      resolved_ts: NOW - 15 * 60_000,
+      active: false,
+      post_url: 'https://bsky.app/profile/did:plc:abc/post/brnriver',
+    },
+    {
       alert_id: 'a2',
       kind: 'bus',
       routes: ['2', '6'],
@@ -99,6 +112,19 @@ describe('EventPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/couldn't find an incident/i)).toBeInTheDocument();
     });
+  });
+
+  it('does not link a station name when it is followed by a geographic suffix', async () => {
+    // "Chicago River" / "Chicago Avenue" etc. should not be linked to the
+    // Chicago station even when Chicago is in mentioned_stations. A bare
+    // "Chicago" elsewhere in the same text should still link.
+    render(<EventPage eventId="brnriver" />);
+    await waitFor(() => {
+      expect(screen.getByText(/raised bridge/)).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('link', { name: /^Chicago River$/ })).toBeNull();
+    // The bare "Chicago" later in the sentence still links.
+    expect(screen.getAllByRole('link', { name: 'Chicago' }).length).toBeGreaterThan(0);
   });
 
   it('does not render a station chips row for bus alerts', async () => {

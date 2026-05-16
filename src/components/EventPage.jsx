@@ -606,8 +606,15 @@ function linkifyMentionedStations(text, mentions, stationIndex) {
       // "UIC-Halsted" matches CTA's "UIC Halsted".
       .replace(/[\s-]+/g, '[\\s-]+');
   }
+  // Suffix denylist: short single-word station names like "Chicago" or
+  // "Loop" collide with geographic features ("Chicago River", "Chicago
+  // Avenue") and neighborhood phrasing ("Loop area"). When the match is
+  // immediately followed by one of these tokens it's a place name in the
+  // alert text, not a station reference, so we skip the link.
+  const NON_STATION_SUFFIX =
+    '(?:River|Bridge|Avenue|Ave|Street|St|Boulevard|Blvd|Road|Rd|Drive|Dr|Expressway|Expy|area|neighborhood|Heights)';
   const combined = new RegExp(
-    `(?<![A-Za-z0-9])(?:${aliases.map((a) => aliasPattern(a.alias)).join('|')})(?![A-Za-z0-9])`,
+    `(?<![A-Za-z0-9])(?:${aliases.map((a) => aliasPattern(a.alias)).join('|')})(?![A-Za-z0-9])(?!\\s+${NON_STATION_SUFFIX}\\b)`,
     'g',
   );
   const parts = [];
