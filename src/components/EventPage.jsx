@@ -682,8 +682,13 @@ function collectAffectedStations(incident) {
 // underline links that match the rest of the site's station-name style.
 // Caller decides whether to render at all (only useful when the headline
 // doesn't already spell the stations out — see EventDetail).
-function StationChips({ stations }) {
+function StationChips({ stations, direction }) {
   if (!stations || stations.length === 0) return null;
+  // For two-station segments, `→` reads as "one direction only". Most alerts
+  // affect both directions (direction is null) — render `↔` there so the
+  // glyph matches reality. When upstream actually carries a direction
+  // ("Northbound only"), keep the one-way arrow.
+  const segmentGlyph = direction ? '→' : '↔';
   // Two distinct stations (e.g. Garfield Red vs Garfield Green) collapse to
   // the same displayStationName, so show the raw qualifier-bearing name for
   // any station whose stripped label collides with another in this list.
@@ -716,7 +721,7 @@ function StationChips({ stations }) {
           <span key={name} className="inline-flex items-center gap-1.5">
             {link}
             {!isLast && stations.length === 2 && (
-              <span className="text-slate-400 dark:text-slate-500">→</span>
+              <span className="text-slate-400 dark:text-slate-500">{segmentGlyph}</span>
             )}
             {!isLast && stations.length !== 2 && (
               <span className="text-slate-300 dark:text-slate-600">·</span>
@@ -950,7 +955,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           incidents on record. The cross-street info is already in the bus
           alert headline, so the chips row adds nothing useful. */}
       {(isMerged || isAlert) && incident.kind !== 'bus' && (
-        <StationChips stations={affectedStations} />
+        <StationChips stations={affectedStations} direction={incident.affected_direction} />
       )}
 
       {!isMerged && !isAlert && incident.signals?.length > 0 && (
