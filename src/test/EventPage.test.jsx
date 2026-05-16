@@ -110,7 +110,7 @@ describe('EventPage', () => {
   it('shows a not-found message for an unknown id', async () => {
     render(<EventPage eventId="missing" />);
     await waitFor(() => {
-      expect(screen.getByText(/couldn't find an incident/i)).toBeInTheDocument();
+      expect(screen.getByText(/page not found/i)).toBeInTheDocument();
     });
   });
 
