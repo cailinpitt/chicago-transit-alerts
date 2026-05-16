@@ -8,7 +8,7 @@ import {
   normalizeAlertsPayload,
   searchFilterIncidents,
 } from '../lib/incidents.js';
-import { buildStationIndex, displayStationName } from '../lib/stations.js';
+import { buildStationIndex, displayStationName, rosterStationBySlug } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
@@ -45,7 +45,10 @@ export default function StationPage({ slug }) {
     return buildStationIndex(data.alerts, data.observations, { now, windowDays: 90 });
   }, [data, now]);
 
-  const station = stationIndex?.get(slug) ?? null;
+  // Fall back to the roster when the activity index doesn't carry this slug
+  // (a known station with zero incidents in the window). Keeps inline alert-
+  // text links from 404'ing on quiet stations.
+  const station = stationIndex?.get(slug) ?? rosterStationBySlug(slug);
 
   const activeIncidents = useMemo(() => {
     if (!station) return [];

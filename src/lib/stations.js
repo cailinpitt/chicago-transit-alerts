@@ -39,6 +39,38 @@ const SERVED_LINES_BY_SLUG = (() => {
   return map;
 })();
 
+// True if `slug` matches a station in the bundled roster — regardless of
+// whether any recent incidents touched it. Used to decide whether to render
+// a name as a link to /station/:slug: every known station has a page,
+// even one with zero recent activity.
+export function isKnownStationSlug(slug) {
+  return slug != null && SERVED_LINES_BY_SLUG.has(slug);
+}
+
+// slug → roster record (name + served lines). Used by StationPage as a
+// fallback when the activity index doesn't carry the slug — the station
+// page still renders, just in its "no recent activity" state.
+const ROSTER_BY_SLUG = (() => {
+  const map = new Map();
+  for (const s of trainStations) {
+    const slug = slugifyStation(s.name);
+    if (!slug || map.has(slug)) continue;
+    map.set(slug, {
+      slug,
+      name: s.name,
+      lines: [...(SERVED_LINES_BY_SLUG.get(slug) || [])].sort(compareByCtaOrder),
+      alerts: [],
+      observations: [],
+      count: 0,
+    });
+  }
+  return map;
+})();
+
+export function rosterStationBySlug(slug) {
+  return ROSTER_BY_SLUG.get(slug) ?? null;
+}
+
 // All roster station names that physically serve any of the given lines.
 // Used to broaden the alert-text linkify pool beyond the upstream
 // extractor's `mentioned_stations` — CTA's prose often names stations

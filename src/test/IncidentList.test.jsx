@@ -60,7 +60,8 @@ describe('IncidentList', () => {
 
   it('shows the station segment for a merged item', () => {
     render(<IncidentList alerts={[makeAlert()]} observations={[makeObs()]} />);
-    expect(screen.getByText('Jarvis → 95th/Dan Ryan')).toBeInTheDocument();
+    expect(screen.getByText('Jarvis')).toBeInTheDocument();
+    expect(screen.getByText('95th/Dan Ryan')).toBeInTheDocument();
   });
 
   it('shows "ongoing" badge for active incidents', () => {

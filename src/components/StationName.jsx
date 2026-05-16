@@ -1,26 +1,22 @@
-import { displayStationName, slugifyStation } from '../lib/stations.js';
+import { displayStationName, isKnownStationSlug, slugifyStation } from '../lib/stations.js';
 import HighlightedText from './HighlightedText.jsx';
 
-// Below this threshold a station's page would be near-empty and the link
-// would be more annoying than useful — leave the name as plain text.
-export const STATION_LINK_MIN_COUNT = 2;
-
-// Render a station name. Becomes a link to /station/:slug when the station
-// has enough incidents in the index to make the page worth visiting; falls
-// back to plain text otherwise. Always plain text when no index is passed
-// (e.g. tests rendering a host component directly). When `searchQuery` is
-// non-empty, matched substrings get wrapped in <mark>.
-export default function StationName({ name, stationIndex, searchQuery = '' }) {
+// Render a station name. Becomes a link to /station/:slug whenever the
+// slug resolves to a known roster station — even if there are no recent
+// incidents in the window, the page itself is still a useful destination
+// (it shows the line pills and a "no recent activity" state). Falls back
+// to plain text only when the slug doesn't match the roster at all.
+// When `searchQuery` is non-empty, matched substrings get wrapped in <mark>.
+export default function StationName({ name, stationIndex: _stationIndex, searchQuery = '' }) {
   if (!name) return null;
   const slug = slugifyStation(name);
-  const rec = slug && stationIndex ? stationIndex.get(slug) : null;
   // Display drops the "(Purple)"-style qualifier — line context is already
   // visible elsewhere on every render site that uses this component.
   // Slug still derives from the full name so /station/central-purple stays
   // distinct from /station/central-green.
   const display = displayStationName(name);
   const inner = <HighlightedText text={display} query={searchQuery} />;
-  if (rec && rec.count >= STATION_LINK_MIN_COUNT) {
+  if (slug && isKnownStationSlug(slug)) {
     // Dotted underline as a "this text is interactive" cue without going as
     // loud as full blue-link styling — these names appear inline inside
     // descriptive sentences (e.g. "Howard → Loyola"), so a subtle always-on
