@@ -1008,7 +1008,7 @@ export function computeTypicalDurations(
 // when there's no data to summarize (e.g. before data_start_ts).
 //
 // Outputs one of three shapes:
-//   - quiet day:   "Quiet today — 0 incidents so far · 14 hours since the last."
+//   - quiet day:   "Quiet today — 0 new incidents so far · 14 hours since the last."
 //   - busy day:    "Today: 5 incidents across 3 lines · 1 still ongoing."
 //   - simple busy: "Today: 1 incident on the Red Line."
 /**
@@ -1045,13 +1045,13 @@ export function buildTodaySummary(alerts, observations, now = Date.now()) {
   if (todays.length === 0) {
     const lastTs = Math.max(...allTs);
     const elapsedMs = now - lastTs;
-    if (elapsedMs < 0) return 'Quiet today — 0 incidents so far.';
+    if (elapsedMs < 0) return 'Quiet today — 0 new incidents so far.';
     const hours = Math.floor(elapsedMs / (60 * 60 * 1000));
     if (hours < 24) {
-      return `Quiet today — 0 incidents so far · ${hours} hour${hours === 1 ? '' : 's'} since the last.`;
+      return `Quiet today — 0 new incidents so far · ${hours} hour${hours === 1 ? '' : 's'} since the last.`;
     }
     const days = Math.floor(hours / 24);
-    return `Quiet today — 0 incidents so far · ${days} day${days === 1 ? '' : 's'} since the last incident.`;
+    return `Quiet today — 0 new incidents so far · ${days} day${days === 1 ? '' : 's'} since the last incident.`;
   }
 
   const activeCount = todays.filter((i) => i.active).length;
