@@ -1,5 +1,5 @@
 {
-  "generated_at": 1778984044517,
+  "generated_at": 1778986145040,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -165,7 +165,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1778983982982,
+      "last_seen_ts": 1778986143015,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1178,7 +1178,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778984043099,
+      "last_seen_ts": 1778986083050,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1313,11 +1313,11 @@
       ],
       "evidence": null,
       "ts": 1778984042733,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1778985542895,
+      "duration_ms": 1500162,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlzbzzb7vz2a",
-      "resolved_post_url": null
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlzdymthvv2q"
     },
     {
       "id": 78,
