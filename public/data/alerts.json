@@ -1,7 +1,33 @@
 {
-  "generated_at": 1779047885191,
+  "generated_at": 1779050945496,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114991",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "headline": "O'Hare-bound Blue Line Service Delayed at Addison",
+      "short_description": "O'Hare-bound Blue Line trains are standing at Addison due to a sick customer. Crews working to restore service.",
+      "first_seen_ts": 1779050943204,
+      "last_seen_ts": 1779050944633,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm3adsj5ox2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "mentioned_stations": [
+        "Addison (Blue)"
+      ],
+      "cta_event_start_ts": 1779050520000,
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "114982",
       "kind": "train",
@@ -191,7 +217,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1779047823119,
+      "last_seen_ts": 1779050942772,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1204,7 +1230,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779047883977,
+      "last_seen_ts": 1779050882953,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
