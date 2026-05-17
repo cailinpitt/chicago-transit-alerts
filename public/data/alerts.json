@@ -1,7 +1,33 @@
 {
-  "generated_at": 1778989744999,
+  "generated_at": 1778993825235,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114982",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "headline": "Blue Line trains are standing at Division due to police activity.",
+      "short_description": "Blue Line trains are standing at Division due to police activity. Crews working to restore service.",
+      "first_seen_ts": 1778993823480,
+      "last_seen_ts": 1778993824316,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlzl5ivf2u2x",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "mentioned_stations": [
+        "Division"
+      ],
+      "cta_event_start_ts": 1778993700000,
+      "cta_event_end_ts": 1779252900000,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "114977",
       "kind": "train",
@@ -165,7 +191,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1778989743099,
+      "last_seen_ts": 1778993823478,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1178,7 +1204,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1778989681436,
+      "last_seen_ts": 1778993763187,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
