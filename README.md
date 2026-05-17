@@ -6,9 +6,9 @@ A public archive of Chicago Transit Authority service alerts and bot-detected di
 
 **Live site:** https://chicagotransitalerts.app
 
-![Timeline view: 90-day per-line heatmap of CTA incidents](docs/images/website-timeline.png)
-
-![Incident list: chronological feed of recent alerts and bot observations](docs/images/website-incidents-list.png)
+<p align="center">
+  <img src="docs/images/website-home.png" alt="Homepage: active alerts, line filters, daily summary, and the start of the incident feed" width="820">
+</p>
 
 ## What you see
 
@@ -23,6 +23,61 @@ A public archive of Chicago Transit Authority service alerts and bot-detected di
 - **Per-event detail page** — every captured incident gets a permalink at `/event/:id` with surrounding-24h context on the same line and a 14-day mini timeline.
 
 Filter state, the pinned day, and the search query all round-trip through the URL — any view is a shareable link.
+
+## More views
+
+A pulse on the last 24 hours, on top of the 90-day per-line timeline:
+
+<p align="center">
+  <img src="docs/images/website-last-24-and-timeline.png" alt="Last-24-hours gantt above the 90-day per-line timeline" width="820">
+</p>
+
+A 7×24 hour-of-week heatmap and the per-line breakdown of bot-detection signal types:
+
+<p align="center">
+  <img src="docs/images/website-incident-occurrence-signal-mix.png" alt="Hour-of-week heatmap and stacked signal-mix bars by line" width="820">
+</p>
+
+Every captured incident gets its own permalink with surrounding context, a 14-day mini timeline, and (for bot detections) the geographic footprint:
+
+<p align="center">
+  <img src="docs/images/website-event.png" alt="Event detail page with geographic map and surrounding context" width="820">
+</p>
+
+Train lines, bus routes, and individual stations each have a dedicated page with reliability stats, signal mix, and a per-station heatmap (trains get a stylized line map):
+
+<table align="center">
+  <tr>
+    <td width="33%"><img src="docs/images/website-line.png" alt="Train line page"><br><sub align="center">Train line · <code>/line/red</code></sub></td>
+    <td width="33%"><img src="docs/images/website-bus-route.png" alt="Bus route page"><br><sub align="center">Bus route · <code>/route/66</code></sub></td>
+    <td width="33%"><img src="docs/images/website-train-station.png" alt="Train station page"><br><sub align="center">Station · <code>/station/francisco</code></sub></td>
+  </tr>
+</table>
+
+Compare up to three lines or routes side-by-side:
+
+<p align="center">
+  <img src="docs/images/website-compare.png" alt="Side-by-side comparison of three lines" width="820">
+</p>
+
+A 12-month calendar heatmap, a stats page with worst-day / worst-station leaderboards, and per-mode system-health snapshots:
+
+<table align="center">
+  <tr>
+    <td width="50%"><img src="docs/images/website-calendar.png" alt="12-month calendar"><br><sub align="center">Calendar · <code>/calendar</code></sub></td>
+    <td width="50%"><img src="docs/images/website-stats.png" alt="Stats leaderboards"><br><sub align="center">Stats · <code>/stats</code></sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/images/website-train-system-health.png" alt="Train system health"><br><sub align="center">Trains · <code>/system/trains</code></sub></td>
+    <td width="50%"><img src="docs/images/website-bus-system-health.png" alt="Bus system health"><br><sub align="center">Buses · <code>/system/buses</code></sub></td>
+  </tr>
+</table>
+
+And it works on mobile:
+
+<p align="center">
+  <img src="docs/images/website-mobile.png" alt="Homepage on a phone" width="280">
+</p>
 
 ## Subscribe
 
