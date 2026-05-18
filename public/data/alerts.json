@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779107410709,
+  "generated_at": 1779108270857,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -15,10 +15,10 @@
       "headline": "Delays on Loop 'L' (elevated lines)",
       "short_description": "Brown, Green, Orange, Purple & Pink Line trains are experiencing delays due to a mechanical problem on a train near Adams/Wabash.",
       "first_seen_ts": 1779106984504,
-      "last_seen_ts": 1779107342920,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "last_seen_ts": 1779107823150,
+      "resolved_ts": 1779107943565,
+      "duration_ms": 959061,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm4ujxoivt2c",
       "resolved_reply_url": null,
       "affected_from_station": null,
@@ -1350,7 +1350,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779107402856,
+      "last_seen_ts": 1779108243177,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
