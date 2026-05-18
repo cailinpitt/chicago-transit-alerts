@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779114784752,
+  "generated_at": 1779115502705,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -8,10 +8,10 @@
       "routes": [
         "g"
       ],
-      "headline": "Green Line Service Delayed near 35th Bronzeville",
-      "short_description": "Green Line trains are standing near 35th due to signal problems. Crews working to restore service.",
+      "headline": "Green Line Service Running with Delays",
+      "short_description": "Green Line trains are running with delays near 35th due to an earlier signal problem.",
       "first_seen_ts": 1779114782468,
-      "last_seen_ts": 1779114783843,
+      "last_seen_ts": 1779115383425,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -22,9 +22,27 @@
       "affected_direction": null,
       "mentioned_stations": [],
       "cta_event_start_ts": 1779114540000,
-      "cta_event_end_ts": null,
+      "cta_event_end_ts": 1779115800000,
       "cta_event_start_is_date_only": false,
-      "cta_event_end_is_date_only": false
+      "cta_event_end_is_date_only": false,
+      "versions": [
+        {
+          "ts": 1779114782468,
+          "headline": "Green Line Service Delayed near 35th Bronzeville",
+          "short_description": "Green Line trains are standing near 35th due to signal problems. Crews working to restore service.",
+          "affected_from_station": null,
+          "affected_to_station": null,
+          "affected_direction": null
+        },
+        {
+          "ts": 1779115383425,
+          "headline": "Green Line Service Running with Delays",
+          "short_description": "Green Line trains are running with delays near 35th due to an earlier signal problem.",
+          "affected_from_station": null,
+          "affected_to_station": null,
+          "affected_direction": null
+        }
+      ]
     },
     {
       "alert_id": "115002",
@@ -1374,7 +1392,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779114722934,
+      "last_seen_ts": 1779115442592,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
