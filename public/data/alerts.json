@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779082024945,
+  "generated_at": 1779084245025,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,7 +11,7 @@
       "headline": "Linden-bound Purple Line Service Running with Delays",
       "short_description": "Linden-bound Purple Line trains are running with delays due to an obstruction. Crews working to restore service.",
       "first_seen_ts": 1779082023240,
-      "last_seen_ts": 1779082024003,
+      "last_seen_ts": 1779084183320,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -309,7 +309,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1779082023239,
+      "last_seen_ts": 1779084183320,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1322,7 +1322,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779081963232,
+      "last_seen_ts": 1779084242957,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1457,13 +1457,13 @@
       ],
       "evidence": null,
       "ts": 1779079742655,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779083642339,
+      "duration_ms": 3899684,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm4363zbzz2s",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm47eaa3nw24",
       "bot_description": "Route 146 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-      "bot_resolved_description": null
+      "bot_resolved_description": "Route 146 service appears to be back to normal."
     },
     {
       "id": 88,
