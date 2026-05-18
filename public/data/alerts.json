@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779116106947,
+  "generated_at": 1779116945138,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -1392,7 +1392,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779116042505,
+      "last_seen_ts": 1779116884232,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1513,6 +1513,29 @@
     }
   ],
   "observations": [
+    {
+      "id": 94,
+      "kind": "train",
+      "line": "p",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "pulse-cold",
+        "ghost",
+        "gap"
+      ],
+      "evidence": null,
+      "ts": 1779116765594,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm55squres2c",
+      "resolved_post_url": null,
+      "bot_description": "Purple Line service appears degraded — a stretch of the line without trains, fewer trains than scheduled, and longer-than-scheduled headways between trains.",
+      "bot_resolved_description": null
+    },
     {
       "id": 338,
       "kind": "train",
