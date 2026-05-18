@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779115746263,
+  "generated_at": 1779116106947,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -12,11 +12,11 @@
       "short_description": "Green Line trains are running with delays near 35th due to an earlier signal problem.",
       "first_seen_ts": 1779114782468,
       "last_seen_ts": 1779115744015,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779115864458,
+      "duration_ms": 1081990,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm53sesa2u2h",
-      "resolved_reply_url": null,
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm54zs3doc2h",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
@@ -1392,7 +1392,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779115683174,
+      "last_seen_ts": 1779116042505,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
