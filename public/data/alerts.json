@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779078666315,
+  "generated_at": 1779079744933,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -285,7 +285,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1779078663162,
+      "last_seen_ts": 1779079742988,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1298,7 +1298,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779078602983,
+      "last_seen_ts": 1779079682852,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1419,6 +1419,28 @@
     }
   ],
   "observations": [
+    {
+      "id": 89,
+      "kind": "bus",
+      "line": "146",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "gap",
+        "bunching"
+      ],
+      "evidence": null,
+      "ts": 1779079742655,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm4363zbzz2s",
+      "resolved_post_url": null,
+      "bot_description": "Route 146 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
+      "bot_resolved_description": null
+    },
     {
       "id": 88,
       "kind": "bus",
