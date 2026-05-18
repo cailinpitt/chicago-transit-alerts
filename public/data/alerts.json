@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779109744916,
+  "generated_at": 1779110646684,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -1350,7 +1350,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779109683279,
+      "last_seen_ts": 1779110643033,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1472,6 +1472,28 @@
   ],
   "observations": [
     {
+      "id": 92,
+      "kind": "bus",
+      "line": "8",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "bunching",
+        "gap"
+      ],
+      "evidence": null,
+      "ts": 1779110642741,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm4xwyiem42u",
+      "resolved_post_url": null,
+      "bot_description": "Route 8 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
+      "bot_resolved_description": null
+    },
+    {
       "id": 91,
       "kind": "bus",
       "line": "152",
@@ -1485,13 +1507,13 @@
       ],
       "evidence": null,
       "ts": 1779109742263,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779110042854,
+      "duration_ms": 300591,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm4x45pdzo2x",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm4xx2ohqa2h",
       "bot_description": "Route 152 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": null
+      "bot_resolved_description": "Route 152 service appears to be back to normal."
     },
     {
       "id": 336,
