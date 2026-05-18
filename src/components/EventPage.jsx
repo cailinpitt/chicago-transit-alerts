@@ -13,7 +13,6 @@ import {
   hexToRgba,
 } from '../lib/format.js';
 import {
-  describeBotObservation,
   findContemporaneousOnOtherLines,
   findIncidentById,
   findRelatedIncidents,
@@ -1031,21 +1030,71 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           since the CTA feed sometimes uses line breaks to separate
           instructions. */}
       {/* Plain-English narrative for pure bot observations — the "Per bot"
-          counterpart to "Per CTA" below. Lives next to the signal/detection
-          chips so the reader sees both *what* the bot detected (chips) and
-          *what that combination means* (sentence) without having to translate
-          the chip salad themselves. Returns null for alerts/merged so it
-          doesn't duplicate the CTA short_description. */}
+          counterpart to "Per CTA" below. Both sentences are pre-rendered
+          server-side in cta-insights/bin/export-web.js so this stays a dumb
+          renderer. When the observation is resolved, the detection +
+          resolution sentences become two entries on a LinkedIn-style rail
+          matching the "Per CTA · N updates" pattern. */}
       {(() => {
-        const summary = describeBotObservation(incident);
-        if (!summary) return null;
+        const detection = incident.bot_description;
+        const resolution = incident.bot_resolved_description;
+        if (!detection) return null;
+        if (!resolution) {
+          return (
+            <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
+              <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                Per bot
+              </p>
+              <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                {detection}
+              </p>
+            </blockquote>
+          );
+        }
+        // Two entries: resolution (latest) at top, detection (oldest) below.
+        // Matches the visual rhythm of the multi-version CTA block above.
+        const entries = [
+          { ts: incident.resolved_ts, text: resolution, isLatest: true, isOldest: false },
+          { ts: incident.ts, text: detection, isLatest: false, isOldest: true },
+        ];
         return (
-          <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
-            <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
-              Per bot
+          <section className="mt-4">
+            <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+              Per bot · 2 updates
             </p>
-            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">{summary}</p>
-          </blockquote>
+            <ol className="space-y-6">
+              {entries.map((e) => (
+                <li key={e.ts} className="relative pl-6">
+                  {!e.isOldest && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-[3px] top-2 w-px bg-slate-200 dark:bg-gh-border"
+                      style={{ bottom: '-1.5rem' }}
+                    />
+                  )}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute left-0 top-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white dark:ring-gh-surface ${
+                      e.isLatest ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-500'
+                    }`}
+                  />
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                      {formatDate(e.ts)} · {formatTime(e.ts)}
+                    </p>
+                    {e.isLatest && (
+                      <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-500">
+                        Latest
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                    {e.text}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </section>
         );
       })()}
 
