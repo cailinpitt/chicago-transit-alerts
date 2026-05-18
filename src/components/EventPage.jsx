@@ -952,6 +952,9 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           </span>
         )}
         {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
+        {!incident.active && incident.resolved_ts != null && (
+          <span className="text-xs font-semibold text-green-600 dark:text-green-400">resolved</span>
+        )}
       </div>
 
       <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100 leading-snug mb-2">
