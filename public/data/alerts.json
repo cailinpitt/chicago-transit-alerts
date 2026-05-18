@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779106985720,
+  "generated_at": 1779107410709,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -15,7 +15,7 @@
       "headline": "Delays on Loop 'L' (elevated lines)",
       "short_description": "Brown, Green, Orange, Purple & Pink Line trains are experiencing delays due to a mechanical problem on a train near Adams/Wabash.",
       "first_seen_ts": 1779106984504,
-      "last_seen_ts": 1779106984818,
+      "last_seen_ts": 1779107342920,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1350,7 +1350,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779106922983,
+      "last_seen_ts": 1779107402856,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1471,6 +1471,41 @@
     }
   ],
   "observations": [
+    {
+      "id": 336,
+      "kind": "train",
+      "line": "org",
+      "direction": "branch-0-outbound",
+      "from_station": "35th/Archer",
+      "to_station": "Halsted (Orange)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 5.9,
+        "minutesSinceLastTrain": 19,
+        "lookbackMin": 24,
+        "coldThresholdMin": 19,
+        "trainsOutsideRun": 7,
+        "coldStations": 3,
+        "coldStationNames": [
+          "35th/Archer",
+          "Ashland (Orange)",
+          "Halsted (Orange)"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 7.5,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779107162858,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm4uwlqvf72s",
+      "resolved_post_url": null,
+      "bot_description": "Orange Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null
+    },
     {
       "id": 90,
       "kind": "train",
