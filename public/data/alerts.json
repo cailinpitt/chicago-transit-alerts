@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779116945138,
+  "generated_at": 1779117009271,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -1392,7 +1392,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779116884232,
+      "last_seen_ts": 1779117002609,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1534,6 +1534,44 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm55squres2c",
       "resolved_post_url": null,
       "bot_description": "Purple Line service appears degraded — a stretch of the line without trains, fewer trains than scheduled, and longer-than-scheduled headways between trains.",
+      "bot_resolved_description": null
+    },
+    {
+      "id": 339,
+      "kind": "train",
+      "line": "p",
+      "direction": "branch-1-inbound",
+      "from_station": "South Boulevard",
+      "to_station": "Diversey (Brown/Purple)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 7.4,
+        "minutesSinceLastTrain": null,
+        "lookbackMin": 30,
+        "coldThresholdMin": 25,
+        "trainsOutsideRun": 6,
+        "coldStations": 6,
+        "coldStationNames": [
+          "South Boulevard",
+          "Howard",
+          "Wilson",
+          "Belmont (Red/Brown/Purple)",
+          "Wellington (Brown/Purple)",
+          "Diversey (Brown/Purple)"
+        ],
+        "expectedTrains": 3,
+        "headwayMin": 10,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779116762316,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm55unxe7i24",
+      "resolved_post_url": null,
+      "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
       "bot_resolved_description": null
     },
     {
