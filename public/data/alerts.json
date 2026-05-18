@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779115709183,
+  "generated_at": 1779115746263,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,7 +11,7 @@
       "headline": "Green Line Service Running with Delays",
       "short_description": "Green Line trains are running with delays near 35th due to an earlier signal problem.",
       "first_seen_ts": 1779114782468,
-      "last_seen_ts": 1779115622228,
+      "last_seen_ts": 1779115744015,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1562,13 +1562,13 @@
       ],
       "evidence": null,
       "ts": 1779111665480,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779115143697,
+      "duration_ms": 3478217,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm52hhbx432c",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm54ozzgxt2c",
       "bot_description": "Route 66 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": null
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 92,
