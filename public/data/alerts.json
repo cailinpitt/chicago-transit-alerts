@@ -1,7 +1,33 @@
 {
-  "generated_at": 1779076147114,
+  "generated_at": 1779077225369,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "114996",
+      "kind": "train",
+      "routes": [
+        "p"
+      ],
+      "headline": "Linden-bound Purple Line Service Delayed at Central",
+      "short_description": "Linden-bound Purple Line trains are standing at Linden due to a stalled train. Crews working to restore service.",
+      "first_seen_ts": 1779077223222,
+      "last_seen_ts": 1779077224572,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm3ysz44ev2l",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "mentioned_stations": [
+        "Linden"
+      ],
+      "cta_event_start_ts": 1779077100000,
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "114995",
       "kind": "train",
@@ -241,7 +267,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1779076143243,
+      "last_seen_ts": 1779077222791,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1254,7 +1280,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779076083078,
+      "last_seen_ts": 1779077162559,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
