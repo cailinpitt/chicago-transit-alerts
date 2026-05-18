@@ -50,9 +50,14 @@ function indexDays(days) {
 function filterCounts(day, { selectedLines, showBus, selectedBusRoutes }) {
   let trainCount = 0;
   if (selectedLines === null) {
-    // All train lines pass.
-    trainCount = day.train_count || 0;
+    // All train lines pass — use the merged total (CTA alert + matching bot
+    // observation collapsed into one incident) so the tile matches Timeline.
+    // Falls back to raw train_count for any pre-merge daily-counts.json.
+    trainCount = day.train_merged_count ?? day.train_count ?? 0;
   } else if (selectedLines.length > 0 && day.by_line && typeof day.by_line === 'object') {
+    // Narrowed to specific lines — by_line is raw per-route, no merged
+    // variant exists. Slight overcount when a Red+Bot pair both fall in
+    // the filter; acceptable for now.
     const wanted = new Set(selectedLines.map(normalizeTrainLine));
     for (const [k, v] of Object.entries(day.by_line)) {
       if (wanted.has(normalizeTrainLine(k))) trainCount += v;
@@ -62,7 +67,7 @@ function filterCounts(day, { selectedLines, showBus, selectedBusRoutes }) {
   let busCount = 0;
   if (showBus) {
     if (!selectedBusRoutes || selectedBusRoutes.length === 0) {
-      busCount = day.bus_count || 0;
+      busCount = day.bus_merged_count ?? day.bus_count ?? 0;
     } else if (day.by_route && typeof day.by_route === 'object') {
       for (const [k, v] of Object.entries(day.by_route)) {
         if (selectedBusRoutes.includes(k)) busCount += v;
@@ -169,7 +174,10 @@ export function buildCalendarMonths(
       const { trainCount, busCount } = rec
         ? filters
           ? filterCounts(rec, filters)
-          : { trainCount: rec.train_count || 0, busCount: rec.bus_count || 0 }
+          : {
+              trainCount: rec.train_merged_count ?? rec.train_count ?? 0,
+              busCount: rec.bus_merged_count ?? rec.bus_count ?? 0,
+            }
         : { trainCount: 0, busCount: 0 };
       cells.push({
         dayOfMonth: d,
@@ -286,7 +294,10 @@ export function buildCalendarWeeks(
       const { trainCount, busCount } = rec
         ? filters
           ? filterCounts(rec, filters)
-          : { trainCount: rec.train_count || 0, busCount: rec.bus_count || 0 }
+          : {
+              trainCount: rec.train_merged_count ?? rec.train_count ?? 0,
+              busCount: rec.bus_merged_count ?? rec.bus_count ?? 0,
+            }
         : { trainCount: 0, busCount: 0 };
       const count = trainCount + busCount;
       if (inRange && !noData && count > maxCount) maxCount = count;
