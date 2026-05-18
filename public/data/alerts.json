@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779064400091,
+  "generated_at": 1779065025002,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -217,7 +217,7 @@
       "headline": "Bus Substitution Between Garfield and Ashland/63rd Stations",
       "short_description": "Shuttle buses replace Green Line rail service between Garfield and Ashland/63rd stations.",
       "first_seen_ts": 1778900463655,
-      "last_seen_ts": 1779064382635,
+      "last_seen_ts": 1779064982458,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1230,7 +1230,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779064323369,
+      "last_seen_ts": 1779064922506,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1393,7 +1393,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm3i656wwd24",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm3kfpnly32l",
       "bot_description": "Red Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 84,
@@ -1415,7 +1415,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm3clctbpi2h",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm3dp53pv62c",
       "bot_description": "Route 82 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 82, service appears to be back to normal."
+      "bot_resolved_description": "Route 82 service appears to be back to normal."
     },
     {
       "id": 334,
@@ -1460,7 +1460,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm32qyxjhq2h",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm34yl6idd2s",
       "bot_description": "Route 49 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 49, service appears to be back to normal."
+      "bot_resolved_description": "Route 49 service appears to be back to normal."
     },
     {
       "id": 82,
@@ -1482,7 +1482,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm2xfp6mov2h",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm2znaay3324",
       "bot_description": "Route 82 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 82, service appears to be back to normal."
+      "bot_resolved_description": "Route 82 service appears to be back to normal."
     },
     {
       "id": 81,
@@ -1504,7 +1504,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm2u2fucsm2a",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm2v66yh5h2s",
       "bot_description": "Route 82 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 82, service appears to be back to normal."
+      "bot_resolved_description": "Route 82 service appears to be back to normal."
     },
     {
       "id": 80,
@@ -1526,7 +1526,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlzfoapdrp2c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlzhdw37ie2h",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 79,
@@ -1548,7 +1548,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlzbzzb7vz2a",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlzdymthvv2q",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 78,
@@ -1570,7 +1570,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlz32ja2us2u",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlz5c22nq72g",
       "bot_description": "Route 146 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 146, service appears to be back to normal."
+      "bot_resolved_description": "Route 146 service appears to be back to normal."
     },
     {
       "id": 76,
@@ -1592,7 +1592,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlyxp7stos2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlyzwr2d4r24",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 77,
@@ -1614,7 +1614,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlyxpapapl2a",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlz46dwepx24",
       "bot_description": "Route 147 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 147, service appears to be back to normal."
+      "bot_resolved_description": "Route 147 service appears to be back to normal."
     },
     {
       "id": 75,
@@ -1636,7 +1636,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlyv6q2krb2x",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlywlhax622a",
       "bot_description": "Route 66 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 331,
@@ -1729,7 +1729,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlykkyu5ag2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlymjmarjs2x",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 73,
@@ -1751,7 +1751,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlygws2o3g24",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlyj6czypb2s",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 72,
@@ -1773,7 +1773,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlyepaewc62l",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlyi2l4frj2s",
       "bot_description": "Route 6 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 6, service appears to be back to normal."
+      "bot_resolved_description": "Route 6 service appears to be back to normal."
     },
     {
       "id": 71,
@@ -1795,7 +1795,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlydlhlmhs24",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlyfszdcgq2a",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 70,
@@ -1817,7 +1817,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mly4uvdkii2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mly74gzrcb2a",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 69,
@@ -1839,7 +1839,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mly2ngf56u24",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mly4ux6x4x2x",
       "bot_description": "Route 60 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 60, service appears to be back to normal."
+      "bot_resolved_description": "Route 60 service appears to be back to normal."
     },
     {
       "id": 68,
@@ -1861,7 +1861,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlxzjm2mfq2q",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mly3r67ewv2c",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 67,
@@ -1883,7 +1883,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlws4xzsgk2h",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwtjqsyaf2s",
       "bot_description": "Blue Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 66,
@@ -1905,7 +1905,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwklllyo22s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwp2nndhp24",
       "bot_description": "Route 147 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 147, service appears to be back to normal."
+      "bot_resolved_description": "Route 147 service appears to be back to normal."
     },
     {
       "id": 65,
@@ -1927,7 +1927,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwie2ihwk2h",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwklnd34y2g",
       "bot_description": "Route X9 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route X9, service appears to be back to normal."
+      "bot_resolved_description": "Route X9 service appears to be back to normal."
     },
     {
       "id": 64,
@@ -1949,7 +1949,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwfkmw3l22q",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwhae2eqq24",
       "bot_description": "Route 66 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 63,
@@ -1972,7 +1972,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwduygpoh2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwg4jv3jv2c",
       "bot_description": "Red Line service appears degraded — fewer trains than scheduled, longer-than-scheduled headways between trains, and trains running bunched together.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 326,
@@ -2029,7 +2029,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwbnhwwtz2c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwdv2oyaq2q",
       "bot_description": "Route 66 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 61,
@@ -2052,7 +2052,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwbeknohd2l",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlwfkp6wcy2c",
       "bot_description": "Blue Line service appears degraded — longer-than-scheduled headways between trains, fewer trains than scheduled, and trains running bunched together.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 324,
@@ -2108,7 +2108,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlw56gi3em2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlw7fyfynf2c",
       "bot_description": "Route 151 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 151, service appears to be back to normal."
+      "bot_resolved_description": "Route 151 service appears to be back to normal."
     },
     {
       "id": 59,
@@ -2130,7 +2130,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlvqm3qc4m2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlvrysq6q32i",
       "bot_description": "Red Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 58,
@@ -2152,7 +2152,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlvj2osf2w2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlvlc7zpqj2q",
       "bot_description": "Route 66 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 57,
@@ -2174,7 +2174,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlukv3537a2a",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlun4ndzun2g",
       "bot_description": "Red Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 56,
@@ -2196,7 +2196,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mluhjsk7b32c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlujrec7fx2c",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 55,
@@ -2219,7 +2219,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlue6jfxy72i",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mluinlasty2c",
       "bot_description": "Route 9 service appears degraded — fewer buses than scheduled, longer-than-scheduled gaps between buses, and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 9, service appears to be back to normal."
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 54,
@@ -2242,7 +2242,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlu6lp6lmi2q",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlud2rwi3e2x",
       "bot_description": "Route 72 service appears degraded — longer-than-scheduled gaps between buses, buses running bunched together, and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 72, service appears to be back to normal."
+      "bot_resolved_description": "Route 72 service appears to be back to normal."
     },
     {
       "id": 53,
@@ -2264,7 +2264,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlu5hx3h6s2u",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlu7pigisi2s",
       "bot_description": "Route 147 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 147, service appears to be back to normal."
+      "bot_resolved_description": "Route 147 service appears to be back to normal."
     },
     {
       "id": 52,
@@ -2286,7 +2286,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlu4n3vvwc2q",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlu6csutxc2c",
       "bot_description": "Route 66 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 51,
@@ -2308,7 +2308,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mltyyvaebe2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlu6crwzgt2h",
       "bot_description": "Route 66 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 50,
@@ -2331,7 +2331,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mltwrdcfyq2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mltyywscut2c",
       "bot_description": "Red Line service appears degraded — fewer trains than scheduled, longer-than-scheduled headways between trains, and trains running bunched together.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 49,
@@ -2354,7 +2354,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlttg2mv6s2a",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mltvnmmidv2s",
       "bot_description": "Route 22 service appears degraded — fewer buses than scheduled, longer-than-scheduled gaps between buses, and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 22, service appears to be back to normal."
+      "bot_resolved_description": "Route 22 service appears to be back to normal."
     },
     {
       "id": 48,
@@ -2376,7 +2376,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mltsccraxn2h",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mltwihb7bm2x",
       "bot_description": "Route 66 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 47,
@@ -2398,7 +2398,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlsylqzbhi2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlt2tcmnid2s",
       "bot_description": "Route 66 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 46,
@@ -2421,7 +2421,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlsvai3fcx2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlsxhzpskf24",
       "bot_description": "Red Line service appears degraded — fewer trains than scheduled, longer-than-scheduled headways between trains, and trains running bunched together.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 45,
@@ -2443,7 +2443,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlsspz7gh52l",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlsu4r2pkf2s",
       "bot_description": "Route 26 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 26, service appears to be back to normal."
+      "bot_resolved_description": "Route 26 service appears to be back to normal."
     },
     {
       "id": 44,
@@ -2466,7 +2466,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlrtplvijg2l",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlrxvpltnf2h",
       "bot_description": "Route 9 service appears degraded — fewer buses than scheduled, longer-than-scheduled gaps between buses, and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 9, service appears to be back to normal."
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 43,
@@ -2488,7 +2488,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlrjnpx3lz2q",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlrlvbnxkx2h",
       "bot_description": "Route 66 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 42,
@@ -2510,7 +2510,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlrgcfcbuo2x",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlriazsa232i",
       "bot_description": "Route 8 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 8, service appears to be back to normal."
+      "bot_resolved_description": "Route 8 service appears to be back to normal."
     },
     {
       "id": 318,
@@ -2568,7 +2568,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlqerkfrly2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlqgz43itk2g",
       "bot_description": "Route 66 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 40,
@@ -2590,7 +2590,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp7vego662s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlpc4wrc2y2s",
       "bot_description": "Route 9 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 9, service appears to be back to normal."
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 39,
@@ -2612,7 +2612,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp4k3gfvp2h",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp6rmkk6t2s",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 316,
@@ -2669,7 +2669,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mloz6s33wn2c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp3gebdut2a",
       "bot_description": "Route 147 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 147, service appears to be back to normal."
+      "bot_resolved_description": "Route 147 service appears to be back to normal."
     },
     {
       "id": 314,
@@ -2760,7 +2760,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlnyippqbp2g",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlo2qbyck62s",
       "bot_description": "Route 66 service appears degraded — buses running bunched together and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 36,
@@ -2782,7 +2782,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmw4znizs24",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmyeksxfb2u",
       "bot_description": "Route 9 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 9, service appears to be back to normal."
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 35,
@@ -2804,7 +2804,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmtmkco3u2a",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmuzc67sx2g",
       "bot_description": "Blue Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 33,
@@ -2826,7 +2826,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmfeluvmk2q",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmhm53ucj2g",
       "bot_description": "Red Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 34,
@@ -2848,7 +2848,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmfen7c2s2q",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlmhd6mqc22h",
       "bot_description": "Route 66 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 310,
@@ -2909,7 +2909,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mllaifzhe22u",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mllbv5ltu42x",
       "bot_description": "Red Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 308,
@@ -2968,7 +2968,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mljuvo3ywg2g",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mljx57w4qz2h",
       "bot_description": "Red Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 30,
@@ -2990,7 +2990,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlj2w5ukcb2g",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlj4cvav7j2u",
       "bot_description": "Red Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-      "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal."
+      "bot_resolved_description": "Red Line service appears to be back to normal."
     },
     {
       "id": 305,
@@ -3083,7 +3083,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlhl5bzicy2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlhpvcxbaj2q",
       "bot_description": "Route 147 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 147, service appears to be back to normal."
+      "bot_resolved_description": "Route 147 service appears to be back to normal."
     },
     {
       "id": 302,
@@ -3178,7 +3178,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlfgfveuzy2c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlfinhltmz2a",
       "bot_description": "Route 79 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 79, service appears to be back to normal."
+      "bot_resolved_description": "Route 79 service appears to be back to normal."
     },
     {
       "id": 27,
@@ -3200,7 +3200,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlfbexoxi72c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlfehepbdl24",
       "bot_description": "Route 9 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 9, service appears to be back to normal."
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 26,
@@ -3222,7 +3222,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlegtmcyhx2i",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mleisadym32s",
       "bot_description": "Route 22 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 22, service appears to be back to normal."
+      "bot_resolved_description": "Route 22 service appears to be back to normal."
     },
     {
       "id": 25,
@@ -3244,7 +3244,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlegkoaqsh2g",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlem5imy5x2s",
       "bot_description": "Route 9 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 9, service appears to be back to normal."
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 298,
@@ -3301,7 +3301,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mled7fbbxm2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlef5xzytt2s",
       "bot_description": "Route 22 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 22, service appears to be back to normal."
+      "bot_resolved_description": "Route 22 service appears to be back to normal."
     },
     {
       "id": 21,
@@ -3322,7 +3322,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldz5jkmp42c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle3f2issp2q",
       "bot_description": "Route 36 service appears degraded — fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 36, service appears to be back to normal."
+      "bot_resolved_description": "Route 36 service appears to be back to normal."
     },
     {
       "id": 22,
@@ -3343,7 +3343,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldz5laso72u",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle3f3uq462g",
       "bot_description": "Route 147 service appears degraded — fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 147, service appears to be back to normal."
+      "bot_resolved_description": "Route 147 service appears to be back to normal."
     },
     {
       "id": 23,
@@ -3364,7 +3364,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldz5lc47e2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mle3f52s5t2s",
       "bot_description": "Route 151 service appears degraded — fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 151, service appears to be back to normal."
+      "bot_resolved_description": "Route 151 service appears to be back to normal."
     },
     {
       "id": 20,
@@ -3385,7 +3385,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldvsaam3m2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldxzsqh2y2u",
       "bot_description": "Route 147 service appears degraded — fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 147, service appears to be back to normal."
+      "bot_resolved_description": "Route 147 service appears to be back to normal."
     },
     {
       "id": 19,
@@ -3407,7 +3407,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldttneyr22c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldxzqxu2l2c",
       "bot_description": "Route 66 service appears degraded — buses running bunched together and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 18,
@@ -3428,7 +3428,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mldsgwgr4p2u",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlduohx74s24",
       "bot_description": "Route 147 service appears degraded — fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 147, service appears to be back to normal."
+      "bot_resolved_description": "Route 147 service appears to be back to normal."
     },
     {
       "id": 17,
@@ -3450,7 +3450,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlbzyw2zjy2u",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlc6qvqqmb2i",
       "bot_description": "Route 66 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 16,
@@ -3472,7 +3472,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlbw3qnytj24",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlc2tqa2532i",
       "bot_description": "Route 9 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 9, service appears to be back to normal."
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 15,
@@ -3494,7 +3494,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlbg64ikak2i",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlbkw4c3lq2s",
       "bot_description": "Route 66 service appears degraded — buses running bunched together and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 14,
@@ -3516,7 +3516,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlbcjvhoml2s",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlbergnu2p2c",
       "bot_description": "Route 66 service appears degraded — buses running bunched together and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 13,
@@ -3538,7 +3538,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlabbxk2rs2c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlacongwys2c",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 12,
@@ -3560,7 +3560,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mla5wnkml62q",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mla7debewq2a",
       "bot_description": "Blue Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 11,
@@ -3582,7 +3582,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mla4svewv42c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mla6ikpu5b2i",
       "bot_description": "Route 9 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": "Buses observed again on Route 9, service appears to be back to normal."
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 10,
@@ -3604,7 +3604,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml7cbjnm6c2c",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml7ej2szpv2q",
       "bot_description": "Route 82 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 82, service appears to be back to normal."
+      "bot_resolved_description": "Route 82 service appears to be back to normal."
     },
     {
       "id": 9,
@@ -3626,7 +3626,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml6vgayded2x",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml6zdh7l2q2u",
       "bot_description": "Route 66 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 292,
@@ -3667,7 +3667,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5tdivmgk2h",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5vl26bkq2c",
       "bot_description": "Blue Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-      "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal."
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 7,
@@ -3689,7 +3689,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5py7p67m2u",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5t2l2d622g",
       "bot_description": "Route 9 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 9, service appears to be back to normal."
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 288,
@@ -3730,7 +3730,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5fwdryjd2u",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5i5v54kr2u",
       "bot_description": "Route 147 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 147, service appears to be back to normal."
+      "bot_resolved_description": "Route 147 service appears to be back to normal."
     },
     {
       "id": 5,
@@ -3752,7 +3752,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5d4wvs3y2a",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml5esl7t2m2a",
       "bot_description": "Route 8 service appears degraded — buses running bunched together and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 8, service appears to be back to normal."
+      "bot_resolved_description": "Route 8 service appears to be back to normal."
     },
     {
       "id": 4,
@@ -3774,7 +3774,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml4efgapxx2x",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml4iuj3rih2g",
       "bot_description": "Route 66 service appears degraded — buses running bunched together and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 3,
@@ -3797,7 +3797,7 @@
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml2qghyjhd2a",
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3ml2u2pisoy2c",
       "bot_description": "Route 66 service appears degraded — buses running bunched together, longer-than-scheduled gaps between buses, and fewer buses than scheduled.",
-      "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal."
+      "bot_resolved_description": "Route 66 service appears to be back to normal."
     },
     {
       "id": 285,
