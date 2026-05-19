@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779196145099,
+  "generated_at": 1779199445414,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -1436,7 +1436,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779196083221,
+      "last_seen_ts": 1779199443589,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1557,6 +1557,28 @@
     }
   ],
   "observations": [
+    {
+      "id": 103,
+      "kind": "bus",
+      "line": "72",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "bunching",
+        "gap"
+      ],
+      "evidence": null,
+      "ts": 1779198366102,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm7kngdqoi2i",
+      "resolved_post_url": null,
+      "bot_description": "Route 72 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
+      "bot_resolved_description": null
+    },
     {
       "id": 346,
       "kind": "train",
