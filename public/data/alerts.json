@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779163746389,
+  "generated_at": 1779166144531,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -1392,7 +1392,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779163682779,
+      "last_seen_ts": 1779166083197,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1527,13 +1527,13 @@
       ],
       "evidence": null,
       "ts": 1779162725764,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779165542256,
+      "duration_ms": 2816492,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm6jfiyvox2i",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm6lmzpd7i2u",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": null
+      "bot_resolved_description": "Blue Line service appears to be back to normal."
     },
     {
       "id": 99,
