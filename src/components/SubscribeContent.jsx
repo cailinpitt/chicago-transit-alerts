@@ -5,30 +5,78 @@ const FEED_URL = 'https://chicagotransitalerts.app/feed.xml';
 const CSV_URL = 'https://chicagotransitalerts.app/data/alerts.csv';
 const JSON_URL = 'https://chicagotransitalerts.app/data/alerts.json';
 
+const CURL_CMD = `curl -s ${JSON_URL} | jq '.alerts | length'`;
+
 export default function SubscribeContent() {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(null);
 
   useEffect(() => {
     if (!copied) return;
-    const t = setTimeout(() => setCopied(false), 1500);
+    const t = setTimeout(() => setCopied(null), 1500);
     return () => clearTimeout(t);
   }, [copied]);
 
-  const copy = async () => {
+  const copy = (key, text) => async () => {
     try {
-      await navigator.clipboard.writeText(FEED_URL);
-      setCopied(true);
+      await navigator.clipboard.writeText(text);
+      setCopied(key);
     } catch {
       // Clipboard API can fail in older Safari / restrictive contexts; the
-      // URL is visible and selectable in the input either way.
+      // text is visible and selectable either way.
     }
   };
 
   return (
     <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+      <h3 className="font-semibold text-slate-700 dark:text-slate-200">Follow on Bluesky</h3>
+      <p>
+        The bots that feed this archive post directly to Bluesky in real time. Follow whichever
+        modes you care about:
+      </p>
+      <ul className="list-disc list-outside ml-5 space-y-1">
+        <li>
+          <a
+            className={LINK}
+            href="https://bsky.app/profile/ctaalertinsights.bsky.social"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @ctaalertinsights
+          </a>{' '}
+          — official CTA alerts plus full-line/route blackouts and roundups.
+        </li>
+        <li>
+          <a
+            className={LINK}
+            href="https://bsky.app/profile/ctatraininsights.bsky.social"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @ctatraininsights
+          </a>{' '}
+          — bunching, gaps, and ghost-hour detections on the L.
+        </li>
+        <li>
+          <a
+            className={LINK}
+            href="https://bsky.app/profile/ctabusinsights.bsky.social"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @ctabusinsights
+          </a>{' '}
+          — same, for bus routes.
+        </li>
+      </ul>
+
+      <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-3">RSS / Atom feed</h3>
       <p>
         An Atom feed of the 50 most recent incidents — official CTA alerts and bot-detected
         disruptions, all lines and routes. Drop the URL below into any feed reader to follow along.
+      </p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        Capped at 50 entries, which typically covers the last 3–7 days depending on how active the
+        system has been.
       </p>
 
       <div className="flex items-center gap-2">
@@ -41,10 +89,10 @@ export default function SubscribeContent() {
         />
         <button
           type="button"
-          onClick={copy}
+          onClick={copy('feed', FEED_URL)}
           className="px-3 py-1.5 text-xs font-medium rounded border border-slate-200 dark:border-gh-border text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gh-border transition-colors"
         >
-          {copied ? 'Copied' : 'Copy'}
+          {copied === 'feed' ? 'Copied' : 'Copy'}
         </button>
       </div>
 
@@ -102,7 +150,7 @@ export default function SubscribeContent() {
           <a className={LINK} href={CSV_URL} target="_blank" rel="noopener noreferrer">
             {CSV_URL}
           </a>{' '}
-          — flat CSV for pandas / spreadsheets.
+          — flat CSV, one row per alert or observation.
         </li>
         <li>
           <a className={LINK} href={JSON_URL} target="_blank" rel="noopener noreferrer">
@@ -111,6 +159,19 @@ export default function SubscribeContent() {
           — same shape the SPA reads.
         </li>
       </ul>
+      <p className="text-xs text-slate-500 dark:text-slate-400">Quick check from a terminal:</p>
+      <div className="flex items-center gap-2">
+        <pre className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-all">
+          {CURL_CMD}
+        </pre>
+        <button
+          type="button"
+          onClick={copy('curl', CURL_CMD)}
+          className="px-3 py-1.5 text-xs font-medium rounded border border-slate-200 dark:border-gh-border text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gh-border transition-colors"
+        >
+          {copied === 'curl' ? 'Copied' : 'Copy'}
+        </button>
+      </div>
     </div>
   );
 }

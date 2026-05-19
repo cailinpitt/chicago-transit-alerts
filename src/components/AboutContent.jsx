@@ -66,6 +66,12 @@ export default function AboutContent() {
         means nothing new has happened.
       </p>
 
+      <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">How far back</h3>
+      <p>
+        The archive starts on April 26, 2026 — anything earlier than that predates the bots. Stats,
+        calendar, and leaderboard views all draw from this window.
+      </p>
+
       <p className="pt-2 text-xs text-slate-500 dark:text-slate-400">
         Source on{' '}
         <a
