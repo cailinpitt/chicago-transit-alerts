@@ -99,7 +99,7 @@ export default function SignalBreakdown({ observations }) {
   return (
     <section>
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-        Signal mix by line
+        Signal mix by train line
       </h2>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
         <div className="space-y-2">
