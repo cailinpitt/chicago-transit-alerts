@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779161644874,
+  "generated_at": 1779163746389,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -1392,7 +1392,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779161643681,
+      "last_seen_ts": 1779163682779,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1514,6 +1514,28 @@
   ],
   "observations": [
     {
+      "id": 100,
+      "kind": "train",
+      "line": "blue",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost",
+        "gap"
+      ],
+      "evidence": null,
+      "ts": 1779162725764,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm6jfiyvox2i",
+      "resolved_post_url": null,
+      "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
+      "bot_resolved_description": null
+    },
+    {
       "id": 99,
       "kind": "bus",
       "line": "9",
@@ -1527,13 +1549,13 @@
       ],
       "evidence": null,
       "ts": 1779159963895,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779163142296,
+      "duration_ms": 3178401,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm6hgvrsm32s",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm6jfkjfye2s",
       "bot_description": "Route 9 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
-      "bot_resolved_description": null
+      "bot_resolved_description": "Route 9 service appears to be back to normal."
     },
     {
       "id": 98,
