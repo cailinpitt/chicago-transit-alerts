@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779223211853,
+  "generated_at": 1779225727126,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -1436,7 +1436,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779223204042,
+      "last_seen_ts": 1779225722849,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1557,6 +1557,40 @@
     }
   ],
   "observations": [
+    {
+      "id": 350,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-0-outbound",
+      "from_station": "Wellington (Brown/Purple)",
+      "to_station": "Diversey (Brown/Purple)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 0.7,
+        "minutesSinceLastTrain": 16,
+        "lookbackMin": 20,
+        "coldThresholdMin": 15,
+        "trainsOutsideRun": 6,
+        "coldStations": 2,
+        "coldStationNames": [
+          "Wellington (Brown/Purple)",
+          "Diversey (Brown/Purple)"
+        ],
+        "expectedTrains": 3,
+        "headwayMin": 5.133333333333334,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779225482619,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmad4qepqc2g",
+      "resolved_post_url": null,
+      "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null
+    },
     {
       "id": 348,
       "kind": "train",
