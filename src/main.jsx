@@ -9,6 +9,7 @@ import { installStaleAssetReload } from './lib/staleAssetReload.js';
 // CSS bundle and renders unstyled until the user hard-refreshes.
 installStaleAssetReload();
 
+import AboutPage from './components/AboutPage.jsx';
 import CalendarPage from './components/CalendarPage.jsx';
 import ComparePage from './components/ComparePage.jsx';
 import DayPage from './components/DayPage.jsx';
@@ -17,6 +18,7 @@ import LinePage from './components/LinePage.jsx';
 import NotFoundPage from './components/NotFoundPage.jsx';
 import StationPage from './components/StationPage.jsx';
 import StatsPage from './components/StatsPage.jsx';
+import SubscribePage from './components/SubscribePage.jsx';
 import SystemHealthPage from './components/SystemHealthPage.jsx';
 
 // Client-side routing. GitHub Pages serves `404.html` (a copy of `index.html`)
@@ -47,6 +49,8 @@ const calendarMatch = /^\/calendar\/?$/.exec(path);
 const statsMatch = /^\/stats\/?$/.exec(path);
 const compareMatch = /^\/compare\/?$/.exec(path);
 const systemMatch = /^\/system\/(trains|buses)\/?$/.exec(path);
+const aboutMatch = /^\/about\/?$/.exec(path);
+const subscribeMatch = /^\/subscribe\/?$/.exec(path);
 
 let page;
 if (eventMatch) {
@@ -67,6 +71,10 @@ if (eventMatch) {
   page = <ComparePage />;
 } else if (systemMatch) {
   page = <SystemHealthPage kind={systemMatch[1] === 'trains' ? 'train' : 'bus'} />;
+} else if (aboutMatch) {
+  page = <AboutPage />;
+} else if (subscribeMatch) {
+  page = <SubscribePage />;
 } else if (path === '/' || path === '') {
   page = <App />;
 } else {
