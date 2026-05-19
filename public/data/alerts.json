@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779136144660,
+  "generated_at": 1779150506584,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -1392,7 +1392,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779136082599,
+      "last_seen_ts": 1779150482822,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1513,6 +1513,28 @@
     }
   ],
   "observations": [
+    {
+      "id": 96,
+      "kind": "train",
+      "line": "red",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "pulse-cold",
+        "ghost"
+      ],
+      "evidence": null,
+      "ts": 1779149283725,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm652y7e5a2a",
+      "resolved_post_url": null,
+      "bot_description": "Red Line service appears degraded — a stretch of the line without trains and fewer trains than scheduled.",
+      "bot_resolved_description": null
+    },
     {
       "id": 95,
       "kind": "bus",
