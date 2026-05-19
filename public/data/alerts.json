@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779192428366,
+  "generated_at": 1779193026080,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -11,12 +11,12 @@
       "headline": "O' Hare Bound Blue Line Delays",
       "short_description": "O'Hare Bound Line trains are running w/residual delays following an earlier door problem at Western. Service is resuming, allow extra time.",
       "first_seen_ts": 1779192182973,
-      "last_seen_ts": 1779192423205,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "last_seen_ts": 1779192663009,
+      "resolved_ts": 1779192783578,
+      "duration_ms": 600605,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm7dv3t2g72u",
-      "resolved_reply_url": null,
+      "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mm7eo5tlw72h",
       "affected_from_station": null,
       "affected_to_station": null,
       "affected_direction": null,
@@ -1436,7 +1436,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779192362995,
+      "last_seen_ts": 1779192962684,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
