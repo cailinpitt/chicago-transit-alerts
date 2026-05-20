@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779252545127,
+  "generated_at": 1779271985468,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -13,7 +13,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779252482987,
+      "last_seen_ts": 1779271923471,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1462,7 +1462,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779252482457,
+      "last_seen_ts": 1779271922941,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1604,6 +1604,29 @@
       "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmb43xdkjz2s",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
       "bot_resolved_description": "Blue Line service appears to be back to normal."
+    },
+    {
+      "id": 352,
+      "kind": "bus",
+      "line": "88",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "thin-gap",
+      "signals": null,
+      "evidence": {
+        "headwayMin": 28,
+        "windowMin": 60,
+        "missedTrips": 2
+      },
+      "ts": 1779248823103,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:f4z2wrejskmfwkapi3codqdm/post/3mmbo7dsnvm2h",
+      "resolved_post_url": null,
+      "bot_description": "Route 88 service appears degraded — no buses observed within a full scheduled headway.",
+      "bot_resolved_description": null
     },
     {
       "id": 104,
