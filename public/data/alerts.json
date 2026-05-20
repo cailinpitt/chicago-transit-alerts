@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779277445204,
+  "generated_at": 1779279730097,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -13,7 +13,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779277443651,
+      "last_seen_ts": 1779279723794,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1462,7 +1462,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779277443121,
+      "last_seen_ts": 1779279723794,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1583,6 +1583,41 @@
     }
   ],
   "observations": [
+    {
+      "id": 356,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-0-outbound",
+      "from_station": "Belmont (Red/Brown/Purple)",
+      "to_station": "Diversey (Brown/Purple)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 1,
+        "minutesSinceLastTrain": 15,
+        "lookbackMin": 20,
+        "coldThresholdMin": 15,
+        "trainsOutsideRun": 7,
+        "coldStations": 3,
+        "coldStationNames": [
+          "Belmont (Red/Brown/Purple)",
+          "Wellington (Brown/Purple)",
+          "Diversey (Brown/Purple)"
+        ],
+        "expectedTrains": 3,
+        "headwayMin": 4.333333333333334,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779279482077,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmbvg3bu232h",
+      "resolved_post_url": null,
+      "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null
+    },
     {
       "id": 106,
       "kind": "bus",
