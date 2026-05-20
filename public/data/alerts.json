@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779290889758,
+  "generated_at": 1779291903009,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -13,7 +13,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express and #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779290883204,
+      "last_seen_ts": 1779291844005,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1480,7 +1480,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779290882874,
+      "last_seen_ts": 1779291844005,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1491,7 +1491,7 @@
       "affected_direction": "south",
       "mentioned_stations": [],
       "cta_event_start_ts": 1776088800000,
-      "cta_event_end_ts": 1779771599000,
+      "cta_event_end_ts": 1782881999000,
       "cta_event_start_is_date_only": false,
       "cta_event_end_is_date_only": true
     },
