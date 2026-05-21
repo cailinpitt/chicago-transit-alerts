@@ -26,13 +26,21 @@ export default function LinePill({ kind, line, routes }) {
             </a>
           );
         }
+        const busLabel = kind === 'bus' ? formatBusRoute(key) : key;
         return (
           <a
             key={key}
             href={kind === 'bus' ? `/route/${key}` : '/'}
-            className={`${PILL_BASE} bg-slate-700 text-white`}
+            // max-w-full + an inner truncate keeps a long route name (e.g.
+            // #10 "Obama Presidential Center/Museum of Science & Industry")
+            // on one line, ellipsizing instead of wrapping into a ragged
+            // two-line pill when the container is narrow. The pill still
+            // shows its full width when there's room; the title carries the
+            // complete name for the truncated case.
+            className={`${PILL_BASE} bg-slate-700 text-white max-w-full`}
+            title={kind === 'bus' ? busLabel : undefined}
           >
-            {kind === 'bus' ? formatBusRoute(key) : key}
+            <span className="min-w-0 truncate">{busLabel}</span>
           </a>
         );
       })}
