@@ -84,9 +84,10 @@ export function normalizeAlertsPayload(payload) {
  * @property {string | null} [to_station]
  * @property {'roundup' | string} [detection_source]  'roundup' = multi-signal correlation.
  * @property {string[]} [signals]           Signal sources for roundups: 'gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-held'.
- * @property {number} ts                    Detection time. Treated as the start.
+ * @property {number} ts                    When the bot first posted; matches post_url. Used as the start when onset_ts is absent.
+ * @property {number | null} [onset_ts]     Inferred disruption start for absence-style observations (pulse-cold, thin-gap, roundups bundling them), back-dated from `ts` by the observed cold gap. Null when not inferred.
  * @property {number | null} resolved_ts
- * @property {number | null} [duration_ms]
+ * @property {number | null} [duration_ms]  resolved_ts - (onset_ts ?? ts); null while active.
  * @property {boolean} active
  * @property {string} [post_url]
  * @property {string | null} [resolved_post_url]

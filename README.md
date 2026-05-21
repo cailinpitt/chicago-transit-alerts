@@ -160,8 +160,12 @@ It's regenerated whenever the underlying data changes (typically every 7 minutes
       "id": 12345,
       "kind": "train",
       "line": "red",
-      "ts": 1715199000000,
+      "ts": 1715199000000,             // when the bot first posted; matches post_url
+      "onset_ts": 1715197860000,       // inferred disruption start, back-dated by the
+                                       // observed cold gap (pulse-cold/thin-gap); omitted
+                                       // when not inferred — fall back to ts
       "resolved_ts": 1715202600000,
+      "duration_ms": 4740000,          // resolved_ts - (onset_ts ?? ts); null while active
       "active": false,
       "detection_source": "pulse-cold",  // or 'gap', 'bunching', 'ghost', 'pulse-held', 'roundup'
       "signals": ["gap", "bunching"],    // populated for roundups
@@ -181,7 +185,7 @@ A flat CSV mirror of the same data — one row per alert or observation, with an
 https://chicagotransitalerts.app/data/alerts.csv
 ```
 
-Columns: `type, id, kind, routes, headline, detection_source, signals, from_station, to_station, direction, first_seen_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` and `signals` are semicolon-separated when multi-valued. Regenerated alongside `alerts.json`.
+Columns: `type, id, kind, routes, headline, detection_source, signals, from_station, to_station, direction, first_seen_ts, onset_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` and `signals` are semicolon-separated when multi-valued. `onset_ts` is the inferred disruption start for absence-style observations (back-dated from `first_seen_ts` by the observed cold gap) and is blank when not inferred; `duration_minutes` is measured from `onset_ts` when present, else `first_seen_ts`. Regenerated alongside `alerts.json`.
 
 Please be a courteous client — cache responses, don't poll faster than every few minutes, and credit the project if you build something public.
 

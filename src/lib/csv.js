@@ -18,9 +18,13 @@ export const CSV_COLUMNS = [
   'from_station',
   'to_station',
   'direction',
-  'first_seen_ts', // ISO 8601 (UTC)
+  'first_seen_ts', // ISO 8601 (UTC) — when the bot first posted; matches post_url
+  // ISO 8601 (UTC) or empty — inferred disruption start, back-dated by the
+  // observed cold gap for absence-style observations (pulse-cold, thin-gap).
+  // Empty when the start wasn't inferred; fall back to first_seen_ts.
+  'onset_ts',
   'resolved_ts', // ISO 8601 (UTC) or empty
-  'duration_minutes', // resolved_ts - first_seen_ts in minutes, blank when unresolved
+  'duration_minutes', // resolved_ts - (onset_ts or first_seen_ts), blank when unresolved
   'active', // 'true' | 'false'
   'post_url',
   'resolved_post_url',
@@ -62,6 +66,7 @@ export function alertRow(a) {
     to_station: a.affected_to_station ?? '',
     direction: a.affected_direction ?? '',
     first_seen_ts: isoOrEmpty(a.first_seen_ts),
+    onset_ts: '', // alerts carry CTA's own start in cta_event_start_ts, not onset_ts
     resolved_ts: isoOrEmpty(a.resolved_ts),
     duration_minutes:
       a.resolved_ts != null && a.first_seen_ts != null
@@ -92,10 +97,11 @@ export function observationRow(o) {
     to_station: o.to_station ?? '',
     direction: o.direction ?? '',
     first_seen_ts: isoOrEmpty(o.ts),
+    onset_ts: isoOrEmpty(o.onset_ts),
     resolved_ts: isoOrEmpty(o.resolved_ts),
     duration_minutes:
       o.resolved_ts != null && o.ts != null
-        ? Math.round((o.duration_ms ?? o.resolved_ts - o.ts) / 60_000)
+        ? Math.round((o.duration_ms ?? o.resolved_ts - (o.onset_ts ?? o.ts)) / 60_000)
         : '',
     active: o.active ? 'true' : 'false',
     post_url: o.post_url ?? '',
