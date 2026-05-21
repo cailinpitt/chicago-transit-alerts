@@ -65,7 +65,7 @@ export function alertRow(a) {
     resolved_ts: isoOrEmpty(a.resolved_ts),
     duration_minutes:
       a.resolved_ts != null && a.first_seen_ts != null
-        ? Math.round((a.resolved_ts - a.first_seen_ts) / 60_000)
+        ? Math.round((a.duration_ms ?? a.resolved_ts - a.first_seen_ts) / 60_000)
         : '',
     active: a.active ? 'true' : 'false',
     post_url: a.post_url ?? '',
@@ -94,7 +94,9 @@ export function observationRow(o) {
     first_seen_ts: isoOrEmpty(o.ts),
     resolved_ts: isoOrEmpty(o.resolved_ts),
     duration_minutes:
-      o.resolved_ts != null && o.ts != null ? Math.round((o.resolved_ts - o.ts) / 60_000) : '',
+      o.resolved_ts != null && o.ts != null
+        ? Math.round((o.duration_ms ?? o.resolved_ts - o.ts) / 60_000)
+        : '',
     active: o.active ? 'true' : 'false',
     post_url: o.post_url ?? '',
     resolved_post_url: o.resolved_post_url ?? '',

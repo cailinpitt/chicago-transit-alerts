@@ -906,7 +906,7 @@ export function computeCohortDurationStats(
     if (startTs < cutoff) return;
     if (typicalDurationKey(peer) !== targetKey) return;
     if (isSelf(peer)) return;
-    const dur = resolvedTs - startTs;
+    const dur = peer.duration_ms ?? resolvedTs - startTs;
     if (dur <= 0) return;
     durations.push(dur);
   }
@@ -929,7 +929,8 @@ export function computeCohortDurationStats(
 
   const thisStart = incident.first_seen_ts ?? incident.ts ?? null;
   const thisEnd = incident.resolved_ts ?? null;
-  const thisMs = thisStart != null && thisEnd != null ? thisEnd - thisStart : null;
+  const thisMs =
+    thisStart != null && thisEnd != null ? (incident.duration_ms ?? thisEnd - thisStart) : null;
 
   return { thisMs, medianMs, p90Ms, maxMs, count: durations.length };
 }
@@ -1193,7 +1194,9 @@ export function computeStatsLeaderboards(
   let longestIncident = null;
   function offer(incident, startTs, endTs) {
     if (endTs == null || startTs == null) return;
-    const durationMs = endTs - startTs;
+    // Prefer exported duration_ms — for absence-style observations it includes
+    // the pre-post cold period the bot can't see in startTs alone.
+    const durationMs = incident.duration_ms ?? endTs - startTs;
     if (durationMs <= 0) return;
     if (longestIncident && durationMs <= longestIncident.durationMs) return;
     const id = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url) ?? null;

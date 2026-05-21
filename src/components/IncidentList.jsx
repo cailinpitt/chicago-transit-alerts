@@ -63,7 +63,8 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
 
   const startTs = incident.first_seen_ts || incident.ts;
   const endTs = incident.resolved_ts ?? null;
-  const duration = endTs ? formatDuration(endTs - startTs) : null;
+  // Prefer exported duration_ms (back-dated for absence-style observations).
+  const duration = endTs ? formatDuration(incident.duration_ms ?? endTs - startTs) : null;
 
   // Only render the stabilization chip when CTA cleared the alert before the
   // bot saw sustained recovery — that gap is the felt return-to-normal lag.

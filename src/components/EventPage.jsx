@@ -827,7 +827,10 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   const isAlert = !isMerged && !!incident.alert_id;
   const startTs = incident.first_seen_ts || incident.ts;
   const endTs = incident.resolved_ts ?? null;
-  const duration = endTs ? formatDuration(endTs - startTs) : null;
+  // Prefer the exported duration_ms when present — for pulse-cold/thin-gap
+  // observations and roundups that bundle them, the export back-dates the
+  // start by the pre-post cold period, so endTs - startTs would under-count.
+  const duration = endTs ? formatDuration(incident.duration_ms ?? endTs - startTs) : null;
   const cohortStats = useMemo(
     () => computeCohortDurationStats(incident, alerts, observations, { windowDays: 90 }),
     [incident, alerts, observations],
