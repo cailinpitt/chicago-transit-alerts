@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779380769689,
+  "generated_at": 1779390246292,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -42,7 +42,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779380763605,
+      "last_seen_ts": 1779390244567,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -143,7 +143,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express and #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779380763606,
+      "last_seen_ts": 1779390244567,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1610,7 +1610,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779380763176,
+      "last_seen_ts": 1779390244567,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1731,6 +1731,32 @@
     }
   ],
   "observations": [
+    {
+      "id": 124,
+      "kind": "bus",
+      "line": "9",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "bunching",
+        "gap"
+      ],
+      "evidence": null,
+      "ts": 1779389167778,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmf4drd5k42c",
+      "resolved_post_url": null,
+      "bot_description": "Route 9 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "3 buses recently bunched together",
+        "One gap between buses is 4.8x the scheduled wait"
+      ]
+    },
     {
       "id": 364,
       "kind": "train",
