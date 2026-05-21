@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779333244810,
+  "generated_at": 1779335345454,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -62,7 +62,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express and #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779333243148,
+      "last_seen_ts": 1779335283579,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1529,7 +1529,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779333242618,
+      "last_seen_ts": 1779335283149,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1664,13 +1664,13 @@
       ],
       "evidence": null,
       "ts": 1779331926016,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779334623081,
+      "duration_ms": 2697065,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmdhayryet2g",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmdj7mb3zl24",
       "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": null,
+      "bot_resolved_description": "Blue Line service appears to be back to normal.",
       "bot_evidence_bullets": [
         "5 of 11 trains missing this past hour",
         "One gap between trains is 3.3x the scheduled wait"
