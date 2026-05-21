@@ -1043,8 +1043,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
         const resolution = incident.bot_resolved_description;
         const bullets = incident.bot_evidence_bullets;
         if (!detection) return null;
-        const joinBullets = (items) =>
-          items.map((b) => b.replace(/\.\s*$/, '')).join('; ') + '.';
+        const joinBullets = (items) => items.map((b) => b.replace(/\.\s*$/, '')).join('; ') + '.';
         const bulletsBlock =
           Array.isArray(bullets) && bullets.length > 0 ? (
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
