@@ -826,10 +826,9 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   const isMerged = incident._type === 'merged';
   const isAlert = !isMerged && !!incident.alert_id;
   // For absence-style observations (pulse-cold/thin-gap) the export publishes an
-  // inferred onset_ts back-dated by the observed cold gap; use it as the start
-  // so "First seen" lines up with the back-dated duration_ms instead of showing
-  // the same minute for first/last seen. Flag it as inferred for honesty.
-  const onsetInferred = incident.onset_ts != null;
+  // onset_ts back-dated to the last observed train; use it as the start so
+  // "First seen" lines up with the back-dated duration_ms instead of showing
+  // the same minute for first/last seen.
   const startTs = incident.onset_ts ?? incident.first_seen_ts ?? incident.ts;
   const endTs = incident.resolved_ts ?? null;
   // Prefer the exported duration_ms when present — it reconciles with onset_ts
@@ -1221,14 +1220,6 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           </dt>
           <dd className="text-slate-700 dark:text-slate-200">
             {formatDate(startTs)} · {formatTime(startTs)}
-            {onsetInferred && (
-              <span
-                className="ml-1 text-slate-400 dark:text-slate-500"
-                title="Inferred start — the corridor was already cold when the bot first observed it, so the start is back-dated by the observed gap."
-              >
-                (inferred)
-              </span>
-            )}
           </dd>
         </div>
         {endTs && (

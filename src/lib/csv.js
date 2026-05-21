@@ -19,9 +19,9 @@ export const CSV_COLUMNS = [
   'to_station',
   'direction',
   'first_seen_ts', // ISO 8601 (UTC) — when the bot first posted; matches post_url
-  // ISO 8601 (UTC) or empty — inferred disruption start, back-dated by the
-  // observed cold gap for absence-style observations (pulse-cold, thin-gap).
-  // Empty when the start wasn't inferred; fall back to first_seen_ts.
+  // ISO 8601 (UTC) or empty — disruption start, back-dated to the last observed
+  // train for absence-style observations (pulse-cold, thin-gap). Empty when not
+  // back-dated; fall back to first_seen_ts.
   'onset_ts',
   'resolved_ts', // ISO 8601 (UTC) or empty
   'duration_minutes', // resolved_ts - (onset_ts or first_seen_ts), blank when unresolved
