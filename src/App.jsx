@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ActiveAlerts from './components/ActiveAlerts.jsx';
-import Filters from './components/Filters.jsx';
+import CollapsibleSection from './components/CollapsibleSection.jsx';
 import Footer from './components/Footer.jsx';
 import Header from './components/Header.jsx';
+import HomeFilters from './components/HomeFilters.jsx';
 import HourOfWeekHeatmap from './components/HourOfWeekHeatmap.jsx';
 import IncidentList from './components/IncidentList.jsx';
 import { LONG_RUNNING_THRESHOLD_MS } from './components/LongRunningBanner.jsx';
@@ -385,7 +386,11 @@ export default function App() {
         )}
         {data && (
           <>
-            {(recentActive.length > 0 || longRunningActive.length > 0) && (
+            {/* Status, top of page: live alerts when something's active, or a
+                friendly all-clear banner on a quiet day — so a first-time
+                visitor always lands on a clear answer to "is anything wrong
+                right now?" rather than a filter bar. */}
+            {recentActive.length > 0 || longRunningActive.length > 0 ? (
               <ActiveAlerts
                 incidents={recentActive}
                 longRunningIncidents={longRunningActive}
@@ -395,92 +400,129 @@ export default function App() {
                 stationIndex={stationIndex}
                 burst={burst}
               />
+            ) : (
+              <section className="flex items-center gap-3 rounded-lg border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30 px-4 py-3">
+                <span
+                  aria-hidden="true"
+                  className="flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-green-500"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-green-800 dark:text-green-300">
+                    All clear
+                  </p>
+                  <p className="text-xs text-green-700/80 dark:text-green-400/80">
+                    No active CTA disruptions right now.
+                  </p>
+                </div>
+              </section>
             )}
-            {/* Sticky filter bar — keeps controls reachable as the user
-                scrolls through the list and visualizations below. The
-                negative horizontal margin extends the backdrop past the
-                main element's px-4 so scrolled content doesn't peek
-                through the gutters. */}
-            <div className="sticky top-0 z-30 -mx-4 px-4 py-3 bg-slate-50/95 dark:bg-gh-canvas/95 backdrop-blur-sm border-b border-slate-200 dark:border-gh-border">
-              <Filters
-                selectedLines={selectedLines}
-                onLinesChange={handleLinesChange}
-                showBus={showBus}
-                onShowBusChange={(val) => {
-                  setShowBus(val);
-                  if (!val) setSelectedBusRoutes([]);
-                }}
-                availableBusRoutes={availableBusRoutes}
-                selectedBusRoutes={selectedBusRoutes}
-                onBusRoutesChange={setSelectedBusRoutes}
-                dateRange={dateRange}
-                onDateRangeChange={handleDateRangeChange}
-                selectedDay={selectedDay}
-                onClearSelectedDay={() => setSelectedDay(null)}
-                selectedSignals={selectedSignals}
-                onSignalsChange={setSelectedSignals}
-                selectedSources={selectedSources}
-                onSourcesChange={setSelectedSources}
+
+            {/* Overview: today's narrative plus the headline stats, grouped
+                into one block instead of two stacked text rows. */}
+            {(todaySummary || summaryStats) && (
+              <section className="space-y-3">
+                {todaySummary && (
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200 px-1">
+                    🗓️ {todaySummary}
+                  </p>
+                )}
+                {summaryStats && (
+                  <SummaryStats
+                    {...summaryStats}
+                    alerts={data.alerts}
+                    observations={data.observations}
+                  />
+                )}
+              </section>
+            )}
+
+            {/* Incident list with its filter controls attached directly
+                above it (the thing they narrow), collapsed by default. The
+                sticky wrapper keeps the Filters trigger reachable while
+                scrolling the list; the negative margin extends the backdrop
+                past the main element's px-4 gutters. */}
+            <section className="space-y-3">
+              <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-slate-50/95 dark:bg-gh-canvas/95 backdrop-blur-sm">
+                <HomeFilters
+                  selectedLines={selectedLines}
+                  onLinesChange={handleLinesChange}
+                  showBus={showBus}
+                  onShowBusChange={(val) => {
+                    setShowBus(val);
+                    if (!val) setSelectedBusRoutes([]);
+                  }}
+                  availableBusRoutes={availableBusRoutes}
+                  selectedBusRoutes={selectedBusRoutes}
+                  onBusRoutesChange={setSelectedBusRoutes}
+                  dateRange={dateRange}
+                  onDateRangeChange={handleDateRangeChange}
+                  selectedDay={selectedDay}
+                  onClearSelectedDay={() => setSelectedDay(null)}
+                  selectedSignals={selectedSignals}
+                  onSignalsChange={setSelectedSignals}
+                  selectedSources={selectedSources}
+                  onSourcesChange={setSelectedSources}
+                  onResetFilters={resetFilters}
+                />
+              </div>
+              <IncidentList
+                alerts={filtered.alerts}
+                observations={filtered.observations}
+                search={search}
+                onSearchChange={setSearch}
+                highlightedIds={highlightedIds}
+                stationIndex={stationIndex}
+                isFiltered={
+                  selectedLines !== null ||
+                  !showBus ||
+                  selectedBusRoutes.length > 0 ||
+                  dateRange !== 7 ||
+                  selectedDay !== null ||
+                  selectedSignals.length > 0 ||
+                  selectedSources.length < SOURCE_TYPES.length
+                }
               />
-            </div>
-            {todaySummary && (
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-200 px-1">
-                🗓️ {todaySummary}
-              </p>
-            )}
-            {summaryStats && (
-              <SummaryStats
-                {...summaryStats}
+            </section>
+
+            {/* Retrospective analytics, collapsed by default so the homepage
+                opens on "now" instead of a wall of charts. Everything here is
+                exploratory history a casual/mobile visitor rarely needs up
+                front; one tap expands it. */}
+            <CollapsibleSection
+              title="Trends & history"
+              subtitle="Last 24h · 90-day timeline · patterns"
+            >
+              <RecentActivityGantt
                 alerts={data.alerts}
                 observations={data.observations}
+                now={now}
               />
-            )}
-            {/* IncidentList sits directly below the summary so picking a
-                filter immediately changes what's visible without a long
-                scroll past the visualizations. */}
-            <IncidentList
-              alerts={filtered.alerts}
-              observations={filtered.observations}
-              search={search}
-              onSearchChange={setSearch}
-              highlightedIds={highlightedIds}
-              stationIndex={stationIndex}
-              isFiltered={
-                selectedLines !== null ||
-                !showBus ||
-                selectedBusRoutes.length > 0 ||
-                dateRange !== 7 ||
-                selectedDay !== null ||
-                selectedSignals.length > 0 ||
-                selectedSources.length < SOURCE_TYPES.length
-              }
-            />
-            <RecentActivityGantt alerts={data.alerts} observations={data.observations} now={now} />
-            <Timeline
-              alerts={vizAlerts}
-              observations={vizObservations}
-              selectedLines={selectedLines}
-              numDays={90}
-              selectedRangeDays={dateRange}
-              dataStartTs={data.data_start_ts ?? null}
-              now={now}
-              onLineClick={(line) =>
-                handleLinesChange((prev) =>
-                  prev?.includes(line) ? prev.filter((l) => l !== line) : [line],
-                )
-              }
-              selectedDay={selectedDay}
-              onDayClick={(dayUtc) => setSelectedDay((prev) => (prev === dayUtc ? null : dayUtc))}
-              showBus={showBus}
-              selectedBusRoutes={selectedBusRoutes}
-              onBusRouteClick={(route) =>
-                setSelectedBusRoutes((prev) =>
-                  prev.includes(route) ? prev.filter((r) => r !== route) : [...prev, route],
-                )
-              }
-            />
-            <HourOfWeekHeatmap alerts={vizAlerts} observations={vizObservations} />
-            <SignalBreakdown observations={data.observations} />
+              <Timeline
+                alerts={vizAlerts}
+                observations={vizObservations}
+                selectedLines={selectedLines}
+                numDays={90}
+                selectedRangeDays={dateRange}
+                dataStartTs={data.data_start_ts ?? null}
+                now={now}
+                onLineClick={(line) =>
+                  handleLinesChange((prev) =>
+                    prev?.includes(line) ? prev.filter((l) => l !== line) : [line],
+                  )
+                }
+                selectedDay={selectedDay}
+                onDayClick={(dayUtc) => setSelectedDay((prev) => (prev === dayUtc ? null : dayUtc))}
+                showBus={showBus}
+                selectedBusRoutes={selectedBusRoutes}
+                onBusRouteClick={(route) =>
+                  setSelectedBusRoutes((prev) =>
+                    prev.includes(route) ? prev.filter((r) => r !== route) : [...prev, route],
+                  )
+                }
+              />
+              <HourOfWeekHeatmap alerts={vizAlerts} observations={vizObservations} />
+              <SignalBreakdown observations={data.observations} />
+            </CollapsibleSection>
           </>
         )}
       </main>
