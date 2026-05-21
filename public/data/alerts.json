@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779329347025,
+  "generated_at": 1779330544923,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -62,7 +62,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express and #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779329283642,
+      "last_seen_ts": 1779330483535,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1529,7 +1529,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779329283212,
+      "last_seen_ts": 1779330483005,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1650,6 +1650,32 @@
     }
   ],
   "observations": [
+    {
+      "id": 117,
+      "kind": "bus",
+      "line": "77",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "gap",
+        "ghost"
+      ],
+      "evidence": null,
+      "ts": 1779329224682,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmdeqkaxls2h",
+      "resolved_post_url": null,
+      "bot_description": "Route 77 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "One gap between buses is 5.7x the scheduled wait",
+        "2 of 6 buses missing this past hour"
+      ]
+    },
     {
       "id": 115,
       "kind": "train",
