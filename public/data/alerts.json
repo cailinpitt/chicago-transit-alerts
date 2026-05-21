@@ -1,7 +1,33 @@
 {
-  "generated_at": 1779338945474,
+  "generated_at": 1779348906015,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "115067",
+      "kind": "train",
+      "routes": [
+        "g"
+      ],
+      "headline": "63rd- Ashland bound Green Line Service Delayed near Indiana",
+      "short_description": "63rd- Ashland- bound Green Line trains are standing near Indiana due to signal problems. Crews working to restore service.",
+      "first_seen_ts": 1779348903078,
+      "last_seen_ts": 1779348904899,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmdvtpbm5d2s",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "mentioned_stations": [
+        "Indiana"
+      ],
+      "cta_event_start_ts": 1779348300000,
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "115052",
       "kind": "train",
@@ -62,7 +88,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express and #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779338883501,
+      "last_seen_ts": 1779348842802,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1529,7 +1555,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779338883501,
+      "last_seen_ts": 1779348842802,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
