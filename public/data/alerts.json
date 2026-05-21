@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779374946935,
+  "generated_at": 1779378729543,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -42,7 +42,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779374883107,
+      "last_seen_ts": 1779378722794,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -143,7 +143,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express and #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779374883108,
+      "last_seen_ts": 1779378722794,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1610,7 +1610,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779374882677,
+      "last_seen_ts": 1779378722362,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1731,6 +1731,43 @@
     }
   ],
   "observations": [
+    {
+      "id": 364,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-0-outbound",
+      "from_station": "Armitage (Brown/Purple)",
+      "to_station": "Sedgwick (Brown/Purple)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 2.5,
+        "minutesSinceLastTrain": 19,
+        "lookbackMin": 24,
+        "coldThresholdMin": 19,
+        "trainsOutsideRun": 9,
+        "coldStations": 2,
+        "coldStationNames": [
+          "Armitage (Brown/Purple)",
+          "Sedgwick (Brown/Purple)"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 7.5,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779378362660,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmermikjnl2g",
+      "resolved_post_url": null,
+      "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "No trains moved through this 2.5-mi stretch (2 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
+      ]
+    },
     {
       "id": 122,
       "kind": "bus",
