@@ -1041,7 +1041,16 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
       {(() => {
         const detection = incident.bot_description;
         const resolution = incident.bot_resolved_description;
+        const bullets = incident.bot_evidence_bullets;
         if (!detection) return null;
+        const joinBullets = (items) =>
+          items.map((b) => b.replace(/\.\s*$/, '')).join('; ') + '.';
+        const bulletsBlock =
+          Array.isArray(bullets) && bullets.length > 0 ? (
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              {joinBullets(bullets)}
+            </p>
+          ) : null;
         if (!resolution) {
           return (
             <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
@@ -1051,14 +1060,17 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
               <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                 {detection}
               </p>
+              {bulletsBlock}
             </blockquote>
           );
         }
         // Two entries: resolution (latest) at top, detection (oldest) below.
         // Matches the visual rhythm of the multi-version CTA block above.
+        // Bullets only belong on the detection entry — the resolution post is
+        // a single "back to normal" sentence with no per-signal detail.
         const entries = [
           { ts: incident.resolved_ts, text: resolution, isLatest: true, isOldest: false },
-          { ts: incident.ts, text: detection, isLatest: false, isOldest: true },
+          { ts: incident.ts, text: detection, isLatest: false, isOldest: true, bullets },
         ];
         return (
           <section className="mt-4">
@@ -1094,6 +1106,11 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
                   <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                     {e.text}
                   </p>
+                  {Array.isArray(e.bullets) && e.bullets.length > 0 && (
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                      {joinBullets(e.bullets)}
+                    </p>
+                  )}
                 </li>
               ))}
             </ol>
