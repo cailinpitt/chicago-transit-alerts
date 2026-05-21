@@ -8,10 +8,16 @@ import { useState } from 'react';
 //
 // State isn't persisted — like the long-running banner, the section
 // re-collapses on every load so the default homepage stays focused.
-export default function CollapsibleSection({ title, subtitle, defaultOpen = false, children }) {
+export default function CollapsibleSection({
+  title,
+  subtitle,
+  defaultOpen = false,
+  className = '',
+  children,
+}) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <section>
+    <section className={className}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

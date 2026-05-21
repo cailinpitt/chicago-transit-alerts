@@ -87,6 +87,16 @@ const TYPICAL_MIN_COUNT = 5;
 // straight to /event/:id.
 const FULL_CARD_LIMIT = 2;
 
+// Caps on route pills rendered inline on a full ActiveCard before collapsing
+// into a "+N". A "Temporary Reroute" can touch a dozen bus routes; without a
+// cap the pills wrap into several rows and shove the headline and action
+// links below the fold of the card. The cap is responsive — full route names
+// are wide, so even 4 pills wrap to three rows on a phone — so mobile shows
+// fewer and desktop, with more horizontal room, shows more. The card links
+// to /event/:id, which lists every affected route in full.
+const ACTIVE_CARD_PILL_LIMIT_MOBILE = 2;
+const ACTIVE_CARD_PILL_LIMIT = 4;
+
 // Pull the description out of an incident for both card and row variants.
 // Returns a string-or-JSX `description` plus a flat `descriptionText` that
 // the compact row can fall back to when stations are missing (compact rows
@@ -162,6 +172,20 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
   const { description } = describeIncident(incident, stationIndex);
   const eventId = getEventId(incident);
 
+  const allRoutes =
+    Array.isArray(incident.routes) && incident.routes.length > 0
+      ? incident.routes
+      : incident.line
+        ? [incident.line]
+        : [];
+  // Responsive split: the first chunk shows at every width; the next chunk
+  // only on sm+ (wrapped in a `hidden sm:contents` span). Two "+N" chips —
+  // one per breakpoint — carry the right overflow count for each.
+  const mobileRoutes = allRoutes.slice(0, ACTIVE_CARD_PILL_LIMIT_MOBILE);
+  const desktopOnlyRoutes = allRoutes.slice(ACTIVE_CARD_PILL_LIMIT_MOBILE, ACTIVE_CARD_PILL_LIMIT);
+  const mobileOverflow = allRoutes.length - ACTIVE_CARD_PILL_LIMIT_MOBILE;
+  const desktopOverflow = allRoutes.length - ACTIVE_CARD_PILL_LIMIT;
+
   return (
     <div
       className={`relative bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 p-4 ${
@@ -187,7 +211,24 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
           unclickable for navigation. */}
       <div className="relative z-10 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-          <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
+          <LinePill kind={incident.kind} line={incident.line} routes={mobileRoutes} />
+          {/* Extra pills shown only on sm+ — `contents` so the <a>s flow into
+              the same wrap row rather than nesting in a box. */}
+          {desktopOnlyRoutes.length > 0 && (
+            <span className="hidden sm:contents">
+              <LinePill kind={incident.kind} line={incident.line} routes={desktopOnlyRoutes} />
+            </span>
+          )}
+          {mobileOverflow > 0 && (
+            <span className="sm:hidden inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
+              +{mobileOverflow}
+            </span>
+          )}
+          {desktopOverflow > 0 && (
+            <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
+              +{desktopOverflow}
+            </span>
+          )}
           <span className="text-xs text-slate-400 dark:text-slate-500">
             {elapsedText} ongoing
             {typicalText && (

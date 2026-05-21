@@ -82,7 +82,7 @@ export default function HomeFilters(props) {
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold border shadow-sm transition-colors ${
+          className={`inline-flex w-full sm:w-auto justify-center sm:justify-start items-center gap-2 px-3.5 py-2 sm:py-1.5 rounded-lg text-sm font-semibold border shadow-sm transition-colors ${
             activeCount > 0
               ? 'bg-slate-800 dark:bg-slate-200 border-slate-800 dark:border-slate-200 text-white dark:text-slate-800'
               : 'bg-white dark:bg-gh-surface border-slate-300 dark:border-gh-border text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gh-subtle hover:border-slate-400 dark:hover:border-slate-500'

@@ -431,6 +431,7 @@ export default function App() {
                     {...summaryStats}
                     alerts={data.alerts}
                     observations={data.observations}
+                    showActive={false}
                   />
                 )}
               </section>
@@ -491,6 +492,7 @@ export default function App() {
             <CollapsibleSection
               title="Trends & history"
               subtitle="Last 24h · 90-day timeline · patterns"
+              className="pt-4 mt-2 border-t border-slate-200 dark:border-gh-border"
             >
               <RecentActivityGantt
                 alerts={data.alerts}

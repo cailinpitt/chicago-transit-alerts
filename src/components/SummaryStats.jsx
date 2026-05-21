@@ -46,6 +46,10 @@ export default function SummaryStats({
   quietestLineDays,
   alerts,
   observations,
+  // Homepage hides the active-now figure because the Active Now / All-clear
+  // status header right above already states it — repeating it here is noise.
+  // Other pages (line, system) keep it since they have no such header.
+  showActive = true,
 }) {
   const trend = useMemo(
     () => (alerts && observations ? buildDailyTrend(alerts, observations) : null),
@@ -67,34 +71,6 @@ export default function SummaryStats({
       },
     );
   }, [alerts, observations]);
-
-  const activePhrase =
-    activeCount > 0 ? (
-      <>
-        <strong className="text-slate-800 dark:text-slate-100">{activeCount}</strong> active now
-      </>
-    ) : (
-      <span className="text-slate-500 dark:text-slate-400">All clear</span>
-    );
-
-  const weekPhrase = (
-    <>
-      <strong className="text-slate-800 dark:text-slate-100">{weeklyCount}</strong> incident
-      {weeklyCount === 1 ? '' : 's'} in the last 7 days
-    </>
-  );
-
-  // Total severity over the same 7 days. Hidden when there's nothing to
-  // report — a flat-zero week shouldn't drag a third phrase onto the line.
-  const disruptionPhrase =
-    disruption7d && disruption7d.disruptedMinutes > 0 ? (
-      <span title="Total line-time across all train lines spent in a detected disruption over the last 7 days. Assumes 21h/day of scheduled service per line.">
-        <strong className="text-slate-800 dark:text-slate-100">
-          {formatMinutesAsHours(disruption7d.disruptedMinutes)}
-        </strong>{' '}
-        of disrupted train-line time
-      </span>
-    ) : null;
 
   let affectedPhrase = null;
   if (mostAffectedKind === 'train' && TRAIN_LINES[mostAffectedId]) {
@@ -148,11 +124,11 @@ export default function SummaryStats({
     );
   }
 
-  // Mobile-only: pre-compute the headline numbers as a 2x2 stat-card grid.
-  // The phrase layout below `sm` got cramped — long sentences with `·`
-  // separators wrapped mid-sentence and the page read as a wall of bold
-  // words. Big-number cards are scannable at a glance; the sparkline drops
-  // out on mobile since it can't shrink usefully into a card slot.
+  // Headline numbers as stat cards — a 2x2 grid on mobile and a horizontal
+  // strip on desktop. Big-number cards are scannable at a glance, where the
+  // old desktop "·"-joined phrase line read as a wall of bold words. The
+  // trend card is mobile-only; desktop keeps the trend as a phrase beside its
+  // sparkline (below the card strip), which the card can't hold.
   const activeCard = (
     <StatCard
       value={activeCount > 0 ? activeCount : '0'}
@@ -186,13 +162,19 @@ export default function SummaryStats({
       />
     );
   })();
-  const mobileCards = [activeCard, weekCard, disruptionCard, trendCard].filter(Boolean);
+  const mobileCards = [showActive ? activeCard : null, weekCard, disruptionCard, trendCard].filter(
+    Boolean,
+  );
+  // Desktop strip omits the trend card (rendered as a phrase + sparkline row
+  // below) and, like mobile, drops the active card when the host page already
+  // shows an active/all-clear status above.
+  const desktopCards = [showActive ? activeCard : null, weekCard, disruptionCard].filter(Boolean);
 
   // Two layouts share data but diverge structurally:
-  //   - Mobile (<sm): 2x2 grid of stat cards for the headline numbers,
-  //     followed by the affected/quietest sentences.
-  //   - Desktop (sm+): original phrase layout with `·` separators and the
-  //     inline sparkline beside the trend phrase.
+  //   - Mobile (<sm): 2x2 grid of stat cards, then the affected/quietest
+  //     sentences.
+  //   - Desktop (sm+): horizontal stat-card strip, then the trend phrase +
+  //     sparkline row, then the affected/quietest sentences.
   return (
     <div className="px-1">
       {/* Mobile */}
@@ -216,8 +198,17 @@ export default function SummaryStats({
       </div>
 
       {/* Desktop */}
-      <div className="hidden sm:block space-y-1.5">
-        <StatRow>{[activePhrase, weekPhrase, disruptionPhrase]}</StatRow>
+      <div className="hidden sm:block space-y-3">
+        {desktopCards.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {desktopCards.map((card, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: cards are stable per render
+              <div key={i} className="flex-1 min-w-[8rem]">
+                {card}
+              </div>
+            ))}
+          </div>
+        )}
         {alerts && observations && (trendPhrase || trend?.trendRatio != null) && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600 dark:text-slate-300">
             {trendPhrase ?? <span className="text-slate-500 dark:text-slate-400">Trend</span>}
