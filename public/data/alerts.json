@@ -1,7 +1,33 @@
 {
-  "generated_at": 1779367445634,
+  "generated_at": 1779369304892,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "115072",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "headline": "O'Hare- Bound Blue Line Service Delayed at Harlem",
+      "short_description": "O'Hare- Bound Blue Line trains are standing at Harlem due to a sick rider. Crews working to restore service.",
+      "first_seen_ts": 1779369302511,
+      "last_seen_ts": 1779369303993,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmeito2bzl2h",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "mentioned_stations": [
+        "Harlem (Blue - Forest Park Branch)"
+      ],
+      "cta_event_start_ts": 1779368880000,
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "114928",
       "kind": "bus",
@@ -16,7 +42,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779367443582,
+      "last_seen_ts": 1779369243500,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -117,7 +143,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express and #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779367443582,
+      "last_seen_ts": 1779369243500,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1584,7 +1610,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779367442750,
+      "last_seen_ts": 1779369242970,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
