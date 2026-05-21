@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779391933475,
+  "generated_at": 1779392528623,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -42,7 +42,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779391924628,
+      "last_seen_ts": 1779392523058,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -143,7 +143,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express and #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779391924628,
+      "last_seen_ts": 1779392523058,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1610,7 +1610,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779391924627,
+      "last_seen_ts": 1779392522528,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1760,13 +1760,13 @@
         "held": null
       },
       "ts": 1779391683213,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779391951915,
+      "duration_ms": 1228702,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmf5vxbjrc2s",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmf6hqmc3h2u",
       "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
-      "bot_resolved_description": null,
+      "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
       "bot_evidence_bullets": [
         "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 16 min — scheduled every 6 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
       ]
