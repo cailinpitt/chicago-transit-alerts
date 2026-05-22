@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779481506030,
+  "generated_at": 1779482227421,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -13,9 +13,9 @@
         "org"
       ],
       "headline": "Loop Elevated Service Delayed Near Washington/Wabash",
-      "short_description": "Loop Elevated trains are standing with delays at Washington/Wabash due to police activity. Crews working to restore service.",
+      "short_description": "Loop Elevated trains are standing due to police activity at Washington/Wabash. Crews working to restore service.",
       "first_seen_ts": 1779481504629,
-      "last_seen_ts": 1779481505010,
+      "last_seen_ts": 1779482223568,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -28,7 +28,25 @@
       "cta_event_start_ts": 1779481380000,
       "cta_event_end_ts": null,
       "cta_event_start_is_date_only": false,
-      "cta_event_end_is_date_only": false
+      "cta_event_end_is_date_only": false,
+      "versions": [
+        {
+          "ts": 1779481504629,
+          "headline": "Loop Elevated Service Delayed Near Washington/Wabash",
+          "short_description": "Loop Elevated trains are standing with delays at Washington/Wabash due to police activity. Crews working to restore service.",
+          "affected_from_station": null,
+          "affected_to_station": null,
+          "affected_direction": null
+        },
+        {
+          "ts": 1779482102540,
+          "headline": "Loop Elevated Service Delayed Near Washington/Wabash",
+          "short_description": "Loop Elevated trains are standing due to police activity at Washington/Wabash. Crews working to restore service.",
+          "affected_from_station": null,
+          "affected_to_station": null,
+          "affected_direction": null
+        }
+      ]
     },
     {
       "alert_id": "115091",
@@ -68,7 +86,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779481443729,
+      "last_seen_ts": 1779482163456,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -123,7 +141,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779481443729,
+      "last_seen_ts": 1779482163456,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1691,7 +1709,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779481443199,
+      "last_seen_ts": 1779482163456,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
