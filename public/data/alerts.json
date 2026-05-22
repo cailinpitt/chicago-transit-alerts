@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779483012012,
+  "generated_at": 1779483488611,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -86,7 +86,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779483002746,
+      "last_seen_ts": 1779483483604,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -141,7 +141,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779483002745,
+      "last_seen_ts": 1779483483604,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1709,7 +1709,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779483002315,
+      "last_seen_ts": 1779483483604,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -2023,13 +2023,13 @@
       },
       "ts": 1779482282585,
       "onset_ts": 1779481022585,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779482942192,
+      "duration_ms": 1919607,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhsc5fjkh2x",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmht6mjep32u",
       "bot_description": "Pink Line service appears degraded — a stretch of the line without trains.",
-      "bot_resolved_description": null,
+      "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
       "bot_evidence_bullets": [
         "No trains moved through this 3.5-mi stretch (5 stations affected) in the last 26 min — scheduled every 9 min, ~3 trains missed (6 trains still moving elsewhere on the line)."
       ]
