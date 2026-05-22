@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779482771328,
+  "generated_at": 1779483012012,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -86,7 +86,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779482763551,
+      "last_seen_ts": 1779483002746,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -141,7 +141,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779482763550,
+      "last_seen_ts": 1779483002745,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1709,7 +1709,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779482763121,
+      "last_seen_ts": 1779483002315,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1830,6 +1830,91 @@
     }
   ],
   "observations": [
+    {
+      "id": 377,
+      "kind": "train",
+      "line": "p",
+      "direction": "branch-0-outbound",
+      "from_station": "Belmont (Red/Brown/Purple)",
+      "to_station": "Chicago (Brown/Purple)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 4.7,
+        "minutesSinceLastTrain": 21,
+        "lookbackMin": 25,
+        "coldThresholdMin": 20,
+        "trainsOutsideRun": 6,
+        "coldStations": 7,
+        "coldStationNames": [
+          "Belmont (Red/Brown/Purple)",
+          "Wellington (Brown/Purple)",
+          "Diversey (Brown/Purple)",
+          "Fullerton",
+          "Armitage (Brown/Purple)",
+          "Sedgwick (Brown/Purple)",
+          "Chicago (Brown/Purple)"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 8,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779482762792,
+      "onset_ts": 1779481502792,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhsqcvsd32s",
+      "resolved_post_url": null,
+      "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "No trains moved through this 4.7-mi stretch (7 stations affected) in the last 21 min — scheduled every 8 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
+      ]
+    },
+    {
+      "id": 378,
+      "kind": "train",
+      "line": "pink",
+      "direction": "branch-0-outbound",
+      "from_station": "Central Park",
+      "to_station": "18th",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 3.7,
+        "minutesSinceLastTrain": 21,
+        "lookbackMin": 26,
+        "coldThresholdMin": 21,
+        "trainsOutsideRun": 5,
+        "coldStations": 6,
+        "coldStationNames": [
+          "Central Park",
+          "Kedzie (Pink)",
+          "California (Pink)",
+          "Western (Pink)",
+          "Damen (Pink)",
+          "18th"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 8.5,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779482762792,
+      "onset_ts": 1779481502792,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhsqfk3ab2u",
+      "resolved_post_url": null,
+      "bot_description": "Pink Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "No trains moved through this 3.7-mi stretch (6 stations affected) in the last 21 min — scheduled every 9 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
+      ]
+    },
     {
       "id": 376,
       "kind": "train",
