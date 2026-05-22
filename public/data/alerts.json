@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779483488611,
+  "generated_at": 1779483728000,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -86,7 +86,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779483483604,
+      "last_seen_ts": 1779483723542,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -141,7 +141,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779483483604,
+      "last_seen_ts": 1779483723541,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1709,7 +1709,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779483483604,
+      "last_seen_ts": 1779483723541,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1943,13 +1943,13 @@
       },
       "ts": 1779482522827,
       "onset_ts": 1779481262827,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779483153645,
+      "duration_ms": 1890818,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhsj7ahl32h",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhtfpxgjd2s",
       "bot_description": "Orange Line service appears degraded — a stretch of the line without trains.",
-      "bot_resolved_description": null,
+      "bot_resolved_description": "Trains observed again on the Orange Line, service appears to be back to normal.",
       "bot_evidence_bullets": [
         "No trains moved through this 4.2-mi stretch (3 stations affected) in the last 21 min — scheduled every 8 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
       ]
