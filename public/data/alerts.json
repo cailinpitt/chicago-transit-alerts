@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779408125723,
+  "generated_at": 1779408545627,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -14,7 +14,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779408124766,
+      "last_seen_ts": 1779408484392,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -69,7 +69,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779408123116,
+      "last_seen_ts": 1779408484392,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -170,7 +170,7 @@
       "headline": "#6 Jackson Park Express, #2 Hyde Park Express and #28 Stony Island Temporary Northbound Reroute near Stony Island/57th",
       "short_description": "Northbound #6 Jackson Park Express, #2 Hyde Park Express, #28 Stony Island rerouted in due to street blockage near Stony Island/57th.",
       "first_seen_ts": 1779226323834,
-      "last_seen_ts": 1779408124766,
+      "last_seen_ts": 1779408484392,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1637,7 +1637,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779408122686,
+      "last_seen_ts": 1779408483661,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1758,6 +1758,33 @@
     }
   ],
   "observations": [
+    {
+      "id": 126,
+      "kind": "bus",
+      "line": "26",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost",
+        "gap"
+      ],
+      "evidence": null,
+      "ts": 1779407163711,
+      "onset_ts": null,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmfnf4kzsc2a",
+      "resolved_post_url": null,
+      "bot_description": "Route 26 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "2 of 9 buses missing this past hour",
+        "One gap between buses is 4.4x the scheduled wait"
+      ]
+    },
     {
       "id": 125,
       "kind": "bus",
