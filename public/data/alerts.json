@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779483846056,
+  "generated_at": 1779483848114,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -1904,13 +1904,13 @@
       },
       "ts": 1779482762792,
       "onset_ts": 1779481502792,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779483513584,
+      "duration_ms": 2010792,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhsqfk3ab2u",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhtjdf6bv2s",
       "bot_description": "Pink Line service appears degraded — a stretch of the line without trains.",
-      "bot_resolved_description": null,
+      "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
       "bot_evidence_bullets": [
         "No trains moved through this 3.7-mi stretch (6 stations affected) in the last 21 min — scheduled every 9 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
       ]
