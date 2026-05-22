@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779461346022,
+  "generated_at": 1779471130366,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -40,7 +40,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779461283549,
+      "last_seen_ts": 1779471123344,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -95,7 +95,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779461283548,
+      "last_seen_ts": 1779471123344,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1663,7 +1663,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779461283118,
+      "last_seen_ts": 1779471123342,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1784,6 +1784,46 @@
     }
   ],
   "observations": [
+    {
+      "id": 372,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-1-inbound",
+      "from_station": "Belmont (Red/Brown/Purple)",
+      "to_station": "Fullerton",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 1.7,
+        "minutesSinceLastTrain": 20,
+        "lookbackMin": 24,
+        "coldThresholdMin": 19,
+        "trainsOutsideRun": 6,
+        "coldStations": 4,
+        "coldStationNames": [
+          "Belmont (Red/Brown/Purple)",
+          "Wellington (Brown/Purple)",
+          "Diversey (Brown/Purple)",
+          "Fullerton"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 7.5,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779470882006,
+      "onset_ts": 1779469682006,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhhoand6l2s",
+      "resolved_post_url": null,
+      "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "No trains moved through this 1.7-mi stretch (4 stations affected) in the last 20 min — scheduled every 8 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
+      ]
+    },
     {
       "id": 131,
       "kind": "train",
