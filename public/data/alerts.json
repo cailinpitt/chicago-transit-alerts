@@ -1,7 +1,33 @@
 {
-  "generated_at": 1779421745920,
+  "generated_at": 1779424386058,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "115091",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "headline": "O'Hare-bound Blue Line Service Delayed near LaSalle",
+      "short_description": "O'Hare-bound Blue Line trains are standing due to police activity at LaSalle. Crews working to restore service.",
+      "first_seen_ts": 1779424382559,
+      "last_seen_ts": 1779424384461,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmg456u3t524",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "mentioned_stations": [
+        "LaSalle"
+      ],
+      "cta_event_start_ts": 1779424260000,
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "114929",
       "kind": "bus",
@@ -14,7 +40,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779421683626,
+      "last_seen_ts": 1779424323700,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -69,7 +95,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779421683626,
+      "last_seen_ts": 1779424323700,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1637,7 +1663,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779421683196,
+      "last_seen_ts": 1779424323171,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
