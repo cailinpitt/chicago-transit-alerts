@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779491345412,
+  "generated_at": 1779491652816,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -112,7 +112,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779491284339,
+      "last_seen_ts": 1779491643792,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -167,7 +167,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779491283909,
+      "last_seen_ts": 1779491643055,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1735,7 +1735,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779491284339,
+      "last_seen_ts": 1779491643792,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1856,6 +1856,45 @@
     }
   ],
   "observations": [
+    {
+      "id": 386,
+      "kind": "train",
+      "line": "org",
+      "direction": "branch-0-outbound",
+      "from_station": "35th/Archer",
+      "to_station": "Halsted (Orange)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 4.2,
+        "minutesSinceLastTrain": 24,
+        "lookbackMin": 29,
+        "coldThresholdMin": 24,
+        "trainsOutsideRun": 7,
+        "coldStations": 3,
+        "coldStationNames": [
+          "35th/Archer",
+          "Ashland (Orange)",
+          "Halsted (Orange)"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 9.600000000000001,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779491402868,
+      "onset_ts": 1779489962868,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmi2ruujbz2h",
+      "resolved_post_url": null,
+      "bot_description": "Orange Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "No trains moved through this 4.2-mi stretch (3 stations affected) in the last 24 min — scheduled every 10 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
+      ]
+    },
     {
       "id": 136,
       "kind": "bus",
