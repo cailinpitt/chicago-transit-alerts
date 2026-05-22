@@ -1,7 +1,33 @@
 {
-  "generated_at": 1779488645310,
+  "generated_at": 1779489305894,
   "data_start_ts": 1777234323058,
   "alerts": [
+    {
+      "alert_id": "115110",
+      "kind": "train",
+      "routes": [
+        "org"
+      ],
+      "headline": "Loop-bound Orange Line Delays",
+      "short_description": "Loop-bound Orange Line trains are running with residual delays following an earlier mechanical problem at Kedzie. Service is resuming, allow extra time.",
+      "first_seen_ts": 1779489303731,
+      "last_seen_ts": 1779489304252,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhylxwzzj2l",
+      "resolved_reply_url": null,
+      "affected_from_station": null,
+      "affected_to_station": null,
+      "affected_direction": null,
+      "mentioned_stations": [
+        "Kedzie (Orange)"
+      ],
+      "cta_event_start_ts": 1779489240000,
+      "cta_event_end_ts": null,
+      "cta_event_start_is_date_only": false,
+      "cta_event_end_is_date_only": false
+    },
     {
       "alert_id": "115102",
       "kind": "train",
@@ -86,7 +112,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779488643302,
+      "last_seen_ts": 1779489242903,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -141,7 +167,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779488643302,
+      "last_seen_ts": 1779489242473,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1709,7 +1735,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779488643302,
+      "last_seen_ts": 1779489242903,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
