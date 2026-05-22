@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779482227421,
+  "generated_at": 1779482533807,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -15,10 +15,10 @@
       "headline": "Loop Elevated Service Delayed Near Washington/Wabash",
       "short_description": "Loop Elevated trains are standing due to police activity at Washington/Wabash. Crews working to restore service.",
       "first_seen_ts": 1779481504629,
-      "last_seen_ts": 1779482223568,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "last_seen_ts": 1779482343796,
+      "resolved_ts": 1779482463466,
+      "duration_ms": 958837,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhrdjygur2i",
       "resolved_reply_url": null,
       "affected_from_station": null,
@@ -86,7 +86,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779482163456,
+      "last_seen_ts": 1779482523633,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -141,7 +141,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779482163456,
+      "last_seen_ts": 1779482523633,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1709,7 +1709,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779482163456,
+      "last_seen_ts": 1779482523103,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1830,6 +1830,86 @@
     }
   ],
   "observations": [
+    {
+      "id": 374,
+      "kind": "train",
+      "line": "brn",
+      "direction": "branch-0-outbound",
+      "from_station": "Armitage (Brown/Purple)",
+      "to_station": "Chicago (Brown/Purple)",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 2.9,
+        "minutesSinceLastTrain": 15,
+        "lookbackMin": 20,
+        "coldThresholdMin": 15,
+        "trainsOutsideRun": 8,
+        "coldStations": 3,
+        "coldStationNames": [
+          "Armitage (Brown/Purple)",
+          "Sedgwick (Brown/Purple)",
+          "Chicago (Brown/Purple)"
+        ],
+        "expectedTrains": 2,
+        "headwayMin": 5.800000000000001,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779482282585,
+      "onset_ts": 1779481382585,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhsbzdwax2s",
+      "resolved_post_url": null,
+      "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "No trains moved through this 2.9-mi stretch (3 stations affected) in the last 15 min — scheduled every 6 min, ~2 trains missed (8 trains still moving elsewhere on the line)."
+      ]
+    },
+    {
+      "id": 375,
+      "kind": "train",
+      "line": "pink",
+      "direction": "branch-1-inbound",
+      "from_station": "Ashland (Green/Pink)",
+      "to_station": "Washington/Wabash",
+      "detection_source": "pulse-cold",
+      "signals": null,
+      "evidence": {
+        "runLengthMi": 3.5,
+        "minutesSinceLastTrain": null,
+        "lookbackMin": 26,
+        "coldThresholdMin": 21,
+        "trainsOutsideRun": 6,
+        "coldStations": 5,
+        "coldStationNames": [
+          "Ashland (Green/Pink)",
+          "Morgan (Green/Pink)",
+          "Clinton (Green/Pink)",
+          "Clark/Lake",
+          "Washington/Wabash"
+        ],
+        "expectedTrains": 3,
+        "headwayMin": 8.5,
+        "synthetic": false,
+        "held": null
+      },
+      "ts": 1779482282585,
+      "onset_ts": 1779481022585,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhsc5fjkh2x",
+      "resolved_post_url": null,
+      "bot_description": "Pink Line service appears degraded — a stretch of the line without trains.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "No trains moved through this 3.5-mi stretch (5 stations affected) in the last 26 min — scheduled every 9 min, ~3 trains missed (6 trains still moving elsewhere on the line)."
+      ]
+    },
     {
       "id": 134,
       "kind": "bus",
