@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779484569134,
+  "generated_at": 1779488645310,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -86,7 +86,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779484564117,
+      "last_seen_ts": 1779488643302,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -141,7 +141,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779484564117,
+      "last_seen_ts": 1779488643302,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1709,7 +1709,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779484564116,
+      "last_seen_ts": 1779488643302,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1830,6 +1830,35 @@
     }
   ],
   "observations": [
+    {
+      "id": 135,
+      "kind": "train",
+      "line": "brn",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "gap",
+        "pulse-cold",
+        "ghost"
+      ],
+      "evidence": null,
+      "ts": 1779487684354,
+      "onset_ts": 1779486724354,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmhxybkcyi2c",
+      "resolved_post_url": null,
+      "bot_description": "Brown Line service appears degraded — longer-than-scheduled headways between trains, a stretch of the line without trains, and fewer trains than scheduled.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "One gap between trains is 2.5x the scheduled wait",
+        "Possible service gap forming Fullerton → Armitage (Brown/Purple)",
+        "3 of 15 trains missing this past hour"
+      ]
+    },
     {
       "id": 377,
       "kind": "train",
