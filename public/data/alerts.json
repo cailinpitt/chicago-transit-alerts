@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779494944741,
+  "generated_at": 1779496451340,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -112,7 +112,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779494883148,
+      "last_seen_ts": 1779496446481,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -167,7 +167,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779494882718,
+      "last_seen_ts": 1779496445431,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1735,7 +1735,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779494883148,
+      "last_seen_ts": 1779496446481,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1857,6 +1857,33 @@
   ],
   "observations": [
     {
+      "id": 139,
+      "kind": "bus",
+      "line": "77",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "gap",
+        "ghost"
+      ],
+      "evidence": null,
+      "ts": 1779494824195,
+      "onset_ts": null,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmi7asd3xi2g",
+      "resolved_post_url": null,
+      "bot_description": "Route 77 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "One gap between buses is 4.2x the scheduled wait",
+        "3 of 8 buses missing this past hour"
+      ]
+    },
+    {
       "id": 138,
       "kind": "bus",
       "line": "147",
@@ -1871,13 +1898,13 @@
       "evidence": null,
       "ts": 1779493566495,
       "onset_ts": null,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779494824195,
+      "duration_ms": 1257700,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmi5u2ask62g",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmi7awfed52s",
       "bot_description": "Route 147 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": null,
+      "bot_resolved_description": "Route 147 service appears to be back to normal.",
       "bot_evidence_bullets": [
         "3 of 11 buses missing this past hour",
         "One gap between buses is 3.8x the scheduled wait"
@@ -1937,13 +1964,13 @@
       "evidence": null,
       "ts": 1779491164099,
       "onset_ts": null,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779495543281,
+      "duration_ms": 4379182,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmi2iqto7s2h",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmi7aux4tf2s",
       "bot_description": "Route 26 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-      "bot_resolved_description": null,
+      "bot_resolved_description": "Route 26 service appears to be back to normal.",
       "bot_evidence_bullets": [
         "4 of 11 buses missing this past hour",
         "One gap between buses is 4.3x the scheduled wait"
