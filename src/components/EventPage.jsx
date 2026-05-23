@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { computeCohortDurationStats } from '../lib/aggregate.js';
-import { TRAIN_LINES } from '../lib/ctaLines.js';
+import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import {
   chicagoDayUTC,
   formatChicagoDay,
@@ -13,6 +13,7 @@ import {
   hexToRgba,
 } from '../lib/format.js';
 import {
+  affectedLineSegments,
   findContemporaneousOnOtherLines,
   findIncidentById,
   findRelatedIncidents,
@@ -32,6 +33,7 @@ import {
 import BrowseMenu from './BrowseMenu.jsx';
 import EventMap from './EventMap.jsx';
 import LinePill from './LinePill.jsx';
+import MultiLineEventMap from './MultiLineEventMap.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
@@ -662,6 +664,14 @@ function collectAffectedStations(incident) {
   add(incident.affected_to_station);
   add(incident.from_station);
   add(incident.to_station);
+  // Every merged observation's endpoints, not just the primary's. A Loop-wide
+  // alert merges one pulse-cold detection per affected line; showing only the
+  // primary obs's segment (e.g. "Armitage ↔ Chicago") misrepresents a
+  // five-line incident as a single stretch on one line.
+  for (const e of incident.extra_obs || []) {
+    add(e.from_station);
+    add(e.to_station);
+  }
   // mentioned_stations carries impact-context matches the upstream extractor
   // pulled from the alert text ("delays at Monroe"). Include after the
   // segment endpoints so the canonical "from → to" still renders first when
@@ -683,6 +693,28 @@ function collectAffectedStations(incident) {
     if (QUALIFIER.test(name)) return true;
     return !qualifiedDisplays.has(name.toLowerCase());
   });
+}
+
+// Group an incident's affected stretches by line, for the per-line station
+// list on multi-line incidents. Mirrors the multi-line map: each merged
+// observation contributes a segment on its own line. Returns null when no
+// segment owns a line (a pure CTA alert applies to all its routes at once,
+// so there's nothing to split by — the flat chips are clearer there).
+function groupAffectedStationsByLine(incident) {
+  const segs = affectedLineSegments(incident).filter((s) => s.line);
+  if (segs.length === 0) return null;
+  const byLine = new Map();
+  for (const s of segs) {
+    let list = byLine.get(s.line);
+    if (!list) {
+      list = [];
+      byLine.set(s.line, list);
+    }
+    list.push({ from: s.from, to: s.to });
+  }
+  return [...byLine.entries()]
+    .sort((a, b) => TRAIN_LINE_ORDER.indexOf(a[0]) - TRAIN_LINE_ORDER.indexOf(b[0]))
+    .map(([line, segments]) => ({ line, segments }));
 }
 
 // Quiet inline row of affected station links. No chunky pills — the line
@@ -739,6 +771,69 @@ function StationChips({ stations, direction }) {
         );
       })}
     </p>
+  );
+}
+
+// Single station as a dotted-underline link to its page, matching the style
+// StationChips uses. Falls back to plain text when the name doesn't slugify.
+function StationLink({ name }) {
+  if (!name) return null;
+  const slug = slugifyStation(name);
+  const display = displayStationName(name);
+  if (!slug) return <span>{display}</span>;
+  return (
+    <a
+      href={`/station/${slug}`}
+      className="underline decoration-dotted decoration-slate-400 dark:decoration-slate-500 underline-offset-[3px] hover:decoration-solid hover:decoration-blue-500 hover:text-blue-500"
+    >
+      {display}
+    </a>
+  );
+}
+
+// Per-line affected stations for multi-line incidents. Each row pairs the
+// line's brand-color pill with its affected stretch(es), so the list reads
+// the same way the multi-line map does ("Brown: Armitage ↔ Chicago") instead
+// of one flat run of names that hides which station sits on which line.
+function StationsByLine({ groups, direction }) {
+  if (!groups || groups.length === 0) return null;
+  // Most alerts hit both directions (direction null) — `↔` matches that;
+  // a one-way alert keeps the directional arrow.
+  const glyph = direction ? '→' : '↔';
+  return (
+    <div className="mt-1">
+      <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+        Bot observed impacted stations
+      </span>
+      <div className="mt-1 space-y-1">
+        {groups.map(({ line, segments }) => (
+          // Fixed-width pill column so every line's stations start at the same
+          // x — the pills vary in width (Brown vs Orange vs Purple), which
+          // otherwise left the station names ragged. items-center vertically
+          // centers the station text against its line pill.
+          <div key={line} className="flex items-center gap-2">
+            <div className="w-16 flex-shrink-0">
+              <RowLabel kind="train" route={line} />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-slate-600 dark:text-slate-300">
+              {segments.map((seg, si) => (
+                <span
+                  key={`${seg.from ?? ''}→${seg.to ?? ''}`}
+                  className="inline-flex items-center gap-1.5"
+                >
+                  {si > 0 && <span className="text-slate-300 dark:text-slate-600">·</span>}
+                  <StationLink name={seg.from} />
+                  {seg.from && seg.to && (
+                    <span className="text-slate-400 dark:text-slate-500">{glyph}</span>
+                  )}
+                  <StationLink name={seg.to} />
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -932,6 +1027,9 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   const description = describe(incident, isMerged, isAlert, stationIndex);
   const affected = formatAffected(incident);
   const affectedStations = collectAffectedStations(incident);
+  // Multi-line incidents split the station list per line (mirrors the map);
+  // null for single-line / pure-CTA incidents, which keep the flat chips.
+  const stationsByLine = groupAffectedStationsByLine(incident);
   const resolvedUrl = incident.resolved_reply_url ?? incident.resolved_post_url ?? null;
   const obsResolvedUrl = isMerged ? (incident.obs_resolved_post_url ?? null) : null;
   const eventId = getEventId(incident);
@@ -979,9 +1077,13 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           design — linking them produces /station/wacker pages with no
           incidents on record. The cross-street info is already in the bus
           alert headline, so the chips row adds nothing useful. */}
-      {(isMerged || isAlert) && incident.kind !== 'bus' && (
-        <StationChips stations={affectedStations} direction={incident.affected_direction} />
-      )}
+      {(isMerged || isAlert) &&
+        incident.kind !== 'bus' &&
+        (stationsByLine ? (
+          <StationsByLine groups={stationsByLine} direction={incident.affected_direction} />
+        ) : (
+          <StationChips stations={affectedStations} direction={incident.affected_direction} />
+        ))}
 
       {!isMerged && !isAlert && incident.signals?.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -1340,15 +1442,25 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
 
       {/* Geographic map for train incidents with at least one named
           station. Bus incidents (no geometry data) and alerts that don't
-          tag a station fall through to just the mini timeline below. */}
-      {incident.kind === 'train' && (
-        <EventMap
-          lineKey={incident.line ?? (Array.isArray(incident.routes) ? incident.routes[0] : null)}
-          fromStation={incident.from_station ?? incident.affected_from_station ?? null}
-          toStation={incident.to_station ?? incident.affected_to_station ?? null}
-          active={!!incident.active}
-        />
-      )}
+          tag a station fall through to just the mini timeline below.
+          Multi-line incidents (a Loop-wide alert that merged several
+          per-line detections) use the combined map so every affected line
+          shows its own stretch instead of one arbitrary line. */}
+      {incident.kind === 'train' &&
+        (incidentRoutes(incident).length > 1 ? (
+          <MultiLineEventMap
+            lineKeys={incidentRoutes(incident)}
+            segments={affectedLineSegments(incident)}
+            active={!!incident.active}
+          />
+        ) : (
+          <EventMap
+            lineKey={incident.line ?? (Array.isArray(incident.routes) ? incident.routes[0] : null)}
+            fromStation={incident.from_station ?? incident.affected_from_station ?? null}
+            toStation={incident.to_station ?? incident.affected_to_station ?? null}
+            active={!!incident.active}
+          />
+        ))}
 
       <DurationScale stats={cohortStats} />
 

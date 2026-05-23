@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { hexToRgba } from '../lib/format.js';
-import { buildLineMap } from '../lib/lineMap.js';
+import { buildLineMap, sliceTrackBetween } from '../lib/lineMap.js';
 import { displayStationName } from '../lib/stations.js';
 
 // Light-touch event-scoped map: full line track in muted color, with the
@@ -47,83 +47,12 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
     .map((t) => `M${t.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`);
 
   // Highlight the actual segment of track between the two affected stations
-  // (when both endpoints are present and distinct). For each polyline in
-  // map.tracks, find the points closest to the two stations and slice the
-  // polyline between those indices. A straight chord would shortcut bends
-  // — Blue Line Clark/Lake → Chicago turns 90° underground; the chord
-  // version cut across through other paths and looked wrong.
-  let highlightPath = null;
-  if (affected.length === 2) {
-    const [a, b] = affected;
-    let bestScore = Number.POSITIVE_INFINITY;
-    for (const track of map.tracks) {
-      if (!track || track.length < 2) continue;
-      let aIdx = -1;
-      let bIdx = -1;
-      let aBest = Number.POSITIVE_INFINITY;
-      let bBest = Number.POSITIVE_INFINITY;
-      for (let i = 0; i < track.length; i++) {
-        const dxa = track[i].x - a.x;
-        const dya = track[i].y - a.y;
-        const da = dxa * dxa + dya * dya;
-        if (da < aBest) {
-          aBest = da;
-          aIdx = i;
-        }
-        const dxb = track[i].x - b.x;
-        const dyb = track[i].y - b.y;
-        const db = dxb * dxb + dyb * dyb;
-        if (db < bBest) {
-          bBest = db;
-          bIdx = i;
-        }
-      }
-      // Score: how well does this polyline cover BOTH stations? Lower is
-      // better. A polyline that's the wrong branch (Forest Park when the
-      // incident is on the O'Hare side, e.g.) will have one station far
-      // off and lose to the correct branch.
-      const score = aBest + bBest;
-      if (aIdx >= 0 && bIdx >= 0 && score < bestScore) {
-        bestScore = score;
-        const lo = Math.min(aIdx, bIdx);
-        const hi = Math.max(aIdx, bIdx);
-        let slice = track.slice(lo, hi + 1);
-        const startStation = aIdx <= bIdx ? a : b;
-        const endStation = aIdx <= bIdx ? b : a;
-        // Trim overshoot at the boundaries. The closest polyline point to a
-        // station can sit *past* it in the direction of travel — without
-        // this, the highlight extends beyond the station before snapping
-        // back to its exact xy (visible as a stub of stroke past Fullerton
-        // on the Brown Line, for example). Drop the boundary point when its
-        // local segment direction crosses the station, indicating the point
-        // is on the wrong side.
-        if (slice.length >= 2) {
-          // Forward direction at start: slice[0] → slice[1].
-          const dxs = slice[1].x - slice[0].x;
-          const dys = slice[1].y - slice[0].y;
-          // If startStation is "ahead of" slice[0] along that direction,
-          // then slice[0] is behind the station — drawing station → slice[0]
-          // would go backward. Drop slice[0].
-          if ((startStation.x - slice[0].x) * dxs + (startStation.y - slice[0].y) * dys > 0) {
-            slice = slice.slice(1);
-          }
-        }
-        if (slice.length >= 2) {
-          const last = slice.length - 1;
-          // Forward direction at end: slice[last-1] → slice[last].
-          const dxe = slice[last].x - slice[last - 1].x;
-          const dye = slice[last].y - slice[last - 1].y;
-          // If endStation is "behind" slice[last] along that direction,
-          // then slice[last] is past the station — drop it.
-          if ((endStation.x - slice[last].x) * dxe + (endStation.y - slice[last].y) * dye < 0) {
-            slice = slice.slice(0, last);
-          }
-        }
-        const points = [startStation, ...slice, endStation];
-        highlightPath = `M${points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`;
-      }
-    }
-  }
+  // (when both endpoints are present and distinct). sliceTrackBetween picks
+  // the right branch and slices the polyline between them — a straight chord
+  // would shortcut bends (Blue Line Clark/Lake → Chicago turns 90°
+  // underground; the chord version cut across other paths and looked wrong).
+  const highlightPath =
+    affected.length === 2 ? sliceTrackBetween(map.tracks, affected[0], affected[1]) : null;
 
   return (
     <section className="mt-4">
@@ -336,7 +265,7 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
 // (e.g. Blue Line's O'Hare branch). `affectedKey` re-runs the scroll when
 // the highlighted stations change, so navigating between events updates
 // the framing instead of stuck at the previous segment's position.
-function MapScroller({ mapWidth, affectedCenterX, affectedKey, children }) {
+export function MapScroller({ mapWidth, affectedCenterX, affectedKey, children }) {
   const ref = useRef(null);
   // biome-ignore lint/correctness/useExhaustiveDependencies: affectedKey captures the affected-stations identity
   useEffect(() => {
@@ -364,7 +293,7 @@ function MapScroller({ mapWidth, affectedCenterX, affectedKey, children }) {
 // drop trailing parenthetical line qualifiers ("Central (Green)"). The
 // upstream sources occasionally vary on these details and we'd rather
 // surface a match than a blank map.
-function normalize(name) {
+export function normalize(name) {
   if (!name) return '';
   return String(name)
     .toLowerCase()

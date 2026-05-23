@@ -44,6 +44,18 @@ const PAYLOAD = {
       active: false,
       post_url: 'https://bsky.app/profile/did:plc:abc/post/busreroute',
     },
+    {
+      // Multi-line Loop alert that merges one pulse-cold detection per line.
+      // Routes use CTA short codes ('p') so normalizeAlertsPayload runs.
+      alert_id: 'loop1',
+      kind: 'train',
+      routes: ['p', 'pink'],
+      headline: 'Loop Elevated Service Delayed',
+      first_seen_ts: NOW - 40 * 60_000,
+      resolved_ts: NOW - 10 * 60_000,
+      active: false,
+      post_url: 'https://bsky.app/profile/did:plc:abc/post/loopevt',
+    },
   ],
   observations: [
     {
@@ -54,6 +66,32 @@ const PAYLOAD = {
       resolved_ts: null,
       active: true,
       post_url: 'https://bsky.app/profile/did:plc:xyz/post/bus99',
+    },
+    {
+      // Primary obs for the Loop alert (closest to first_seen) — Purple.
+      id: 201,
+      kind: 'train',
+      line: 'p',
+      from_station: 'Belmont (Red/Brown/Purple)',
+      to_station: 'Chicago (Brown/Purple)',
+      detection_source: 'pulse-cold',
+      ts: NOW - 38 * 60_000,
+      resolved_ts: NOW - 12 * 60_000,
+      active: false,
+      post_url: 'https://bsky.app/profile/did:plc:xyz/post/obsPurple',
+    },
+    {
+      // Extra obs on a different line — Pink, with a Loop endpoint.
+      id: 202,
+      kind: 'train',
+      line: 'pink',
+      from_station: 'Ashland (Green/Pink)',
+      to_station: 'Washington/Wabash',
+      detection_source: 'pulse-cold',
+      ts: NOW - 36 * 60_000,
+      resolved_ts: NOW - 12 * 60_000,
+      active: false,
+      post_url: 'https://bsky.app/profile/did:plc:xyz/post/obsPink',
     },
   ],
 };
@@ -130,6 +168,36 @@ describe('EventPage', () => {
     expect(screen.queryByRole('link', { name: /^Chicago River$/ })).toBeNull();
     // The bare "Chicago" later in the sentence still links.
     expect(screen.getAllByRole('link', { name: 'Chicago' }).length).toBeGreaterThan(0);
+  });
+
+  it('aggregates affected stations across all merged observations', async () => {
+    // The merged Loop incident pairs the alert with two pulse-cold obs on
+    // different lines. The chips must list endpoints from BOTH (primary +
+    // extra), not just the primary's Belmont/Chicago — otherwise a five-line
+    // incident reads as one arbitrary stretch.
+    render(<EventPage eventId="loopevt" />);
+    await waitFor(() => {
+      expect(screen.getByText('Loop Elevated Service Delayed')).toBeInTheDocument();
+    });
+    // Primary obs (Purple) endpoints.
+    expect(screen.getByRole('link', { name: 'Belmont' })).toBeInTheDocument();
+    // Extra obs (Pink) endpoint — proves we go beyond the primary observation.
+    expect(screen.getByRole('link', { name: 'Washington/Wabash' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ashland' })).toBeInTheDocument();
+  });
+
+  it('renders the combined multi-line map for a multi-line incident', async () => {
+    render(<EventPage eventId="loopevt" />);
+    await waitFor(() => {
+      expect(screen.getByText('Loop Elevated Service Delayed')).toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole('img', { name: /Affected stretches across 2 train lines/ }),
+    ).toBeInTheDocument();
+    // Bot-detected stretches are labeled as observed impact, not "where this
+    // happened" — they spread downstream of the CTA's reported epicenter.
+    expect(screen.getByText('Bot observed impact')).toBeInTheDocument();
+    expect(screen.queryByText('Where this happened')).not.toBeInTheDocument();
   });
 
   it('does not render a station chips row for bus alerts', async () => {

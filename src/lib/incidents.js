@@ -230,6 +230,42 @@ export function observationSignals(obs) {
   return obs.detection_source ? [obs.detection_source] : [];
 }
 
+// The per-line affected stretches for an incident, as `{ line, from, to }`
+// segments. A multi-line incident (a Loop-wide alert that merged several
+// pulse-cold detections) carries one segment per merged observation, each on
+// its OWN line — the multi-line event map uses these to highlight each line's
+// real stretch instead of drawing one arbitrary line. `line` is null for an
+// alert-level segment ("between Belmont and Howard" with no single owning
+// line); the renderer then highlights it on every drawn line serving both
+// endpoints.
+/**
+ * @param {object} incident An Alert, Observation, or MergedIncident.
+ * @returns {Array<{ line: string | null, from: string | null, to: string | null }>}
+ */
+export function affectedLineSegments(incident) {
+  if (!incident) return [];
+  const out = [];
+  const push = (line, from, to) => {
+    if (!from && !to) return;
+    out.push({ line: line ?? null, from: from ?? null, to: to ?? null });
+  };
+  const isMerged = incident._type === 'merged';
+  if (isMerged) {
+    // Primary observation, then the extras that rode along on the merge.
+    push(incident.obs_line ?? null, incident.from_station, incident.to_station);
+    for (const e of incident.extra_obs ?? []) push(e.line ?? null, e.from_station, e.to_station);
+    // Alert's own segment endpoints (segment-dim alerts) — line-agnostic.
+    push(null, incident.affected_from_station, incident.affected_to_station);
+  } else if (incident.alert_id) {
+    // Pure CTA alert: only the alert-level segment, applied across its routes.
+    push(null, incident.affected_from_station, incident.affected_to_station);
+  } else {
+    // Standalone observation.
+    push(incident.line ?? null, incident.from_station, incident.to_station);
+  }
+  return out;
+}
+
 // Extract the rkey at the end of a Bluesky post URL — the part after `/post/`.
 // Used as the canonical event id for shareable links. Returns null for missing
 // or malformed URLs so callers can decide whether to render the share control.
