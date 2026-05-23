@@ -9,6 +9,7 @@ import {
   formatTime,
 } from '../lib/format.js';
 import {
+  affectedLineSegments,
   formatEvidenceChip,
   getEventId,
   mergeMatchingIncidents,
@@ -60,6 +61,27 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   const isAlert = !isMerged && !!incident.alert_id;
   const eventId = getEventId(incident);
   const sources = getSources(incident);
+
+  // For a merged incident spanning more than one line (a Loop-wide alert that
+  // merged a detection per line), the single primary "from → to" sub-line hides
+  // the other lines' stretches. When 2+ lines are involved, show each line's
+  // stretch grouped together, divided by a bar. A single-line stretch keeps the
+  // plain "from → to" arrow and the line pill above covers attribution.
+  const mergedSegments = isMerged ? affectedLineSegments(incident) : [];
+  const lineGroups = (() => {
+    const byLine = new Map();
+    for (const seg of mergedSegments) {
+      if (!seg.line) continue;
+      let list = byLine.get(seg.line);
+      if (!list) {
+        list = [];
+        byLine.set(seg.line, list);
+      }
+      list.push(seg);
+    }
+    return [...byLine.entries()].map(([line, segments]) => ({ line, segments }));
+  })();
+  const isMultiLineSegments = lineGroups.length > 1;
 
   const startTs = incident.first_seen_ts || incident.ts;
   const endTs = incident.resolved_ts ?? null;
@@ -206,8 +228,43 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
 
           <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">{description}</p>
 
-          {/* Merged: show the specific segment from the bot observation */}
-          {isMerged && incident.from_station && incident.to_station && (
+          {/* Merged, multi-line: each line's stretch grouped together and
+              divided by a bar, so a Loop-wide event shows every line's stops
+              instead of just the primary obs's stretch. */}
+          {isMultiLineSegments && (
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+              {lineGroups.map(({ line, segments }, gi) => (
+                <Fragment key={line}>
+                  {gi > 0 && (
+                    <span className="text-slate-300 dark:text-slate-600" aria-hidden="true">
+                      │
+                    </span>
+                  )}
+                  <span className="inline-flex flex-wrap items-center gap-x-1">
+                    {segments.map((seg, si) => (
+                      <Fragment key={`${seg.from ?? ''}→${seg.to ?? ''}`}>
+                        {si > 0 && <span className="text-slate-300 dark:text-slate-600">·</span>}
+                        <StationName
+                          name={seg.from}
+                          stationIndex={stationIndex}
+                          searchQuery={searchQuery}
+                        />
+                        {seg.from && seg.to && <span aria-hidden="true">→</span>}
+                        <StationName
+                          name={seg.to}
+                          stationIndex={stationIndex}
+                          searchQuery={searchQuery}
+                        />
+                      </Fragment>
+                    ))}
+                  </span>
+                </Fragment>
+              ))}
+            </p>
+          )}
+
+          {/* Merged, single line: show the specific segment from the bot observation */}
+          {!isMultiLineSegments && isMerged && incident.from_station && incident.to_station && (
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
               <StationName
                 name={incident.from_station}
