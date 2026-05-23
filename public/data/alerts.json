@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779552545533,
+  "generated_at": 1779553444686,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -136,7 +136,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779552484065,
+      "last_seen_ts": 1779553443383,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -191,7 +191,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779552483733,
+      "last_seen_ts": 1779553443304,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1759,7 +1759,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779552484065,
+      "last_seen_ts": 1779553443383,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1880,6 +1880,35 @@
     }
   ],
   "observations": [
+    {
+      "id": 145,
+      "kind": "train",
+      "line": "blue",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "gap",
+        "bunching",
+        "ghost"
+      ],
+      "evidence": null,
+      "ts": 1779552483264,
+      "onset_ts": null,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmjudhmjjl2h",
+      "resolved_post_url": null,
+      "bot_description": "Blue Line service appears degraded — longer-than-scheduled headways between trains, trains running bunched together, and fewer trains than scheduled.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "One gap between trains is 3.9x the scheduled wait",
+        "2 trains recently bunched together",
+        "2 of 11 trains missing this past hour"
+      ]
+    },
     {
       "id": 144,
       "kind": "train",
