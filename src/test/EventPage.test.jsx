@@ -200,6 +200,19 @@ describe('EventPage', () => {
     expect(screen.queryByText('Where this happened')).not.toBeInTheDocument();
   });
 
+  it('adds a cleared entry to the Per CTA timeline when the alert resolved', async () => {
+    // The Brown Line alert is resolved with CTA body text. The timeline should
+    // end on a "cleared" entry (newest) so it doesn't read as still ongoing.
+    render(<EventPage eventId="brnriver" />);
+    await waitFor(() => {
+      expect(screen.getByText('CTA cleared this alert.')).toBeInTheDocument();
+    });
+    // Original message (1) + clear (1) = 2 updates.
+    expect(screen.getByText(/Per CTA · 2 updates/)).toBeInTheDocument();
+    // The CTA body text still renders in its version entry.
+    expect(screen.getByText(/raised bridge/)).toBeInTheDocument();
+  });
+
   it('does not render a station chips row for bus alerts', async () => {
     // affected_from_station / affected_to_station on bus alerts hold
     // cross-street labels, not rail stations — linking them produces

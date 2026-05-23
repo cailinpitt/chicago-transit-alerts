@@ -1233,85 +1233,124 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           ...(incident.mentioned_stations || []),
           ...stationsServingLines(incidentRoutes(incident)),
         ];
-        const versions = Array.isArray(incident.versions) ? incident.versions : null;
-        // Multi-version: CTA edited the alert text after first post. Show
-        // each version as a timestamped entry, newest at top so the most
-        // recent message is what the reader sees first. Single-version
-        // alerts fall through to the regular "Per CTA" quote block below.
-        if (versions && versions.length > 1) {
-          const sorted = [...versions].sort((a, b) => b.ts - a.ts);
+        // Normalize to a versions list. The export omits `versions` for a
+        // single-version alert, so synthesize one entry from the alert's own
+        // fields when there's CTA body text to anchor the section.
+        const rawVersions = Array.isArray(incident.versions) ? incident.versions : null;
+        const versions =
+          rawVersions && rawVersions.length > 0
+            ? rawVersions
+            : incident.short_description
+              ? // No headline on the synthesized entry — the page <h1> already
+                // shows it, so repeating it in the rail would just duplicate.
+                [{ ts: incident.first_seen_ts, short_description: incident.short_description }]
+              : [];
+
+        // Build the timeline: CTA's text versions (newest first) plus a
+        // synthesized "cleared" entry when the alert is no longer active.
+        // Without it, a resolved alert ends on a stale "trains standing"
+        // message tagged as the Latest update, which reads as if it's still
+        // happening. The clear entry only makes sense once there's CTA copy to
+        // anchor the rail, so a content-less alert stays untouched.
+        const hasResolved = !incident.active && incident.resolved_ts != null;
+        const entries = [...versions]
+          .sort((a, b) => b.ts - a.ts)
+          .map((v) => ({ type: 'version', ...v }));
+        if (hasResolved && versions.length > 0) {
+          entries.unshift({ type: 'cleared', ts: incident.resolved_ts });
+        }
+        if (entries.length === 0) return null;
+
+        // A single CTA message with no clear yet stays a simple quote block.
+        if (entries.length === 1) {
+          const v = entries[0];
+          if (!v.short_description) return null;
           return (
-            <section className="mt-4">
-              <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
-                Per CTA · {versions.length} updates
+            <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
+              <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                Per CTA
               </p>
-              {/* LinkedIn-style rail: each <li> renders its own connector
-                  segment running from just below its dot down into the
-                  space-y gap to meet the next dot. The last (oldest)
-                  entry skips the segment so the rail ends cleanly at its
-                  dot instead of trailing past it. */}
-              <ol className="space-y-6">
-                {sorted.map((v, i) => {
-                  const isLatest = i === 0;
-                  const isOldest = i === sorted.length - 1;
-                  const prev = sorted[i + 1];
-                  // Headline only re-shown when it changed from the prior
-                  // (older) version. Most edits keep the same headline and
-                  // only revise the body; reprinting it on every entry
-                  // would be noise.
-                  const showHeadline = !prev || prev.headline !== v.headline;
-                  return (
-                    <li key={v.ts} className="relative pl-6">
-                      {!isOldest && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute left-[3px] top-2 w-px bg-slate-200 dark:bg-gh-border"
-                          style={{ bottom: '-1.5rem' }}
-                        />
-                      )}
-                      <span
-                        aria-hidden="true"
-                        className={`absolute left-0 top-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white dark:ring-gh-surface ${
-                          isLatest ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-500'
-                        }`}
-                      />
-                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                          {formatDate(v.ts)} · {formatTime(v.ts)}
-                        </p>
-                        {isLatest && (
-                          <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-500">
-                            Latest
-                          </span>
-                        )}
-                      </div>
-                      {showHeadline && v.headline && (
-                        <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mb-1">
-                          {v.headline}
-                        </p>
-                      )}
-                      {v.short_description && (
-                        <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-                          {linkifyMentionedStations(v.short_description, linkPool, stationIndex)}
-                        </p>
-                      )}
-                    </li>
-                  );
-                })}
-              </ol>
-            </section>
+              <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
+                {linkifyMentionedStations(v.short_description, linkPool, stationIndex)}
+              </p>
+            </blockquote>
           );
         }
-        if (!incident.short_description) return null;
+
         return (
-          <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
-            <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
-              Per CTA
+          <section className="mt-4">
+            <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+              Per CTA · {entries.length} updates
             </p>
-            <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
-              {linkifyMentionedStations(incident.short_description, linkPool, stationIndex)}
-            </p>
-          </blockquote>
+            {/* LinkedIn-style rail: each <li> renders its own connector
+                segment running from just below its dot down into the
+                space-y gap to meet the next dot. The last (oldest)
+                entry skips the segment so the rail ends cleanly at its
+                dot instead of trailing past it. */}
+            <ol className="space-y-6">
+              {entries.map((e, i) => {
+                const isLatest = i === 0;
+                const isOldest = i === entries.length - 1;
+                const isCleared = e.type === 'cleared';
+                // Headline only re-shown when it changed from the next OLDER
+                // version (skip the clear entry, which carries no headline).
+                // Most edits keep the headline and only revise the body, so
+                // reprinting it on every entry would be noise.
+                const prevVersion = entries.slice(i + 1).find((x) => x.type === 'version');
+                const showHeadline =
+                  !isCleared && (!prevVersion || prevVersion.headline !== e.headline);
+                return (
+                  <li key={`${e.type}-${e.ts}`} className="relative pl-6">
+                    {!isOldest && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute left-[3px] top-2 w-px bg-slate-200 dark:bg-gh-border"
+                        style={{ bottom: '-1.5rem' }}
+                      />
+                    )}
+                    <span
+                      aria-hidden="true"
+                      className={`absolute left-0 top-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white dark:ring-gh-surface ${
+                        isCleared
+                          ? 'bg-green-500'
+                          : isLatest
+                            ? 'bg-blue-500'
+                            : 'bg-slate-400 dark:bg-slate-500'
+                      }`}
+                    />
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                        {formatDate(e.ts)} · {formatTime(e.ts)}
+                      </p>
+                      {isLatest && (
+                        <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-500">
+                          Latest
+                        </span>
+                      )}
+                    </div>
+                    {isCleared ? (
+                      <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                        CTA cleared this alert.
+                      </p>
+                    ) : (
+                      <>
+                        {showHeadline && e.headline && (
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mb-1">
+                            {e.headline}
+                          </p>
+                        )}
+                        {e.short_description && (
+                          <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
+                            {linkifyMentionedStations(e.short_description, linkPool, stationIndex)}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
         );
       })()}
 
