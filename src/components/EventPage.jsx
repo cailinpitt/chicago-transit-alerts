@@ -1311,11 +1311,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
                     <span
                       aria-hidden="true"
                       className={`absolute left-0 top-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white dark:ring-gh-surface ${
-                        isCleared
-                          ? 'bg-green-500'
-                          : isLatest
-                            ? 'bg-blue-500'
-                            : 'bg-slate-400 dark:bg-slate-500'
+                        isLatest ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-500'
                       }`}
                     />
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
@@ -1329,7 +1325,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
                       )}
                     </div>
                     {isCleared ? (
-                      <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                      <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                         CTA cleared this alert.
                       </p>
                     ) : (
