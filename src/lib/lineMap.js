@@ -185,23 +185,23 @@ export function sliceTrackBetween(tracks, a, b) {
       let slice = track.slice(lo, hi + 1);
       const startStation = aIdx <= bIdx ? a : b;
       const endStation = aIdx <= bIdx ? b : a;
-      // Trim overshoot at the boundaries. The closest polyline point to a
-      // station can sit *past* it in the direction of travel; drop the
-      // boundary point when its local segment direction crosses the station.
-      if (slice.length >= 2) {
-        const dxs = slice[1].x - slice[0].x;
-        const dys = slice[1].y - slice[0].y;
-        if ((startStation.x - slice[0].x) * dxs + (startStation.y - slice[0].y) * dys > 0) {
-          slice = slice.slice(1);
-        }
-      }
-      if (slice.length >= 2) {
-        const last = slice.length - 1;
-        const dxe = slice[last].x - slice[last - 1].x;
-        const dye = slice[last].y - slice[last - 1].y;
-        if ((endStation.x - slice[last].x) * dxe + (endStation.y - slice[last].y) * dye < 0) {
-          slice = slice.slice(0, last);
-        }
+      // Keep only the track vertices that fall *between* the two stations,
+      // measured by their projection onto the start→end chord (parameter t in
+      // [0, 1]). Track vertices are sparse on some stretches, so the nearest
+      // vertex to a station can sit past it — e.g. Brown Line Belmont→Fullerton,
+      // where the lone nearest vertex is south of Fullerton, so appending the
+      // station after it drew a stub overshooting the dot. Curved runs keep
+      // their bend vertices (those still project inside the chord), while
+      // overshoot/undershoot vertices drop out regardless of how many the slice
+      // has — the previous per-segment trim only fired when the slice had ≥2.
+      const ex = endStation.x - startStation.x;
+      const ey = endStation.y - startStation.y;
+      const chordLen2 = ex * ex + ey * ey;
+      if (chordLen2 > 0) {
+        slice = slice.filter((p) => {
+          const t = ((p.x - startStation.x) * ex + (p.y - startStation.y) * ey) / chordLen2;
+          return t >= 0 && t <= 1;
+        });
       }
       const points = [startStation, ...slice, endStation];
       highlightPath = `M${points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`;

@@ -32,6 +32,22 @@ describe('sliceTrackBetween', () => {
   it('returns null when no polyline has two usable points', () => {
     expect(sliceTrackBetween([[{ x: 0, y: 0 }]], { x: 0, y: 0 }, { x: 1, y: 1 })).toBeNull();
   });
+
+  it('does not overshoot when the nearest vertex sits past the end station', () => {
+    // Sparse track: both stations snap to the same vertex (y=30), which is
+    // *beyond* the end station (y=12). The slice is a single vertex, so the
+    // old per-segment trim (gated on length>=2) never fired and the highlight
+    // drew a stub down to y=30 and back. The chord-projection trim drops it.
+    // Regression for the Brown Line Belmont→Fullerton overshoot.
+    const sparse = [
+      { x: 0, y: 30 },
+      { x: 0, y: 40 },
+    ];
+    const d = sliceTrackBetween([sparse], { x: 0, y: 0 }, { x: 0, y: 12 });
+    expect(d).not.toContain(',30');
+    expect(d).not.toContain(',40');
+    expect(d).toBe('M0.0,0.0L0.0,12.0');
+  });
 });
 
 describe('buildMultiLineMap', () => {
