@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779548945162,
+  "generated_at": 1779551346062,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -112,7 +112,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779548883447,
+      "last_seen_ts": 1779551283620,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -167,7 +167,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779548883218,
+      "last_seen_ts": 1779551283291,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1735,7 +1735,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779548883447,
+      "last_seen_ts": 1779551283620,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1871,13 +1871,13 @@
       "evidence": null,
       "ts": 1779548827689,
       "onset_ts": null,
-      "resolved_ts": null,
-      "duration_ms": null,
-      "active": true,
+      "resolved_ts": 1779549723341,
+      "duration_ms": 895652,
+      "active": false,
       "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmjq5eigoi2c",
-      "resolved_post_url": null,
+      "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmjsewgzu32c",
       "bot_description": "Red Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-      "bot_resolved_description": null,
+      "bot_resolved_description": "Red Line service appears to be back to normal.",
       "bot_evidence_bullets": [
         "4 of 9 trains missing this past hour",
         "One gap between trains is 2.7x the scheduled wait"
