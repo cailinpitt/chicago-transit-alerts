@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779557344722,
+  "generated_at": 1779559745357,
   "data_start_ts": 1777234323058,
   "alerts": [
     {
@@ -136,7 +136,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
       "first_seen_ts": 1779408123235,
-      "last_seen_ts": 1779557283773,
+      "last_seen_ts": 1779559684642,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -191,7 +191,7 @@
       "headline": "Temporary Reroute",
       "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
       "first_seen_ts": 1779361323502,
-      "last_seen_ts": 1779557283773,
+      "last_seen_ts": 1779559684641,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1759,7 +1759,7 @@
       "headline": "Temporary Reroute",
       "short_description": "SB State will be closed between Wacker and Randolph. Board SB 2, 6, 10, 29, 36, 62, and 146 buses at State/Washington. Board SB 148 at Michigan/South Water.",
       "first_seen_ts": 1778256171035,
-      "last_seen_ts": 1779557283773,
+      "last_seen_ts": 1779559684642,
       "resolved_ts": null,
       "duration_ms": null,
       "active": true,
@@ -1880,6 +1880,60 @@
     }
   ],
   "observations": [
+    {
+      "id": 148,
+      "kind": "bus",
+      "line": "146",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost",
+        "gap"
+      ],
+      "evidence": null,
+      "ts": 1779558365468,
+      "onset_ts": null,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmk27awjqn2c",
+      "resolved_post_url": null,
+      "bot_description": "Route 146 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "3 of 6 buses missing this past hour",
+        "One gap between buses is 4.9x the scheduled wait"
+      ]
+    },
+    {
+      "id": 147,
+      "kind": "bus",
+      "line": "36",
+      "direction": null,
+      "from_station": null,
+      "to_station": null,
+      "detection_source": "roundup",
+      "signals": [
+        "ghost",
+        "bunching"
+      ],
+      "evidence": null,
+      "ts": 1779558066188,
+      "onset_ts": null,
+      "resolved_ts": null,
+      "duration_ms": null,
+      "active": true,
+      "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmk27ar5eo2s",
+      "resolved_post_url": null,
+      "bot_description": "Route 36 service appears degraded — fewer buses than scheduled and buses running bunched together.",
+      "bot_resolved_description": null,
+      "bot_evidence_bullets": [
+        "3 of 10 buses missing this past hour",
+        "3 buses recently bunched together"
+      ]
+    },
     {
       "id": 146,
       "kind": "bus",
