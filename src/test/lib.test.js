@@ -188,6 +188,10 @@ describe('filterIncidents', () => {
 // ---------------------------------------------------------------------------
 // mergeMatchingIncidents
 // ---------------------------------------------------------------------------
+// The fuzzy alert↔observation pairing now happens server-side in cta-insights
+// (covered by its export-web test). The frontend's mergeMatchingIncidents only
+// REGROUPS records by the _incidentId that pairing stamped on them — so these
+// fixtures share an _incidentId to express "same incident."
 const makeAlertForMerge = (overrides = {}) => ({
   alert_id: 1,
   kind: 'train',
@@ -198,6 +202,7 @@ const makeAlertForMerge = (overrides = {}) => ({
   resolved_ts: NOW + 30 * 60_000,
   active: false,
   post_url: 'https://bsky.app/a',
+  _incidentId: 'm1',
   ...overrides,
 });
 
@@ -211,11 +216,12 @@ const makeObsForMerge = (overrides = {}) => ({
   resolved_ts: NOW + 30 * 60_000,
   active: false,
   post_url: 'https://bsky.app/b',
+  _incidentId: 'm1',
   ...overrides,
 });
 
 describe('mergeMatchingIncidents', () => {
-  it('merges an alert and observation on the same line within the time window', () => {
+  it('regroups an alert and observation that share an _incidentId', () => {
     const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
       [makeAlertForMerge()],
       [makeObsForMerge()],
@@ -227,42 +233,39 @@ describe('mergeMatchingIncidents', () => {
     expect(merged[0].from_station).toBe('Jarvis');
   });
 
-  it('does not merge when lines differ', () => {
+  it('keeps an alert with no observation as a standalone alert', () => {
     const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      [makeAlertForMerge({ routes: ['blue'] })],
-      [makeObsForMerge({ line: 'red' })],
+      [makeAlertForMerge()],
+      [],
+    );
+    expect(merged).toHaveLength(0);
+    expect(standaloneAlerts).toHaveLength(1);
+    expect(standaloneObs).toHaveLength(0);
+  });
+
+  it('keeps an observation with a different _incidentId as standalone', () => {
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      [makeAlertForMerge({ _incidentId: 'a' })],
+      [makeObsForMerge({ _incidentId: 'b' })],
     );
     expect(merged).toHaveLength(0);
     expect(standaloneAlerts).toHaveLength(1);
     expect(standaloneObs).toHaveLength(1);
   });
 
-  it('does not merge when observation is outside the time window', () => {
-    const farObs = makeObsForMerge({ ts: NOW + 5 * 60 * 60_000 }); // 5 hours later
-    const { merged } = mergeMatchingIncidents([makeAlertForMerge()], [farObs]);
-    expect(merged).toHaveLength(0);
-  });
-
-  it('does not vacuum observations from days into a long-lived alert', () => {
-    // Long-running planned alert (e.g. multi-day reroute) shouldn't absorb
-    // unrelated observations that happen on the same line a day later.
-    const longAlert = makeAlertForMerge({
-      first_seen_ts: NOW,
-      last_seen_ts: NOW + 36 * 60 * 60_000,
-      resolved_ts: null,
-      active: true,
-    });
-    const laterObs = makeObsForMerge({ ts: NOW + 24 * 60 * 60_000 });
+  it('never groups records that lack an _incidentId', () => {
+    // Defensive: un-stamped records (didn't pass through normalizeAlertsPayload)
+    // each get a unique key so they can't accidentally merge.
     const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      [longAlert],
-      [laterObs],
+      [makeAlertForMerge({ _incidentId: undefined })],
+      [makeObsForMerge({ _incidentId: undefined })],
     );
     expect(merged).toHaveLength(0);
     expect(standaloneAlerts).toHaveLength(1);
     expect(standaloneObs).toHaveLength(1);
   });
 
-  it('merges bus alert and observation on the same route', () => {
+  it('regroups a bus alert and observation that share an _incidentId', () => {
     const busAlert = makeAlertForMerge({ kind: 'bus', routes: ['66'] });
     const busObs = makeObsForMerge({ kind: 'bus', line: '66' });
     const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
@@ -275,19 +278,10 @@ describe('mergeMatchingIncidents', () => {
     expect(merged[0].routes).toEqual(['66']);
   });
 
-  it('does not merge across kinds (train alert with bus obs of same key)', () => {
-    // Defensive: route/line key spaces are disjoint in practice, but a stray
-    // collision shouldn't merge a train alert with a bus observation.
-    const alert = makeAlertForMerge({ kind: 'train', routes: ['1'] });
-    const obs = makeObsForMerge({ kind: 'bus', line: '1' });
-    const { merged } = mergeMatchingIncidents([alert], [obs]);
-    expect(merged).toHaveLength(0);
-  });
-
-  it('absorbs every overlapping observation onto the alert', () => {
+  it('absorbs every observation sharing the incident onto the alert', () => {
     // A single outage commonly trips multiple detectors (pulse-cold + roundup,
-    // etc.). Each one needs to fold into the alert's card, otherwise the
-    // extras orphan as standalone "second incident" cards.
+    // etc.); the server groups them all under one incident, so they all fold
+    // into the alert's card here.
     const obs1 = makeObsForMerge({ id: 1, ts: NOW + 1 * 60_000 });
     const obs2 = makeObsForMerge({ id: 2, ts: NOW + 2 * 60_000 });
     const { merged, standaloneObs } = mergeMatchingIncidents([makeAlertForMerge()], [obs1, obs2]);
@@ -297,35 +291,6 @@ describe('mergeMatchingIncidents', () => {
     expect(merged[0].obs_id).toBe(1);
     expect(merged[0].extra_obs).toHaveLength(1);
     expect(merged[0].extra_obs[0].id).toBe(2);
-  });
-
-  it('does not merge an observation that fully resolved before the alert fired', () => {
-    // Regression: event 3mlvtbvxlpf2g had a bot observation (rkey
-    // 3mlvqm3qc4m2s) that started ~48 min before the alert's first_seen_ts
-    // and resolved ~23 min before the alert fired. The two incidents were
-    // sequential, not concurrent, but the proximity-only window merged them
-    // and surfaced bot post links pointing into an unrelated thread.
-    const alert = makeAlertForMerge({ first_seen_ts: NOW, resolved_ts: NOW + 20 * 60_000 });
-    const staleObs = makeObsForMerge({
-      ts: NOW - 48 * 60_000,
-      resolved_ts: NOW - 23 * 60_000,
-    });
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents([alert], [staleObs]);
-    expect(merged).toHaveLength(0);
-    expect(standaloneAlerts).toHaveLength(1);
-    expect(standaloneObs).toHaveLength(1);
-  });
-
-  it('does not merge an observation that started after the alert resolved', () => {
-    const alert = makeAlertForMerge({ first_seen_ts: NOW, resolved_ts: NOW + 10 * 60_000 });
-    const laterObs = makeObsForMerge({
-      ts: NOW + 45 * 60_000,
-      resolved_ts: NOW + 60 * 60_000,
-    });
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents([alert], [laterObs]);
-    expect(merged).toHaveLength(0);
-    expect(standaloneAlerts).toHaveLength(1);
-    expect(standaloneObs).toHaveLength(1);
   });
 
   it('suppresses resolution fields when alert is still active', () => {
@@ -390,19 +355,22 @@ describe('buildIncidentsByDay', () => {
   });
 
   it('counts a matching alert+observation as one incident (no double-counting)', () => {
-    // Alert and obs are close in time — they will be merged into a single incident.
+    // Alert and obs share an _incidentId — the server grouped them into one
+    // incident, so they count once.
     const base = NOW - 2 * DAY;
     const alert = {
       kind: 'train',
       routes: ['green'],
       first_seen_ts: base,
       resolved_ts: base + 30 * 60_000,
+      _incidentId: 'g1',
     };
     const obs = {
       kind: 'train',
       line: 'green',
       ts: base + 5 * 60_000,
       resolved_ts: base + 35 * 60_000,
+      _incidentId: 'g1',
     };
     const result = buildIncidentsByDay([alert], [obs], 7, NOW);
     expect(result.green[2]).toBe(1);
@@ -476,9 +444,9 @@ describe('computeSummaryStats', () => {
   });
 
   it('counts active incidents across alerts and observations', () => {
-    const alerts = [makeAlert({ active: true })];
-    const obs = [makeObs({ active: true, id: 99 })];
-    // Alert and obs are both red and close in time → merge into one incident.
+    const alerts = [makeAlert({ active: true, _incidentId: 'x1' })];
+    const obs = [makeObs({ active: true, id: 99, _incidentId: 'x1' })];
+    // Alert and obs share an _incidentId → one incident.
     expect(computeSummaryStats(alerts, obs, NOW).activeCount).toBe(1);
   });
 
@@ -515,8 +483,8 @@ describe('computeSummaryStats', () => {
   });
 
   it('does not double-count a merged alert+observation in weeklyCount', () => {
-    const alert = makeAlert({ first_seen_ts: NOW - DAY, routes: ['red'] });
-    const obs = makeObs({ ts: NOW - DAY + 30 * 60_000, line: 'red' });
+    const alert = makeAlert({ first_seen_ts: NOW - DAY, routes: ['red'], _incidentId: 'w1' });
+    const obs = makeObs({ ts: NOW - DAY + 30 * 60_000, line: 'red', _incidentId: 'w1' });
     expect(computeSummaryStats([alert], [obs], NOW).weeklyCount).toBe(1);
   });
 });
@@ -683,8 +651,16 @@ describe('buildHourOfWeek', () => {
   });
 
   it('does not double-count a merged alert+observation pair', () => {
-    const alert = makeAlert({ first_seen_ts: NOW, resolved_ts: NOW + 60 * 60_000 });
-    const obs = makeObs({ ts: NOW + 30 * 60_000, resolved_ts: NOW + 60 * 60_000 });
+    const alert = makeAlert({
+      first_seen_ts: NOW,
+      resolved_ts: NOW + 60 * 60_000,
+      _incidentId: 'h1',
+    });
+    const obs = makeObs({
+      ts: NOW + 30 * 60_000,
+      resolved_ts: NOW + 60 * 60_000,
+      _incidentId: 'h1',
+    });
     const { total } = buildHourOfWeek([alert], [obs]);
     expect(total).toBe(1);
   });

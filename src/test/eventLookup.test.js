@@ -7,6 +7,9 @@ const STANDALONE_OBS_URL = 'https://bsky.app/profile/did:plc:xyz/post/3mkomsa7xh
 
 const NOW = 1_000_000_000_000;
 
+// The alert and matchingObs share an _incidentId — that's how the wire format
+// expresses "these belong to the same incident" now that pairing happens
+// server-side. mergeMatchingIncidents regroups by it.
 const alert = {
   alert_id: 'a1',
   kind: 'train',
@@ -16,6 +19,7 @@ const alert = {
   resolved_ts: NOW - 30 * 60_000,
   active: false,
   post_url: ALERT_URL,
+  _incidentId: 'inc-merged',
 };
 
 const matchingObs = {
@@ -26,6 +30,7 @@ const matchingObs = {
   resolved_ts: NOW - 30 * 60_000,
   active: false,
   post_url: OBS_URL,
+  _incidentId: 'inc-merged',
 };
 
 const standaloneObs = {
@@ -36,6 +41,7 @@ const standaloneObs = {
   resolved_ts: null,
   active: true,
   post_url: STANDALONE_OBS_URL,
+  _incidentId: 'inc-bot-only',
 };
 
 describe('postUrlRkey', () => {

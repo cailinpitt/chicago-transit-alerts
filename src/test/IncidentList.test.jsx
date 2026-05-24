@@ -47,19 +47,34 @@ describe('IncidentList', () => {
   });
 
   it('shows both tags for a merged alert+observation', () => {
-    render(<IncidentList alerts={[makeAlert()]} observations={[makeObs()]} />);
+    render(
+      <IncidentList
+        alerts={[makeAlert({ _incidentId: 'm1' })]}
+        observations={[makeObs({ _incidentId: 'm1' })]}
+      />,
+    );
     expect(screen.getByText('via CTA')).toBeInTheDocument();
     expect(screen.getByText('via auto-detection')).toBeInTheDocument();
   });
 
   it('shows both Bluesky links for a merged item', () => {
-    render(<IncidentList alerts={[makeAlert()]} observations={[makeObs()]} />);
+    render(
+      <IncidentList
+        alerts={[makeAlert({ _incidentId: 'm1' })]}
+        observations={[makeObs({ _incidentId: 'm1' })]}
+      />,
+    );
     expect(screen.getByText('Via CTA →')).toBeInTheDocument();
     expect(screen.getByText('Bot detection →')).toBeInTheDocument();
   });
 
   it('shows the station segment for a merged item', () => {
-    render(<IncidentList alerts={[makeAlert()]} observations={[makeObs()]} />);
+    render(
+      <IncidentList
+        alerts={[makeAlert({ _incidentId: 'm1' })]}
+        observations={[makeObs({ _incidentId: 'm1' })]}
+      />,
+    );
     expect(screen.getByText('Jarvis')).toBeInTheDocument();
     expect(screen.getByText('95th/Dan Ryan')).toBeInTheDocument();
   });

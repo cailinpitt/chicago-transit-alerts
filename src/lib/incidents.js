@@ -3,30 +3,72 @@
 // same line within a 2-hour window so the two sources don't double-count.
 
 import { BUS_ROUTE_NAMES } from './busRoutes.js';
-import { normalizeTrainLine, TRAIN_LINES } from './ctaLines.js';
+import { TRAIN_LINES } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
 
-// Normalize line keys on alerts/observations from the cta-bot JSON. Bot data
-// uses CTA's short codes ('g', 'org', 'p', 'brn', 'y'); the rest of the UI
-// uses full names ('green', 'orange', etc.). Run this once at the fetch
-// boundary so downstream code never has to think about it.
+// Read the published `incidents[]` wire shape and flatten it into the internal
+// `{ alerts, observations }` representation the rest of the app consumes.
+//
+// The fuzzy alert↔observation pairing now happens server-side (cta-insights
+// `export-web.js`); each incident already groups its CTA alert with the bot
+// observations that belong to it. We flatten that back out — one flat alert
+// per `incident.cta`, plus every `incident.observations` row — and stamp each
+// record with `_incidentId` so `mergeMatchingIncidents` can regroup by that
+// decision without re-matching. Train line keys arrive already normalized to
+// full names ('green'), so no per-record normalization happens here anymore.
 /**
  * @param {AlertsPayload} payload
- * @returns {AlertsPayload}
+ * @returns {{ generated_at: number, data_start_ts: number|null, alerts: Alert[], observations: Observation[] }}
  */
 export function normalizeAlertsPayload(payload) {
   if (!payload) return payload;
+  const incidents = payload.incidents || [];
+  const alerts = [];
+  const observations = [];
+  for (const inc of incidents) {
+    if (inc.cta) alerts.push(flattenIncidentAlert(inc));
+    for (const o of inc.observations || []) {
+      observations.push({ ...o, _incidentId: inc.id });
+    }
+  }
   return {
-    ...payload,
-    alerts: (payload.alerts || []).map((a) =>
-      a.kind === 'train' && Array.isArray(a.routes)
-        ? { ...a, routes: a.routes.map(normalizeTrainLine) }
-        : a,
-    ),
-    observations: (payload.observations || []).map((o) =>
-      o.kind === 'train' && o.line ? { ...o, line: normalizeTrainLine(o.line) } : o,
-    ),
+    generated_at: payload.generated_at,
+    data_start_ts: payload.data_start_ts ?? null,
+    alerts,
+    observations,
   };
+}
+
+// Reconstruct the flat Alert shape from an incident's nested `cta` block. The
+// incident carries `kind`/`routes` at the top level and CTA's own lifecycle
+// (first_seen_ts/resolved_ts/active) inside `cta`.
+function flattenIncidentAlert(inc) {
+  const c = inc.cta;
+  const alert = {
+    alert_id: c.alert_id,
+    kind: inc.kind,
+    routes: inc.routes,
+    headline: c.headline,
+    short_description: c.short_description ?? null,
+    first_seen_ts: c.first_seen_ts,
+    resolved_ts: c.resolved_ts ?? null,
+    duration_ms: c.resolved_ts != null ? c.resolved_ts - c.first_seen_ts : null,
+    active: c.active,
+    post_url: c.post_url,
+    resolved_reply_url: c.resolved_reply_url ?? null,
+    affected_from_station: c.affected_from_station ?? null,
+    affected_to_station: c.affected_to_station ?? null,
+    affected_direction: c.affected_direction ?? null,
+    mentioned_stations: c.mentioned_stations ?? [],
+    cta_event_start_ts: c.cta_event_start_ts ?? null,
+    cta_event_end_ts: c.cta_event_end_ts ?? null,
+    cta_event_start_is_date_only: c.cta_event_start_is_date_only ?? false,
+    cta_event_end_is_date_only: c.cta_event_end_is_date_only ?? false,
+    _incidentId: inc.id,
+  };
+  // versions only present when CTA edited the alert (>1 version on the wire).
+  if (c.versions && c.versions.length > 1) alert.versions = c.versions;
+  return alert;
 }
 
 /**
@@ -490,136 +532,124 @@ export function findContemporaneousOnOtherLines(
   return out;
 }
 
-// Merge bot observations into their matching official CTA alerts when they
-// share the same line and overlapping time window. Returns:
-//   merged           — combined alert+observation records
-//   standaloneAlerts — alerts with no matching observation
-//   standaloneObs    — observations with no matching alert
+// Regroup the flat alerts/observations back into the merged / standalone
+// buckets the UI renders. The fuzzy alert↔observation pairing is NOT done here
+// anymore — it happens server-side in cta-insights and is baked into each
+// record's `_incidentId` by `normalizeAlertsPayload`. This just groups by that
+// id, so a CTA alert and the bot observations that share its incident reassemble
+// into one merged record, while everything else falls through as standalone.
+//
+// Returns:
+//   merged           — combined alert+observation records (built shape below)
+//   standaloneAlerts — alerts whose incident had no observation (or whose obs
+//                      were filtered away upstream)
+//   standaloneObs    — observations whose incident's alert was filtered away,
+//                      or bot-only incidents
+//
+// Records lacking `_incidentId` (e.g. hand-built in tests, or any object that
+// didn't pass through `normalizeAlertsPayload`) fall back to a per-record id so
+// they never accidentally group together.
 /**
  * @param {Alert[]} alerts
  * @param {Observation[]} observations
  * @returns {{ merged: MergedIncident[], standaloneAlerts: Alert[], standaloneObs: Observation[] }}
  */
 export function mergeMatchingIncidents(alerts, observations) {
-  const BUFFER_MS = 2 * 60 * 60 * 1000; // 2-hour window on each side
-
-  const usedObsIds = new Set();
-  const usedAlertIds = new Set();
-  const merged = [];
-
-  for (const alert of alerts) {
-    // Collect every observation that overlaps this alert's window. A single
-    // outage commonly trips multiple detectors (pulse-cold + roundup, etc.);
-    // taking only the first match left the others orphaned as standalone
-    // cards that read as a separate incident.
-    const matches = [];
-    for (const obs of observations) {
-      if (usedObsIds.has(obs.id)) continue;
-      if (alert.kind !== obs.kind) continue;
-      if (!alert.routes.includes(obs.line)) continue;
-      // Anchor on first_seen_ts only. Stretching the window across the alert's
-      // entire lifespan let multi-day planned alerts vacuum up unrelated
-      // observations from later days as if they were the same incident.
-      if (Math.abs(obs.ts - alert.first_seen_ts) > BUFFER_MS) continue;
-      // Require the obs and alert intervals to actually overlap (with a small
-      // grace). Without this, a bot observation that fully resolved before the
-      // alert fired — or fired after the alert already cleared — could still
-      // satisfy the ±2h proximity test and get merged onto an unrelated
-      // alert, surfacing bot post links into a different thread.
-      const obsEnd = obs.resolved_ts ?? obs.ts;
-      const alertEnd = alert.resolved_ts ?? Number.POSITIVE_INFINITY;
-      const GRACE_MS = 10 * 60 * 1000;
-      if (obsEnd + GRACE_MS < alert.first_seen_ts) continue;
-      if (alertEnd + GRACE_MS < obs.ts) continue;
-      matches.push(obs);
+  const groups = new Map();
+  const order = [];
+  const groupFor = (id) => {
+    let g = groups.get(id);
+    if (!g) {
+      g = { alert: null, obs: [] };
+      groups.set(id, g);
+      order.push(id);
     }
-    if (matches.length === 0) continue;
+    return g;
+  };
+  // Records that never passed through normalizeAlertsPayload (e.g. hand-built
+  // in tests) have no _incidentId; give each a unique key so they never group.
+  for (const a of alerts || []) groupFor(a._incidentId ?? Symbol('alert')).alert = a;
+  for (const o of observations || []) groupFor(o._incidentId ?? Symbol('obs')).obs.push(o);
 
-    // Primary obs = the one closest in time to the alert (most likely the
-    // detection that caught the same onset CTA published). The existing
-    // single-obs schema (obs_post_url, from_station, …) reflects this
-    // primary; the rest ride along on extra_obs so routing and the UI can
-    // still reach them.
-    matches.sort(
-      (a, b) => Math.abs(a.ts - alert.first_seen_ts) - Math.abs(b.ts - alert.first_seen_ts),
-    );
-    const primary = matches[0];
-    const extras = matches.slice(1);
-    // While the incident is active, the obs's prior resolution doesn't end
-    // the incident — surfacing it would produce a "last seen" before
-    // "first seen" and a misleading "Bot resolution" link on an ongoing
-    // event. Suppress resolution-side fields until the alert resolves.
-    const active = alert.active || matches.some((o) => o.active);
-    merged.push({
-      _type: 'merged',
-      _sortTs: alert.first_seen_ts,
-      alert_id: alert.alert_id,
-      kind: alert.kind,
-      routes: alert.routes,
-      headline: alert.headline,
-      short_description: alert.short_description ?? null,
-      first_seen_ts: alert.first_seen_ts,
-      resolved_ts: active ? null : (alert.resolved_ts ?? primary.resolved_ts ?? null),
-      active,
-      post_url: alert.post_url,
-      resolved_reply_url: alert.resolved_reply_url,
-      affected_from_station: alert.affected_from_station,
-      affected_to_station: alert.affected_to_station,
-      affected_direction: alert.affected_direction,
-      mentioned_stations: alert.mentioned_stations ?? [],
-      // Successive edits CTA made to the alert text. Only present on the
-      // wire when there's more than one version; absent for fresh alerts
-      // that CTA never edited.
-      versions: alert.versions,
-      // Carry CTA's claimed event-end through so EventPage can compare
-      // their stated end to the actual resolve timestamp. Survives even
-      // when CTA later scrubs the alert (the field is persisted at
-      // first-sighting in the pipeline).
-      cta_event_start_ts: alert.cta_event_start_ts ?? null,
-      cta_event_end_ts: alert.cta_event_end_ts ?? null,
-      cta_event_start_is_date_only: alert.cta_event_start_is_date_only === true,
-      cta_event_end_is_date_only: alert.cta_event_end_is_date_only === true,
-      from_station: primary.from_station,
-      to_station: primary.to_station,
-      obs_post_url: primary.post_url,
-      obs_resolved_post_url: active ? null : primary.resolved_post_url,
-      // Surface the observation's own clear timestamp on merged records.
-      // The bot's resolved_ts requires sustained recovery (CLEAR_TICKS_TO_RESET
-      // consecutive clean passes) before firing, so when both the CTA
-      // alert and the bot have resolved, comparing alert.resolved_ts (CTA
-      // marked the alert cleared) to obs.resolved_ts (trains running
-      // again) gives a service-stabilization delta. Null while active to
-      // avoid the same "last seen before first seen" hazard handled above.
-      obs_resolved_ts: active ? null : (primary.resolved_ts ?? null),
-      obs_ts: primary.ts,
-      obs_id: primary.id,
-      // Carry the observation's typing info onto the merged record so
-      // downstream consumers (e.g. typical-duration cohorts) can bucket
-      // by signal without re-resolving the observation by id.
-      obs_line: primary.line,
-      obs_detection_source: primary.detection_source,
-      obs_signals: primary.signals,
-      extra_obs: extras.map((e) => ({
-        id: e.id,
-        post_url: e.post_url,
-        resolved_post_url: active ? null : e.resolved_post_url,
-        ts: e.ts,
-        resolved_ts: active ? null : (e.resolved_ts ?? null),
-        detection_source: e.detection_source,
-        signals: e.signals,
-        from_station: e.from_station,
-        to_station: e.to_station,
-        line: e.line,
-      })),
-    });
-    for (const o of matches) usedObsIds.add(o.id);
-    usedAlertIds.add(alert.alert_id);
+  const merged = [];
+  const standaloneAlerts = [];
+  const standaloneObs = [];
+  for (const id of order) {
+    const { alert, obs } = groups.get(id);
+    if (alert && obs.length > 0) merged.push(buildMergedRecord(alert, obs));
+    else if (alert) standaloneAlerts.push(alert);
+    else for (const o of obs) standaloneObs.push(o);
   }
+  return { merged, standaloneAlerts, standaloneObs };
+}
 
+// Build the flat MergedIncident the list/event components render, from a CTA
+// alert and its grouped observations. Shape is unchanged from when the merge
+// ran client-side, so every consumer keeps working.
+function buildMergedRecord(alert, obsList) {
+  // Primary obs = closest in time to the alert (most likely the detection that
+  // caught the same onset CTA published). The single-obs fields (obs_post_url,
+  // from_station, …) reflect this primary; the rest ride along on extra_obs.
+  const matches = [...obsList].sort(
+    (a, b) => Math.abs(a.ts - alert.first_seen_ts) - Math.abs(b.ts - alert.first_seen_ts),
+  );
+  const primary = matches[0];
+  const extras = matches.slice(1);
+  // While the incident is active, a paired obs's prior resolution doesn't end
+  // the incident — surfacing it would produce a "last seen" before "first seen"
+  // and a misleading "Bot resolution" link. Suppress resolution-side fields
+  // until the alert resolves.
+  const active = alert.active || matches.some((o) => o.active);
   return {
-    merged,
-    standaloneAlerts: alerts.filter((a) => !usedAlertIds.has(a.alert_id)),
-    standaloneObs: observations.filter((o) => !usedObsIds.has(o.id)),
+    _type: 'merged',
+    _sortTs: alert.first_seen_ts,
+    alert_id: alert.alert_id,
+    kind: alert.kind,
+    routes: alert.routes,
+    headline: alert.headline,
+    short_description: alert.short_description ?? null,
+    first_seen_ts: alert.first_seen_ts,
+    resolved_ts: active ? null : (alert.resolved_ts ?? primary.resolved_ts ?? null),
+    active,
+    post_url: alert.post_url,
+    resolved_reply_url: alert.resolved_reply_url,
+    affected_from_station: alert.affected_from_station,
+    affected_to_station: alert.affected_to_station,
+    affected_direction: alert.affected_direction,
+    mentioned_stations: alert.mentioned_stations ?? [],
+    // Only present when CTA edited the alert text (>1 version on the wire).
+    versions: alert.versions,
+    // CTA's claimed event window, so EventPage can compare their stated end to
+    // the actual resolve timestamp.
+    cta_event_start_ts: alert.cta_event_start_ts ?? null,
+    cta_event_end_ts: alert.cta_event_end_ts ?? null,
+    cta_event_start_is_date_only: alert.cta_event_start_is_date_only === true,
+    cta_event_end_is_date_only: alert.cta_event_end_is_date_only === true,
+    from_station: primary.from_station,
+    to_station: primary.to_station,
+    obs_post_url: primary.post_url,
+    obs_resolved_post_url: active ? null : primary.resolved_post_url,
+    // The bot's resolved_ts requires sustained recovery before firing; comparing
+    // it to the alert's resolved_ts (when both resolved) gives the
+    // service-stabilization delta. Null while active to avoid the hazard above.
+    obs_resolved_ts: active ? null : (primary.resolved_ts ?? null),
+    obs_ts: primary.ts,
+    obs_id: primary.id,
+    obs_line: primary.line,
+    obs_detection_source: primary.detection_source,
+    obs_signals: primary.signals,
+    extra_obs: extras.map((e) => ({
+      id: e.id,
+      post_url: e.post_url,
+      resolved_post_url: active ? null : e.resolved_post_url,
+      ts: e.ts,
+      resolved_ts: active ? null : (e.resolved_ts ?? null),
+      detection_source: e.detection_source,
+      signals: e.signals,
+      from_station: e.from_station,
+      to_station: e.to_station,
+      line: e.line,
+    })),
   };
 }
 
