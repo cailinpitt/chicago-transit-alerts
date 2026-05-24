@@ -11,7 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCsv } from '../src/lib/csv.js';
-import { normalizeAlertsPayload } from '../src/lib/incidents.js';
+import { flattenIncidents } from '../src/lib/incidents.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -24,7 +24,8 @@ function main() {
     console.warn(`generate-csv: ${DATA} missing — skipping`);
     return;
   }
-  const payload = normalizeAlertsPayload(JSON.parse(readFileSync(DATA, 'utf8')));
+  const raw = JSON.parse(readFileSync(DATA, 'utf8'));
+  const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const csv = buildCsv(payload.alerts ?? [], payload.observations ?? []);
   writeFileSync(OUT, csv);
   const rowCount = (payload.alerts?.length ?? 0) + (payload.observations?.length ?? 0);

@@ -32,3 +32,52 @@ jobs:
       - run: npm ci
 
       - run: npm run lint
+
+  # Smoke-build the site on every PR. `npm test`/`npm run lint` never exercise
+  # `npm run build`, so a crash in the postbuild scripts (prerender-events,
+  # prerender-pages, generate-feed, generate-sitemap, generate-csv) used to slip
+  # through the gate and only surface in deploy.yml after merge — which can
+  # freeze the live site. This mirrors deploy.yml's build: vite copies
+  # the committed public/data/alerts.json into dist/data, then postbuild runs
+  # every script against it, so any crash fails the PR instead of production.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: sudo apt-get install -y fonts-inter
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # Read-only restore of deploy.yml's OG render cache so PR builds reuse
+      # already-rendered event/page PNGs instead of re-rendering all of them
+      # cold. A miss just means a slower build, never a failure.
+      - name: Restore OG image cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .og-cache
+            .og-cache-pages
+          key: og-cache-pr-${{ github.run_id }}
+          restore-keys: |
+            og-cache-
+
+      - run: npm run build

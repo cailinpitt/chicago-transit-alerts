@@ -37,9 +37,9 @@ import { buildCalendarMonths, maxCountAcrossMonths } from '../src/lib/calendar.j
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
 import { chicagoDayUTC, formatChicagoDay, formatDuration } from '../src/lib/format.js';
 import {
+  flattenIncidents,
   formatRoutesLabel,
   mergeMatchingIncidents,
-  normalizeAlertsPayload,
 } from '../src/lib/incidents.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 
@@ -689,7 +689,8 @@ async function main() {
     console.warn(`prerender-pages: ${DATA} missing — skipping`);
     return;
   }
-  const payload = normalizeAlertsPayload(JSON.parse(readFileSync(DATA, 'utf8')));
+  const raw = JSON.parse(readFileSync(DATA, 'utf8'));
+  const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   // daily-counts.json is optional — if it's missing (e.g. during a build
   // before the cron has dropped one in), skip the calendar OG card rather
   // than failing the whole step.

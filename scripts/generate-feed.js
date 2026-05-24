@@ -11,10 +11,10 @@ import { fileURLToPath } from 'node:url';
 import { TRAIN_LINES } from '../src/lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../src/lib/format.js';
 import {
+  flattenIncidents,
   formatEvidenceChip,
   formatRoutesLabel,
   mergeMatchingIncidents,
-  normalizeAlertsPayload,
   observationSignals,
   postUrlRkey,
   SIGNAL_LABELS,
@@ -390,7 +390,7 @@ function emitJsonFeed(records) {
 
 function main() {
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
-  const payload = normalizeAlertsPayload(raw);
+  const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
     payload.alerts || [],
     payload.observations || [],

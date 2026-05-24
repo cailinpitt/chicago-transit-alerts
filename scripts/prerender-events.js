@@ -22,9 +22,9 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { normalizeTrainLine, TRAIN_LINES } from '../src/lib/ctaLines.js';
 import {
+  flattenIncidents,
   formatRoutesLabel,
   mergeMatchingIncidents,
-  normalizeAlertsPayload,
 } from '../src/lib/incidents.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -320,11 +320,12 @@ async function main() {
     console.warn(`prerender-events: ${DATA} missing — skipping (build copies public/data first)`);
     return;
   }
-  // Normalize at read time so train short codes (`y`, `brn`, `org`, `p`, `g`)
-  // get expanded to full names. Without this, formatRoutesLabel can't look
-  // them up in TRAIN_LINES and the OG card / JSON-LD ends up with `y Line`
-  // instead of `Yellow Line`.
-  const payload = normalizeAlertsPayload(JSON.parse(readFileSync(DATA, 'utf8')));
+  // Flatten the nested `incidents[]` wire shape into the flat
+  // `{ alerts, observations }` the merge/label helpers below expect. Train line
+  // keys arrive already normalized to full names ('green') from the export, so
+  // formatRoutesLabel can look them up in TRAIN_LINES directly.
+  const raw = JSON.parse(readFileSync(DATA, 'utf8'));
+  const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const shell = readFileSync(SHELL, 'utf8');
   const template = readFileSync(TEMPLATE, 'utf8');
   const templateHash = createHash('sha256').update(template).digest('hex').slice(0, 16);

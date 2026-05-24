@@ -10,11 +10,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TRAIN_LINE_ORDER } from '../src/lib/ctaLines.js';
 import { chicagoDayUTC } from '../src/lib/format.js';
-import {
-  mergeMatchingIncidents,
-  normalizeAlertsPayload,
-  postUrlRkey,
-} from '../src/lib/incidents.js';
+import { flattenIncidents, mergeMatchingIncidents, postUrlRkey } from '../src/lib/incidents.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -51,7 +47,8 @@ function main() {
     console.warn(`generate-sitemap: ${DATA} missing — skipping`);
     return;
   }
-  const payload = normalizeAlertsPayload(JSON.parse(readFileSync(DATA, 'utf8')));
+  const raw = JSON.parse(readFileSync(DATA, 'utf8'));
+  const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const generatedAt = payload.generated_at ?? Date.now();
   const generatedIso = isoDate(generatedAt);
   const cutoff = generatedAt - WINDOW_DAYS * DAY_MS;
