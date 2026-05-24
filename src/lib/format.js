@@ -77,11 +77,16 @@ export function formatGap(hours) {
 // string. Used for disruption-hours summaries where totals can run from a few
 // minutes (light week on one line) to several hundred hours (busy month
 // system-wide). No `~` prefix — disruption totals are sums, not estimates.
-export function formatMinutesAsHours(minutes) {
+// `maxUnit: 'hours'` keeps the figure in flat whole hours past the 24h mark
+// (e.g. "54h" not "2d 6h"). Used where a day-rollover would misread as
+// wall-clock elapsed time — notably the homepage's summed line-hours stat,
+// which is a pooled total across lines, not a contiguous span.
+export function formatMinutesAsHours(minutes, { maxUnit } = {}) {
   if (minutes == null || minutes <= 0) return '0m';
   if (minutes < 60) return `${minutes}m`;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
+  if (maxUnit === 'hours') return `${h}h`;
   if (h < 24) return m > 0 ? `${h}h ${m}m` : `${h}h`;
   const d = Math.floor(h / 24);
   const rem = h - d * 24;

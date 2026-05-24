@@ -136,14 +136,18 @@ export default function SummaryStats({
     />
   );
   const weekCard = <StatCard value={weeklyCount} label="in last 7 days" />;
-  const disruptionCard =
-    disruption7d && disruption7d.disruptedMinutes > 0 ? (
+  const disruptionCard = (() => {
+    if (!disruption7d || disruption7d.disruptedMinutes <= 0) return null;
+    const pct = disruption7d.ratio * 100;
+    const pctLabel = pct < 1 ? '<1%' : `~${Math.round(pct)}%`;
+    return (
       <StatCard
-        value={formatMinutesAsHours(disruption7d.disruptedMinutes)}
-        label="disrupted (7d)"
-        title="Total line-time across all train lines spent in a detected disruption over the last 7 days."
+        value={formatMinutesAsHours(disruption7d.disruptedMinutes, { maxUnit: 'hours' })}
+        label={`trains disrupted in last 7 days · ${pctLabel} of the time`}
+        title="Total train line-hours in a detected disruption over the last 7 days, summed across the 8 lines (overlapping detections on one line are unioned; separate lines are summed). The percentage is that share of scheduled train service hours."
       />
-    ) : null;
+    );
+  })();
   const trendCard = (() => {
     if (trend?.trendRatio == null) return null;
     const priorTotal = trend.prior7Avg * 7;
@@ -180,10 +184,15 @@ export default function SummaryStats({
       {/* Mobile */}
       <div className="sm:hidden">
         {mobileCards.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 mb-4">
+          // auto-rows-fr equalizes every row's height so a card with a longer
+          // label (e.g. the disruption card) doesn't make its row taller than
+          // the others; h-full lets each card fill its cell.
+          <div className="grid grid-cols-2 auto-rows-fr gap-2 mb-4">
             {mobileCards.map((card, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: cards are stable per render
-              <div key={i}>{card}</div>
+              <div key={i} className="h-full">
+                {card}
+              </div>
             ))}
           </div>
         )}
@@ -227,7 +236,7 @@ export default function SummaryStats({
 function StatCard({ value, label, title }) {
   return (
     <div
-      className="rounded-md border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface px-3 py-2"
+      className="h-full rounded-md border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface px-3 py-2"
       title={title}
     >
       <div className="text-lg font-semibold leading-tight text-slate-800 dark:text-slate-100 tabular-nums">
