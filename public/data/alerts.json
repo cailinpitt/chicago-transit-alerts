@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779585845219,
+  "generated_at": 1779587345522,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "79"
       ],
       "first_seen_ts": 1779584764275,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779585666676,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -31,13 +31,13 @@
           "evidence": null,
           "ts": 1779584764275,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779585666676,
+          "duration_ms": 902401,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmksiztft62s",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmktvrsv4e2a",
           "bot_description": "Route 79 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Route 79 service appears to be back to normal.",
           "bot_evidence_bullets": [
             "3 buses recently bunched together",
             "One gap between buses is 4.3x the scheduled wait"
