@@ -4,8 +4,9 @@ const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
 const FEED_URL = 'https://chicagotransitalerts.app/feed.xml';
 const CSV_URL = 'https://chicagotransitalerts.app/data/alerts.csv';
 const JSON_URL = 'https://chicagotransitalerts.app/data/alerts.json';
+const CHANGELOG_URL = 'https://chicagotransitalerts.app/data/CHANGELOG.md';
 
-const CURL_CMD = `curl -s ${JSON_URL} | jq '.alerts | length'`;
+const CURL_CMD = `curl -s ${JSON_URL} | jq '.incidents | length'`;
 
 export default function SubscribeContent() {
   const [copied, setCopied] = useState(null);
@@ -142,23 +143,31 @@ export default function SubscribeContent() {
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-3">Bulk data</h3>
       <p>
-        Building a dashboard or doing analysis? The same data is published as a flat CSV (one row
-        per alert or observation) and as JSON. No auth, no rate-limit beyond reasonable polling.
+        Building a dashboard or doing analysis? The same data is published as JSON (a unified{' '}
+        <code className="text-xs">incidents[]</code> array) and as a flat CSV (one row per alert or
+        observation). No auth, no rate-limit beyond reasonable polling.
       </p>
       <ul className="list-disc list-outside ml-5 space-y-1 text-xs">
+        <li>
+          <a className={LINK} href={JSON_URL} target="_blank" rel="noopener noreferrer">
+            {JSON_URL}
+          </a>{' '}
+          — unified incidents, the same shape the SPA reads.
+        </li>
         <li>
           <a className={LINK} href={CSV_URL} target="_blank" rel="noopener noreferrer">
             {CSV_URL}
           </a>{' '}
           — flat CSV, one row per alert or observation.
         </li>
-        <li>
-          <a className={LINK} href={JSON_URL} target="_blank" rel="noopener noreferrer">
-            {JSON_URL}
-          </a>{' '}
-          — same shape the SPA reads.
-        </li>
       </ul>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        Format changes are tracked in the{' '}
+        <a className={LINK} href={CHANGELOG_URL} target="_blank" rel="noopener noreferrer">
+          data changelog
+        </a>{' '}
+        — check it before pinning to the format.
+      </p>
       <p className="text-xs text-slate-500 dark:text-slate-400">Quick check from a terminal:</p>
       <div className="flex items-center gap-2">
         <pre className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-all">

@@ -101,7 +101,7 @@ Two distinct sources, displayed together:
   - **Multi-signal roundup** — when several of the above fire on the same line at once.
   Posted by [@ctatraininsights](https://bsky.app/profile/ctatraininsights.bsky.social) and [@ctabusinsights](https://bsky.app/profile/ctabusinsights.bsky.social).
 
-When an official alert and a bot observation describe the same incident on the same line within a couple of hours, they're merged into a single entry rather than double-counted. Each bot-detected observation also carries a small evidence payload ("3 trains held · 22 min stationary", "2 stations cold · 3 trains missed") shown as a chip on the incident — a one-line answer to "why does the bot think this happened?".
+When an official alert and a bot observation describe the same incident on the same line within a couple of hours, they're paired into a single incident rather than double-counted. That pairing happens once, server-side in the [cta-insights](https://github.com/cailinpitt/cta-insights) pipeline, so the published data and the site both treat it as one event (see [Data as an API](#data-as-an-api) for the shape). Each bot-detected observation also carries a small evidence payload ("3 trains held · 22 min stationary", "2 stations cold · 3 trains missed") shown as a chip on the incident — a one-line answer to "why does the bot think this happened?".
 
 ## Routes
 
@@ -123,7 +123,7 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 The site is a static React app — no backend, no database calls from the browser. All data lives in a single JSON file regenerated server-side and committed to this repo.
 
 1. A cron job on a home server runs [`push-web-data.sh`](https://github.com/cailinpitt/cta-insights/blob/main/bin/push-web-data.sh) every 7 minutes.
-2. The script exports the latest alert and observation data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database to `public/data/alerts.json` and commits if anything changed.
+2. The script exports the latest data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database — pairing official CTA alerts with matching bot observations into unified incidents — to `public/data/alerts.json`, and commits if anything changed.
 3. GitHub Actions builds the Vite app and deploys it to GitHub Pages.
 4. The browser polls `alerts.json` every 5 minutes so the page stays current without a reload.
 
@@ -135,43 +135,59 @@ The same JSON the SPA reads is published at a stable URL:
 https://chicagotransitalerts.app/data/alerts.json
 ```
 
-It's regenerated whenever the underlying data changes (typically every 7 minutes when there's activity) and served from GitHub Pages with no auth. Use it however you like — research, journalism, hobby dashboards, training data. A non-exhaustive sketch of the shape:
+It's regenerated whenever the underlying data changes (typically every 7 minutes when there's activity) and served from GitHub Pages with no auth. Use it however you like — research, journalism, hobby dashboards, training data. Breaking changes to this shape are recorded in the [data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md) ([source](public/data/CHANGELOG.md)) — check it before pinning to the format.
+
+The top-level array is `incidents` — **one object per real-world disruption**. An official CTA alert and the bot observation(s) describing the same incident are paired server-side into a single object (no client-side merging needed): the `cta` block carries the official alert (null for bot-only incidents), and `observations[]` carries the bot detections (empty for CTA-only incidents). `sources` tells you which contributed. A non-exhaustive sketch:
 
 ```jsonc
 {
-  "generated_at": 1715200000000,         // epoch ms when the snapshot was produced
-  "data_start_ts": 1707350400000,        // earliest moment we have coverage for
-  "alerts": [
+  "generated_at": 1715200000000,        // epoch ms when the snapshot was produced
+  "data_start_ts": 1707350400000,       // earliest moment we have coverage for
+  "incidents": [
     {
-      "alert_id": "...",
-      "kind": "train",                   // or "bus"
-      "routes": ["red"],                 // line keys ('red', 'g', 'org', …) or bus route numbers
-      "headline": "...",
+      "id": "3k2j...",                  // stable permalink id (Bluesky post rkey); /event/:id
+      "kind": "train",                  // or "bus"
+      "routes": ["red"],                // full line names ('red','green','orange',…) or bus route numbers
       "first_seen_ts": 1715199000000,
-      "resolved_ts": null,               // null = still open
+      "resolved_ts": null,              // null = still open
       "active": true,
-      "post_url": "https://bsky.app/profile/.../post/...",
-      "affected_from_station": null,
-      "affected_to_station": null
-    }
-  ],
-  "observations": [
-    {
-      "id": 12345,
-      "kind": "train",
-      "line": "red",
-      "ts": 1715199000000,             // when the bot first posted; matches post_url
-      "onset_ts": 1715197860000,       // disruption start, back-dated to the last observed
-                                       // train (pulse-cold/thin-gap); omitted when not
-                                       // back-dated — fall back to ts
-      "resolved_ts": 1715202600000,
-      "duration_ms": 4740000,          // resolved_ts - (onset_ts ?? ts); null while active
-      "active": false,
-      "detection_source": "pulse-cold",  // or 'gap', 'bunching', 'ghost', 'pulse-held', 'roundup'
-      "signals": ["gap", "bunching"],    // populated for roundups
-      "from_station": "Howard",
-      "to_station": "Loyola",
-      "post_url": "https://bsky.app/profile/.../post/..."
+      "sources": ["cta", "bot"],        // which observers contributed: "cta", "bot", or both
+      "cta": {                          // null for bot-only incidents
+        "alert_id": "...",
+        "headline": "...",
+        "short_description": "...",     // CTA's own body text (reroute/closure details)
+        "post_url": "https://bsky.app/profile/.../post/...",
+        "resolved_reply_url": null,     // reply post when CTA cleared the alert
+        "first_seen_ts": 1715199000000, // CTA's own lifecycle, distinct from the incident's
+        "resolved_ts": null,
+        "active": true,
+        "affected_from_station": null,
+        "affected_to_station": null,
+        "affected_direction": null,
+        "mentioned_stations": [],       // canonical station names parsed from the alert text
+        "cta_event_start_ts": null,     // CTA's claimed event window (date-only flags alongside)
+        "cta_event_end_ts": null
+        // "versions": [...]            // present only when CTA edited the alert text over time
+      },
+      "observations": [                 // [] for CTA-only incidents
+        {
+          "id": 12345,
+          "detection_source": "pulse-cold", // 'gap','bunching','ghost','pulse-held','thin-gap','roundup'
+          "signals": ["gap", "bunching"],   // populated for roundups
+          "from_station": "Howard",
+          "to_station": "Loyola",
+          "ts": 1715199000000,          // when the bot posted; matches post_url
+          "onset_ts": 1715197860000,    // disruption start, back-dated to the last observed train
+                                        // (pulse-cold/thin-gap); null when not back-dated — use ts
+          "resolved_ts": 1715202600000,
+          "duration_ms": 4740000,       // resolved_ts - (onset_ts ?? ts); null while active
+          "active": false,
+          "post_url": "https://bsky.app/profile/.../post/...",
+          "resolved_post_url": null,
+          "bot_description": "…",       // pre-rendered plain-English summary
+          "evidence": { /* … */ }       // small "why the bot fired" payload
+        }
+      ]
     }
   ]
 }
@@ -179,13 +195,13 @@ It's regenerated whenever the underlying data changes (typically every 7 minutes
 
 Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/incidents.js). An [Atom feed](https://chicagotransitalerts.app/feed.xml) is also published if you want notifications without polling.
 
-A flat CSV mirror of the same data — one row per alert or observation, with an explicit `type` column — is also published for spreadsheet and pandas users:
+A flat CSV mirror is also published for spreadsheet and pandas users — the incidents are flattened back to **one row per alert or observation**, with an explicit `type` column:
 
 ```
 https://chicagotransitalerts.app/data/alerts.csv
 ```
 
-Columns: `type, id, kind, routes, headline, detection_source, signals, from_station, to_station, direction, first_seen_ts, onset_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` and `signals` are semicolon-separated when multi-valued. `onset_ts` is the disruption start for absence-style observations (back-dated from `first_seen_ts` to the last observed train) and is blank when not back-dated; `duration_minutes` is measured from `onset_ts` when present, else `first_seen_ts`. Regenerated alongside `alerts.json`.
+Columns: `type, id, kind, routes, headline, detection_source, signals, from_station, to_station, direction, first_seen_ts, onset_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` (full line names) and `signals` are semicolon-separated when multi-valued. `onset_ts` is the disruption start for absence-style observations (back-dated from `first_seen_ts` to the last observed train) and is blank when not back-dated; `duration_minutes` is measured from `onset_ts` when present, else `first_seen_ts`. Regenerated alongside `alerts.json`.
 
 Please be a courteous client — cache responses, don't poll faster than every few minutes, and credit the project if you build something public.
 

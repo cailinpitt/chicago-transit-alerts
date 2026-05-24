@@ -73,14 +73,59 @@ function flattenIncidentAlert(inc) {
 
 /**
  * Top-level payload served by `public/data/alerts.json`. Regenerated server-
- * side every ~7 minutes by the cta-bot pipeline.
+ * side every ~7 minutes by the cta-insights pipeline. The wire format is a list
+ * of unified `incidents`; `normalizeAlertsPayload` flattens it into the internal
+ * `{ alerts, observations }` the rest of the app consumes.
  *
  * @typedef {object} AlertsPayload
  * @property {number} generated_at  Epoch ms when the snapshot was produced.
  * @property {number} data_start_ts Earliest moment we have coverage for; days
  *   before this are rendered as "no data" rather than "no incidents".
- * @property {Alert[]} alerts
- * @property {Observation[]} observations
+ * @property {Incident[]} incidents
+ */
+
+/**
+ * One real-world disruption as published on the wire. Pairs the official CTA
+ * alert (`cta`, null for bot-only incidents) with the bot observation(s)
+ * describing the same event (`observations`, empty for CTA-only incidents).
+ * The alert↔observation pairing is done server-side; the frontend never merges.
+ *
+ * @typedef {object} Incident
+ * @property {string} id            Stable permalink id (Bluesky post rkey).
+ * @property {'train' | 'bus'} kind
+ * @property {string[]} routes      Full train line names ('red', 'green', …) or bus route numbers.
+ * @property {number} first_seen_ts
+ * @property {number | null} resolved_ts
+ * @property {boolean} active
+ * @property {Array<'cta' | 'bot'>} sources  Which observers contributed.
+ * @property {IncidentCta | null} cta        The official CTA alert, or null.
+ * @property {Observation[]} observations    Bot detections, or [].
+ */
+
+/**
+ * The `cta` sub-block of an {@link Incident}. Carries CTA's own lifecycle
+ * (first_seen_ts/resolved_ts/active) distinct from the incident-level fields,
+ * so the service-stabilization delta (CTA cleared vs. bot saw recovery) stays
+ * computable. `normalizeAlertsPayload` expands this back into a flat {@link Alert}.
+ *
+ * @typedef {object} IncidentCta
+ * @property {string} alert_id
+ * @property {string} headline
+ * @property {string | null} [short_description]
+ * @property {string} [post_url]
+ * @property {string | null} [resolved_reply_url]
+ * @property {number} first_seen_ts
+ * @property {number | null} resolved_ts
+ * @property {boolean} active
+ * @property {string | null} [affected_from_station]
+ * @property {string | null} [affected_to_station]
+ * @property {string | null} [affected_direction]
+ * @property {string[]} [mentioned_stations]
+ * @property {number | null} [cta_event_start_ts]
+ * @property {number | null} [cta_event_end_ts]
+ * @property {boolean} [cta_event_start_is_date_only]
+ * @property {boolean} [cta_event_end_is_date_only]
+ * @property {object[]} [versions]  Present only when CTA edited the alert text.
  */
 
 /**
