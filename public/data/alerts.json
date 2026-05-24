@@ -1,7 +1,61 @@
 {
-  "generated_at": 1779583278782,
+  "generated_at": 1779583572758,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmkqfbc4l32h",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1779583322607,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 388,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-1-inbound",
+          "from_station": "Western (Brown)",
+          "to_station": "Damen (Brown)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 0.7,
+            "minutesSinceLastTrain": 29,
+            "lookbackMin": 30,
+            "coldThresholdMin": 25,
+            "trainsOutsideRun": 5,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Western (Brown)",
+              "Damen (Brown)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 10,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779583322607,
+          "onset_ts": 1779581582607,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmkqfbc4l32h",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 0.7-mi stretch (2 stations affected) in the last 29 min — scheduled every 10 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmkp5shpsw2s",
       "kind": "bus",
