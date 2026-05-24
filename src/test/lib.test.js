@@ -59,6 +59,9 @@ describe('formatDuration', () => {
 const NOW = 1_000_000_000_000;
 const DAY = 24 * 60 * 60 * 1000;
 
+// Flat alert/observation builders — still used by the analytics tests below
+// (computeSummaryStats, computeYearOverYear, mergeMatchingIncidents, …), which
+// continue to operate on the flat shape.
 const makeAlert = (overrides = {}) => ({
   alert_id: 1,
   kind: 'train',
@@ -79,69 +82,99 @@ const makeObs = (overrides = {}) => ({
   ...overrides,
 });
 
+// Nested incident builders for the incidents-native filter/search tests.
+// `aInc` is a CTA-only incident, `oInc` a bot-only one. Top-level overrides
+// merge in; `cta`/`observations` overrides replace those sub-objects so a test
+// can shape the alert text or the observation's signals/stations.
+let _incSeq = 0;
+const aInc = (over = {}) => {
+  const { cta, ...top } = over;
+  return {
+    id: `inc${_incSeq++}`,
+    kind: 'train',
+    routes: ['red'],
+    first_seen_ts: NOW - DAY,
+    resolved_ts: NOW - DAY + 30 * 60_000,
+    active: false,
+    cta: { alert_id: 'a', headline: 'Red Line Delays', ...cta },
+    observations: [],
+    ...top,
+  };
+};
+const oInc = (over = {}) => {
+  const { obs, ...top } = over;
+  return {
+    id: `inc${_incSeq++}`,
+    kind: 'train',
+    routes: ['red'],
+    first_seen_ts: NOW - DAY,
+    resolved_ts: NOW - DAY + 30 * 60_000,
+    active: false,
+    cta: null,
+    observations: [{ id: 1, kind: 'train', line: 'red', ts: NOW - DAY, ...obs }],
+    ...top,
+  };
+};
+
 describe('filterIncidents', () => {
   it('returns everything when no filters are set', () => {
-    const alerts = [makeAlert()];
-    const obs = [makeObs()];
-    const result = filterIncidents(alerts, obs);
-    expect(result.alerts).toHaveLength(1);
-    expect(result.observations).toHaveLength(1);
+    const result = filterIncidents([aInc(), oInc()]);
+    expect(result).toHaveLength(2);
   });
 
-  it('filters alerts by train line', () => {
-    const alerts = [makeAlert({ routes: ['red'] }), makeAlert({ alert_id: 2, routes: ['blue'] })];
-    const { alerts: out } = filterIncidents(alerts, [], { lines: ['red'] });
+  it('filters incidents by train line', () => {
+    const out = filterIncidents([aInc({ routes: ['red'] }), aInc({ routes: ['blue'] })], {
+      lines: ['red'],
+    });
     expect(out).toHaveLength(1);
     expect(out[0].routes).toContain('red');
   });
 
-  it('filters train observations by line', () => {
-    const obs = [makeObs({ line: 'red' }), makeObs({ id: 2, line: 'blue' })];
-    const { observations: out } = filterIncidents([], obs, { lines: ['red'] });
+  it('filters train observation incidents by line', () => {
+    const blue = oInc({ routes: ['blue'], obs: { id: 2, line: 'blue' } });
+    const out = filterIncidents([oInc(), blue], { lines: ['red'] });
     expect(out).toHaveLength(1);
-    expect(out[0].line).toBe('red');
+    expect(out[0].routes).toContain('red');
   });
 
   it('hides old resolved incidents when startTs is set', () => {
-    const old = makeAlert({ first_seen_ts: NOW - 10 * DAY, resolved_ts: NOW - 9 * DAY });
-    const recent = makeAlert({ alert_id: 2, first_seen_ts: NOW - DAY });
-    const { alerts: out } = filterIncidents([old, recent], [], { startTs: NOW - 5 * DAY });
+    const old = aInc({ first_seen_ts: NOW - 10 * DAY, resolved_ts: NOW - 9 * DAY });
+    const recent = aInc({ first_seen_ts: NOW - DAY });
+    const out = filterIncidents([old, recent], { startTs: NOW - 5 * DAY });
     expect(out).toHaveLength(1);
-    expect(out[0].alert_id).toBe(2);
+    expect(out[0].id).toBe(recent.id);
   });
 
   it('keeps active incidents regardless of startTs', () => {
-    const active = makeAlert({ first_seen_ts: NOW - 10 * DAY, resolved_ts: null, active: true });
-    const { alerts: out } = filterIncidents([active], [], { startTs: NOW - 5 * DAY });
-    expect(out).toHaveLength(1);
+    const active = aInc({ first_seen_ts: NOW - 10 * DAY, resolved_ts: null, active: true });
+    expect(filterIncidents([active], { startTs: NOW - 5 * DAY })).toHaveLength(1);
   });
 
-  it('hides bus observations when showBus is false', () => {
-    const bus = makeObs({ id: 2, kind: 'bus', line: '66' });
-    const train = makeObs({ id: 3, kind: 'train', line: 'red' });
-    const { observations: out } = filterIncidents([], [bus, train], { showBus: false });
+  it('hides bus incidents when showBus is false', () => {
+    const bus = oInc({ kind: 'bus', routes: ['66'], obs: { id: 2, kind: 'bus', line: '66' } });
+    const train = oInc({ obs: { id: 3, kind: 'train', line: 'red' } });
+    const out = filterIncidents([bus, train], { showBus: false });
     expect(out).toHaveLength(1);
     expect(out[0].kind).toBe('train');
   });
 
-  it('shows bus observations independently of train line filter', () => {
-    const bus = makeObs({ id: 2, kind: 'bus', line: '66' });
-    const { observations: out } = filterIncidents([], [bus], { lines: ['red'], showBus: true });
-    expect(out).toHaveLength(1);
+  it('shows bus incidents independently of train line filter', () => {
+    const bus = oInc({ kind: 'bus', routes: ['66'], obs: { id: 2, kind: 'bus', line: '66' } });
+    expect(filterIncidents([bus], { lines: ['red'], showBus: true })).toHaveLength(1);
   });
 
-  it('filters bus alerts by selected bus routes', () => {
-    const a22 = makeAlert({ alert_id: 'a22', kind: 'bus', routes: ['22'] });
-    const a66 = makeAlert({ alert_id: 'a66', kind: 'bus', routes: ['66'] });
-    const { alerts: out } = filterIncidents([a22, a66], [], { busRoutes: ['22'] });
+  it('filters bus incidents by selected bus routes', () => {
+    const a22 = aInc({ kind: 'bus', routes: ['22'], cta: { alert_id: 'a22' } });
+    const a66 = aInc({ kind: 'bus', routes: ['66'], cta: { alert_id: 'a66' } });
+    const out = filterIncidents([a22, a66], { busRoutes: ['22'] });
     expect(out).toHaveLength(1);
-    expect(out[0].alert_id).toBe('a22');
+    expect(out[0].routes).toContain('22');
   });
 
-  it('hides bus alerts when showBus is false', () => {
-    const bus = makeAlert({ alert_id: 'b', kind: 'bus', routes: ['22'] });
-    const train = makeAlert({ alert_id: 't', kind: 'train', routes: ['red'] });
-    const { alerts: out } = filterIncidents([bus, train], [], { showBus: false });
+  it('hides bus alert incidents when showBus is false', () => {
+    const bus = aInc({ kind: 'bus', routes: ['22'] });
+    const train = aInc({ kind: 'train', routes: ['red'] });
+    const out = filterIncidents([bus, train], { showBus: false });
     expect(out).toHaveLength(1);
     expect(out[0].kind).toBe('train');
   });
@@ -155,31 +188,22 @@ describe('filterIncidents', () => {
     const onDayTs = dayUtc + 12 * 60 * 60_000; // noon UTC, well within the day
 
     it('keeps incidents that started on the pinned day', () => {
-      const a = makeAlert({ first_seen_ts: onDayTs, resolved_ts: onDayTs + 60_000 });
-      const { alerts: out } = filterIncidents([a], [], { selectedDay: dayUtc, now: NOW });
-      expect(out).toHaveLength(1);
+      const a = aInc({ first_seen_ts: onDayTs, resolved_ts: onDayTs + 60_000 });
+      expect(filterIncidents([a], { selectedDay: dayUtc, now: NOW })).toHaveLength(1);
     });
 
     it('drops incidents from a different day', () => {
-      const earlier = makeAlert({
+      const earlier = aInc({
         first_seen_ts: onDayTs - 3 * DAY,
         resolved_ts: onDayTs - 3 * DAY + 60_000,
       });
-      const { alerts: out } = filterIncidents([earlier], [], { selectedDay: dayUtc, now: NOW });
-      expect(out).toHaveLength(0);
+      expect(filterIncidents([earlier], { selectedDay: dayUtc, now: NOW })).toHaveLength(0);
     });
 
     it('keeps active incidents whose span crosses the pinned day', () => {
       // Started 2 days before the pinned day, still active.
-      const active = makeAlert({
-        first_seen_ts: onDayTs - 2 * DAY,
-        resolved_ts: null,
-        active: true,
-      });
-      const { alerts: out } = filterIncidents([active], [], {
-        selectedDay: dayUtc,
-        now: onDayTs + 60_000,
-      });
+      const active = aInc({ first_seen_ts: onDayTs - 2 * DAY, resolved_ts: null, active: true });
+      const out = filterIncidents([active], { selectedDay: dayUtc, now: onDayTs + 60_000 });
       expect(out).toHaveLength(1);
     });
   });
@@ -512,120 +536,125 @@ describe('observationSignals', () => {
 // ---------------------------------------------------------------------------
 describe('filterIncidents search', () => {
   it('matches alert headlines case-insensitively', () => {
-    const a1 = makeAlert({ alert_id: 1, headline: 'Red Line Delays at Howard' });
-    const a2 = makeAlert({ alert_id: 2, headline: 'Blue Line Delay near Forest Park' });
-    const r = filterIncidents([a1, a2], [], { search: 'howard' });
-    expect(r.alerts.map((a) => a.alert_id)).toEqual([1]);
+    const a1 = aInc({ cta: { headline: 'Red Line Delays at Howard' } });
+    const a2 = aInc({ cta: { headline: 'Blue Line Delay near Forest Park' } });
+    const r = filterIncidents([a1, a2], { search: 'howard' });
+    expect(r.map((i) => i.id)).toEqual([a1.id]);
   });
 
-  it('matches observation from/to stations and direction', () => {
-    const o1 = makeObs({ id: 1, from_station: 'Polk', to_station: 'Ashland' });
-    const o2 = makeObs({ id: 2, from_station: 'Belmont', to_station: 'Howard' });
-    const r = filterIncidents([], [o1, o2], { search: 'howard' });
-    expect(r.observations.map((o) => o.id)).toEqual([2]);
+  it('matches observation from/to stations', () => {
+    const o1 = oInc({ obs: { from_station: 'Polk', to_station: 'Ashland' } });
+    const o2 = oInc({ obs: { from_station: 'Belmont', to_station: 'Howard' } });
+    const r = filterIncidents([o1, o2], { search: 'howard' });
+    expect(r.map((i) => i.id)).toEqual([o2.id]);
   });
 
   it('matches bus route numbers', () => {
-    const o = makeObs({ id: 1, kind: 'bus', line: '66' });
-    const r = filterIncidents([], [o], { search: '66' });
-    expect(r.observations).toHaveLength(1);
+    const o = oInc({ kind: 'bus', routes: ['66'], obs: { kind: 'bus', line: '66' } });
+    expect(filterIncidents([o], { search: '66' })).toHaveLength(1);
   });
 
   it('returns everything when search is whitespace-only', () => {
-    const a = makeAlert({ headline: 'whatever' });
-    const r = filterIncidents([a], [], { search: '   ' });
-    expect(r.alerts).toHaveLength(1);
+    expect(filterIncidents([aInc()], { search: '   ' })).toHaveLength(1);
   });
 
   it('matches train line by user-visible label even when key differs', () => {
-    // 'g' is the line key for Green; without label-matching, "green" would
-    // never find Green Line incidents.
-    const o = makeObs({ id: 1, line: 'green', from_station: null, to_station: null });
-    const r = filterIncidents([], [o], { search: 'green' });
-    expect(r.observations).toHaveLength(1);
+    const o = oInc({
+      routes: ['green'],
+      obs: { line: 'green', from_station: null, to_station: null },
+    });
+    expect(filterIncidents([o], { search: 'green' })).toHaveLength(1);
   });
 
   it('matches bus route by name (e.g. "Chicago" → route 66)', () => {
-    const o = makeObs({
-      id: 1,
+    const o = oInc({
       kind: 'bus',
-      line: '66',
-      from_station: null,
-      to_station: null,
+      routes: ['66'],
+      obs: { kind: 'bus', line: '66', from_station: null, to_station: null },
     });
-    const r = filterIncidents([], [o], { search: 'chicago' });
-    expect(r.observations).toHaveLength(1);
+    expect(filterIncidents([o], { search: 'chicago' })).toHaveLength(1);
   });
 
-  it('matches alerts via their line label', () => {
-    const a = makeAlert({ alert_id: 1, routes: ['brown'], headline: 'Service issue' });
-    const r = filterIncidents([a], [], { search: 'brown' });
-    expect(r.alerts).toHaveLength(1);
+  it('matches incidents via their line label', () => {
+    const a = aInc({ routes: ['brown'], cta: { headline: 'Service issue' } });
+    expect(filterIncidents([a], { search: 'brown' })).toHaveLength(1);
   });
 
   it('matches "red line" and "Brown Line" conversational forms', () => {
-    const red = makeObs({ id: 1, line: 'red', from_station: null, to_station: null });
-    const brn = makeObs({ id: 2, line: 'brown', from_station: null, to_station: null });
-    expect(filterIncidents([], [red], { search: 'red line' }).observations).toHaveLength(1);
-    expect(filterIncidents([], [brn], { search: 'Brown Line' }).observations).toHaveLength(1);
+    const red = oInc({ obs: { line: 'red', from_station: null, to_station: null } });
+    const brn = oInc({
+      routes: ['brown'],
+      obs: { line: 'brown', from_station: null, to_station: null },
+    });
+    expect(filterIncidents([red], { search: 'red line' })).toHaveLength(1);
+    expect(filterIncidents([brn], { search: 'Brown Line' })).toHaveLength(1);
   });
 
-  it('matches signal labels (e.g. "headway gaps" → gap observations)', () => {
-    const gapObs = makeObs({
-      id: 1,
-      detection_source: 'gap',
-      from_station: null,
-      to_station: null,
+  it('matches signal labels (e.g. "headway gaps" → gap incidents)', () => {
+    const gap = oInc({ obs: { detection_source: 'gap', from_station: null, to_station: null } });
+    const ghost = oInc({
+      obs: { detection_source: 'ghost', from_station: null, to_station: null },
     });
-    const ghostObs = makeObs({
-      id: 2,
-      detection_source: 'ghost',
-      from_station: null,
-      to_station: null,
-    });
-    const r = filterIncidents([], [gapObs, ghostObs], { search: 'headway gaps' });
-    expect(r.observations.map((o) => o.id)).toEqual([1]);
+    const r = filterIncidents([gap, ghost], { search: 'headway gaps' });
+    expect(r.map((i) => i.id)).toEqual([gap.id]);
   });
 
   it('matches signal labels for roundup observations via signals array', () => {
-    const o = makeObs({
-      id: 1,
-      detection_source: 'roundup',
-      signals: ['bunching', 'gap'],
-      from_station: null,
-      to_station: null,
+    const o = oInc({
+      obs: {
+        detection_source: 'roundup',
+        signals: ['bunching', 'gap'],
+        from_station: null,
+        to_station: null,
+      },
     });
-    expect(filterIncidents([], [o], { search: 'bunching' }).observations).toHaveLength(1);
+    expect(filterIncidents([o], { search: 'bunching' })).toHaveLength(1);
   });
 
-  it('matches "route 66" for bus observations', () => {
-    const o = makeObs({
-      id: 1,
+  it('matches "route 66" and "#66" for bus incidents', () => {
+    const o = oInc({
       kind: 'bus',
-      line: '66',
-      from_station: null,
-      to_station: null,
+      routes: ['66'],
+      obs: { kind: 'bus', line: '66', from_station: null, to_station: null },
     });
-    expect(filterIncidents([], [o], { search: 'route 66' }).observations).toHaveLength(1);
-    expect(filterIncidents([], [o], { search: '#66' }).observations).toHaveLength(1);
+    expect(filterIncidents([o], { search: 'route 66' })).toHaveLength(1);
+    expect(filterIncidents([o], { search: '#66' })).toHaveLength(1);
   });
 });
 
 describe('filterIncidents signal filter', () => {
-  it('keeps only observations whose signals overlap the selected set', () => {
-    const obsGap = makeObs({ id: 1, detection_source: 'gap' });
-    const obsBunching = makeObs({ id: 2, detection_source: 'bunching' });
-    const obsRoundup = makeObs({ id: 3, detection_source: 'roundup', signals: ['ghost', 'gap'] });
-    const r = filterIncidents([], [obsGap, obsBunching, obsRoundup], { signals: ['gap'] });
-    expect(r.observations.map((o) => o.id).sort()).toEqual([1, 3]);
+  it('keeps only incidents with an observation overlapping the selected signals', () => {
+    const gap = oInc({ obs: { id: 1, detection_source: 'gap' } });
+    const bunching = oInc({ obs: { id: 2, detection_source: 'bunching' } });
+    const roundup = oInc({
+      obs: { id: 3, detection_source: 'roundup', signals: ['ghost', 'gap'] },
+    });
+    const r = filterIncidents([gap, bunching, roundup], { signals: ['gap'] });
+    expect(r.map((i) => i.id).sort()).toEqual([gap.id, roundup.id].sort());
   });
 
-  it('drops standalone alerts when a signal filter is active', () => {
-    const r = filterIncidents([makeAlert()], [makeObs({ detection_source: 'gap' })], {
+  it('drops CTA-only incidents when a signal filter is active', () => {
+    const r = filterIncidents([aInc(), oInc({ obs: { detection_source: 'gap' } })], {
       signals: ['gap'],
     });
-    expect(r.alerts).toHaveLength(0);
-    expect(r.observations).toHaveLength(1);
+    expect(r).toHaveLength(1);
+    expect(r[0].cta).toBeNull();
+  });
+
+  it('keeps a merged incident whole when one of its observations matches', () => {
+    const merged = {
+      id: 'm1',
+      kind: 'train',
+      routes: ['red'],
+      first_seen_ts: NOW - DAY,
+      resolved_ts: NOW,
+      active: false,
+      cta: { alert_id: 'a', headline: 'Red Line Delays', first_seen_ts: NOW - DAY },
+      observations: [{ id: 1, kind: 'train', line: 'red', detection_source: 'gap', ts: NOW - DAY }],
+    };
+    const r = filterIncidents([merged], { signals: ['gap'] });
+    expect(r).toHaveLength(1);
+    expect(r[0].cta).not.toBeNull();
   });
 });
 
@@ -831,55 +860,51 @@ describe('formatGap', () => {
 // buildSearchMatchers / searchFilterIncidents
 // ---------------------------------------------------------------------------
 describe('buildSearchMatchers', () => {
-  it('returns hasSearch=false and pass-through matchers for blank input', () => {
+  it('returns hasSearch=false and a pass-through matcher for blank input', () => {
     const m = buildSearchMatchers('');
     expect(m.hasSearch).toBe(false);
-    expect(m.matchesAlert(makeAlert())).toBe(true);
-    expect(m.matchesObservation(makeObs())).toBe(true);
+    expect(m.matchesIncident(aInc())).toBe(true);
+    expect(m.matchesIncident(oInc())).toBe(true);
   });
 
-  it('matches alert headline case-insensitively', () => {
-    const a = makeAlert({ headline: 'Red Line Reroute at Howard' });
-    const { matchesAlert } = buildSearchMatchers('howard');
-    expect(matchesAlert(a)).toBe(true);
+  it('matches CTA headline case-insensitively', () => {
+    const a = aInc({ cta: { headline: 'Red Line Reroute at Howard' } });
+    expect(buildSearchMatchers('howard').matchesIncident(a)).toBe(true);
   });
 
   it('matches observation segment endpoints', () => {
-    const o = makeObs({ from_station: 'Jarvis', to_station: 'Howard' });
-    expect(buildSearchMatchers('jarvis').matchesObservation(o)).toBe(true);
+    const o = oInc({ obs: { from_station: 'Jarvis', to_station: 'Howard' } });
+    expect(buildSearchMatchers('jarvis').matchesIncident(o)).toBe(true);
   });
 
   it('matches train line by full label', () => {
-    const a = makeAlert({ kind: 'train', routes: ['red'], headline: 'X' });
-    expect(buildSearchMatchers('Red Line').matchesAlert(a)).toBe(true);
+    const a = aInc({ routes: ['red'], cta: { headline: 'X' } });
+    expect(buildSearchMatchers('Red Line').matchesIncident(a)).toBe(true);
   });
 
   it('matches bus route by "Route N" form', () => {
-    const o = makeObs({ kind: 'bus', line: '66' });
-    expect(buildSearchMatchers('Route 66').matchesObservation(o)).toBe(true);
+    const o = oInc({ kind: 'bus', routes: ['66'], obs: { kind: 'bus', line: '66' } });
+    expect(buildSearchMatchers('Route 66').matchesIncident(o)).toBe(true);
   });
 
   it('matches signal label aliases', () => {
-    const o = makeObs({ signals: ['gap'], detection_source: 'gap' });
-    expect(buildSearchMatchers('headway gap').matchesObservation(o)).toBe(true);
+    const o = oInc({ obs: { signals: ['gap'], detection_source: 'gap' } });
+    expect(buildSearchMatchers('headway gap').matchesIncident(o)).toBe(true);
   });
 });
 
 describe('searchFilterIncidents', () => {
-  it('returns inputs unchanged when query is blank', () => {
-    const a = [makeAlert()];
-    const o = [makeObs()];
-    const r = searchFilterIncidents(a, o, '');
-    expect(r.alerts).toBe(a);
-    expect(r.observations).toBe(o);
+  it('returns the input unchanged when query is blank', () => {
+    const incidents = [aInc(), oInc()];
+    expect(searchFilterIncidents(incidents, '')).toBe(incidents);
   });
 
-  it('narrows both alerts and observations to matches', () => {
-    const a = [makeAlert({ headline: 'Foo' }), makeAlert({ alert_id: 2, headline: 'Bar' })];
-    const o = [makeObs({ from_station: 'Foo' }), makeObs({ id: 2, from_station: 'Howard' })];
-    const r = searchFilterIncidents(a, o, 'foo');
-    expect(r.alerts).toHaveLength(1);
-    expect(r.observations).toHaveLength(1);
+  it('narrows to incidents matching the query', () => {
+    const foo = aInc({ cta: { headline: 'Foo' } });
+    const bar = aInc({ cta: { headline: 'Bar' } });
+    const r = searchFilterIncidents([foo, bar], 'foo');
+    expect(r).toHaveLength(1);
+    expect(r[0].id).toBe(foo.id);
   });
 });
 

@@ -3,7 +3,7 @@ import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
-import { filterIncidents, normalizeAlertsPayload } from '../lib/incidents.js';
+import { filterIncidents, flattenIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc } from '../lib/urlState.js';
 import Header from './Header.jsx';
@@ -46,16 +46,19 @@ export default function DayPage({ dateStr }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((raw) => setData(normalizeAlertsPayload(raw)))
+      .then(setData)
       .catch(setError);
   }, [dayUtc]);
 
-  // Use the standard filter pipeline pinned to this day — alerts and
-  // observations whose [start, end] spans overlap. Active incidents that
-  // started before today still surface (their span extends to now).
+  // Flat view for the station index and Header; the list reads nested incidents.
+  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+
+  // Use the standard filter pipeline pinned to this day — incidents whose
+  // [start, end] spans overlap. Active incidents that started before today
+  // still surface (their span extends to now).
   const filtered = useMemo(() => {
-    if (!data || dayUtc == null) return { alerts: [], observations: [] };
-    return filterIncidents(data.alerts, data.observations, {
+    if (!data || dayUtc == null) return [];
+    return filterIncidents(data.incidents, {
       lines: null,
       startTs: null,
       showBus: true,
@@ -68,9 +71,9 @@ export default function DayPage({ dateStr }) {
   }, [data, dayUtc, now]);
 
   const stationIndex = useMemo(() => {
-    if (!data) return null;
-    return buildStationIndex(data.alerts, data.observations, { now, windowDays: 90 });
-  }, [data, now]);
+    if (!flat) return null;
+    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+  }, [flat, now]);
 
   // Distinct lines/routes touched on this day — drives the breakdown chip
   // row at the top of the page. Trains use brand color pills; buses fall
@@ -78,19 +81,14 @@ export default function DayPage({ dateStr }) {
   const breakdown = useMemo(() => {
     const trains = new Set();
     const buses = new Set();
-    for (const a of filtered.alerts) {
-      if (a.kind === 'train') for (const r of a.routes ?? []) trains.add(r);
-      else if (a.kind === 'bus') for (const r of a.routes ?? []) buses.add(String(r));
-    }
-    for (const o of filtered.observations) {
-      if (!o.line) continue;
-      if (o.kind === 'train') trains.add(o.line);
-      else if (o.kind === 'bus') buses.add(String(o.line));
+    for (const inc of filtered) {
+      if (inc.kind === 'train') for (const r of inc.routes ?? []) trains.add(r);
+      else if (inc.kind === 'bus') for (const r of inc.routes ?? []) buses.add(String(r));
     }
     return { trains: [...trains], buses: [...buses].sort() };
   }, [filtered]);
 
-  const totalCount = filtered.alerts.length + filtered.observations.length;
+  const totalCount = filtered.length;
 
   useEffect(() => {
     const base = 'Chicago Transit Alerts';
@@ -131,8 +129,8 @@ export default function DayPage({ dateStr }) {
         onResetFilters={() => {
           window.location.href = '/';
         }}
-        alerts={data?.alerts}
-        observations={data?.observations}
+        alerts={flat?.alerts}
+        observations={flat?.observations}
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
@@ -196,8 +194,7 @@ export default function DayPage({ dateStr }) {
 
         {data && totalCount > 0 && (
           <IncidentList
-            alerts={filtered.alerts}
-            observations={filtered.observations}
+            incidents={filtered}
             search=""
             onSearchChange={null}
             stationIndex={stationIndex}

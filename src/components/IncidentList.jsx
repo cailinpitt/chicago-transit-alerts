@@ -10,10 +10,10 @@ import {
 } from '../lib/format.js';
 import {
   affectedLineSegments,
+  flattenIncidents,
   formatEvidenceChip,
-  getEventId,
-  mergeMatchingIncidents,
   SIGNAL_LABELS,
+  splitObservations,
 } from '../lib/incidents.js';
 import HighlightedText from './HighlightedText.jsx';
 import LinePill from './LinePill.jsx';
@@ -27,24 +27,26 @@ const PAGE_SIZE = 25;
 // any extra bot observations merged into the same incident. Each entry has
 // `url` and `label` so the renderer doesn't have to re-derive labels.
 function getSources(incident) {
-  const isMerged = incident._type === 'merged';
+  const cta = incident.cta;
+  const { primary, extras } = splitObservations(incident);
   const out = [];
-  if (incident.post_url) {
-    out.push({
-      url: incident.post_url,
-      label: isMerged ? 'Via CTA' : 'View on Bluesky',
-    });
+  if (cta?.post_url) {
+    // Merged → "Via CTA" (the bot post follows); pure CTA alert → "View on Bluesky".
+    out.push({ url: cta.post_url, label: primary ? 'Via CTA' : 'View on Bluesky' });
+  } else if (primary?.post_url) {
+    // Bot-only incident: the observation post is the main source.
+    out.push({ url: primary.post_url, label: 'View on Bluesky' });
   }
-  if (isMerged && incident.obs_post_url) {
+  if (cta && primary?.post_url) {
     out.push({
-      url: incident.obs_post_url,
-      label: incident.obs_detection_source
-        ? `Bot detection (${incident.obs_detection_source})`
+      url: primary.post_url,
+      label: primary.detection_source
+        ? `Bot detection (${primary.detection_source})`
         : 'Bot detection',
     });
   }
-  if (isMerged && Array.isArray(incident.extra_obs)) {
-    for (const e of incident.extra_obs) {
+  if (cta) {
+    for (const e of extras) {
       if (!e.post_url) continue;
       out.push({
         url: e.post_url,
@@ -57,9 +59,12 @@ function getSources(incident) {
 }
 
 function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
-  const isMerged = incident._type === 'merged';
-  const isAlert = !isMerged && !!incident.alert_id;
-  const eventId = getEventId(incident);
+  const cta = incident.cta;
+  const { primary } = splitObservations(incident);
+  const isMerged = !!cta && !!primary;
+  const isAlert = !!cta && !primary;
+  const isObsOnly = !cta;
+  const eventId = incident.id;
   const sources = getSources(incident);
 
   // For a merged incident spanning more than one line (a Loop-wide alert that
@@ -68,6 +73,9 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   // stretch grouped together, divided by a bar. A single-line stretch keeps the
   // plain "from → to" arrow and the line pill above covers attribution.
   const mergedSegments = isMerged ? affectedLineSegments(incident) : [];
+  // primary observation endpoints, reused below for the merged single-line row.
+  const obsFrom = primary?.from_station ?? null;
+  const obsTo = primary?.to_station ?? null;
   const lineGroups = (() => {
     const byLine = new Map();
     for (const seg of mergedSegments) {
@@ -83,50 +91,44 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   })();
   const isMultiLineSegments = lineGroups.length > 1;
 
-  const startTs = incident.first_seen_ts || incident.ts;
+  const startTs = incident.first_seen_ts || primary?.ts;
   const endTs = incident.resolved_ts ?? null;
   // Prefer exported duration_ms (back-dated for absence-style observations).
-  const duration = endTs ? formatDuration(incident.duration_ms ?? endTs - startTs) : null;
+  const durationMs =
+    (isObsOnly ? (primary?.duration_ms ?? null) : null) ?? (endTs != null ? endTs - startTs : null);
+  const duration = endTs ? formatDuration(durationMs) : null;
 
   // Only render the stabilization chip when CTA cleared the alert before the
   // bot saw sustained recovery — that gap is the felt return-to-normal lag.
+  const obsResolvedTs = isMerged && !incident.active ? (primary?.resolved_ts ?? null) : null;
   const stabilizationDelta =
     isMerged &&
     incident.resolved_ts != null &&
-    incident.obs_resolved_ts != null &&
-    incident.obs_resolved_ts > incident.resolved_ts
-      ? formatStabilizationDelta(incident.obs_resolved_ts - incident.resolved_ts)
+    obsResolvedTs != null &&
+    obsResolvedTs > incident.resolved_ts
+      ? formatStabilizationDelta(obsResolvedTs - incident.resolved_ts)
       : null;
 
   // The description is either highlightable text (alerts/roundups) or a JSX
   // fragment (segment endpoints, where station names may render as links).
   let description;
-  if (isMerged || isAlert) {
-    description = <HighlightedText text={incident.headline} query={searchQuery} />;
-  } else if (incident.from_station && incident.to_station) {
+  if (cta) {
+    description = <HighlightedText text={cta.headline} query={searchQuery} />;
+  } else if (obsFrom && obsTo) {
     description = (
       <>
-        <StationName
-          name={incident.from_station}
-          stationIndex={stationIndex}
-          searchQuery={searchQuery}
-        />{' '}
-        →{' '}
-        <StationName
-          name={incident.to_station}
-          stationIndex={stationIndex}
-          searchQuery={searchQuery}
-        />
+        <StationName name={obsFrom} stationIndex={stationIndex} searchQuery={searchQuery} /> →{' '}
+        <StationName name={obsTo} stationIndex={stationIndex} searchQuery={searchQuery} />
       </>
     );
-  } else if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
+  } else if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
     description = (
       <HighlightedText
-        text={`Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`}
+        text={`Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`}
         query={searchQuery}
       />
     );
-  } else if (incident.detection_source === 'roundup') {
+  } else if (primary?.detection_source === 'roundup') {
     description = 'Multiple simultaneous disruptions detected';
   } else {
     description = 'Service disruption detected';
@@ -161,7 +163,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
+            <LinePill kind={incident.kind} routes={incident.routes} />
             {isMerged && (
               <>
                 <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
@@ -171,10 +173,10 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                 </span>
               </>
             )}
-            {!isMerged && isAlert && (
+            {isAlert && (
               <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
             )}
-            {!isMerged && !isAlert && (
+            {isObsOnly && (
               <span className="text-xs text-slate-400 dark:text-slate-500 italic">
                 via auto-detection
               </span>
@@ -192,10 +194,10 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             )}
             {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
             {incident.active &&
-              incident.cta_event_end_ts != null &&
+              cta?.cta_event_end_ts != null &&
               (() => {
-                const phrase = formatEstimatedEnd(incident.cta_event_end_ts, undefined, {
-                  dateOnly: incident.cta_event_end_is_date_only === true,
+                const phrase = formatEstimatedEnd(cta.cta_event_end_ts, undefined, {
+                  dateOnly: cta.cta_event_end_is_date_only === true,
                 });
                 if (!phrase) return null;
                 return (
@@ -210,7 +212,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                   </>
                 );
               })()}
-            {!incident.active && incident.cta_event_end_ts != null && (
+            {!incident.active && cta?.cta_event_end_ts != null && (
               <>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
                 <span
@@ -218,9 +220,9 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                   title="CTA tagged this alert with an estimated end time when it was posted."
                 >
                   CTA estimated end{' '}
-                  {incident.cta_event_end_is_date_only === true
-                    ? formatChicagoDay(chicagoDayUTC(incident.cta_event_end_ts))
-                    : formatTime(incident.cta_event_end_ts)}
+                  {cta.cta_event_end_is_date_only === true
+                    ? formatChicagoDay(chicagoDayUTC(cta.cta_event_end_ts))
+                    : formatTime(cta.cta_event_end_ts)}
                 </span>
               </>
             )}
@@ -264,19 +266,10 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
           )}
 
           {/* Merged, single line: show the specific segment from the bot observation */}
-          {!isMultiLineSegments && isMerged && incident.from_station && incident.to_station && (
+          {!isMultiLineSegments && isMerged && obsFrom && obsTo && (
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-              <StationName
-                name={incident.from_station}
-                stationIndex={stationIndex}
-                searchQuery={searchQuery}
-              />{' '}
-              →{' '}
-              <StationName
-                name={incident.to_station}
-                stationIndex={stationIndex}
-                searchQuery={searchQuery}
-              />
+              <StationName name={obsFrom} stationIndex={stationIndex} searchQuery={searchQuery} /> →{' '}
+              <StationName name={obsTo} stationIndex={stationIndex} searchQuery={searchQuery} />
             </p>
           )}
 
@@ -293,7 +286,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             payload. Surfaces "why the bot fired" without requiring a click
             through to Bluesky. */}
           {(() => {
-            const chip = formatEvidenceChip(incident);
+            const chip = isObsOnly ? formatEvidenceChip(primary) : null;
             if (!chip) return null;
             return (
               <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
@@ -358,8 +351,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
 }
 
 export default function IncidentList({
-  alerts,
-  observations,
+  incidents,
   search = '',
   onSearchChange,
   highlightedIds,
@@ -372,12 +364,13 @@ export default function IncidentList({
 }) {
   const [page, setPage] = useState(1);
 
-  // Trigger a CSV download of the currently filtered alerts/observations.
-  // The button is wired to the same input list `combined` is built from, so
-  // what the user sees is exactly what they get — line/date/signal/search
-  // filters all already applied upstream. Object URL is revoked after the
-  // click so we don't leak a Blob URL per export.
+  // Trigger a CSV download of the currently filtered incidents. The button is
+  // wired to the same `incidents` the list renders, so what the user sees is
+  // what they get. The CSV schema is still the flat alerts/observations shape,
+  // so flatten just before serializing. Object URL is revoked after the click
+  // so we don't leak a Blob URL per export.
   function handleDownloadCsv() {
+    const { alerts, observations } = flattenIncidents(incidents);
     const csv = buildCsv(alerts, observations);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -396,7 +389,7 @@ export default function IncidentList({
   // includes the live row count so it's clear the export is responsive to
   // whatever filters/search are active. Disabled (not hidden) when nothing
   // matches so the affordance stays discoverable.
-  const rowsForDownload = (alerts?.length ?? 0) + (observations?.length ?? 0);
+  const rowsForDownload = incidents?.length ?? 0;
   const narrowingActive = isFiltered || search.trim().length > 0;
   const downloadButton = (
     <button
@@ -443,20 +436,12 @@ export default function IncidentList({
     </div>
   ) : null;
 
+  // Each incident is already one row — just order newest-first by start.
   const combined = useMemo(() => {
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      alerts,
-      observations,
-    );
-
-    const all = [
-      ...merged,
-      ...standaloneAlerts.map((a) => ({ ...a, _sortTs: a.first_seen_ts || a.ts })),
-      ...standaloneObs.map((o) => ({ ...o, _sortTs: o.first_seen_ts || o.ts })),
-    ];
-    all.sort((a, b) => b._sortTs - a._sortTs);
+    const all = [...(incidents || [])];
+    all.sort((a, b) => b.first_seen_ts - a.first_seen_ts);
     return all;
-  }, [alerts, observations]);
+  }, [incidents]);
 
   const total = combined.length;
   const pageCount = Math.ceil(total / PAGE_SIZE);
@@ -470,13 +455,13 @@ export default function IncidentList({
   const groups = useMemo(() => {
     const totalsByDay = new Map();
     for (const inc of combined) {
-      const key = chicagoDayUTC(inc._sortTs);
+      const key = chicagoDayUTC(inc.first_seen_ts);
       totalsByDay.set(key, (totalsByDay.get(key) || 0) + 1);
     }
     const out = [];
     let current = null;
     for (const inc of visible) {
-      const key = chicagoDayUTC(inc._sortTs);
+      const key = chicagoDayUTC(inc.first_seen_ts);
       if (!current || current.dayUtc !== key) {
         current = { dayUtc: key, total: totalsByDay.get(key) || 0, incidents: [] };
         out.push(current);
@@ -530,18 +515,15 @@ export default function IncidentList({
                 {group.total} incident{group.total === 1 ? '' : 's'}
               </span>
             </div>
-            {group.incidents.map((incident) => {
-              const eventId = getEventId(incident);
-              return (
-                <IncidentRow
-                  key={incident.alert_id ?? `obs-${incident.id ?? incident.obs_id}`}
-                  incident={incident}
-                  isNew={eventId != null && highlightedIds?.has(eventId)}
-                  stationIndex={stationIndex}
-                  searchQuery={search}
-                />
-              );
-            })}
+            {group.incidents.map((incident) => (
+              <IncidentRow
+                key={incident.id}
+                incident={incident}
+                isNew={incident.id != null && highlightedIds?.has(incident.id)}
+                stationIndex={stationIndex}
+                searchQuery={search}
+              />
+            ))}
           </Fragment>
         ))}
       </div>

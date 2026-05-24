@@ -4,8 +4,8 @@ import { useNow } from '../hooks/useNow.js';
 import { computeTypicalDurations } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import {
+  flattenIncidents,
   mergeMatchingIncidents,
-  normalizeAlertsPayload,
   searchFilterIncidents,
 } from '../lib/incidents.js';
 import { buildStationIndex, displayStationName, rosterStationBySlug } from '../lib/stations.js';
@@ -36,14 +36,18 @@ export default function StationPage({ slug }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((raw) => setData(normalizeAlertsPayload(raw)))
+      .then(setData)
       .catch(setError);
   }, []);
 
+  // Flat view feeds the station index (and Header); the list reads nested
+  // incidents reconstructed from the station's records below.
+  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+
   const stationIndex = useMemo(() => {
-    if (!data) return null;
-    return buildStationIndex(data.alerts, data.observations, { now, windowDays: 90 });
-  }, [data, now]);
+    if (!flat) return null;
+    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+  }, [flat, now]);
 
   // Fall back to the roster when the activity index doesn't carry this slug
   // (a known station with zero incidents in the window). Keeps inline alert-
@@ -71,10 +75,21 @@ export default function StationPage({ slug }) {
     });
   }, [station, now]);
 
-  const listFiltered = useMemo(() => {
-    if (!station) return { alerts: [], observations: [] };
-    return searchFilterIncidents(station.alerts, station.observations, search);
-  }, [station, search]);
+  // Nested incidents touching this station — reconstructed by mapping the
+  // station's flat records back to their parent incident via `_incidentId`
+  // (stamped by flattenIncidents), then narrowed by the search box.
+  const stationIncidents = useMemo(() => {
+    if (!station || !data) return [];
+    const ids = new Set();
+    for (const a of station.alerts) if (a._incidentId) ids.add(a._incidentId);
+    for (const o of station.observations) if (o._incidentId) ids.add(o._incidentId);
+    return data.incidents.filter((inc) => ids.has(inc.id));
+  }, [station, data]);
+
+  const listFiltered = useMemo(
+    () => searchFilterIncidents(stationIncidents, search),
+    [stationIncidents, search],
+  );
 
   useEffect(() => {
     const base = 'Chicago Transit Alerts';
@@ -110,8 +125,8 @@ export default function StationPage({ slug }) {
         onResetFilters={() => {
           window.location.href = '/';
         }}
-        alerts={data?.alerts}
-        observations={data?.observations}
+        alerts={flat?.alerts}
+        observations={flat?.observations}
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         <div>
@@ -172,8 +187,7 @@ export default function StationPage({ slug }) {
             <HourOfWeekHeatmap alerts={station.alerts} observations={station.observations} />
 
             <IncidentList
-              alerts={listFiltered.alerts}
-              observations={listFiltered.observations}
+              incidents={listFiltered}
               search={search}
               onSearchChange={setSearch}
               stationIndex={stationIndex}

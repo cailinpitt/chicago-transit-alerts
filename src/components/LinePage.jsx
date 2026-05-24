@@ -17,8 +17,8 @@ import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
 import {
+  flattenIncidents,
   mergeMatchingIncidents,
-  normalizeAlertsPayload,
   searchFilterIncidents,
 } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -164,25 +164,37 @@ export default function LinePage({ kind, lineId }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((raw) => setData(normalizeAlertsPayload(raw)))
+      .then(setData)
       .catch(setError);
   }, []);
 
-  // Subset of the dataset that touches this line/route. Trains carry the
-  // line on `routes` (alerts) or `line` (observations); buses carry the
-  // route number in the same fields. We use this subset for every
-  // visualization so each card reflects only this one line's behavior.
-  const lineAlerts = useMemo(() => {
+  // Flat view of the full dataset; the analytics cards still read the flat
+  // shape. The incident list reads nested incidents (see lineIncidents).
+  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+
+  // Nested incidents that touch this line/route — used for the list. Trains and
+  // buses both carry the line/route key in the incident's top-level `routes`.
+  const lineIncidents = useMemo(() => {
     if (!data) return [];
-    return data.alerts.filter(
-      (a) => a.kind === kind && Array.isArray(a.routes) && a.routes.includes(effectiveLineId),
+    return data.incidents.filter(
+      (inc) =>
+        inc.kind === kind && Array.isArray(inc.routes) && inc.routes.includes(effectiveLineId),
     );
   }, [data, kind, effectiveLineId]);
 
+  // Flat subset of the dataset that touches this line/route, used for every
+  // visualization so each card reflects only this one line's behavior.
+  const lineAlerts = useMemo(() => {
+    if (!flat) return [];
+    return flat.alerts.filter(
+      (a) => a.kind === kind && Array.isArray(a.routes) && a.routes.includes(effectiveLineId),
+    );
+  }, [flat, kind, effectiveLineId]);
+
   const lineObservations = useMemo(() => {
-    if (!data) return [];
-    return data.observations.filter((o) => o.kind === kind && o.line === effectiveLineId);
-  }, [data, kind, effectiveLineId]);
+    if (!flat) return [];
+    return flat.observations.filter((o) => o.kind === kind && o.line === effectiveLineId);
+  }, [flat, kind, effectiveLineId]);
 
   // Merge first so an alert + bot observation pair becomes one active
   // card, not two. Mirrors App.jsx; IncidentList already did this on its
@@ -303,14 +315,14 @@ export default function LinePage({ kind, lineId }) {
   // far more stops and route variation than the helper's bucketing handles
   // cleanly. Empty array on bus pages.
   const segments = useMemo(() => {
-    if (!data || !isTrain) return [];
-    return computeSegmentRecurrence(data.observations, {
+    if (!flat || !isTrain) return [];
+    return computeSegmentRecurrence(flat.observations, {
       now,
       windowDays: 90,
       lineFilter: effectiveLineId,
       limit: 5,
     });
-  }, [data, isTrain, effectiveLineId, now]);
+  }, [flat, isTrain, effectiveLineId, now]);
 
   // YoY for this line specifically. Gated on data_start_ts covering the
   // prior window — for a young dataset this just renders nothing rather
@@ -329,16 +341,16 @@ export default function LinePage({ kind, lineId }) {
   // Brown), and clicking it should land on the cross-line station page —
   // not be gated on whether this particular line meets the threshold.
   const stationIndex = useMemo(() => {
-    if (!data) return null;
-    return buildStationIndex(data.alerts, data.observations, { now, windowDays: 90 });
-  }, [data, now]);
+    if (!flat) return null;
+    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+  }, [flat, now]);
 
   // Search-only narrowing for the IncidentList. The line is already locked
   // by the pre-filter above; only free-text search remains. Reuse the same
-  // matchers `filterIncidents` uses so search behavior stays in one place.
+  // matcher `filterIncidents` uses so search behavior stays in one place.
   const listFiltered = useMemo(
-    () => searchFilterIncidents(lineAlerts, lineObservations, search),
-    [lineAlerts, lineObservations, search],
+    () => searchFilterIncidents(lineIncidents, search),
+    [lineIncidents, search],
   );
 
   if (error) {
@@ -367,8 +379,8 @@ export default function LinePage({ kind, lineId }) {
         onResetFilters={() => {
           window.location.href = '/';
         }}
-        alerts={data?.alerts}
-        observations={data?.observations}
+        alerts={flat?.alerts}
+        observations={flat?.observations}
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         <div>
@@ -589,8 +601,7 @@ export default function LinePage({ kind, lineId }) {
             )}
 
             <IncidentList
-              alerts={listFiltered.alerts}
-              observations={listFiltered.observations}
+              incidents={listFiltered}
               search={search}
               onSearchChange={setSearch}
               stationIndex={stationIndex}

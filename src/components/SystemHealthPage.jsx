@@ -11,11 +11,7 @@ import {
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { chicagoDayUTC, formatChicagoDay, formatMinutesAsHours } from '../lib/format.js';
-import {
-  filterIncidents,
-  mergeMatchingIncidents,
-  normalizeAlertsPayload,
-} from '../lib/incidents.js';
+import { filterIncidents, flattenIncidents, mergeMatchingIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
@@ -372,9 +368,13 @@ export default function SystemHealthPage({ kind }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((raw) => setData(normalizeAlertsPayload(raw)))
+      .then(setData)
       .catch(setError);
   }, []);
+
+  // Flat view feeds every aggregate on the page; the incident list reads the
+  // nested `modeIncidents` slice below.
+  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
 
   useEffect(() => {
     document.title = `${modeLabel} system health · Chicago Transit Alerts`;
@@ -387,13 +387,19 @@ export default function SystemHealthPage({ kind }) {
   // this slice rather than the full alerts.json, so the page consistently
   // reports "just trains" or "just buses" without per-call filtering.
   const modeAlerts = useMemo(() => {
-    if (!data) return [];
-    return data.alerts.filter((a) => a.kind === kind);
-  }, [data, kind]);
+    if (!flat) return [];
+    return flat.alerts.filter((a) => a.kind === kind);
+  }, [flat, kind]);
 
   const modeObservations = useMemo(() => {
+    if (!flat) return [];
+    return flat.observations.filter((o) => o.kind === kind);
+  }, [flat, kind]);
+
+  // Nested incidents for this mode — drives the incident list.
+  const modeIncidents = useMemo(() => {
     if (!data) return [];
-    return data.observations.filter((o) => o.kind === kind);
+    return data.incidents.filter((inc) => inc.kind === kind);
   }, [data, kind]);
 
   const activeIncidents = useMemo(() => {
@@ -439,9 +445,9 @@ export default function SystemHealthPage({ kind }) {
   }, [data, modeAlerts, modeObservations, now]);
 
   const routeRows = useMemo(() => {
-    if (!data) return [];
-    return buildRouteStats({ kind, alerts: data.alerts, observations: data.observations, now });
-  }, [data, kind, now]);
+    if (!flat) return [];
+    return buildRouteStats({ kind, alerts: flat.alerts, observations: flat.observations, now });
+  }, [flat, kind, now]);
 
   // System-wide disruption hours: feeds the helper the union of every
   // route's lines so the service-hours denominator scales with the actual
@@ -462,9 +468,9 @@ export default function SystemHealthPage({ kind }) {
   }, [data, modeAlerts, modeObservations]);
 
   const stationIndex = useMemo(() => {
-    if (!data) return null;
-    return buildStationIndex(data.alerts, data.observations, { now, windowDays: 90 });
-  }, [data, now]);
+    if (!flat) return null;
+    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+  }, [flat, now]);
 
   const sortedRows = useMemo(() => sortRows(routeRows, sortKey, kind), [routeRows, sortKey, kind]);
 
@@ -476,7 +482,7 @@ export default function SystemHealthPage({ kind }) {
   const listFiltered = useMemo(() => {
     const selectedDay = dateScope === 'today' ? chicagoDayUTC(now) : null;
     const startTs = dateScope === '7d' ? now - 7 * DAY_MS : null;
-    return filterIncidents(modeAlerts, modeObservations, {
+    return filterIncidents(modeIncidents, {
       lines: null,
       startTs,
       showBus: true,
@@ -487,7 +493,7 @@ export default function SystemHealthPage({ kind }) {
       search,
       now,
     });
-  }, [modeAlerts, modeObservations, search, dateScope, now]);
+  }, [modeIncidents, search, dateScope, now]);
 
   if (error) {
     return (
@@ -511,8 +517,8 @@ export default function SystemHealthPage({ kind }) {
         onResetFilters={() => {
           window.location.href = '/';
         }}
-        alerts={data?.alerts}
-        observations={data?.observations}
+        alerts={flat?.alerts}
+        observations={flat?.observations}
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
@@ -695,8 +701,7 @@ export default function SystemHealthPage({ kind }) {
                 ))}
               </div>
               <IncidentList
-                alerts={listFiltered.alerts}
-                observations={listFiltered.observations}
+                incidents={listFiltered}
                 search={search}
                 onSearchChange={setSearch}
                 stationIndex={stationIndex}

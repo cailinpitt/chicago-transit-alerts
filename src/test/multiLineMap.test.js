@@ -85,18 +85,38 @@ describe('buildMultiLineMap', () => {
 
 describe('affectedLineSegments', () => {
   it('returns one segment per merged observation, each on its own line', () => {
+    // Observation ts ordering vs the CTA anchor decides the primary (closest)
+    // and the order of the extras: brown (anchor), then pink, then orange.
+    const T = 1_000_000_000_000;
     const incident = {
-      _type: 'merged',
-      alert_id: '115102',
+      id: '115102',
+      kind: 'train',
       routes: ['purple', 'pink', 'green', 'brown', 'orange'],
-      obs_line: 'brown',
-      from_station: 'Armitage (Brown/Purple)',
-      to_station: 'Chicago (Brown/Purple)',
-      affected_from_station: null,
-      affected_to_station: null,
-      extra_obs: [
-        { line: 'pink', from_station: 'Ashland (Green/Pink)', to_station: 'Washington/Wabash' },
-        { line: 'orange', from_station: '35th/Archer', to_station: 'Halsted (Orange)' },
+      cta: {
+        alert_id: '115102',
+        first_seen_ts: T,
+        affected_from_station: null,
+        affected_to_station: null,
+      },
+      observations: [
+        {
+          line: 'brown',
+          from_station: 'Armitage (Brown/Purple)',
+          to_station: 'Chicago (Brown/Purple)',
+          ts: T,
+        },
+        {
+          line: 'pink',
+          from_station: 'Ashland (Green/Pink)',
+          to_station: 'Washington/Wabash',
+          ts: T + 1000,
+        },
+        {
+          line: 'orange',
+          from_station: '35th/Archer',
+          to_station: 'Halsted (Orange)',
+          ts: T + 2000,
+        },
       ],
     };
     const segs = affectedLineSegments(incident);
@@ -109,21 +129,34 @@ describe('affectedLineSegments', () => {
 
   it('uses the alert-level segment (line null) for a pure CTA alert', () => {
     const incident = {
-      alert_id: 'a1',
+      id: 'a1',
+      kind: 'train',
       routes: ['red', 'purple'],
-      affected_from_station: 'Belmont',
-      affected_to_station: 'Howard',
+      cta: { alert_id: 'a1', affected_from_station: 'Belmont', affected_to_station: 'Howard' },
+      observations: [],
     };
     expect(affectedLineSegments(incident)).toEqual([{ line: null, from: 'Belmont', to: 'Howard' }]);
   });
 
   it('returns the single segment for a standalone observation', () => {
-    const incident = { line: 'red', from_station: 'Howard', to_station: 'Loyola' };
+    const incident = {
+      id: 'o1',
+      kind: 'train',
+      routes: ['red'],
+      cta: null,
+      observations: [{ line: 'red', from_station: 'Howard', to_station: 'Loyola', ts: 1 }],
+    };
     expect(affectedLineSegments(incident)).toEqual([{ line: 'red', from: 'Howard', to: 'Loyola' }]);
   });
 
   it('skips segments with no endpoints', () => {
-    const incident = { _type: 'merged', obs_line: 'red', extra_obs: [] };
+    const incident = {
+      id: 'm1',
+      kind: 'train',
+      routes: ['red'],
+      cta: { alert_id: 'm1', affected_from_station: null, affected_to_station: null },
+      observations: [{ line: 'red', from_station: null, to_station: null, ts: 1 }],
+    };
     expect(affectedLineSegments(incident)).toEqual([]);
   });
 });

@@ -22,9 +22,8 @@ import {
 import { compareBusRoutes } from './lib/busRoutes.js';
 import {
   filterIncidents,
-  getEventId,
+  flattenIncidents,
   mergeMatchingIncidents,
-  normalizeAlertsPayload,
   observationSignals,
   SOURCE_TYPES,
 } from './lib/incidents.js';
@@ -156,8 +155,7 @@ export default function App() {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json();
         })
-        .then((raw) => {
-          const fresh = normalizeAlertsPayload(raw);
+        .then((fresh) => {
           setData((prev) => {
             // Only update if generated_at changed (or on first load).
             if (!prev || fresh.generated_at !== prev.generated_at) return fresh;
@@ -178,22 +176,27 @@ export default function App() {
     return () => clearInterval(id);
   }, []);
 
+  // Flat { alerts, observations } view of the payload — the analytics layer
+  // (summary stats, station index, timeline, ActiveAlerts/Gantt) still reads
+  // the flat shape. The incident list path reads the nested `data.incidents`.
+  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+
   const activeIncidents = useMemo(() => {
-    if (!data) return [];
+    if (!flat) return [];
     // Run the same merge IncidentList uses so a CTA alert + bot detection
     // pair becomes one ActiveAlerts card, not two. Filtering to `active`
     // after the merge picks up both alert-only and observation-only
     // standalones plus any merged record that still has an open side.
     const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      data.alerts,
-      data.observations,
+      flat.alerts,
+      flat.observations,
     );
     return [
       ...merged.filter((m) => m.active),
       ...standaloneAlerts.filter((a) => a.active),
       ...standaloneObs.filter((o) => o.active),
     ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
-  }, [data]);
+  }, [flat]);
 
   // Split active incidents on the 24h elapsed mark. Long-runners (planned
   // reroutes, multi-day construction) get their own quieter banner — left
@@ -226,13 +229,8 @@ export default function App() {
   useEffect(() => {
     if (!data) return;
     const current = new Set();
-    for (const a of data.alerts) {
-      const id = getEventId(a);
-      if (id) current.add(id);
-    }
-    for (const o of data.observations) {
-      const id = getEventId(o);
-      if (id) current.add(id);
+    for (const inc of data.incidents) {
+      if (inc.id) current.add(inc.id);
     }
     if (seenIdsRef.current === null) {
       seenIdsRef.current = current;
@@ -253,13 +251,13 @@ export default function App() {
   }, [data]);
 
   const availableBusRoutes = useMemo(() => {
-    if (!data) return [];
+    if (!flat) return [];
     const routes = new Set([
-      ...data.observations.filter((o) => o.kind === 'bus').map((o) => o.line),
-      ...data.alerts.filter((a) => a.kind === 'bus').flatMap((a) => a.routes),
+      ...flat.observations.filter((o) => o.kind === 'bus').map((o) => o.line),
+      ...flat.alerts.filter((a) => a.kind === 'bus').flatMap((a) => a.routes),
     ]);
     return [...routes].sort(compareBusRoutes);
-  }, [data]);
+  }, [flat]);
 
   // Prune any selected bus routes that don't exist in the current data —
   // typically from a stale shareable URL (?routes=66,99 where 99 no longer
@@ -280,58 +278,58 @@ export default function App() {
   // applied here — the timeline has its own row-level filtering and dimming
   // for those.
   const vizAlerts = useMemo(() => {
-    if (!data) return [];
-    if (selectedSignals.length === 0) return data.alerts;
+    if (!flat) return [];
+    if (selectedSignals.length === 0) return flat.alerts;
     return [];
-  }, [data, selectedSignals]);
+  }, [flat, selectedSignals]);
 
   const vizObservations = useMemo(() => {
-    if (!data) return [];
-    if (selectedSignals.length === 0) return data.observations;
+    if (!flat) return [];
+    if (selectedSignals.length === 0) return flat.observations;
     const sigSet = new Set(selectedSignals);
-    return data.observations.filter((o) => observationSignals(o).some((s) => sigSet.has(s)));
-  }, [data, selectedSignals]);
+    return flat.observations.filter((o) => observationSignals(o).some((s) => sigSet.has(s)));
+  }, [flat, selectedSignals]);
 
   const summaryStats = useMemo(() => {
-    if (!data) return null;
-    return computeSummaryStats(data.alerts, data.observations, now);
-  }, [data, now]);
+    if (!flat) return null;
+    return computeSummaryStats(flat.alerts, flat.observations, now);
+  }, [flat, now]);
 
   const todaySummary = useMemo(() => {
-    if (!data) return null;
-    return buildTodaySummary(data.alerts, data.observations, now);
-  }, [data, now]);
+    if (!flat) return null;
+    return buildTodaySummary(flat.alerts, flat.observations, now);
+  }, [flat, now]);
 
   // 90-day typical-duration cohort lookup, used by ActiveAlerts to surface
   // a "typically ~Xm" hint next to elapsed time on each active card.
   const typicalDurations = useMemo(() => {
-    if (!data) return null;
-    return computeTypicalDurations(data.alerts, data.observations, { now, windowDays: 90 });
-  }, [data, now]);
+    if (!flat) return null;
+    return computeTypicalDurations(flat.alerts, flat.observations, { now, windowDays: 90 });
+  }, [flat, now]);
 
   // System-wide burst detector: incidents in the last 3h vs. the 30d baseline
   // rate, scaled to the same 3h window. Used by ActiveAlerts to flash a
   // "Z× typical rate" chip only when things are visibly worse than usual.
   const burst = useMemo(() => {
-    if (!data) return null;
-    return computeRecentBurst(data.alerts, data.observations, {
+    if (!flat) return null;
+    return computeRecentBurst(flat.alerts, flat.observations, {
       now,
       windowHours: 3,
       baselineDays: 30,
     });
-  }, [data, now]);
+  }, [flat, now]);
 
   // Station index — used by IncidentList to turn station names into
   // /station/:slug links when the destination page is worth visiting.
   const stationIndex = useMemo(() => {
-    if (!data) return null;
-    return buildStationIndex(data.alerts, data.observations, { now, windowDays: 90 });
-  }, [data, now]);
+    if (!flat) return null;
+    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+  }, [flat, now]);
 
   const filtered = useMemo(() => {
-    if (!data) return { alerts: [], observations: [] };
+    if (!data) return [];
     const startTs = dateRange ? now - dateRange * DAY_MS : null;
-    return filterIncidents(data.alerts, data.observations, {
+    return filterIncidents(data.incidents, {
       lines: selectedLines,
       startTs,
       showBus,
@@ -339,7 +337,7 @@ export default function App() {
       selectedDay,
       signals: selectedSignals.length > 0 ? selectedSignals : null,
       // Only narrow when the user picked a subset; default (all three) ⇒
-      // pass null so filterIncidents short-circuits the merge pass.
+      // pass null so the source filter is skipped.
       sources: selectedSources.length < SOURCE_TYPES.length ? selectedSources : null,
       search,
       now,
@@ -429,8 +427,8 @@ export default function App() {
                 {summaryStats && (
                   <SummaryStats
                     {...summaryStats}
-                    alerts={data.alerts}
-                    observations={data.observations}
+                    alerts={flat.alerts}
+                    observations={flat.observations}
                     showActive={false}
                   />
                 )}
@@ -467,8 +465,7 @@ export default function App() {
                 />
               </div>
               <IncidentList
-                alerts={filtered.alerts}
-                observations={filtered.observations}
+                incidents={filtered}
                 search={search}
                 onSearchChange={setSearch}
                 highlightedIds={highlightedIds}
@@ -495,8 +492,8 @@ export default function App() {
               className="pt-4 mt-2 border-t border-slate-200 dark:border-gh-border"
             >
               <RecentActivityGantt
-                alerts={data.alerts}
-                observations={data.observations}
+                alerts={flat.alerts}
+                observations={flat.observations}
                 now={now}
               />
               <Timeline
@@ -523,7 +520,7 @@ export default function App() {
                 }
               />
               <HourOfWeekHeatmap alerts={vizAlerts} observations={vizObservations} />
-              <SignalBreakdown observations={data.observations} />
+              <SignalBreakdown observations={flat.observations} />
             </CollapsibleSection>
           </>
         )}

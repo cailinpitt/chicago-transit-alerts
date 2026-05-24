@@ -22,6 +22,7 @@ import {
   formatRoutesLabel,
   mergeMatchingIncidents,
   SIGNAL_LABELS,
+  splitObservations,
 } from '../lib/incidents.js';
 import {
   buildStationIndex,
@@ -46,21 +47,6 @@ function incidentRoutes(incident) {
   if (Array.isArray(incident?.routes) && incident.routes.length > 0) return incident.routes;
   if (incident?.line) return [incident.line];
   return [];
-}
-
-// Split a nested incident's observations into a primary and the rest. The
-// primary is the detection closest in time to the CTA alert (mirroring the old
-// client-side merge, so the rendered "from → to" / detection link matches what
-// the list shows), or the sole/first observation for a bot-only incident.
-function splitObservations(incident) {
-  const obs = incident?.observations || [];
-  if (obs.length === 0) return { primary: null, extras: [] };
-  if (incident.cta) {
-    const anchor = incident.cta.first_seen_ts;
-    const sorted = [...obs].sort((a, b) => Math.abs(a.ts - anchor) - Math.abs(b.ts - anchor));
-    return { primary: sorted[0], extras: sorted.slice(1) };
-  }
-  return { primary: obs[0], extras: obs.slice(1) };
 }
 
 // Build a fixed-window day-by-day count of incidents on the given line/route,
@@ -1061,9 +1047,8 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex }
   const description = describe(incident, stationIndex);
   const affected = formatAffected(incident);
   const affectedStations = collectAffectedStations(incident);
-  // Affected stretches as { line, from, to } segments — built from the flat
-  // reconstruction so the geometry matches the list/map exactly.
-  const segments = affectedLineSegments(flatSubject);
+  // Affected stretches as { line, from, to } segments.
+  const segments = affectedLineSegments(incident);
   // Multi-line incidents split the station list per line (mirrors the map);
   // null for single-line / pure-CTA incidents, which keep the flat chips.
   const stationsByLine = groupAffectedStationsByLine(segments);

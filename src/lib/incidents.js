@@ -344,7 +344,7 @@ export function observationSignals(obs) {
 // line); the renderer then highlights it on every drawn line serving both
 // endpoints.
 /**
- * @param {object} incident An Alert, Observation, or MergedIncident.
+ * @param {Incident} incident
  * @returns {Array<{ line: string | null, from: string | null, to: string | null }>}
  */
 export function affectedLineSegments(incident) {
@@ -354,19 +354,20 @@ export function affectedLineSegments(incident) {
     if (!from && !to) return;
     out.push({ line: line ?? null, from: from ?? null, to: to ?? null });
   };
-  const isMerged = incident._type === 'merged';
-  if (isMerged) {
-    // Primary observation, then the extras that rode along on the merge.
-    push(incident.obs_line ?? null, incident.from_station, incident.to_station);
-    for (const e of incident.extra_obs ?? []) push(e.line ?? null, e.from_station, e.to_station);
-    // Alert's own segment endpoints (segment-dim alerts) — line-agnostic.
-    push(null, incident.affected_from_station, incident.affected_to_station);
-  } else if (incident.alert_id) {
+  const cta = incident.cta;
+  const { primary, extras } = splitObservations(incident);
+  if (cta && primary) {
+    // Merged: the primary observation's stretch, then the extras that rode
+    // along, then the alert's own (line-agnostic) segment endpoints.
+    push(primary.line ?? null, primary.from_station, primary.to_station);
+    for (const e of extras) push(e.line ?? null, e.from_station, e.to_station);
+    push(null, cta.affected_from_station, cta.affected_to_station);
+  } else if (cta) {
     // Pure CTA alert: only the alert-level segment, applied across its routes.
-    push(null, incident.affected_from_station, incident.affected_to_station);
-  } else {
-    // Standalone observation.
-    push(incident.line ?? null, incident.from_station, incident.to_station);
+    push(null, cta.affected_from_station, cta.affected_to_station);
+  } else if (primary) {
+    // Bot-only: the observation's own stretch.
+    push(primary.line ?? null, primary.from_station, primary.to_station);
   }
   return out;
 }
@@ -645,35 +646,43 @@ function buildMergedRecord(alert, obsList) {
   };
 }
 
-// Filter alerts and observations by selected train lines, bus toggle, and a
-// start timestamp. Active incidents bypass the timestamp filter so they always
-// appear. Bus observations are controlled independently of the train line
-// filter — selecting Red Line doesn't hide bus observations when showBus=true.
+// Split a nested incident's observations into a primary and the rest. The
+// primary is the detection closest in time to the CTA alert (so the rendered
+// "from → to" / detection link matches what older merged records showed), or
+// the sole/first observation for a bot-only incident.
 /**
- * @param {Alert[]} alerts
- * @param {Observation[]} observations
- * @param {object} [options]
- * @param {string[] | null} [options.lines]    null = all train lines. Empty array = no train lines.
- * @param {number | null} [options.startTs]    Drop incidents older than this (active ones bypass).
- * @param {boolean} [options.showBus]
- * @param {string[] | null} [options.busRoutes] When non-empty, restrict bus observations to these routes.
- * @param {number | null} [options.selectedDay] Chicago-day UTC midnight; when set, only incidents
- *   whose [start, end] span overlaps this day pass. Overrides startTs.
- * @param {string[] | null} [options.signals]  When non-empty, restrict observations to those
- *   carrying any of the given signal kinds. Standalone alerts (no signals) are dropped.
- * @param {string} [options.search] Free-text search; case-insensitive substring match against
- *   alert headlines, observation from/to/affected stations, and direction.
- * @param {number} [options.now]               For selectedDay span calc; defaults to Date.now().
- * @returns {{ alerts: Alert[], observations: Observation[] }}
+ * @param {Incident} incident
+ * @returns {{ primary: Observation | null, extras: Observation[] }}
  */
-// Build the per-incident text matchers used by both `filterIncidents` and
-// `searchFilterIncidents`. Returned as `{ matchesAlert, matchesObservation }`;
-// when the query is blank both matchers return true (hasSearch=false caller
-// path skips them in `filterIncidents`, but the sentinel keeps the signature
-// uniform for direct callers).
+export function splitObservations(incident) {
+  const obs = incident?.observations || [];
+  if (obs.length === 0) return { primary: null, extras: [] };
+  if (incident.cta) {
+    const anchor = incident.cta.first_seen_ts;
+    const sorted = [...obs].sort((a, b) => Math.abs(a.ts - anchor) - Math.abs(b.ts - anchor));
+    return { primary: sorted[0], extras: sorted.slice(1) };
+  }
+  return { primary: obs[0], extras: obs.slice(1) };
+}
+
+// Which source bucket an incident falls in: 'merged' (CTA + bot), 'cta' (CTA
+// alert with no bot detection), or 'bot' (bot-only). Drives the source filter.
+/**
+ * @param {Incident} incident
+ * @returns {'cta' | 'bot' | 'merged'}
+ */
+export function incidentSource(incident) {
+  if (!incident.cta) return 'bot';
+  return (incident.observations?.length ?? 0) > 0 ? 'merged' : 'cta';
+}
+
+// Build the per-incident text matcher used by both `filterIncidents` and
+// `searchFilterIncidents`. Returned as `{ hasSearch, matchesIncident }`; when
+// the query is blank `matchesIncident` returns true so direct callers get a
+// uniform signature.
 //
 // Match scope mirrors what users expect from the search box:
-//   - alert headline, affected stations/direction
+//   - CTA headline, affected stations/direction
 //   - observation segment endpoints, direction
 //   - route/line keys *and* their human labels ("Red Line", "Route 66",
 //     bus-route long names, signal-type labels). Without label matching,
@@ -681,17 +690,13 @@ function buildMergedRecord(alert, obsList) {
 //     observations carrying `signals: ['gap']`.
 /**
  * @param {string} query
- * @returns {{
- *   hasSearch: boolean,
- *   matchesAlert: (alert: Alert) => boolean,
- *   matchesObservation: (obs: Observation) => boolean,
- * }}
+ * @returns {{ hasSearch: boolean, matchesIncident: (incident: Incident) => boolean }}
  */
 export function buildSearchMatchers(query) {
   const q = (query || '').trim().toLowerCase();
   const hasSearch = q.length > 0;
   if (!hasSearch) {
-    return { hasSearch, matchesAlert: () => true, matchesObservation: () => true };
+    return { hasSearch, matchesIncident: () => true };
   }
   const matchesLine = (key, kind) => {
     if (key == null) return false;
@@ -707,53 +712,72 @@ export function buildSearchMatchers(query) {
     }
     return haystack.some((s) => s.includes(q));
   };
-  const matchesAlert = (a) => {
-    const fields = [
-      a.headline,
-      a.affected_from_station,
-      a.affected_to_station,
-      a.affected_direction,
-    ].filter(Boolean);
-    if (fields.some((s) => s.toLowerCase().includes(q))) return true;
-    return (a.routes || []).some((r) => matchesLine(r, a.kind));
-  };
-  const matchesObservation = (o) => {
-    const fields = [o.from_station, o.to_station, o.direction].filter((v) => v != null);
-    if (fields.some((v) => String(v).toLowerCase().includes(q))) return true;
-    if (matchesLine(o.line, o.kind)) return true;
-    for (const sig of observationSignals(o)) {
-      if (sig.toLowerCase().includes(q)) return true;
-      const label = SIGNAL_LABELS[sig];
-      if (label?.toLowerCase().includes(q)) return true;
+  const matchesIncident = (inc) => {
+    // Route/line keys and their labels are carried at the incident top level.
+    if ((inc.routes || []).some((r) => matchesLine(r, inc.kind))) return true;
+    const c = inc.cta;
+    if (c) {
+      const fields = [
+        c.headline,
+        c.affected_from_station,
+        c.affected_to_station,
+        c.affected_direction,
+      ].filter(Boolean);
+      if (fields.some((s) => s.toLowerCase().includes(q))) return true;
+    }
+    for (const o of inc.observations || []) {
+      const fields = [o.from_station, o.to_station, o.direction].filter((v) => v != null);
+      if (fields.some((v) => String(v).toLowerCase().includes(q))) return true;
+      for (const sig of observationSignals(o)) {
+        if (sig.toLowerCase().includes(q)) return true;
+        const label = SIGNAL_LABELS[sig];
+        if (label?.toLowerCase().includes(q)) return true;
+      }
     }
     return false;
   };
-  return { hasSearch, matchesAlert, matchesObservation };
+  return { hasSearch, matchesIncident };
 }
 
-// Search-only filter: subset alerts/observations to those whose searchable
-// fields contain `query`. Inputs are expected to already be scoped to the
-// caller's view (LinePage, StationPage); this just narrows by free text and
-// uses the same matchers as `filterIncidents` so the search box behaves
-// identically across pages.
+// Search-only filter: subset incidents to those whose searchable fields contain
+// `query`. Inputs are expected to already be scoped to the caller's view
+// (LinePage, StationPage); this just narrows by free text and uses the same
+// matcher as `filterIncidents` so the search box behaves identically everywhere.
 /**
- * @param {Alert[]} alerts
- * @param {Observation[]} observations
+ * @param {Incident[]} incidents
  * @param {string} query
- * @returns {{ alerts: Alert[], observations: Observation[] }}
+ * @returns {Incident[]}
  */
-export function searchFilterIncidents(alerts, observations, query) {
-  const { hasSearch, matchesAlert, matchesObservation } = buildSearchMatchers(query);
-  if (!hasSearch) return { alerts, observations };
-  return {
-    alerts: alerts.filter(matchesAlert),
-    observations: observations.filter(matchesObservation),
-  };
+export function searchFilterIncidents(incidents, query) {
+  const { hasSearch, matchesIncident } = buildSearchMatchers(query);
+  if (!hasSearch) return incidents;
+  return incidents.filter(matchesIncident);
 }
 
+// Filter incidents by selected train lines, bus toggle, signal kinds, source
+// bucket, free-text search, and a start timestamp / pinned day. Active incidents
+// bypass the timestamp filter so they always appear. Bus incidents are
+// controlled independently of the train line filter — selecting Red Line
+// doesn't hide bus incidents when showBus=true.
+/**
+ * @param {Incident[]} incidents
+ * @param {object} [options]
+ * @param {string[] | null} [options.lines]    null = all train lines. Empty array = no train lines.
+ * @param {number | null} [options.startTs]    Drop incidents older than this (active ones bypass).
+ * @param {boolean} [options.showBus]
+ * @param {string[] | null} [options.busRoutes] When non-empty, restrict bus incidents to these routes.
+ * @param {number | null} [options.selectedDay] Chicago-day UTC midnight; when set, only incidents
+ *   whose [start, end] span overlaps this day pass. Overrides startTs.
+ * @param {string[] | null} [options.signals]  When non-empty, keep only incidents with an
+ *   observation carrying one of these signal kinds. CTA-only incidents (no observations) drop.
+ * @param {string[] | null} [options.sources]  When shorter than SOURCE_TYPES, keep only incidents
+ *   whose source bucket (cta/bot/merged) is selected.
+ * @param {string} [options.search] Free-text search across CTA + observation fields.
+ * @param {number} [options.now]               For selectedDay span calc; defaults to Date.now().
+ * @returns {Incident[]}
+ */
 export function filterIncidents(
-  alerts,
-  observations,
+  incidents,
   {
     lines,
     startTs,
@@ -770,7 +794,9 @@ export function filterIncidents(
   const hasBusRouteFilter = busRoutes && busRoutes.length > 0;
   const hasSignalFilter = signals && signals.length > 0;
   const signalSet = hasSignalFilter ? new Set(signals) : null;
-  const { hasSearch, matchesAlert, matchesObservation } = buildSearchMatchers(search);
+  const hasSourceFilter = sources && sources.length < SOURCE_TYPES.length;
+  const sourceSet = hasSourceFilter ? new Set(sources) : null;
+  const { hasSearch, matchesIncident } = buildSearchMatchers(search);
 
   // When selectedDay is pinned, an incident matches iff its [start, end] span
   // overlaps that calendar day. Active incidents (no resolved_ts) extend to
@@ -783,83 +809,28 @@ export function filterIncidents(
     return selectedDay >= s && selectedDay <= e;
   };
 
-  const filteredAlerts = alerts.filter((a) => {
-    // Signal filter is "show only bot-detected disruptions of these kinds";
-    // CTA alerts have no signal, so they're hidden whenever a signal filter
-    // is active. (A merged record's matching observation is checked separately
-    // via filteredObs — the IncidentList re-merges from these results.)
-    if (hasSignalFilter) return false;
-    if (a.kind === 'bus') {
+  return (incidents || []).filter((inc) => {
+    if (inc.kind === 'bus') {
       if (!showBus) return false;
-      if (hasBusRouteFilter && !a.routes.some((r) => busRoutes.includes(r))) return false;
-    } else if (hasLineFilter && !a.routes.some((r) => lines.includes(r))) return false;
-    if (hasSearch && !matchesAlert(a)) return false;
-    if (selectedDay != null) {
-      return overlapsSelectedDay(a.first_seen_ts, a.resolved_ts);
+      if (hasBusRouteFilter && !(inc.routes || []).some((r) => busRoutes.includes(r))) return false;
+    } else if (hasLineFilter && !(inc.routes || []).some((r) => lines.includes(r))) {
+      return false;
     }
-    if (startTs && a.first_seen_ts < startTs && !a.active) return false;
-    return true;
-  });
-
-  const filteredObs = observations.filter((o) => {
-    const isBus = o.kind === 'bus';
-    if (isBus) {
-      if (!showBus) return false;
-      if (hasBusRouteFilter && !busRoutes.includes(o.line)) return false;
-    } else {
-      if (hasLineFilter && !lines.includes(o.line)) return false;
-    }
+    // Signal filter keeps an incident when any of its observations carries a
+    // matching kind. CTA-only incidents have no observations, so they drop —
+    // the same "bot-detected only" intent as before, applied atomically (a
+    // CTA+bot incident with a matching detection stays whole rather than being
+    // demoted to its bot half).
     if (hasSignalFilter) {
-      const sigs = observationSignals(o);
-      if (!sigs.some((s) => signalSet.has(s))) return false;
+      const obs = inc.observations || [];
+      if (!obs.some((o) => observationSignals(o).some((s) => signalSet.has(s)))) return false;
     }
-    if (hasSearch && !matchesObservation(o)) return false;
+    if (hasSourceFilter && !sourceSet.has(incidentSource(inc))) return false;
+    if (hasSearch && !matchesIncident(inc)) return false;
     if (selectedDay != null) {
-      return overlapsSelectedDay(o.ts, o.resolved_ts);
+      return overlapsSelectedDay(inc.first_seen_ts, inc.resolved_ts);
     }
-    if (startTs && o.ts < startTs && !o.active) return false;
+    if (startTs && inc.first_seen_ts < startTs && !inc.active) return false;
     return true;
   });
-
-  // Source filter (CTA / bot / merged). "merged" is a post-merge category, so
-  // we run the same pairing the renderer does and then keep only the alerts
-  // and observations that fall into a selected bucket. Skipped only when
-  // every category is selected — that's the default "show everything"
-  // state. An empty `sources` array means "show nothing" (user toggled all
-  // chips off) and falls through the same code path with empty keep-sets.
-  if (sources && sources.length < SOURCE_TYPES.length) {
-    const want = new Set(sources);
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      filteredAlerts,
-      filteredObs,
-    );
-    const keepAlertIds = new Set();
-    const keepObsIds = new Set();
-    if (want.has('merged')) {
-      for (const m of merged) {
-        keepAlertIds.add(m.alert_id);
-        keepObsIds.add(m.obs_id);
-        // Multi-detection incidents carry extra observations alongside the
-        // primary; retain them so the downstream re-merge in IncidentList
-        // can reassemble the full merged record instead of dropping them
-        // into the standalone bucket (where the source filter would hide
-        // them again).
-        if (Array.isArray(m.extra_obs)) {
-          for (const e of m.extra_obs) keepObsIds.add(e.id);
-        }
-      }
-    }
-    if (want.has('cta')) {
-      for (const a of standaloneAlerts) keepAlertIds.add(a.alert_id);
-    }
-    if (want.has('bot')) {
-      for (const o of standaloneObs) keepObsIds.add(o.id);
-    }
-    return {
-      alerts: filteredAlerts.filter((a) => keepAlertIds.has(a.alert_id)),
-      observations: filteredObs.filter((o) => keepObsIds.has(o.id)),
-    };
-  }
-
-  return { alerts: filteredAlerts, observations: filteredObs };
 }
