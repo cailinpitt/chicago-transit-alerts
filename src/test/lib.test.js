@@ -740,69 +740,64 @@ describe('buildDailyTrend', () => {
 // findRelatedIncidents
 // ---------------------------------------------------------------------------
 describe('findRelatedIncidents', () => {
-  const baseAlert = makeAlert({
-    alert_id: 'A1',
+  // Nested incident wire shape: top-level id/kind/routes/first_seen_ts with a
+  // nullable cta block and observations[]. findRelatedIncidents reads these
+  // directly now that pairing happens server-side.
+  const alertIncident = (over) => ({
+    kind: 'train',
     routes: ['red'],
-    first_seen_ts: NOW,
-    post_url: 'https://bsky.app/profile/x/post/self',
+    resolved_ts: null,
+    active: false,
+    cta: { alert_id: over.id },
+    observations: [],
+    ...over,
   });
+  const botIncident = (over) => ({
+    kind: 'train',
+    routes: ['red'],
+    resolved_ts: null,
+    active: false,
+    cta: null,
+    observations: [{ id: 1 }],
+    ...over,
+  });
+
+  const self = alertIncident({ id: 'self', first_seen_ts: NOW });
 
   it('returns incidents on the same line within the window', () => {
-    const before = makeAlert({
-      alert_id: 'A2',
-      routes: ['red'],
-      first_seen_ts: NOW - 6 * 60 * 60_000,
-      post_url: 'https://bsky.app/profile/x/post/before',
-    });
-    const after = makeObs({
-      id: 99,
-      line: 'red',
-      ts: NOW + 12 * 60 * 60_000,
-      post_url: 'https://bsky.app/profile/x/post/after',
-    });
-    const r = findRelatedIncidents(baseAlert, [baseAlert, before], [after]);
+    const before = alertIncident({ id: 'before', first_seen_ts: NOW - 6 * 60 * 60_000 });
+    const after = botIncident({ id: 'after', first_seen_ts: NOW + 12 * 60 * 60_000 });
+    const r = findRelatedIncidents(self, [self, before, after]);
     expect(r).toHaveLength(2);
-    expect(r[0].post_url).toBe(after.post_url);
-    expect(r[1].alert_id).toBe(before.alert_id);
+    // Newest first: the +12h incident leads, the -6h one follows.
+    expect(r[0].id).toBe('after');
+    expect(r[1].id).toBe('before');
   });
 
-  it('excludes the incident itself by post_url', () => {
-    const r = findRelatedIncidents(baseAlert, [baseAlert], []);
-    expect(r).toHaveLength(0);
+  it('excludes the incident itself by id', () => {
+    expect(findRelatedIncidents(self, [self])).toHaveLength(0);
   });
 
   it('drops incidents on different lines', () => {
-    const otherLine = makeAlert({
-      alert_id: 'A3',
-      routes: ['blue'],
-      first_seen_ts: NOW - 60_000,
-      post_url: 'https://bsky.app/profile/x/post/blue',
-    });
-    const r = findRelatedIncidents(baseAlert, [baseAlert, otherLine], []);
-    expect(r).toHaveLength(0);
+    const otherLine = alertIncident({ id: 'blue', routes: ['blue'], first_seen_ts: NOW - 60_000 });
+    expect(findRelatedIncidents(self, [self, otherLine])).toHaveLength(0);
   });
 
   it('drops incidents outside the ±24h default window', () => {
-    const old = makeAlert({
-      alert_id: 'A4',
-      routes: ['red'],
-      first_seen_ts: NOW - 26 * 60 * 60_000,
-      post_url: 'https://bsky.app/profile/x/post/old',
-    });
-    const r = findRelatedIncidents(baseAlert, [baseAlert, old], []);
-    expect(r).toHaveLength(0);
+    const old = alertIncident({ id: 'old', first_seen_ts: NOW - 26 * 60 * 60_000 });
+    expect(findRelatedIncidents(self, [self, old])).toHaveLength(0);
   });
 
-  it('does not cross kinds (train alert vs bus obs same key)', () => {
-    const busObs = makeObs({
-      id: 1,
+  it('does not cross kinds (train self vs bus incident same route key)', () => {
+    // Contrived shared route key — wouldn't normally collide, but verifies the
+    // kind guard.
+    const bus = botIncident({
+      id: 'bus',
       kind: 'bus',
-      line: 'red', // contrived — wouldn't normally collide, but verifies the kind guard
-      ts: NOW - 60_000,
-      post_url: 'https://bsky.app/profile/x/post/bus',
+      routes: ['red'],
+      first_seen_ts: NOW - 60_000,
     });
-    const r = findRelatedIncidents(baseAlert, [baseAlert], [busObs]);
-    expect(r).toHaveLength(0);
+    expect(findRelatedIncidents(self, [self, bus])).toHaveLength(0);
   });
 });
 

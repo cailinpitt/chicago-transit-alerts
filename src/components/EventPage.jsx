@@ -17,11 +17,10 @@ import {
   findContemporaneousOnOtherLines,
   findIncidentById,
   findRelatedIncidents,
+  flattenIncidents,
   formatEvidenceChip,
   formatRoutesLabel,
-  getEventId,
   mergeMatchingIncidents,
-  normalizeAlertsPayload,
   SIGNAL_LABELS,
 } from '../lib/incidents.js';
 import {
@@ -49,6 +48,21 @@ function incidentRoutes(incident) {
   return [];
 }
 
+// Split a nested incident's observations into a primary and the rest. The
+// primary is the detection closest in time to the CTA alert (mirroring the old
+// client-side merge, so the rendered "from → to" / detection link matches what
+// the list shows), or the sole/first observation for a bot-only incident.
+function splitObservations(incident) {
+  const obs = incident?.observations || [];
+  if (obs.length === 0) return { primary: null, extras: [] };
+  if (incident.cta) {
+    const anchor = incident.cta.first_seen_ts;
+    const sorted = [...obs].sort((a, b) => Math.abs(a.ts - anchor) - Math.abs(b.ts - anchor));
+    return { primary: sorted[0], extras: sorted.slice(1) };
+  }
+  return { primary: obs[0], extras: obs.slice(1) };
+}
+
 // Build a fixed-window day-by-day count of incidents on the given line/route,
 // centered on the event's day. Used for the mini timeline that puts the event
 // in the context of the surrounding ~2 weeks of activity on the same line.
@@ -58,7 +72,7 @@ function incidentRoutes(incident) {
 // row paints "any of these routes had an incident" with one color, which
 // misrepresents alerts that touch the lines unevenly (e.g. Pink+Green where
 // only Pink had prior days of trouble).
-function buildEventLineWindow(incident, alerts, observations, numDays = 14, now = Date.now()) {
+function buildEventLineWindow(incident, incidents, numDays = 14, now = Date.now()) {
   const routes = incidentRoutes(incident);
   const kind = incident.kind;
   const startTs = incident.first_seen_ts ?? incident.ts;
@@ -82,7 +96,6 @@ function buildEventLineWindow(incident, alerts, observations, numDays = 14, now 
   const perRoute = Object.fromEntries(routes.map((r) => [r, new Array(numDays).fill(0)]));
   const routeSet = new Set(routes);
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
   function bump(ts, incRoutes, incKind) {
     if (incKind !== kind) return;
     const dayUtc = chicagoDayUTC(ts);
@@ -92,9 +105,7 @@ function buildEventLineWindow(incident, alerts, observations, numDays = 14, now 
       if (routeSet.has(r)) perRoute[r][idx] += 1;
     }
   }
-  for (const m of merged) bump(m.first_seen_ts, m.routes || [], m.kind);
-  for (const a of standaloneAlerts) bump(a.first_seen_ts, a.routes || [], a.kind);
-  for (const o of standaloneObs) bump(o.first_seen_ts ?? o.ts, [o.line], o.kind);
+  for (const inc of incidents || []) bump(inc.first_seen_ts, inc.routes || [], inc.kind);
 
   return { dayUtcs, perRoute, routes, centerDayUtc };
 }
@@ -163,10 +174,10 @@ function TimelineRow({ counts, dayUtcs, centerDayUtc, color }) {
   );
 }
 
-function MiniTimeline({ incident, alerts, observations }) {
+function MiniTimeline({ incident, incidents }) {
   const windowData = useMemo(
-    () => buildEventLineWindow(incident, alerts, observations),
-    [incident, alerts, observations],
+    () => buildEventLineWindow(incident, incidents),
+    [incident, incidents],
   );
   if (!windowData) return null;
   const { dayUtcs, perRoute, routes, centerDayUtc } = windowData;
@@ -241,21 +252,20 @@ function MiniTimeline({ incident, alerts, observations }) {
 }
 
 function relatedDescription(incident, stationIndex) {
-  const isMerged = incident._type === 'merged';
-  const isAlert = !isMerged && !!incident.alert_id;
-  if (isMerged || isAlert) return incident.headline;
-  if (incident.from_station && incident.to_station) {
+  if (incident.cta) return incident.cta.headline;
+  const { primary } = splitObservations(incident);
+  if (primary?.from_station && primary?.to_station) {
     return (
       <>
-        <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
-        <StationName name={incident.to_station} stationIndex={stationIndex} />
+        <StationName name={primary.from_station} stationIndex={stationIndex} /> →{' '}
+        <StationName name={primary.to_station} stationIndex={stationIndex} />
       </>
     );
   }
-  if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
-    return `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
+  if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
+    return `Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
   }
-  if (incident.detection_source === 'roundup') return 'Multiple simultaneous disruptions';
+  if (primary?.detection_source === 'roundup') return 'Multiple simultaneous disruptions';
   return 'Service disruption detected';
 }
 
@@ -270,10 +280,11 @@ function relatedDescription(incident, stationIndex) {
 // RelatedIncidents preserves the existing convention there (the section
 // header already names the line, so a pill on every row would be noise).
 function ContextRow({ other, stationIndex, showLinePill }) {
-  const ts = other.first_seen_ts ?? other.ts;
-  const otherIsMerged = other._type === 'merged';
-  const otherIsAlert = !otherIsMerged && !!other.alert_id;
-  const detailsId = getEventId(other);
+  const ts = other.first_seen_ts;
+  const otherHasObs = (other.observations?.length ?? 0) > 0;
+  const otherIsMerged = !!other.cta && otherHasObs;
+  const otherIsAlert = !!other.cta && !otherHasObs;
+  const detailsId = other.id;
   return (
     <div className="relative flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-gh-subtle/40 transition-colors">
       {detailsId && (
@@ -288,7 +299,7 @@ function ContextRow({ other, stationIndex, showLinePill }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            {showLinePill && <LinePill kind={other.kind} line={other.line} routes={other.routes} />}
+            {showLinePill && <LinePill kind={other.kind} routes={other.routes} />}
             {otherIsMerged && (
               <span className="text-xs text-slate-400 dark:text-slate-500 italic">
                 via CTA + auto-detection
@@ -324,8 +335,7 @@ function ContextRow({ other, stationIndex, showLinePill }) {
 }
 
 function rowKey(other) {
-  const ts = other.first_seen_ts ?? other.ts;
-  return other.alert_id ?? `obs-${other.id ?? other.obs_id ?? ts}`;
+  return other.id;
 }
 
 // Companion to RelatedIncidents (which stays scoped to the same line) so a
@@ -337,10 +347,10 @@ function rowKey(other) {
 // tighter than RelatedIncidents (1h vs 24h) on purpose: cross-line
 // causation is meaningful at hour-scale, not day-scale; widening it would
 // dilute the signal into "things that happened today".
-function CrossLineContext({ incident, alerts, observations, stationIndex }) {
+function CrossLineContext({ incident, incidents, stationIndex }) {
   const others = useMemo(
-    () => findContemporaneousOnOtherLines(incident, alerts, observations),
-    [incident, alerts, observations],
+    () => findContemporaneousOnOtherLines(incident, incidents),
+    [incident, incidents],
   );
   if (others.length === 0) return null;
   return (
@@ -362,11 +372,8 @@ function CrossLineContext({ incident, alerts, observations, stationIndex }) {
   );
 }
 
-function RelatedIncidents({ incident, alerts, observations, stationIndex }) {
-  const related = useMemo(
-    () => findRelatedIncidents(incident, alerts, observations),
-    [incident, alerts, observations],
-  );
+function RelatedIncidents({ incident, incidents, stationIndex }) {
+  const related = useMemo(() => findRelatedIncidents(incident, incidents), [incident, incidents]);
   if (related.length === 0) return null;
   // Routes the parent event affects — used to label the section without
   // re-deriving from each row (all rows share at least one of these).
@@ -393,32 +400,34 @@ function RelatedIncidents({ incident, alerts, observations, stationIndex }) {
 
 // Plain-string variant of `describe` for places that can't render JSX —
 // document.title, plain text logging, etc.
-function describeText(incident, isMerged, isAlert) {
-  if (isMerged || isAlert) return incident.headline;
-  if (incident.from_station && incident.to_station) {
-    return `${displayStationName(incident.from_station)} → ${displayStationName(incident.to_station)}`;
+function describeText(incident) {
+  if (incident.cta) return incident.cta.headline;
+  const { primary } = splitObservations(incident);
+  if (primary?.from_station && primary?.to_station) {
+    return `${displayStationName(primary.from_station)} → ${displayStationName(primary.to_station)}`;
   }
-  if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
-    return `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
+  if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
+    return `Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
   }
-  if (incident.detection_source === 'roundup') return 'Multiple simultaneous disruptions detected';
+  if (primary?.detection_source === 'roundup') return 'Multiple simultaneous disruptions detected';
   return 'Service disruption detected';
 }
 
-function describe(incident, isMerged, isAlert, stationIndex) {
-  if (isMerged || isAlert) return incident.headline;
-  if (incident.from_station && incident.to_station) {
+function describe(incident, stationIndex) {
+  if (incident.cta) return incident.cta.headline;
+  const { primary } = splitObservations(incident);
+  if (primary?.from_station && primary?.to_station) {
     return (
       <>
-        <StationName name={incident.from_station} stationIndex={stationIndex} /> →{' '}
-        <StationName name={incident.to_station} stationIndex={stationIndex} />
+        <StationName name={primary.from_station} stationIndex={stationIndex} /> →{' '}
+        <StationName name={primary.to_station} stationIndex={stationIndex} />
       </>
     );
   }
-  if (incident.detection_source === 'roundup' && incident.signals?.length > 0) {
-    return `Multiple signals: ${incident.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
+  if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
+    return `Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
   }
-  if (incident.detection_source === 'roundup') {
+  if (primary?.detection_source === 'roundup') {
     return 'Multiple simultaneous disruptions detected';
   }
   return 'Service disruption detected';
@@ -443,8 +452,7 @@ export default function EventPage({ eventId }) {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json();
         })
-        .then((raw) => {
-          const fresh = normalizeAlertsPayload(raw);
+        .then((fresh) => {
           setData((prev) => {
             if (!prev || fresh.generated_at !== prev.generated_at) return fresh;
             return prev;
@@ -465,13 +473,18 @@ export default function EventPage({ eventId }) {
 
   const incident = useMemo(() => {
     if (!data) return null;
-    return findIncidentById(data.alerts, data.observations, eventId);
+    return findIncidentById(data.incidents, eventId);
   }, [data, eventId]);
 
+  // Flat { alerts, observations } view of the payload — the station index and
+  // BrowseMenu (and, via EventDetail, the cohort stats) still read the flat
+  // shape. The view itself renders the nested `incident` directly.
+  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+
   const stationIndex = useMemo(() => {
-    if (!data) return null;
-    return buildStationIndex(data.alerts, data.observations, { windowDays: 90 });
-  }, [data]);
+    if (!flat) return null;
+    return buildStationIndex(flat.alerts, flat.observations, { windowDays: 90 });
+  }, [flat]);
 
   // Set the tab title from the incident so bookmarks and shared links land in
   // browser history with something readable, not the generic site title.
@@ -481,13 +494,11 @@ export default function EventPage({ eventId }) {
       document.title = base;
       return;
     }
-    const isMerged = incident._type === 'merged';
-    const isAlert = !isMerged && !!incident.alert_id;
     // Prefix the tab title with the route label so a generic CTA headline
     // (e.g. "Temporary Reroute") doesn't lose the route context the rest of
     // the page makes obvious.
     const label = formatRoutesLabel(incident.kind, incidentRoutes(incident));
-    const desc = describeText(incident, isMerged, isAlert);
+    const desc = describeText(incident);
     document.title = `${label} · ${desc} · ${base}`;
     return () => {
       document.title = base;
@@ -506,7 +517,7 @@ export default function EventPage({ eventId }) {
             ← Back to all incidents
           </a>
           <div className="flex items-center gap-2">
-            <BrowseMenu alerts={data?.alerts} observations={data?.observations} />
+            <BrowseMenu alerts={flat?.alerts} observations={flat?.observations} />
             <button
               type="button"
               onClick={toggleDark}
@@ -529,20 +540,19 @@ export default function EventPage({ eventId }) {
           <>
             <EventDetail
               incident={incident}
-              alerts={data.alerts}
-              observations={data.observations}
+              incidents={data.incidents}
+              alerts={flat.alerts}
+              observations={flat.observations}
               stationIndex={stationIndex}
             />
             <RelatedIncidents
               incident={incident}
-              alerts={data.alerts}
-              observations={data.observations}
+              incidents={data.incidents}
               stationIndex={stationIndex}
             />
             <CrossLineContext
               incident={incident}
-              alerts={data.alerts}
-              observations={data.observations}
+              incidents={data.incidents}
               stationIndex={stationIndex}
             />
           </>
@@ -651,6 +661,8 @@ function linkifyMentionedStations(text, mentions, stationIndex) {
 }
 
 function collectAffectedStations(incident) {
+  const cta = incident.cta;
+  const { primary, extras } = splitObservations(incident);
   const seen = new Set();
   const out = [];
   function add(name) {
@@ -660,15 +672,15 @@ function collectAffectedStations(incident) {
     seen.add(key);
     out.push(name);
   }
-  add(incident.affected_from_station);
-  add(incident.affected_to_station);
-  add(incident.from_station);
-  add(incident.to_station);
+  add(cta?.affected_from_station);
+  add(cta?.affected_to_station);
+  add(primary?.from_station);
+  add(primary?.to_station);
   // Every merged observation's endpoints, not just the primary's. A Loop-wide
   // alert merges one pulse-cold detection per affected line; showing only the
   // primary obs's segment (e.g. "Armitage ↔ Chicago") misrepresents a
   // five-line incident as a single stretch on one line.
-  for (const e of incident.extra_obs || []) {
+  for (const e of extras) {
     add(e.from_station);
     add(e.to_station);
   }
@@ -676,7 +688,7 @@ function collectAffectedStations(incident) {
   // pulled from the alert text ("delays at Monroe"). Include after the
   // segment endpoints so the canonical "from → to" still renders first when
   // both are present; the dedupe keeps overlap from doubling up.
-  for (const name of incident.mentioned_stations || []) add(name);
+  for (const name of cta?.mentioned_stations || []) add(name);
   // Upstream sometimes carries both a bare name (e.g. "Garfield" from the
   // headline) and its fully qualified counterpart ("Garfield (Green)" from
   // the extracted mentions) for the same physical station. Drop the bare
@@ -700,8 +712,8 @@ function collectAffectedStations(incident) {
 // observation contributes a segment on its own line. Returns null when no
 // segment owns a line (a pure CTA alert applies to all its routes at once,
 // so there's nothing to split by — the flat chips are clearer there).
-function groupAffectedStationsByLine(incident) {
-  const segs = affectedLineSegments(incident).filter((s) => s.line);
+function groupAffectedStationsByLine(segments) {
+  const segs = segments.filter((s) => s.line);
   if (segs.length === 0) return null;
   const byLine = new Map();
   for (const s of segs) {
@@ -844,7 +856,7 @@ function StationsByLine({ groups, direction }) {
 // west/in/out) — title-case it so the rendered chip reads "South" not
 // "south".
 function formatAffected(incident) {
-  const d = incident.affected_direction;
+  const d = incident.cta?.affected_direction;
   if (!d) return null;
   return d.charAt(0).toUpperCase() + d.slice(1);
 }
@@ -917,21 +929,39 @@ function DurationScale({ stats }) {
   );
 }
 
-function EventDetail({ incident, alerts, observations, stationIndex }) {
-  const isMerged = incident._type === 'merged';
-  const isAlert = !isMerged && !!incident.alert_id;
+function EventDetail({ incident, incidents, alerts, observations, stationIndex }) {
+  const cta = incident.cta;
+  const { primary, extras } = splitObservations(incident);
+  const isMerged = !!cta && !!primary;
+  const isAlert = !!cta && !primary;
+  const isObsOnly = !cta;
+
+  // Flat reconstruction of just this incident — reproduces the record the old
+  // client-side merge produced, so the helpers that still read the flat shape
+  // (cohort stats, affectedLineSegments) keep working unchanged.
+  const flatSubject = useMemo(() => {
+    const f = flattenIncidents([incident]);
+    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+      f.alerts,
+      f.observations,
+    );
+    return merged[0] ?? standaloneAlerts[0] ?? standaloneObs[0] ?? null;
+  }, [incident]);
+
   // For absence-style observations (pulse-cold/thin-gap) the export publishes an
   // onset_ts back-dated to the last observed train; use it as the start so
   // "First seen" lines up with the back-dated duration_ms instead of showing
   // the same minute for first/last seen.
-  const startTs = incident.onset_ts ?? incident.first_seen_ts ?? incident.ts;
+  const startTs = (isObsOnly ? (primary?.onset_ts ?? null) : null) ?? incident.first_seen_ts;
   const endTs = incident.resolved_ts ?? null;
   // Prefer the exported duration_ms when present — it reconciles with onset_ts
   // (resolved_ts - (onset_ts ?? ts)); the raw subtraction is the fallback.
-  const duration = endTs ? formatDuration(incident.duration_ms ?? endTs - startTs) : null;
+  const durationMs =
+    (isObsOnly ? (primary?.duration_ms ?? null) : null) ?? (endTs != null ? endTs - startTs : null);
+  const duration = endTs ? formatDuration(durationMs) : null;
   const cohortStats = useMemo(
-    () => computeCohortDurationStats(incident, alerts, observations, { windowDays: 90 }),
-    [incident, alerts, observations],
+    () => computeCohortDurationStats(flatSubject, alerts, observations, { windowDays: 90 }),
+    [flatSubject, alerts, observations],
   );
 
   // CTA-planned-start callout. When CTA tagged the alert with an EventStart
@@ -941,7 +971,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   // time) or > 14 days (a stale EventStart from a long-running planned
   // alert isn't informative).
   let ctaPlannedPhrase = null;
-  const ctaStart = incident.cta_event_start_ts ?? null;
+  const ctaStart = cta?.cta_event_start_ts ?? null;
   if (ctaStart != null && startTs != null) {
     const aheadMs = startTs - ctaStart;
     const TEN_MIN = 10 * 60 * 1000;
@@ -972,10 +1002,10 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   // comparison below. `formatEstimatedEnd` returns null when the estimate
   // is already past or imminent (≤2 min), so an alert running past its
   // estimate quietly hides the now-stale label instead of advertising it.
-  const ctaEndIsDateOnly = incident.cta_event_end_is_date_only === true;
+  const ctaEndIsDateOnly = cta?.cta_event_end_is_date_only === true;
   const activeEndPhrase =
-    incident.active && incident.cta_event_end_ts != null
-      ? formatEstimatedEnd(incident.cta_event_end_ts, undefined, { dateOnly: ctaEndIsDateOnly })
+    incident.active && cta?.cta_event_end_ts != null
+      ? formatEstimatedEnd(cta.cta_event_end_ts, undefined, { dateOnly: ctaEndIsDateOnly })
       : null;
   // Only show the parenthetical when it adds genuinely new info (a short
   // countdown like "in ~45m", or "later today"). For far-future estimates
@@ -986,7 +1016,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
     (activeEndPhrase.startsWith('in ~') || activeEndPhrase === 'later today');
 
   let ctaEstimateBlock = null;
-  const ctaEnd = incident.cta_event_end_ts ?? null;
+  const ctaEnd = cta?.cta_event_end_ts ?? null;
   // The retrospective "X min early/late" comparison is only meaningful when
   // CTA posted a time. Date-only EventEnd ("through May 25") has no minute
   // precision to compare against, so we skip the early/late framing in that
@@ -1015,29 +1045,38 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
   // often clears its alert the moment the underlying incident ends, even if
   // there's still a backlog working through. The gap between the two is the
   // honest "service back to normal" delay riders feel.
+  // While the incident is active, a paired obs's prior resolution doesn't end
+  // it — surfacing it would imply a "back to normal" that hasn't happened, so
+  // the obs resolution side is suppressed until the alert clears.
+  const obsResolvedTs = isMerged && !incident.active ? (primary?.resolved_ts ?? null) : null;
   let stabilizationDelta = null;
   if (
     isMerged &&
     incident.resolved_ts != null &&
-    incident.obs_resolved_ts != null &&
-    incident.obs_resolved_ts > incident.resolved_ts
+    obsResolvedTs != null &&
+    obsResolvedTs > incident.resolved_ts
   ) {
-    stabilizationDelta = formatStabilizationDelta(incident.obs_resolved_ts - incident.resolved_ts);
+    stabilizationDelta = formatStabilizationDelta(obsResolvedTs - incident.resolved_ts);
   }
-  const description = describe(incident, isMerged, isAlert, stationIndex);
+  const description = describe(incident, stationIndex);
   const affected = formatAffected(incident);
   const affectedStations = collectAffectedStations(incident);
+  // Affected stretches as { line, from, to } segments — built from the flat
+  // reconstruction so the geometry matches the list/map exactly.
+  const segments = affectedLineSegments(flatSubject);
   // Multi-line incidents split the station list per line (mirrors the map);
   // null for single-line / pure-CTA incidents, which keep the flat chips.
-  const stationsByLine = groupAffectedStationsByLine(incident);
-  const resolvedUrl = incident.resolved_reply_url ?? incident.resolved_post_url ?? null;
-  const obsResolvedUrl = isMerged ? (incident.obs_resolved_post_url ?? null) : null;
-  const eventId = getEventId(incident);
+  const stationsByLine = groupAffectedStationsByLine(segments);
+  const resolvedUrl = cta ? (cta.resolved_reply_url ?? null) : (primary?.resolved_post_url ?? null);
+  const obsResolvedUrl = isMerged && !incident.active ? (primary?.resolved_post_url ?? null) : null;
+  const eventId = incident.id;
+  // The main post link: CTA's announcement when present, else the bot post.
+  const primaryUrl = cta ? cta.post_url : (primary?.post_url ?? null);
 
   return (
     <article className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-6">
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <LinePill kind={incident.kind} line={incident.line} routes={incident.routes} />
+        <LinePill kind={incident.kind} routes={incident.routes} />
         {isMerged && (
           <>
             <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
@@ -1047,10 +1086,10 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
             </span>
           </>
         )}
-        {!isMerged && isAlert && (
+        {isAlert && (
           <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
         )}
-        {!isMerged && !isAlert && (
+        {isObsOnly && (
           <span className="text-xs text-slate-400 dark:text-slate-500 italic">
             via auto-detection
           </span>
@@ -1077,20 +1116,20 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           design — linking them produces /station/wacker pages with no
           incidents on record. The cross-street info is already in the bus
           alert headline, so the chips row adds nothing useful. */}
-      {(isMerged || isAlert) &&
+      {cta &&
         incident.kind !== 'bus' &&
         (stationsByLine ? (
-          <StationsByLine groups={stationsByLine} direction={incident.affected_direction} />
+          <StationsByLine groups={stationsByLine} direction={cta.affected_direction} />
         ) : (
-          <StationChips stations={affectedStations} direction={incident.affected_direction} />
+          <StationChips stations={affectedStations} direction={cta.affected_direction} />
         ))}
 
-      {!isMerged && !isAlert && incident.signals?.length > 0 && (
+      {isObsOnly && primary?.signals?.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mt-2">
           <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Signals
           </span>
-          {incident.signals.map((signal) => (
+          {primary.signals.map((signal) => (
             <span
               key={signal}
               className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-700 dark:text-slate-300"
@@ -1108,7 +1147,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           alerts and roundups, so the section silently disappears when
           there's no evidence payload to summarize. */}
       {(() => {
-        const chip = formatEvidenceChip(incident);
+        const chip = isObsOnly ? formatEvidenceChip(primary) : null;
         if (!chip) return null;
         return (
           <div
@@ -1147,9 +1186,9 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
           resolution sentences become two entries on a LinkedIn-style rail
           matching the "Per CTA · N updates" pattern. */}
       {(() => {
-        const detection = incident.bot_description;
-        const resolution = incident.bot_resolved_description;
-        const bullets = incident.bot_evidence_bullets;
+        const detection = isObsOnly ? primary?.bot_description : null;
+        const resolution = isObsOnly ? primary?.bot_resolved_description : null;
+        const bullets = isObsOnly ? primary?.bot_evidence_bullets : null;
         if (!detection) return null;
         const joinBullets = (items) => items.map((b) => b.replace(/\.\s*$/, '')).join('; ') + '.';
         const bulletsBlock =
@@ -1177,7 +1216,7 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
         // a single "back to normal" sentence with no per-signal detail.
         const entries = [
           { ts: incident.resolved_ts, text: resolution, isLatest: true, isOldest: false },
-          { ts: incident.ts, text: detection, isLatest: false, isOldest: true, bullets },
+          { ts: primary.ts, text: detection, isLatest: false, isOldest: true, bullets },
         ];
         return (
           <section className="mt-4">
@@ -1230,20 +1269,20 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
         // hoisted so multi-version rendering can apply it per entry without
         // recomputing.
         const linkPool = [
-          ...(incident.mentioned_stations || []),
+          ...(cta?.mentioned_stations || []),
           ...stationsServingLines(incidentRoutes(incident)),
         ];
         // Normalize to a versions list. The export omits `versions` for a
         // single-version alert, so synthesize one entry from the alert's own
         // fields when there's CTA body text to anchor the section.
-        const rawVersions = Array.isArray(incident.versions) ? incident.versions : null;
+        const rawVersions = Array.isArray(cta?.versions) ? cta.versions : null;
         const versions =
           rawVersions && rawVersions.length > 0
             ? rawVersions
-            : incident.short_description
+            : cta?.short_description
               ? // No headline on the synthesized entry — the page <h1> already
                 // shows it, so repeating it in the rail would just duplicate.
-                [{ ts: incident.first_seen_ts, short_description: incident.short_description }]
+                [{ ts: cta.first_seen_ts, short_description: cta.short_description }]
               : [];
 
         // Build the timeline: CTA's text versions (newest first) plus a
@@ -1485,27 +1524,27 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
         (incidentRoutes(incident).length > 1 ? (
           <MultiLineEventMap
             lineKeys={incidentRoutes(incident)}
-            segments={affectedLineSegments(incident)}
+            segments={segments}
             active={!!incident.active}
           />
         ) : (
           <EventMap
-            lineKey={incident.line ?? (Array.isArray(incident.routes) ? incident.routes[0] : null)}
-            fromStation={incident.from_station ?? incident.affected_from_station ?? null}
-            toStation={incident.to_station ?? incident.affected_to_station ?? null}
+            lineKey={Array.isArray(incident.routes) ? incident.routes[0] : null}
+            fromStation={primary?.from_station ?? cta?.affected_from_station ?? null}
+            toStation={primary?.to_station ?? cta?.affected_to_station ?? null}
             active={!!incident.active}
           />
         ))}
 
       <DurationScale stats={cohortStats} />
 
-      <MiniTimeline incident={incident} alerts={alerts} observations={observations} />
+      <MiniTimeline incident={incident} incidents={incidents} />
 
       <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t border-slate-100 dark:border-gh-border">
         <ShareLink eventId={eventId} title={description} />
-        {incident.post_url && (
+        {primaryUrl && (
           <a
-            href={incident.post_url}
+            href={primaryUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
@@ -1513,20 +1552,20 @@ function EventDetail({ incident, alerts, observations, stationIndex }) {
             {isMerged ? 'Via CTA →' : 'View on Bluesky →'}
           </a>
         )}
-        {isMerged && incident.obs_post_url && (
+        {isMerged && primary?.post_url && (
           <a
-            href={incident.obs_post_url}
+            href={primary.post_url}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
           >
-            {(incident.extra_obs?.length ?? 0) > 0 && incident.obs_detection_source
-              ? `Bot detection (${incident.obs_detection_source}) →`
+            {extras.length > 0 && primary.detection_source
+              ? `Bot detection (${primary.detection_source}) →`
               : 'Bot detection →'}
           </a>
         )}
         {isMerged &&
-          (incident.extra_obs ?? []).map(
+          extras.map(
             (e) =>
               e.post_url && (
                 <a

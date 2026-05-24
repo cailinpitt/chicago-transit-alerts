@@ -7,41 +7,59 @@ const STANDALONE_OBS_URL = 'https://bsky.app/profile/did:plc:xyz/post/3mkomsa7xh
 
 const NOW = 1_000_000_000_000;
 
-// The alert and matchingObs share an _incidentId — that's how the wire format
-// expresses "these belong to the same incident" now that pairing happens
-// server-side. mergeMatchingIncidents regroups by it.
-const alert = {
-  alert_id: 'a1',
+// findIncidentById now reads the nested `incidents[]` wire shape directly: a
+// top-level incident whose `id` is the canonical event rkey, with a nullable
+// `cta` block and an `observations[]` list. A merged incident carries both; a
+// bot-only incident has `cta: null`.
+const mergedIncident = {
+  id: '3ml5idb536d2c', // = alert post rkey
   kind: 'train',
   routes: ['red'],
-  headline: 'Red Line Delays',
   first_seen_ts: NOW - 60 * 60_000,
   resolved_ts: NOW - 30 * 60_000,
   active: false,
-  post_url: ALERT_URL,
-  _incidentId: 'inc-merged',
+  sources: ['cta', 'bot'],
+  cta: {
+    alert_id: 'a1',
+    headline: 'Red Line Delays',
+    first_seen_ts: NOW - 60 * 60_000,
+    resolved_ts: NOW - 30 * 60_000,
+    active: false,
+    post_url: ALERT_URL,
+  },
+  observations: [
+    {
+      id: 1,
+      kind: 'train',
+      line: 'red',
+      ts: NOW - 55 * 60_000,
+      resolved_ts: NOW - 30 * 60_000,
+      active: false,
+      post_url: OBS_URL,
+    },
+  ],
 };
 
-const matchingObs = {
-  id: 1,
-  kind: 'train',
-  line: 'red',
-  ts: NOW - 55 * 60_000,
-  resolved_ts: NOW - 30 * 60_000,
-  active: false,
-  post_url: OBS_URL,
-  _incidentId: 'inc-merged',
-};
-
-const standaloneObs = {
-  id: 2,
+const botOnlyIncident = {
+  id: '3mkomsa7xhv2i', // = obs post rkey
   kind: 'bus',
-  line: '66',
-  ts: NOW - 10 * 60_000,
+  routes: ['66'],
+  first_seen_ts: NOW - 10 * 60_000,
   resolved_ts: null,
   active: true,
-  post_url: STANDALONE_OBS_URL,
-  _incidentId: 'inc-bot-only',
+  sources: ['bot'],
+  cta: null,
+  observations: [
+    {
+      id: 2,
+      kind: 'bus',
+      line: '66',
+      ts: NOW - 10 * 60_000,
+      resolved_ts: null,
+      active: true,
+      post_url: STANDALONE_OBS_URL,
+    },
+  ],
 };
 
 describe('postUrlRkey', () => {
@@ -78,33 +96,35 @@ describe('getEventId', () => {
 });
 
 describe('findIncidentById', () => {
-  it('finds a merged incident by its alert post rkey', () => {
-    const found = findIncidentById([alert], [matchingObs], '3ml5idb536d2c');
+  const incidents = [mergedIncident, botOnlyIncident];
+
+  it('finds a merged incident by its top-level id (alert post rkey)', () => {
+    const found = findIncidentById(incidents, '3ml5idb536d2c');
     expect(found).not.toBeNull();
-    expect(found._type).toBe('merged');
-    expect(found.alert_id).toBe('a1');
+    expect(found.cta?.alert_id).toBe('a1');
+    expect(found.observations).toHaveLength(1);
   });
 
-  it('finds a merged incident by the observation post rkey', () => {
-    const found = findIncidentById([alert], [matchingObs], '3mkuutqcneg2h');
+  it('finds a merged incident by one of its observation post rkeys', () => {
+    const found = findIncidentById(incidents, '3mkuutqcneg2h');
     expect(found).not.toBeNull();
-    expect(found._type).toBe('merged');
-    expect(found.alert_id).toBe('a1');
+    expect(found.cta?.alert_id).toBe('a1');
   });
 
-  it('finds a standalone observation by its post rkey', () => {
-    const found = findIncidentById([], [standaloneObs], '3mkomsa7xhv2i');
+  it('finds a bot-only incident by its observation post rkey', () => {
+    const found = findIncidentById(incidents, '3mkomsa7xhv2i');
     expect(found).not.toBeNull();
-    expect(found.id).toBe(2);
+    expect(found.cta).toBeNull();
+    expect(found.observations[0].id).toBe(2);
   });
 
   it('returns null for an unknown id', () => {
-    expect(findIncidentById([alert], [matchingObs], 'nope')).toBeNull();
+    expect(findIncidentById(incidents, 'nope')).toBeNull();
   });
 
   it('returns null for a falsy id', () => {
-    expect(findIncidentById([alert], [matchingObs], '')).toBeNull();
-    expect(findIncidentById([alert], [matchingObs], null)).toBeNull();
+    expect(findIncidentById(incidents, '')).toBeNull();
+    expect(findIncidentById(incidents, null)).toBeNull();
   });
 });
 

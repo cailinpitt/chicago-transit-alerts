@@ -6,8 +6,9 @@ import { BUS_ROUTE_NAMES } from './busRoutes.js';
 import { TRAIN_LINES } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
 
-// Read the published `incidents[]` wire shape and flatten it into the internal
-// `{ alerts, observations }` representation the rest of the app consumes.
+// Flatten the published `incidents[]` wire shape into the `{ alerts, observations }`
+// representation the analytics layer (aggregate.js, CSV/feed generators, the
+// station index) still consumes.
 //
 // The fuzzy alert↔observation pairing now happens server-side (cta-insights
 // `export-web.js`); each incident already groups its CTA alert with the bot
@@ -16,21 +17,38 @@ import { chicagoDayUTC } from './format.js';
 // record with `_incidentId` so `mergeMatchingIncidents` can regroup by that
 // decision without re-matching. Train line keys arrive already normalized to
 // full names ('green'), so no per-record normalization happens here anymore.
+//
+// View components no longer go through this — they read the nested `incidents[]`
+// directly (see EventPage, findIncidentById). It survives only for the analytics
+// helpers that haven't been moved onto the nested shape.
+/**
+ * @param {Incident[]} incidents
+ * @returns {{ alerts: Alert[], observations: Observation[] }}
+ */
+export function flattenIncidents(incidents) {
+  const alerts = [];
+  const observations = [];
+  for (const inc of incidents || []) {
+    if (inc.cta) alerts.push(flattenIncidentAlert(inc));
+    for (const o of inc.observations || []) {
+      observations.push({ ...o, _incidentId: inc.id });
+    }
+  }
+  return { alerts, observations };
+}
+
+// Thin wrapper over `flattenIncidents` that also carries the payload-level
+// `generated_at`/`data_start_ts` through. Kept as a shim while the remaining
+// analytics-driven pages (App, StatsPage, LinePage, …) still expect the flat
+// `{ generated_at, data_start_ts, alerts, observations }` envelope; delete it
+// once every consumer reads `incidents[]` directly.
 /**
  * @param {AlertsPayload} payload
  * @returns {{ generated_at: number, data_start_ts: number|null, alerts: Alert[], observations: Observation[] }}
  */
 export function normalizeAlertsPayload(payload) {
   if (!payload) return payload;
-  const incidents = payload.incidents || [];
-  const alerts = [];
-  const observations = [];
-  for (const inc of incidents) {
-    if (inc.cta) alerts.push(flattenIncidentAlert(inc));
-    for (const o of inc.observations || []) {
-      observations.push({ ...o, _incidentId: inc.id });
-    }
-  }
+  const { alerts, observations } = flattenIncidents(payload.incidents || []);
   return {
     generated_at: payload.generated_at,
     data_start_ts: payload.data_start_ts ?? null,
@@ -408,41 +426,24 @@ export function formatRoutesLabel(kind, routes) {
   return `${nums.slice(0, 2).join(', ')} + ${nums.length - 2} more`;
 }
 
-// Find an incident by event id across the full payload. Searches alerts first
-// (so a merged record resolves through its alert post id), then standalone
-// observations. The merge step mirrors what IncidentList renders so a shared
-// link lands on the same combined view the user copied it from.
+// Find an incident by its shareable event id. The id is the top-level
+// `incident.id` (the alert post rkey when CTA is present, else the bot post
+// rkey), but a link copied from any of an incident's bot posts should still
+// resolve, so we also match the CTA post rkey and every observation's post
+// rkey. Returns the nested incident the view renders directly.
 /**
- * @param {Alert[]} alerts
- * @param {Observation[]} observations
+ * @param {Incident[]} incidents
  * @param {string} id
- * @returns {(MergedIncident | Alert | Observation) & { _type?: string } | null}
+ * @returns {Incident | null}
  */
-export function findIncidentById(alerts, observations, id) {
+export function findIncidentById(incidents, id) {
   if (!id) return null;
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
-  const fromMerged = merged.find(
-    (m) =>
-      postUrlRkey(m.post_url) === id ||
-      postUrlRkey(m.obs_post_url) === id ||
-      (m.extra_obs ?? []).some((e) => postUrlRkey(e.post_url) === id),
-  );
-  if (fromMerged) return fromMerged;
-  const fromAlert = standaloneAlerts.find((a) => postUrlRkey(a.post_url) === id);
-  if (fromAlert) return fromAlert;
-  const fromObs = standaloneObs.find((o) => postUrlRkey(o.post_url) === id);
-  if (fromObs) return fromObs;
+  for (const inc of incidents || []) {
+    if (inc.id === id) return inc;
+    if (postUrlRkey(inc.cta?.post_url) === id) return inc;
+    if ((inc.observations || []).some((o) => postUrlRkey(o.post_url) === id)) return inc;
+  }
   return null;
-}
-
-// Routes (or single line) an incident affects. Alerts/merged records carry a
-// plural `routes`; standalone observations carry a singular `line`. Bus
-// observations use bus route numbers; train observations use line keys.
-function incidentRoutes(incident) {
-  if (!incident) return [];
-  if (Array.isArray(incident.routes) && incident.routes.length > 0) return incident.routes;
-  if (incident.line) return [incident.line];
-  return [];
 }
 
 // Find incidents on the same line(s) within ±windowMs of the given incident,
@@ -450,58 +451,32 @@ function incidentRoutes(incident) {
 // surrounding context — was this disruption isolated, or part of a cluster of
 // problems on the same line?
 /**
- * @param {object} incident
- * @param {Alert[]} alerts
- * @param {Observation[]} observations
+ * @param {Incident} incident
+ * @param {Incident[]} incidents
  * @param {number} [windowMs] Time window before/after; defaults to 24h.
- * @returns {Array<MergedIncident | Alert | Observation>} Sorted newest-first, excluding self.
+ * @returns {Incident[]} Sorted newest-first, excluding self.
  */
-export function findRelatedIncidents(
-  incident,
-  alerts,
-  observations,
-  windowMs = 24 * 60 * 60 * 1000,
-) {
+export function findRelatedIncidents(incident, incidents, windowMs = 24 * 60 * 60 * 1000) {
   if (!incident) return [];
-  const routes = new Set(incidentRoutes(incident));
+  const routes = new Set(incident.routes || []);
   if (routes.size === 0) return [];
   const kind = incident.kind;
-  const ts = incident.first_seen_ts ?? incident.ts;
+  const ts = incident.first_seen_ts;
   if (ts == null) return [];
   const lo = ts - windowMs;
   const hi = ts + windowMs;
-  const selfId = postUrlRkey(incident.post_url);
-
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
-
-  const overlapsRoute = (other) => {
-    if (other.kind !== kind) return false;
-    return incidentRoutes(other).some((r) => routes.has(r));
-  };
-  const inWindow = (other) => {
-    const t = other.first_seen_ts ?? other.ts;
-    return t != null && t >= lo && t <= hi;
-  };
-  const isSelf = (other) => {
-    const id = postUrlRkey(other.post_url);
-    return id != null && id === selfId;
-  };
 
   const out = [];
-  for (const m of merged) {
-    if (!overlapsRoute(m) || !inWindow(m) || isSelf(m)) continue;
-    out.push(m);
-  }
-  for (const a of standaloneAlerts) {
-    if (!overlapsRoute(a) || !inWindow(a) || isSelf(a)) continue;
-    out.push(a);
-  }
-  for (const o of standaloneObs) {
-    if (!overlapsRoute(o) || !inWindow(o) || isSelf(o)) continue;
-    out.push(o);
+  for (const other of incidents || []) {
+    if (other.id === incident.id) continue;
+    if (other.kind !== kind) continue;
+    if (!(other.routes || []).some((r) => routes.has(r))) continue;
+    const t = other.first_seen_ts;
+    if (t == null || t < lo || t > hi) continue;
+    out.push(other);
   }
 
-  out.sort((a, b) => (b.first_seen_ts ?? b.ts) - (a.first_seen_ts ?? a.ts));
+  out.sort((a, b) => b.first_seen_ts - a.first_seen_ts);
   return out;
 }
 
@@ -516,64 +491,36 @@ export function findRelatedIncidents(
 // reader piece the picture together. Each row carries its own `kind` so the
 // caller can render an appropriate line/route pill.
 /**
- * @param {object} incident
- * @param {Alert[]} alerts
- * @param {Observation[]} observations
+ * @param {Incident} incident
+ * @param {Incident[]} incidents
  * @param {number} [windowMs] Time window before/after; defaults to 1h.
- * @returns {Array<MergedIncident | Alert | Observation>}
+ * @returns {Incident[]}
  */
-export function findContemporaneousOnOtherLines(
-  incident,
-  alerts,
-  observations,
-  windowMs = 60 * 60 * 1000,
-) {
+export function findContemporaneousOnOtherLines(incident, incidents, windowMs = 60 * 60 * 1000) {
   if (!incident) return [];
-  const selfRoutes = new Set(incidentRoutes(incident));
+  const selfRoutes = new Set(incident.routes || []);
   const selfKind = incident.kind;
-  const ts = incident.first_seen_ts ?? incident.ts;
+  const ts = incident.first_seen_ts;
   if (ts == null) return [];
   const lo = ts - windowMs;
   const hi = ts + windowMs;
-  const selfId = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url);
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(alerts, observations);
-
-  const inWindow = (other) => {
-    const t = other.first_seen_ts ?? other.ts;
-    return t != null && t >= lo && t <= hi;
-  };
-  const overlapsSelfRoutes = (other) => {
-    // For trains: any shared line key disqualifies (it's the same line, the
-    // RelatedIncidents section already covers that). For buses: same logic
-    // on route numbers. Cross-kind (train vs bus) is always considered
-    // different because the route key spaces are disjoint.
-    if (other.kind !== selfKind) return false;
-    return incidentRoutes(other).some((r) => selfRoutes.has(r));
-  };
-  const isSelf = (other) => {
-    const id = postUrlRkey(other.post_url) ?? postUrlRkey(other.obs_post_url);
-    return id != null && id === selfId;
-  };
+  // Same kind + a shared route means it's the same line — RelatedIncidents
+  // already covers that, so it's excluded here. Cross-kind (train vs bus) is
+  // always "different" because the route key spaces are disjoint.
+  const overlapsSelfRoutes = (other) =>
+    other.kind === selfKind && (other.routes || []).some((r) => selfRoutes.has(r));
 
   const out = [];
-  for (const m of merged) {
-    if (!inWindow(m) || isSelf(m)) continue;
-    if (overlapsSelfRoutes(m)) continue;
-    out.push(m);
-  }
-  for (const a of standaloneAlerts) {
-    if (!inWindow(a) || isSelf(a)) continue;
-    if (overlapsSelfRoutes(a)) continue;
-    out.push(a);
-  }
-  for (const o of standaloneObs) {
-    if (!inWindow(o) || isSelf(o)) continue;
-    if (overlapsSelfRoutes(o)) continue;
-    out.push(o);
+  for (const other of incidents || []) {
+    if (other.id === incident.id) continue;
+    const t = other.first_seen_ts;
+    if (t == null || t < lo || t > hi) continue;
+    if (overlapsSelfRoutes(other)) continue;
+    out.push(other);
   }
 
-  out.sort((a, b) => (b.first_seen_ts ?? b.ts) - (a.first_seen_ts ?? a.ts));
+  out.sort((a, b) => b.first_seen_ts - a.first_seen_ts);
   return out;
 }
 
