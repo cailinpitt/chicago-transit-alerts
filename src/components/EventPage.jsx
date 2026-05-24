@@ -130,12 +130,38 @@ function RowLabel({ kind, route }) {
   );
 }
 
-function TimelineRow({ counts, dayUtcs, centerDayUtc, color }) {
-  function cellBg(count) {
-    if (count === 0) return 'var(--timeline-empty)';
-    if (count === 1) return hexToRgba(color, 0.4);
-    return color;
-  }
+// Cell opacity ramp for the count heatmap. Absolute (not relative to the
+// window's max) so the same count always paints the same shade across events.
+// Saturates at 5+ because the printed number disambiguates anything denser.
+function cellOpacity(count) {
+  if (count <= 0) return 0;
+  if (count === 1) return 0.3;
+  if (count === 2) return 0.5;
+  if (count === 3) return 0.7;
+  if (count === 4) return 0.85;
+  return 1;
+}
+
+// Pick black/white for the count label by the cell's *perceived* luminance —
+// the brand color blended over the current theme's page background at the
+// cell's opacity. A fixed text color can't work: cells run from a pale tint
+// (count 2) to full saturation (count 5), and dark mode inverts the blend.
+function cellTextColor(hex, opacity, dark) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  // Page background per theme: #ffffff (light) / #21262d gh-canvas (dark).
+  const [br, bg, bb] = dark ? [33, 38, 45] : [255, 255, 255];
+  const mix = (c, base) => c * opacity + base * (1 - opacity);
+  const lum = 0.299 * mix(r, br) + 0.587 * mix(g, bg) + 0.114 * mix(b, bb);
+  return lum > 150 ? '#000' : '#fff';
+}
+
+// One day = one square cell, shaded by incident count (darker = more) and
+// stamped with the exact count when it's 2+. Single-incident and empty days
+// stay unlabeled so the row reads as a heatmap with numbers only where the
+// magnitude is worth spelling out.
+function TimelineRow({ counts, dayUtcs, centerDayUtc, color, dark }) {
   return (
     <div
       className="grid gap-1 flex-1 min-w-0"
@@ -145,22 +171,29 @@ function TimelineRow({ counts, dayUtcs, centerDayUtc, color }) {
         const count = counts[i];
         const isPinned = dayUtc === centerDayUtc;
         const label = `${formatChicagoDay(dayUtc)}: ${count} incident${count === 1 ? '' : 's'}`;
+        const opacity = cellOpacity(count);
         return (
           <div
             key={dayUtc}
             title={label}
-            className={`aspect-square rounded-sm ${
+            className={`aspect-square rounded-sm flex items-center justify-center text-[11px] font-bold leading-none ${
               isPinned ? 'ring-1 ring-slate-700 dark:ring-slate-200' : ''
             }`}
-            style={{ backgroundColor: cellBg(count) }}
-          />
+            style={{
+              backgroundColor: count > 0 ? hexToRgba(color, opacity) : 'var(--timeline-empty)',
+            }}
+          >
+            {count >= 2 && (
+              <span style={{ color: cellTextColor(color, opacity, dark) }}>{count}</span>
+            )}
+          </div>
         );
       })}
     </div>
   );
 }
 
-function MiniTimeline({ incident, incidents }) {
+function MiniTimeline({ incident, incidents, dark }) {
   const windowData = useMemo(
     () => buildEventLineWindow(incident, incidents),
     [incident, incidents],
@@ -208,6 +241,7 @@ function MiniTimeline({ incident, incidents }) {
                 dayUtcs={dayUtcs}
                 centerDayUtc={centerDayUtc}
                 color={routeColor(incident.kind, route)}
+                dark={dark}
               />
             </div>
           ))}
@@ -226,6 +260,7 @@ function MiniTimeline({ incident, incidents }) {
             dayUtcs={dayUtcs}
             centerDayUtc={centerDayUtc}
             color={routeColor(incident.kind, routes[0])}
+            dark={dark}
           />
           <div className="flex justify-between mt-1.5 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
             <span>{firstLabel}</span>
@@ -530,6 +565,7 @@ export default function EventPage({ eventId }) {
               alerts={flat.alerts}
               observations={flat.observations}
               stationIndex={stationIndex}
+              dark={dark}
             />
             <RelatedIncidents
               incident={incident}
@@ -915,7 +951,7 @@ function DurationScale({ stats }) {
   );
 }
 
-function EventDetail({ incident, incidents, alerts, observations, stationIndex }) {
+function EventDetail({ incident, incidents, alerts, observations, stationIndex, dark }) {
   const cta = incident.cta;
   const { primary, extras } = splitObservations(incident);
   const isMerged = !!cta && !!primary;
@@ -1523,7 +1559,7 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex }
 
       <DurationScale stats={cohortStats} />
 
-      <MiniTimeline incident={incident} incidents={incidents} />
+      <MiniTimeline incident={incident} incidents={incidents} dark={dark} />
 
       <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t border-slate-100 dark:border-gh-border">
         <ShareLink eventId={eventId} title={description} />
