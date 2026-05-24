@@ -1,7 +1,50 @@
 {
-  "generated_at": 1779650346383,
+  "generated_at": 1779652145089,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmmqaxbddd2q",
+      "kind": "bus",
+      "routes": [
+        "79"
+      ],
+      "first_seen_ts": 1779651665704,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 166,
+          "kind": "bus",
+          "line": "79",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1779651665704,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmmqaxbddd2q",
+          "resolved_post_url": null,
+          "bot_description": "Route 79 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between buses is 4.5x the scheduled wait",
+            "3 buses recently bunched together"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmmoldbcdk2h",
       "kind": "train",
