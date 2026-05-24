@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findIncidentById, formatRoutesLabel, getEventId, postUrlRkey } from '../lib/incidents.js';
+import { findIncidentById, formatRoutesLabel, postUrlRkey } from '../lib/incidents.js';
 
 const ALERT_URL = 'https://bsky.app/profile/did:plc:abc/post/3ml5idb536d2c';
 const OBS_URL = 'https://bsky.app/profile/did:plc:xyz/post/3mkuutqcneg2h';
@@ -77,21 +77,6 @@ describe('postUrlRkey', () => {
   it('stops at query strings and fragments', () => {
     expect(postUrlRkey(`${ALERT_URL}?utm=x`)).toBe('3ml5idb536d2c');
     expect(postUrlRkey(`${ALERT_URL}#anchor`)).toBe('3ml5idb536d2c');
-  });
-});
-
-describe('getEventId', () => {
-  it('prefers the alert post rkey', () => {
-    expect(getEventId({ post_url: ALERT_URL, obs_post_url: OBS_URL })).toBe('3ml5idb536d2c');
-  });
-
-  it('falls back to obs_post_url when post_url is missing', () => {
-    expect(getEventId({ obs_post_url: OBS_URL })).toBe('3mkuutqcneg2h');
-  });
-
-  it('returns null when neither url is present', () => {
-    expect(getEventId({})).toBeNull();
-    expect(getEventId(null)).toBeNull();
   });
 });
 

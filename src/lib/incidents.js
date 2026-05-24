@@ -365,18 +365,6 @@ export function postUrlRkey(postUrl) {
   return m ? m[1] : null;
 }
 
-// Canonical event id for an incident: the alert post's rkey when present, else
-// the observation post's rkey. The alert post is preferred so a merged record
-// shares its id with the standalone alert from before the merge happened.
-/**
- * @param {object} incident An Alert, Observation, or MergedIncident.
- * @returns {string | null}
- */
-export function getEventId(incident) {
-  if (!incident) return null;
-  return postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url) ?? null;
-}
-
 // Format a multi-route/multi-line label for display. Single-route bus alerts
 // keep their verbose `#3 King Drive` name; multi-route alerts collapse to
 // the bare numbers (e.g. `#136, #147, #151`) so the label stays short
