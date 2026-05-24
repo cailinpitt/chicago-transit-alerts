@@ -23,7 +23,6 @@ import { compareBusRoutes } from './lib/busRoutes.js';
 import {
   filterIncidents,
   flattenIncidents,
-  mergeMatchingIncidents,
   observationSignals,
   SOURCE_TYPES,
 } from './lib/incidents.js';
@@ -182,21 +181,13 @@ export default function App() {
   const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
 
   const activeIncidents = useMemo(() => {
-    if (!flat) return [];
-    // Run the same merge IncidentList uses so a CTA alert + bot detection
-    // pair becomes one ActiveAlerts card, not two. Filtering to `active`
-    // after the merge picks up both alert-only and observation-only
-    // standalones plus any merged record that still has an open side.
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      flat.alerts,
-      flat.observations,
-    );
-    return [
-      ...merged.filter((m) => m.active),
-      ...standaloneAlerts.filter((a) => a.active),
-      ...standaloneObs.filter((o) => o.active),
-    ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
-  }, [flat]);
+    if (!data) return [];
+    // Each incident is already unified server-side, so the active set is just
+    // the open incidents — no client-side merge needed.
+    return data.incidents
+      .filter((inc) => inc.active)
+      .sort((a, b) => b.first_seen_ts - a.first_seen_ts);
+  }, [data]);
 
   // Split active incidents on the 24h elapsed mark. Long-runners (planned
   // reroutes, multi-day construction) get their own quieter banner — left
@@ -491,11 +482,7 @@ export default function App() {
               subtitle="Last 24h · 90-day timeline · patterns"
               className="pt-4 mt-2 border-t border-slate-200 dark:border-gh-border"
             >
-              <RecentActivityGantt
-                alerts={flat.alerts}
-                observations={flat.observations}
-                now={now}
-              />
+              <RecentActivityGantt incidents={data.incidents} now={now} />
               <Timeline
                 alerts={vizAlerts}
                 observations={vizObservations}

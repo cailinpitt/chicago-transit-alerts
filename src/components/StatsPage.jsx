@@ -9,7 +9,7 @@ import {
 } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay, formatDate, formatDuration, formatTime } from '../lib/format.js';
-import { formatRoutesLabel, normalizeAlertsPayload } from '../lib/incidents.js';
+import { flattenIncidents, formatRoutesLabel } from '../lib/incidents.js';
 import Header from './Header.jsx';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -116,7 +116,7 @@ export default function StatsPage() {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((raw) => setData(normalizeAlertsPayload(raw)))
+      .then(setData)
       .catch(setError);
   }, []);
 
@@ -127,37 +127,40 @@ export default function StatsPage() {
     };
   }, []);
 
+  // Analytics here read the flat { alerts, observations } shape.
+  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+
   const leaders = useMemo(() => {
-    if (!data) return null;
-    return computeStatsLeaderboards(data.alerts, data.observations, { now, windowDays: 90 });
-  }, [data, now]);
+    if (!flat) return null;
+    return computeStatsLeaderboards(flat.alerts, flat.observations, { now, windowDays: 90 });
+  }, [flat, now]);
 
   const segments = useMemo(() => {
-    if (!data) return [];
-    return computeSegmentRecurrence(data.observations, {
+    if (!flat) return [];
+    return computeSegmentRecurrence(flat.observations, {
       now,
       windowDays: 90,
       limit: 5,
     });
-  }, [data, now]);
+  }, [flat, now]);
 
   const yoy = useMemo(() => {
-    if (!data) return null;
-    return computeYearOverYear(data.alerts, data.observations, {
+    if (!flat) return null;
+    return computeYearOverYear(flat.alerts, flat.observations, {
       now,
       windowDays: 30,
       dataStartTs: data.data_start_ts ?? null,
     });
-  }, [data, now]);
+  }, [flat, data, now]);
 
   const restorationDeltas = useMemo(() => {
-    if (!data) return null;
-    return computeRestorationDeltas(data.alerts, data.observations, {
+    if (!flat) return null;
+    return computeRestorationDeltas(flat.alerts, flat.observations, {
       now,
       windowDays: 90,
       limit: 3,
     });
-  }, [data, now]);
+  }, [flat, now]);
 
   const longestRoutesLabel = useMemo(() => {
     if (!leaders?.longestIncident) return null;
@@ -173,8 +176,8 @@ export default function StatsPage() {
         onResetFilters={() => {
           window.location.href = '/';
         }}
-        alerts={data?.alerts}
-        observations={data?.observations}
+        alerts={flat?.alerts}
+        observations={flat?.observations}
       />
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>

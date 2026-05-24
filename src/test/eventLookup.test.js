@@ -145,9 +145,8 @@ describe('formatRoutesLabel', () => {
     expect(formatRoutesLabel('train', ['red'])).toBe('Red Line');
   });
   it('two train lines pluralizes', () => {
-    // Routes here are full-name keys after normalizeAlertsPayload (the bot
-    // emits short codes; normalization at fetch time turns them into full
-    // names like `purple`).
+    // Routes here are full-name keys (the export normalizes the bot's short
+    // codes into full names like `purple` server-side).
     expect(formatRoutesLabel('train', ['red', 'purple'])).toBe('Red and Purple Lines');
   });
   it('empty routes falls back to generic', () => {

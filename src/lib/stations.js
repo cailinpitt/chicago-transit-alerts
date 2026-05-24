@@ -168,9 +168,9 @@ export function buildStationIndex(
       });
     }
     const rec = index.get(slug);
-    // Normalize so a raw short-code (`'p'`) coming from a caller that
-    // bypassed normalizeAlertsPayload doesn't co-exist with the full-name
-    // (`'purple'`) seeded from the master roster.
+    // Normalize so a raw short-code (`'p'`) coming from a caller that built
+    // records by hand doesn't co-exist with the full-name (`'purple'`)
+    // seeded from the master roster.
     if (line) rec.lines.add(normalizeTrainLine(line));
     return rec;
   }

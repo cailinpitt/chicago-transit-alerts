@@ -3,11 +3,7 @@ import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import { computeTypicalDurations } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import {
-  flattenIncidents,
-  mergeMatchingIncidents,
-  searchFilterIncidents,
-} from '../lib/incidents.js';
+import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex, displayStationName, rosterStationBySlug } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
@@ -54,18 +50,24 @@ export default function StationPage({ slug }) {
   // text links from 404'ing on quiet stations.
   const station = stationIndex?.get(slug) ?? rosterStationBySlug(slug);
 
-  const activeIncidents = useMemo(() => {
-    if (!station) return [];
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      station.alerts,
-      station.observations,
-    );
-    return [
-      ...merged.filter((m) => m.active),
-      ...standaloneAlerts.filter((a) => a.active),
-      ...standaloneObs.filter((o) => o.active),
-    ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
-  }, [station]);
+  // Nested incidents touching this station — reconstructed by mapping the
+  // station's flat records back to their parent incident via `_incidentId`
+  // (stamped by flattenIncidents). Feeds both the active set and the list.
+  const stationIncidents = useMemo(() => {
+    if (!station || !data) return [];
+    const ids = new Set();
+    for (const a of station.alerts) if (a._incidentId) ids.add(a._incidentId);
+    for (const o of station.observations) if (o._incidentId) ids.add(o._incidentId);
+    return data.incidents.filter((inc) => ids.has(inc.id));
+  }, [station, data]);
+
+  const activeIncidents = useMemo(
+    () =>
+      stationIncidents
+        .filter((inc) => inc.active)
+        .sort((a, b) => b.first_seen_ts - a.first_seen_ts),
+    [stationIncidents],
+  );
 
   const typicalDurations = useMemo(() => {
     if (!station) return null;
@@ -74,17 +76,6 @@ export default function StationPage({ slug }) {
       windowDays: 90,
     });
   }, [station, now]);
-
-  // Nested incidents touching this station — reconstructed by mapping the
-  // station's flat records back to their parent incident via `_incidentId`
-  // (stamped by flattenIncidents), then narrowed by the search box.
-  const stationIncidents = useMemo(() => {
-    if (!station || !data) return [];
-    const ids = new Set();
-    for (const a of station.alerts) if (a._incidentId) ids.add(a._incidentId);
-    for (const o of station.observations) if (o._incidentId) ids.add(o._incidentId);
-    return data.incidents.filter((inc) => ids.has(inc.id));
-  }, [station, data]);
 
   const listFiltered = useMemo(
     () => searchFilterIncidents(stationIncidents, search),

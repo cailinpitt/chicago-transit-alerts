@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
-import { formatRoutesLabel, getEventId, mergeMatchingIncidents } from '../lib/incidents.js';
+import { formatRoutesLabel, splitObservations } from '../lib/incidents.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 const WINDOW_MS = 24 * HOUR_MS;
@@ -14,51 +14,25 @@ const BUS_ROW_KEY = '__bus__';
 //
 // Hidden when the last 24 hours had fewer than 3 incidents — a quiet day's
 // strip of mostly-empty tracks is just noise.
-export default function RecentActivityGantt({ alerts, observations, now }) {
+export default function RecentActivityGantt({ incidents, now }) {
   const data = useMemo(() => {
     const windowStart = now - WINDOW_MS;
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      alerts ?? [],
-      observations ?? [],
-    );
-    const all = [
-      ...merged.map((m) => ({
-        kind: m.kind,
-        routes: m.routes ?? [],
-        line: m.routes?.[0] ?? null,
-        startTs: m.first_seen_ts,
-        endTs: m.resolved_ts ?? null,
-        active: m.active,
-        headline: m.headline,
-        from: m.from_station,
-        to: m.to_station,
-        eventId: getEventId(m),
-      })),
-      ...standaloneAlerts.map((a) => ({
-        kind: a.kind,
-        routes: a.routes ?? [],
-        line: a.routes?.[0] ?? null,
-        startTs: a.first_seen_ts,
-        endTs: a.resolved_ts ?? null,
-        active: a.active,
-        headline: a.headline,
-        from: a.affected_from_station,
-        to: a.affected_to_station,
-        eventId: getEventId(a),
-      })),
-      ...standaloneObs.map((o) => ({
-        kind: o.kind,
-        routes: o.line ? [o.line] : [],
-        line: o.line,
-        startTs: o.first_seen_ts ?? o.ts,
-        endTs: o.resolved_ts ?? null,
-        active: o.active,
-        headline: null,
-        from: o.from_station,
-        to: o.to_station,
-        eventId: getEventId(o),
-      })),
-    ];
+    const all = (incidents ?? []).map((inc) => {
+      const { primary } = splitObservations(inc);
+      return {
+        kind: inc.kind,
+        routes: inc.routes ?? [],
+        startTs: inc.first_seen_ts,
+        endTs: inc.resolved_ts ?? null,
+        active: inc.active,
+        headline: inc.cta?.headline ?? null,
+        // Merged/bot incidents surface the primary observation's stretch; a
+        // pure CTA alert falls back to its own affected_* segment.
+        from: primary?.from_station ?? inc.cta?.affected_from_station ?? null,
+        to: primary?.to_station ?? inc.cta?.affected_to_station ?? null,
+        eventId: inc.id,
+      };
+    });
 
     // Keep incidents that overlap the window: either started inside it OR
     // are still active (extends to now). A 6-day planned reroute won't
@@ -88,7 +62,7 @@ export default function RecentActivityGantt({ alerts, observations, now }) {
     }
 
     return { rows, totalCount: relevant.length };
-  }, [alerts, observations, now]);
+  }, [incidents, now]);
 
   if (!data || data.totalCount < 3) return null;
 

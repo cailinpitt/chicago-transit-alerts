@@ -278,7 +278,7 @@ describe('mergeMatchingIncidents', () => {
   });
 
   it('never groups records that lack an _incidentId', () => {
-    // Defensive: un-stamped records (didn't pass through normalizeAlertsPayload)
+    // Defensive: un-stamped records (didn't pass through flattenIncidents)
     // each get a unique key so they can't accidentally merge.
     const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
       [makeAlertForMerge({ _incidentId: undefined })],

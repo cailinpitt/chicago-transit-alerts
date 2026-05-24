@@ -402,17 +402,11 @@ export default function SystemHealthPage({ kind }) {
     return data.incidents.filter((inc) => inc.kind === kind);
   }, [data, kind]);
 
-  const activeIncidents = useMemo(() => {
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      modeAlerts,
-      modeObservations,
-    );
-    return [
-      ...merged.filter((m) => m.active),
-      ...standaloneAlerts.filter((a) => a.active),
-      ...standaloneObs.filter((o) => o.active),
-    ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
-  }, [modeAlerts, modeObservations]);
+  const activeIncidents = useMemo(
+    () =>
+      modeIncidents.filter((inc) => inc.active).sort((a, b) => b.first_seen_ts - a.first_seen_ts),
+    [modeIncidents],
+  );
 
   const { recentActive, longRunningActive } = useMemo(() => {
     const recent = [];

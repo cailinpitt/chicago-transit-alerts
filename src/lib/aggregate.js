@@ -13,7 +13,7 @@ import { buildStationIndex } from './stations.js';
 
 // Identity-based cache so the eight aggregators downstream of a single
 // `data` poll don't re-run the O(alerts × observations) merge in lockstep.
-// normalizeAlertsPayload returns fresh array references on every fetch, so
+// flattenIncidents returns fresh array references on every fetch, so the
 // cache hits on the same poll cycle's references and misses cleanly the
 // next time the JSON updates. WeakMap so old payloads are GC'd.
 const _mergeCache = new WeakMap();

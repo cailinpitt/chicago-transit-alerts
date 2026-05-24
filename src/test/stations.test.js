@@ -73,9 +73,8 @@ describe('buildStationIndex', () => {
   });
 
   it('normalizes raw short-code line keys so they merge with the master roster', () => {
-    // A caller bypassing normalizeAlertsPayload passes `line: 'p'` (raw
-    // CTA short code). The index should not end up with both `'p'` and
-    // `'purple'` as distinct entries.
+    // A hand-built record passes `line: 'p'` (raw CTA short code). The index
+    // should not end up with both `'p'` and `'purple'` as distinct entries.
     const r = buildStationIndex([], [makeObs({ line: 'p' })], { now: NOW });
     expect(r.get('howard').lines).not.toContain('p');
     expect(r.get('howard').lines).toContain('purple');

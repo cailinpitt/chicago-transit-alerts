@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../lib/format.js';
-import { getEventId } from '../lib/incidents.js';
+import { splitObservations } from '../lib/incidents.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 
@@ -61,12 +61,7 @@ function summarizeRoutes(incidents) {
   const seen = new Set();
   const out = [];
   for (const incident of incidents) {
-    const routes =
-      Array.isArray(incident.routes) && incident.routes.length > 0
-        ? incident.routes
-        : incident.line
-          ? [incident.line]
-          : [];
+    const routes = Array.isArray(incident.routes) ? incident.routes : [];
     for (const key of routes) {
       const id = `${incident.kind}:${key}`;
       if (seen.has(id)) continue;
@@ -155,26 +150,22 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
             </div>
           )}
           {incidents.map((incident) => {
-            const startTs = incident.first_seen_ts ?? incident.ts;
+            const { primary } = splitObservations(incident);
+            const startTs = incident.first_seen_ts;
             const elapsed = now - startTs;
             const dayN = Math.floor(elapsed / DAY_MS) + 1;
             const duration = formatDuration(elapsed) ?? '';
-            const eventId = getEventId(incident);
+            const eventId = incident.id;
             const headline =
-              incident.headline ??
-              (incident.from_station && incident.to_station
-                ? `${displayStationName(incident.from_station)} → ${displayStationName(incident.to_station)}`
+              incident.cta?.headline ??
+              (primary?.from_station && primary?.to_station
+                ? `${displayStationName(primary.from_station)} → ${displayStationName(primary.to_station)}`
                 : 'Ongoing disruption');
-            const allRoutes =
-              Array.isArray(incident.routes) && incident.routes.length > 0
-                ? incident.routes
-                : incident.line
-                  ? [incident.line]
-                  : [];
+            const allRoutes = Array.isArray(incident.routes) ? incident.routes : [];
             const shownRoutes = allRoutes.slice(0, COMPACT_PILL_LIMIT);
             const overflowCount = allRoutes.length - shownRoutes.length;
-            const estimatedEndText = formatEstimatedEnd(incident.cta_event_end_ts, now, {
-              dateOnly: incident.cta_event_end_is_date_only === true,
+            const estimatedEndText = formatEstimatedEnd(incident.cta?.cta_event_end_ts, now, {
+              dateOnly: incident.cta?.cta_event_end_is_date_only === true,
             });
             const content = (
               // biome-ignore lint/correctness/useJsxKeyInIterable: returned wrapper (<a> / <div>) carries the key for each iteration
@@ -184,7 +175,7 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
                   Headline sits in its own flex item with flex-1 so it
                   drops to a second visual line on small viewports. */}
                 <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                  <LinePill kind={incident.kind} line={incident.line} routes={shownRoutes} />
+                  <LinePill kind={incident.kind} routes={shownRoutes} />
                   {overflowCount > 0 && (
                     <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
                       +{overflowCount}
@@ -214,14 +205,11 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
               </div>
             );
             return eventId ? (
-              <a
-                key={incident.alert_id ?? `obs-${incident.id ?? startTs}`}
-                href={`/event/${eventId}`}
-              >
+              <a key={incident.id} href={`/event/${eventId}`}>
                 {content}
               </a>
             ) : (
-              <div key={incident.alert_id ?? `obs-${incident.id ?? startTs}`}>{content}</div>
+              <div key={incident.id}>{content}</div>
             );
           })}
         </div>

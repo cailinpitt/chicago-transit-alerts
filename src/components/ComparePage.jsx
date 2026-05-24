@@ -12,7 +12,7 @@ import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatGap, formatMinutesAsHours } from '../lib/format.js';
 import {
-  normalizeAlertsPayload,
+  flattenIncidents,
   observationSignals,
   SIGNAL_LABELS,
   SIGNAL_TYPES,
@@ -486,7 +486,7 @@ export default function ComparePage() {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((raw) => setData(normalizeAlertsPayload(raw)))
+      .then(setData)
       .catch(setError);
   }, []);
 
@@ -495,11 +495,14 @@ export default function ComparePage() {
     writeUrlState(kind, selected);
   }, [kind, selected]);
 
+  // Analytics here read the flat { alerts, observations } shape.
+  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+
   const availableBusRoutes = useMemo(() => {
-    if (!data) return [];
+    if (!flat) return [];
     const routes = new Set([
-      ...data.observations.filter((o) => o.kind === 'bus').map((o) => String(o.line)),
-      ...data.alerts
+      ...flat.observations.filter((o) => o.kind === 'bus').map((o) => String(o.line)),
+      ...flat.alerts
         .filter((a) => a.kind === 'bus')
         .flatMap((a) => a.routes ?? [])
         .map(String),
@@ -512,14 +515,14 @@ export default function ComparePage() {
       if (Number.isNaN(nb)) return -1;
       return na - nb || a.localeCompare(b);
     });
-  }, [data]);
+  }, [flat]);
 
   // Per-line precomputed bundle. Lifted to the page so each visualization
   // doesn't re-merge/re-filter the same data.
   const perLine = useMemo(() => {
-    if (!data || selected.length === 0) return [];
+    if (!flat || selected.length === 0) return [];
     return selected.map((key) => {
-      const scoped = scopeIncidents(data, kind, key);
+      const scoped = scopeIncidents(flat, kind, key);
       return {
         key,
         ...scoped,
@@ -534,7 +537,7 @@ export default function ComparePage() {
         }),
       };
     });
-  }, [data, kind, selected, now]);
+  }, [flat, kind, selected, now]);
 
   function toggleKey(key) {
     setSelected((prev) => {
@@ -559,8 +562,8 @@ export default function ComparePage() {
         onResetFilters={() => {
           window.location.href = '/';
         }}
-        alerts={data?.alerts}
-        observations={data?.observations}
+        alerts={flat?.alerts}
+        observations={flat?.observations}
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>

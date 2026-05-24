@@ -37,26 +37,6 @@ export function flattenIncidents(incidents) {
   return { alerts, observations };
 }
 
-// Thin wrapper over `flattenIncidents` that also carries the payload-level
-// `generated_at`/`data_start_ts` through. Kept as a shim while the remaining
-// analytics-driven pages (App, StatsPage, LinePage, …) still expect the flat
-// `{ generated_at, data_start_ts, alerts, observations }` envelope; delete it
-// once every consumer reads `incidents[]` directly.
-/**
- * @param {AlertsPayload} payload
- * @returns {{ generated_at: number, data_start_ts: number|null, alerts: Alert[], observations: Observation[] }}
- */
-export function normalizeAlertsPayload(payload) {
-  if (!payload) return payload;
-  const { alerts, observations } = flattenIncidents(payload.incidents || []);
-  return {
-    generated_at: payload.generated_at,
-    data_start_ts: payload.data_start_ts ?? null,
-    alerts,
-    observations,
-  };
-}
-
 // Reconstruct the flat Alert shape from an incident's nested `cta` block. The
 // incident carries `kind`/`routes` at the top level and CTA's own lifecycle
 // (first_seen_ts/resolved_ts/active) inside `cta`.
@@ -92,8 +72,8 @@ function flattenIncidentAlert(inc) {
 /**
  * Top-level payload served by `public/data/alerts.json`. Regenerated server-
  * side every ~7 minutes by the cta-insights pipeline. The wire format is a list
- * of unified `incidents`; `normalizeAlertsPayload` flattens it into the internal
- * `{ alerts, observations }` the rest of the app consumes.
+ * of unified `incidents`; the view reads them directly, while the analytics
+ * layer flattens them to `{ alerts, observations }` via `flattenIncidents`.
  *
  * @typedef {object} AlertsPayload
  * @property {number} generated_at  Epoch ms when the snapshot was produced.
@@ -124,7 +104,7 @@ function flattenIncidentAlert(inc) {
  * The `cta` sub-block of an {@link Incident}. Carries CTA's own lifecycle
  * (first_seen_ts/resolved_ts/active) distinct from the incident-level fields,
  * so the service-stabilization delta (CTA cleared vs. bot saw recovery) stays
- * computable. `normalizeAlertsPayload` expands this back into a flat {@link Alert}.
+ * computable. `flattenIncidents` expands this back into a flat {@link Alert}.
  *
  * @typedef {object} IncidentCta
  * @property {string} alert_id
@@ -525,12 +505,14 @@ export function findContemporaneousOnOtherLines(incident, incidents, windowMs = 
   return out;
 }
 
-// Regroup the flat alerts/observations back into the merged / standalone
-// buckets the UI renders. The fuzzy alert↔observation pairing is NOT done here
-// anymore — it happens server-side in cta-insights and is baked into each
-// record's `_incidentId` by `normalizeAlertsPayload`. This just groups by that
-// id, so a CTA alert and the bot observations that share its incident reassemble
-// into one merged record, while everything else falls through as standalone.
+// Regroup flat alerts/observations back into the merged / standalone buckets
+// the analytics layer (aggregate.js) and a couple of components still consume.
+// The fuzzy alert↔observation pairing is NOT done here — it happens server-side
+// in cta-insights and is baked into each record's `_incidentId` by
+// `flattenIncidents`. This just groups by that id, so a CTA alert and the bot
+// observations that share its incident reassemble into one merged record, while
+// everything else falls through as standalone. (The view layer reads the nested
+// `incidents[]` directly and never calls this.)
 //
 // Returns:
 //   merged           — combined alert+observation records (built shape below)
@@ -540,7 +522,7 @@ export function findContemporaneousOnOtherLines(incident, incidents, windowMs = 
 //                      or bot-only incidents
 //
 // Records lacking `_incidentId` (e.g. hand-built in tests, or any object that
-// didn't pass through `normalizeAlertsPayload`) fall back to a per-record id so
+// didn't pass through `flattenIncidents`) fall back to a per-record id so
 // they never accidentally group together.
 /**
  * @param {Alert[]} alerts
@@ -559,8 +541,8 @@ export function mergeMatchingIncidents(alerts, observations) {
     }
     return g;
   };
-  // Records that never passed through normalizeAlertsPayload (e.g. hand-built
-  // in tests) have no _incidentId; give each a unique key so they never group.
+  // Records that never passed through flattenIncidents (e.g. hand-built in
+  // tests) have no _incidentId; give each a unique key so they never group.
   for (const a of alerts || []) groupFor(a._incidentId ?? Symbol('alert')).alert = a;
   for (const o of observations || []) groupFor(o._incidentId ?? Symbol('obs')).obs.push(o);
 

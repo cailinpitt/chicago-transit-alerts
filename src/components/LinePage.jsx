@@ -16,11 +16,7 @@ import {
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
-import {
-  flattenIncidents,
-  mergeMatchingIncidents,
-  searchFilterIncidents,
-} from '../lib/incidents.js';
+import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Header from './Header.jsx';
@@ -154,7 +150,7 @@ export default function LinePage({ kind, lineId }) {
   const busName = !isTrain ? BUS_ROUTE_NAMES[lineId] : null;
   const isKnown = isTrain ? !!trainInfo : !!busName;
   // Use the normalized id for all internal lookups so a `/line/org` URL
-  // matches data tagged 'orange' after `normalizeAlertsPayload` runs.
+  // matches data tagged 'orange' (the export emits full-name line keys).
   const effectiveLineId = isTrain ? normalizedLineId : lineId;
 
   useEffect(() => {
@@ -196,20 +192,13 @@ export default function LinePage({ kind, lineId }) {
     return flat.observations.filter((o) => o.kind === kind && o.line === effectiveLineId);
   }, [flat, kind, effectiveLineId]);
 
-  // Merge first so an alert + bot observation pair becomes one active
-  // card, not two. Mirrors App.jsx; IncidentList already did this on its
-  // side, so without it the active section disagrees with the list below.
-  const activeIncidents = useMemo(() => {
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      lineAlerts,
-      lineObservations,
-    );
-    return [
-      ...merged.filter((m) => m.active),
-      ...standaloneAlerts.filter((a) => a.active),
-      ...standaloneObs.filter((o) => o.active),
-    ].sort((a, b) => (b.first_seen_ts || b.ts) - (a.first_seen_ts || a.ts));
-  }, [lineAlerts, lineObservations]);
+  // Incidents are already unified server-side, so the active set is just the
+  // open incidents on this line.
+  const activeIncidents = useMemo(
+    () =>
+      lineIncidents.filter((inc) => inc.active).sort((a, b) => b.first_seen_ts - a.first_seen_ts),
+    [lineIncidents],
+  );
 
   const { recentActive, longRunningActive } = useMemo(() => {
     const recent = [];
