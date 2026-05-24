@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779583572758,
+  "generated_at": 1779584170304,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "brown"
       ],
       "first_seen_ts": 1779583322607,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779583622048,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -43,13 +43,13 @@
           },
           "ts": 1779583322607,
           "onset_ts": 1779581582607,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779583622048,
+          "duration_ms": 2039441,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmkqfbc4l32h",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmkqx43byw2h",
           "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 0.7-mi stretch (2 stations affected) in the last 29 min — scheduled every 10 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
           ]
