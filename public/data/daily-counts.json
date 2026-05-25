@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779661445813,
+  "generated_at": 1779668045368,
   "data_start_ts": 1777234323058,
   "days": [
     {
@@ -485,16 +485,17 @@
     {
       "date": "2026-05-24",
       "train_count": 4,
-      "bus_count": 1,
+      "bus_count": 2,
       "train_merged_count": 4,
-      "bus_merged_count": 1,
+      "bus_merged_count": 2,
       "by_line": {
         "y": 1,
         "blue": 2,
         "red": 1
       },
       "by_route": {
-        "79": 1
+        "79": 1,
+        "146": 1
       }
     }
   ]

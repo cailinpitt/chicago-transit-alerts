@@ -1,7 +1,50 @@
 {
-  "generated_at": 1779662945513,
+  "generated_at": 1779668045282,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmn72sda5j2s",
+      "kind": "bus",
+      "routes": [
+        "146"
+      ],
+      "first_seen_ts": 1779666366001,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 168,
+          "kind": "bus",
+          "line": "146",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap"
+          ],
+          "evidence": null,
+          "ts": 1779666366001,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmn72sda5j2s",
+          "resolved_post_url": null,
+          "bot_description": "Route 146 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 7 buses missing this past hour",
+            "One gap between buses is 3.3x the scheduled wait"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmmyw4dmwm2h",
       "kind": "train",
