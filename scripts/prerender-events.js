@@ -75,24 +75,45 @@ function accentFor(incident) {
         : [];
   const label = formatRoutesLabel(incident.kind, routes) || 'CTA';
 
-  // Accent color still derives from the first route — the card's left bar +
-  // background tint is a single accent, not a gradient across N colors.
+  // `chips` renders one pill per affected line/route on the card, mirroring the
+  // SPA's LinePill — a Pink+Green incident shows a pink chip *and* a green chip
+  // rather than one chip miscolored as the first line. `label` is still the
+  // combined text used for meta tags / JSON-LD; the chips are the visual.
   if (incident.kind === 'train') {
-    const route = normalizeTrainLine(routes[0] ?? '');
-    const line = TRAIN_LINES[route];
-    if (line) {
+    const chips = routes.map((r) => {
+      const line = TRAIN_LINES[normalizeTrainLine(r)];
+      return line
+        ? { color: line.color, text: line.textColor, label: `${line.label} Line` }
+        : { color: BUS_ACCENT.color, text: BUS_ACCENT.text, label: r };
+    });
+    // The left bar + background tint stay a single accent (the first line) —
+    // a gradient across N brand colors reads as noise at card size.
+    const first = TRAIN_LINES[normalizeTrainLine(routes[0] ?? '')];
+    if (first) {
       return {
-        color: line.color,
-        soft: softColor(line.color, 0.22),
-        text: line.textColor,
+        color: first.color,
+        soft: softColor(first.color, 0.22),
+        text: first.textColor,
         label,
+        chips: chips.length > 0 ? chips : [{ ...stripSoft(BUS_ACCENT), label }],
       };
     }
+    return {
+      ...BUS_ACCENT,
+      label,
+      chips: chips.length > 0 ? chips : [{ ...stripSoft(BUS_ACCENT), label }],
+    };
   }
-  if (incident.kind === 'bus') {
-    return { ...BUS_ACCENT, label };
-  }
-  return { ...BUS_ACCENT, label };
+  // Bus alerts keep a single neutral chip — multi-route bus labels already
+  // collapse to bare numbers (`#136, #147, #151`), which there's no brand
+  // color to split by.
+  return { ...BUS_ACCENT, label, chips: [{ ...stripSoft(BUS_ACCENT), label }] };
+}
+
+// Drop the `soft` key from an accent so it can be reused as a chip descriptor
+// ({ color, text, label }) without leaking the background-tint field.
+function stripSoft({ color, text }) {
+  return { color, text };
 }
 
 function describeObservation(obs) {
@@ -275,11 +296,23 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant =
 }
 
 function fillTemplate(tpl, fields) {
+  // One pill per affected line/route. Colors are inlined per chip so each
+  // carries its own brand color (the template's `--accent` only drives the
+  // bar + tint). Falls back to the combined label if chips are somehow absent.
+  const chips = fields.accent.chips ?? [
+    { color: fields.accent.color, text: fields.accent.text, label: fields.accent.label },
+  ];
+  const chipsHtml = chips
+    .map(
+      (c) =>
+        `<div class="badge line" style="background: ${c.color}; color: ${c.text};">${escHtml(c.label)}</div>`,
+    )
+    .join('\n        ');
   return tpl
     .replaceAll('__ACCENT__', fields.accent.color)
     .replaceAll('__ACCENT_SOFT__', fields.accent.soft)
     .replaceAll('__ACCENT_TEXT__', fields.accent.text)
-    .replaceAll('__LINE_LABEL__', escHtml(fields.accent.label))
+    .replaceAll('__LINE_CHIPS__', chipsHtml)
     .replaceAll('__BADGE__', fields.badge)
     .replaceAll('__TITLE__', escHtml(fields.title))
     .replaceAll('__SUBTITLE__', escHtml(fields.subtitle))
