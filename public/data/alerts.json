@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779668045282,
+  "generated_at": 1779668585364,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -138,8 +138,8 @@
         "yellow"
       ],
       "first_seen_ts": 1779650343264,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779668343378,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -148,10 +148,10 @@
         "headline": "Yellow Line Experiencing Delays; Boarding change at Howard",
         "short_description": "Yellow Line service running w/delays due to signal problems at Howard board all trains on the 95th-bound Red Line side platform at Howard.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmmoldbcdk2h",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmn7kwpzd624",
         "first_seen_ts": 1779650343264,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779668343378,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
