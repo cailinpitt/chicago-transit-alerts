@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import EventPage from '../components/EventPage.jsx';
 
@@ -135,6 +135,77 @@ const PAYLOAD = {
       ],
     },
     {
+      // Shared-trackage incident: CTA scopes it to Pink AND Green, but the bot
+      // only fired one pulse-cold on Pink between Ashland and Adams/Wabash —
+      // both Lake St stations that serve Green too. The page must fan the
+      // stretch onto Green so it isn't presented as Pink-only.
+      id: 'sharedtrk',
+      kind: 'train',
+      routes: ['pink', 'green'],
+      first_seen_ts: NOW - 40 * 60_000,
+      resolved_ts: NOW - 10 * 60_000,
+      active: false,
+      sources: ['cta', 'bot'],
+      cta: ctaBlock({
+        alert_id: 'shared1',
+        headline: 'Delays near Ashland/Lake Affecting Green and Pink Line Service',
+        first_seen_ts: NOW - 40 * 60_000,
+        resolved_ts: NOW - 10 * 60_000,
+        active: false,
+        post_url: 'https://bsky.app/profile/did:plc:abc/post/sharedtrk',
+      }),
+      observations: [
+        {
+          id: 301,
+          kind: 'train',
+          line: 'pink',
+          from_station: 'Ashland (Green/Pink)',
+          to_station: 'Adams/Wabash',
+          detection_source: 'pulse-cold',
+          ts: NOW - 38 * 60_000,
+          resolved_ts: NOW - 12 * 60_000,
+          active: false,
+          post_url: 'https://bsky.app/profile/did:plc:xyz/post/obsSharedPink',
+        },
+      ],
+    },
+    {
+      // Guard against shared-trackage false positives: a Brown-only alert on
+      // the Belmont↔Fullerton stretch that Purple ALSO runs. Because the CTA
+      // alert scopes the incident to Brown alone (routes: ['brown']), Purple
+      // must NOT be pulled in — shared trackage only spreads across lines the
+      // incident already names, never invents new ones.
+      id: 'brnpurple',
+      kind: 'train',
+      routes: ['brown'],
+      first_seen_ts: NOW - 40 * 60_000,
+      resolved_ts: NOW - 10 * 60_000,
+      active: false,
+      sources: ['cta', 'bot'],
+      cta: ctaBlock({
+        alert_id: 'brnp1',
+        headline: 'Brown Line Delays near Belmont',
+        first_seen_ts: NOW - 40 * 60_000,
+        resolved_ts: NOW - 10 * 60_000,
+        active: false,
+        post_url: 'https://bsky.app/profile/did:plc:abc/post/brnpurple',
+      }),
+      observations: [
+        {
+          id: 401,
+          kind: 'train',
+          line: 'brown',
+          from_station: 'Belmont (Red/Brown/Purple)',
+          to_station: 'Fullerton',
+          detection_source: 'pulse-cold',
+          ts: NOW - 38 * 60_000,
+          resolved_ts: NOW - 12 * 60_000,
+          active: false,
+          post_url: 'https://bsky.app/profile/did:plc:xyz/post/obsBrnPurple',
+        },
+      ],
+    },
+    {
       id: 'bus99',
       kind: 'bus',
       routes: ['66'],
@@ -260,6 +331,47 @@ describe('EventPage', () => {
     // happened" — they spread downstream of the CTA's reported epicenter.
     expect(screen.getByText('Bot observed impact')).toBeInTheDocument();
     expect(screen.queryByText('Where this happened')).not.toBeInTheDocument();
+  });
+
+  it('fans a bot stretch onto sibling lines that share the trackage', async () => {
+    // The bot's pulse-cold was scoped to Pink, but Ashland↔Adams/Wabash also
+    // carries Green and the CTA alert names both lines. The station list and
+    // map must surface Green alongside Pink — and reframe the copy so the
+    // inferred Green rows don't masquerade as separate bot detections.
+    render(<EventPage eventId="sharedtrk" />);
+    await waitFor(() => {
+      expect(
+        screen.getByText('Delays near Ashland/Lake Affecting Green and Pink Line Service'),
+      ).toBeInTheDocument();
+    });
+    // Reworded section label (not "Bot observed impacted stations").
+    expect(screen.getByText('Affected stations (shared trackage)')).toBeInTheDocument();
+    // Both lines now surface (row labels + map legend). Green was entirely
+    // absent before the fan-out — its presence is the regression guard.
+    expect(screen.getAllByText('Pink').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Green').length).toBeGreaterThan(0);
+    // Map heading reframed away from crediting the bot for the Green stretch.
+    expect(screen.getByText('Affected stretches')).toBeInTheDocument();
+    expect(screen.queryByText('Bot observed impact')).not.toBeInTheDocument();
+  });
+
+  it('does not pull in a non-incident line that merely shares the trackage', async () => {
+    // Brown-only alert on Belmont↔Fullerton, which Purple also runs. Purple is
+    // not in the incident's routes, so it must stay out — the shared-track
+    // fan-out only spreads across lines the CTA alert already named.
+    render(<EventPage eventId="brnpurple" />);
+    await waitFor(() => {
+      expect(screen.getByText('Brown Line Delays near Belmont')).toBeInTheDocument();
+    });
+    // Scope to the event-detail article — the cross-line "Elsewhere on the
+    // system" section below it can legitimately mention Purple via unrelated
+    // contemporaneous incidents, which isn't what this guard is about.
+    const article = within(screen.getByRole('article'));
+    // No fan-out happened, so the original (non-shared) framing stays.
+    expect(article.queryByText('Affected stations (shared trackage)')).not.toBeInTheDocument();
+    // Purple is not pulled into this Brown incident's own footprint.
+    expect(article.queryByText('Purple')).not.toBeInTheDocument();
+    expect(article.queryByText('Purple Line')).not.toBeInTheDocument();
   });
 
   it('adds a cleared entry to the Per CTA timeline when the alert resolved', async () => {

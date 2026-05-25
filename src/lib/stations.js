@@ -88,6 +88,22 @@ export function stationsServingLines(lines) {
   return out;
 }
 
+// Normalized line keys that physically serve the station named `name`,
+// resolved via its slug against the bundled roster. Empty when the name
+// doesn't match a known station. Used to spread a bot's single-line stretch
+// onto the OTHER affected lines that share the same trackage — e.g. a
+// pulse-cold the bot scoped to Pink between Ashland and Adams/Wabash also
+// hit Green, since both run those Lake St tracks.
+/**
+ * @param {string | null | undefined} name
+ * @returns {string[]}
+ */
+export function linesServingStation(name) {
+  const slug = slugifyStation(name);
+  if (!slug) return [];
+  return SERVED_LINES_BY_SLUG.get(slug) ?? [];
+}
+
 function compareByCtaOrder(a, b) {
   const ia = TRAIN_LINE_ORDER.indexOf(a);
   const ib = TRAIN_LINE_ORDER.indexOf(b);

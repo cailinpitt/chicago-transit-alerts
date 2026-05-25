@@ -23,7 +23,12 @@ import { MapScroller, normalize } from './EventMap.jsx';
 // `segments`  — `{ line, from, to }` per affected stretch (see
 //               affectedLineSegments). `line: null` highlights on every drawn
 //               line serving both endpoints.
-export default function MultiLineEventMap({ lineKeys, segments, active = false }) {
+export default function MultiLineEventMap({
+  lineKeys,
+  segments,
+  active = false,
+  sharedTrackage = false,
+}) {
   // lineKeys is a fresh array each render; key the memo on its contents so the
   // map only rebuilds when the affected lines actually change.
   const lineKeysKey = (Array.isArray(lineKeys) ? lineKeys : []).join(',');
@@ -97,11 +102,19 @@ export default function MultiLineEventMap({ lineKeys, segments, active = false }
   // as bot-observed impact. A pure multi-line CTA alert (only line-agnostic
   // segments) keeps the plain framing, since that IS the reported location.
   const hasBotSegments = (segments || []).some((s) => s.line);
-  const heading = hasBotSegments
-    ? 'Bot observed impact'
-    : active
-      ? 'Where this is happening'
-      : 'Where this happened';
+  // When the stretch was fanned across shared trackage, the bold sections on
+  // the sibling line(s) are inferred from the CTA's line scope + the roster,
+  // not a separate bot detection — so don't credit the bot for all of them.
+  const heading = sharedTrackage
+    ? 'Affected stretches'
+    : hasBotSegments
+      ? 'Bot observed impact'
+      : active
+        ? 'Where this is happening'
+        : 'Where this happened';
+  const note = sharedTrackage
+    ? 'The bot saw trains stop on one line; the same stretch runs on the other line(s) over shared track, which the CTA alert confirms are affected too.'
+    : 'Stretches where the bot saw trains stop, which can spread across the affected lines as the disruption cascades beyond where it started.';
 
   return (
     <section className="mt-4">
@@ -109,11 +122,8 @@ export default function MultiLineEventMap({ lineKeys, segments, active = false }
         <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
           {heading}
         </h2>
-        {hasBotSegments && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-            Stretches where the bot saw trains stop, which can spread across the affected lines as
-            the disruption cascades beyond where it started.
-          </p>
+        {(hasBotSegments || sharedTrackage) && (
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{note}</p>
         )}
       </div>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">

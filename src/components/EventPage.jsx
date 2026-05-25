@@ -27,6 +27,7 @@ import {
 import {
   buildStationIndex,
   displayStationName,
+  linesServingStation,
   slugifyStation,
   stationsServingLines,
 } from '../lib/stations.js';
@@ -751,6 +752,50 @@ function groupAffectedStationsByLine(segments) {
     .map(([line, segments]) => ({ line, segments }));
 }
 
+// Spread a bot's single-line stretch onto the OTHER affected lines that share
+// the same trackage. The bot scopes a pulse-cold to one line ('pink'), but on
+// shared track (the Lake St elevated, the Loop, Red+Purple north of Belmont)
+// the same stations carry several lines — and the CTA alert that scopes the
+// incident to `routes` confirms those other lines are down too. So for each
+// line-owned segment, we add a copy on every other incident route that the
+// roster says serves BOTH endpoints. Returns the augmented segment list plus
+// `expanded`: whether any inferred copy was actually added (drives the copy
+// that tells the reader these rows are shared-trackage, not separate bot hits).
+//
+// Line-agnostic segments (alert-level, `line: null`) pass through untouched —
+// the map already fans those out to every serving line on its own.
+function expandSharedTrackageSegments(segments, routes) {
+  const others = (routes || []).filter(Boolean);
+  if (others.length < 2) return { segments: segments || [], expanded: false };
+  const out = [];
+  const seen = new Set();
+  const push = (seg) => {
+    const key = `${seg.line ?? ''}|${seg.from ?? ''}|${seg.to ?? ''}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(seg);
+  };
+  let expanded = false;
+  for (const seg of segments || []) {
+    push(seg);
+    // Only a line-owned stretch with both endpoints can be projected onto a
+    // sibling line — we need both stations to confirm the sibling serves the
+    // whole run, not just one end.
+    if (!seg.line || !seg.from || !seg.to) continue;
+    const fromLines = new Set(linesServingStation(seg.from));
+    const toLines = new Set(linesServingStation(seg.to));
+    for (const r of others) {
+      if (r === seg.line) continue;
+      if (fromLines.has(r) && toLines.has(r)) {
+        const before = seen.size;
+        push({ line: r, from: seg.from, to: seg.to });
+        if (seen.size > before) expanded = true;
+      }
+    }
+  }
+  return { segments: out, expanded };
+}
+
 // Quiet inline row of affected station links. No chunky pills — the line
 // pill above already carries the brand color, so loud per-station chips
 // just compete with it. These are supplementary navigation: dotted-
@@ -829,15 +874,19 @@ function StationLink({ name }) {
 // line's brand-color pill with its affected stretch(es), so the list reads
 // the same way the multi-line map does ("Brown: Armitage ↔ Chicago") instead
 // of one flat run of names that hides which station sits on which line.
-function StationsByLine({ groups, direction }) {
+function StationsByLine({ groups, direction, sharedTrackage = false }) {
   if (!groups || groups.length === 0) return null;
   // Most alerts hit both directions (direction null) — `↔` matches that;
   // a one-way alert keeps the directional arrow.
   const glyph = direction ? '→' : '↔';
+  // When the rows were fanned out across shared trackage, the bot only fired on
+  // one of them — the rest are inferred from the CTA's line scope + the roster.
+  // Say "affected" (not "bot observed") and note the shared-track inference so
+  // the duplicate stretches don't read as separate detections.
   return (
     <div className="mt-1">
       <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
-        Bot observed impacted stations
+        {sharedTrackage ? 'Affected stations (shared trackage)' : 'Bot observed impacted stations'}
       </span>
       <div className="mt-1 space-y-1">
         {groups.map(({ line, segments }) => (
@@ -1083,8 +1132,14 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
   const description = describe(incident, stationIndex);
   const affected = formatAffected(incident);
   const affectedStations = collectAffectedStations(incident);
-  // Affected stretches as { line, from, to } segments.
-  const segments = affectedLineSegments(incident);
+  // Affected stretches as { line, from, to } segments. A bot scopes its
+  // detection to one line, but on shared trackage the same stations carry the
+  // incident's other lines too — fan the stretch onto them so a Pink+Green
+  // event lists (and maps) both lines, not just whichever one the bot fired on.
+  const { segments, expanded: sharedTrackage } = expandSharedTrackageSegments(
+    affectedLineSegments(incident),
+    incidentRoutes(incident),
+  );
   // Multi-line incidents split the station list per line (mirrors the map);
   // null for single-line / pure-CTA incidents, which keep the flat chips.
   const stationsByLine = groupAffectedStationsByLine(segments);
@@ -1140,7 +1195,11 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
       {cta &&
         incident.kind !== 'bus' &&
         (stationsByLine ? (
-          <StationsByLine groups={stationsByLine} direction={cta.affected_direction} />
+          <StationsByLine
+            groups={stationsByLine}
+            direction={cta.affected_direction}
+            sharedTrackage={sharedTrackage}
+          />
         ) : (
           <StationChips stations={affectedStations} direction={cta.affected_direction} />
         ))}
@@ -1547,6 +1606,7 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
             lineKeys={incidentRoutes(incident)}
             segments={segments}
             active={!!incident.active}
+            sharedTrackage={sharedTrackage}
           />
         ) : (
           <EventMap
