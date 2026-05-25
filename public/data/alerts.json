@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779670779157,
+  "generated_at": 1779671285511,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -18,7 +18,7 @@
       "cta": {
         "alert_id": "115139",
         "headline": "Delays near Ashland/Lake Affecting Green and Pink Line Service",
-        "short_description": "Green and Pink Line trains are experiencing delays near Ashland/Lake due to signal problems. Crews working to restore service.",
+        "short_description": "Green and Pink Line trains are still experiencing delays near Ashland/Lake due to signal problems. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmn7ohykrp2c",
         "resolved_reply_url": null,
         "first_seen_ts": 1779668702517,
@@ -61,6 +61,14 @@
             "ts": 1779670623217,
             "headline": "Delays near Ashland/Lake Affecting Green and Pink Line Service",
             "short_description": "Green and Pink Line trains are experiencing delays near Ashland/Lake due to signal problems. Crews working to restore service.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          },
+          {
+            "ts": 1779671223816,
+            "headline": "Delays near Ashland/Lake Affecting Green and Pink Line Service",
+            "short_description": "Green and Pink Line trains are still experiencing delays near Ashland/Lake due to signal problems. Crews working to restore service.",
             "affected_from_station": null,
             "affected_to_station": null,
             "affected_direction": null
