@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779668705944,
+  "generated_at": 1779669903920,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -17,8 +17,8 @@
       ],
       "cta": {
         "alert_id": "115139",
-        "headline": "Green and Pink Line Service Delayed at Damen/Lake",
-        "short_description": "Green and Pink Line trains are standing near Damen/Lake due to signal problems. Crews working to restore service.",
+        "headline": "Green and Pink Line Service Delayed at Ashland/Lake",
+        "short_description": "Green and Pink Line trains are standing near Ashland/Lake due to signal problems. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmn7ohykrp2c",
         "resolved_reply_url": null,
         "first_seen_ts": 1779668702517,
@@ -31,7 +31,25 @@
         "cta_event_start_ts": 1779668640000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
-        "cta_event_end_is_date_only": false
+        "cta_event_end_is_date_only": false,
+        "versions": [
+          {
+            "ts": 1779668702517,
+            "headline": "Green and Pink Line Service Delayed at Damen/Lake",
+            "short_description": "Green and Pink Line trains are standing near Damen/Lake due to signal problems. Crews working to restore service.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          },
+          {
+            "ts": 1779669182907,
+            "headline": "Green and Pink Line Service Delayed at Ashland/Lake",
+            "short_description": "Green and Pink Line trains are standing near Ashland/Lake due to signal problems. Crews working to restore service.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          }
+        ]
       },
       "observations": []
     },
