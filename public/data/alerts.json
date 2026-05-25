@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779671285511,
+  "generated_at": 1779674411735,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -13,7 +13,8 @@
       "resolved_ts": null,
       "active": true,
       "sources": [
-        "cta"
+        "cta",
+        "bot"
       ],
       "cta": {
         "alert_id": "115139",
@@ -75,7 +76,50 @@
           }
         ]
       },
-      "observations": []
+      "observations": [
+        {
+          "id": 390,
+          "kind": "train",
+          "line": "pink",
+          "direction": "branch-1-inbound",
+          "from_station": "Ashland (Green/Pink)",
+          "to_station": "Adams/Wabash",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 3.7,
+            "minutesSinceLastTrain": null,
+            "lookbackMin": 35,
+            "coldThresholdMin": 30,
+            "trainsOutsideRun": 4,
+            "coldStations": 6,
+            "coldStationNames": [
+              "Ashland (Green/Pink)",
+              "Morgan (Green/Pink)",
+              "Clinton (Green/Pink)",
+              "Clark/Lake",
+              "Washington/Wabash",
+              "Adams/Wabash"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 12,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779674161936,
+          "onset_ts": 1779672361936,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmneykia2d2h",
+          "resolved_post_url": null,
+          "bot_description": "Pink Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 3.7-mi stretch (6 stations affected) in the last 35 min — scheduled every 12 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
     },
     {
       "id": "3mmn72sda5j2s",
