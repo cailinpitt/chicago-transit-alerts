@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779681967325,
+  "generated_at": 1779682092117,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -12,8 +12,8 @@
         "J14"
       ],
       "first_seen_ts": 1779680643710,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779681844242,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -22,10 +22,10 @@
         "headline": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express and #J14 Jeffrey Jump Temporary Reroute Ends",
         "short_description": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express and #J14 Jeffrey Jump buses near Michigan/Roosevelt has ended.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmnksdphx42a",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmnm5hjkvm2q",
         "first_seen_ts": 1779680643710,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779681844242,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
