@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779675128783,
+  "generated_at": 1779677106110,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -10,8 +10,8 @@
         "green"
       ],
       "first_seen_ts": 1779668702517,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779676863037,
+      "active": false,
       "sources": [
         "cta",
         "bot"
@@ -21,10 +21,10 @@
         "headline": "Delays near Ashland/Lake Affecting Green and Pink Line Service",
         "short_description": "Green and Pink Line trains are still experiencing delays near Ashland/Lake due to signal problems. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmn7ohykrp2c",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmnhiuqa362g",
         "first_seen_ts": 1779668702517,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779676863037,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
