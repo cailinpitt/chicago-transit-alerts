@@ -85,10 +85,54 @@ export default function MultiLineEventMap({
       markAffected(to);
       if (from && to && from !== to) {
         const d = sliceTrackBetween(entry.tracks, from, to);
-        if (d) highlights.push({ d, color: entry.color, key: `${lineKey}:${d}` });
+        if (d) {
+          highlights.push({
+            d,
+            color: entry.color,
+            lineKey,
+            // Endpoint identity, so two lines covering the same stretch (shared
+            // trackage) group together even if their sliced paths differ by a
+            // sub-pixel — the projected geometry is the same corridor.
+            pairKey: [normalize(from.name), normalize(to.name)].sort().join('::'),
+          });
+        }
       }
     }
   }
+
+  // Group highlights that cover the same stretch across multiple lines. A shared
+  // run (Pink + Green on the Lake St elevated) projects to identical coordinates,
+  // so drawing each line's solid stroke just stacks them and only the last color
+  // shows. Instead we candy-stripe the group: one path per line, interleaved via
+  // staggered dashes so every color reads along the shared track.
+  const stretchGroups = new Map();
+  for (const h of highlights) {
+    let g = stretchGroups.get(h.pairKey);
+    if (!g) {
+      g = [];
+      stretchGroups.set(h.pairKey, g);
+    }
+    // Dedupe a line that somehow resolved the same stretch twice.
+    if (!g.some((x) => x.lineKey === h.lineKey)) g.push(h);
+  }
+  // On-segment length per stripe, in px along the path. Each line in an N-line
+  // group is "on" for DASH px then "off" for DASH*(N-1) px, offset by its index
+  // — so the N colors tile the line continuously with no gaps.
+  const DASH = 9;
+  const stretchPaths = [...stretchGroups.values()].flatMap((group) => {
+    const d = group[0].d;
+    if (group.length === 1) {
+      return [{ key: group[0].lineKey, d, color: group[0].color, dasharray: null, dashoffset: 0 }];
+    }
+    const n = group.length;
+    return group.map((h, i) => ({
+      key: `${h.lineKey}:${h.pairKey}`,
+      d,
+      color: h.color,
+      dasharray: `${DASH} ${DASH * (n - 1)}`,
+      dashoffset: i * DASH,
+    }));
+  });
 
   const affected = [...affectedByName.values()];
   if (affected.length === 0) return null;
@@ -176,17 +220,22 @@ export default function MultiLineEventMap({
                     );
                   }),
               )}
-              {/* Bold highlighted stretches, each on its own line's color. */}
-              {highlights.map((h) => (
+              {/* Bold highlighted stretches. A stretch on one line draws solid;
+                  a stretch shared by several affected lines candy-stripes their
+                  colors via interleaved dashes (butt caps so the dashes tile
+                  cleanly instead of bleeding into each other's gaps). */}
+              {stretchPaths.map((h) => (
                 <path
                   key={h.key}
                   d={h.d}
                   fill="none"
                   stroke={h.color}
                   strokeWidth={5}
-                  strokeLinecap="round"
+                  strokeLinecap={h.dasharray ? 'butt' : 'round'}
                   strokeLinejoin="round"
-                  opacity={0.85}
+                  strokeDasharray={h.dasharray ?? undefined}
+                  strokeDashoffset={h.dasharray ? h.dashoffset : undefined}
+                  opacity={0.9}
                 />
               ))}
               {/* Context dots for every other station on the affected lines. */}
