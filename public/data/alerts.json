@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779680646611,
+  "generated_at": 1779681967325,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -19,8 +19,8 @@
       ],
       "cta": {
         "alert_id": "115140",
-        "headline": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express and #J14 Jeffrey Jump Temporary Reroute near Michigan/Roosevelt",
-        "short_description": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express & #J14 Jeffrey Jump buses are temp. rerouted due to parade/carnival/festival near Michigan/Roosevelt.",
+        "headline": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express and #J14 Jeffrey Jump Temporary Reroute Ends",
+        "short_description": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express and #J14 Jeffrey Jump buses near Michigan/Roosevelt has ended.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmnksdphx42a",
         "resolved_reply_url": null,
         "first_seen_ts": 1779680643710,
@@ -33,7 +33,25 @@
         "cta_event_start_ts": 1779680520000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
-        "cta_event_end_is_date_only": false
+        "cta_event_end_is_date_only": false,
+        "versions": [
+          {
+            "ts": 1779680643710,
+            "headline": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express and #J14 Jeffrey Jump Temporary Reroute near Michigan/Roosevelt",
+            "short_description": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express & #J14 Jeffrey Jump buses are temp. rerouted due to parade/carnival/festival near Michigan/Roosevelt.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          },
+          {
+            "ts": 1779681722493,
+            "headline": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express and #J14 Jeffrey Jump Temporary Reroute Ends",
+            "short_description": "#3 King Drive, #4 Cottage Grove, #6 Jackson Park Express and #J14 Jeffrey Jump buses near Michigan/Roosevelt has ended.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          }
+        ]
       },
       "observations": []
     },
