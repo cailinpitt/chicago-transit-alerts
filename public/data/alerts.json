@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779806946221,
+  "generated_at": 1779807445598,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -13,8 +13,8 @@
         "orange"
       ],
       "first_seen_ts": 1779806702918,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779807183505,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -23,10 +23,10 @@
         "headline": "Brown, Green, Orange, Purple and Pink Line Delays",
         "short_description": "Brown, Green, Orange, Purple and Pink Line trains are running w/residual delays at Admas/Wabash. Service is resuming, allow extra time.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmra7af2nx2s",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmravbk6nf2s",
         "first_seen_ts": 1779806702918,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779807183505,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
