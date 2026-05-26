@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779826986009,
+  "generated_at": 1779827402733,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "blue"
       ],
       "first_seen_ts": 1779826982511,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779827222733,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -21,8 +21,8 @@
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmrt3ltfgc2c",
         "resolved_reply_url": null,
         "first_seen_ts": 1779826982511,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779827222733,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
