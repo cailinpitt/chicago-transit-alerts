@@ -1,7 +1,50 @@
 {
-  "generated_at": 1779804251910,
+  "generated_at": 1779804546728,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmr66uec7i2x",
+      "kind": "bus",
+      "routes": [
+        "J14"
+      ],
+      "first_seen_ts": 1779802865934,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 172,
+          "kind": "bus",
+          "line": "J14",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1779802865934,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmr66uec7i2x",
+          "resolved_post_url": null,
+          "bot_description": "Route J14 service appears degraded — fewer buses than scheduled and buses running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 6 buses missing this past hour",
+            "4 buses recently bunched together"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmr2tjo7o22l",
       "kind": "bus",
