@@ -1,7 +1,93 @@
 {
-  "generated_at": 1779799144964,
+  "generated_at": 1779800946630,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmr2tjo7o22l",
+      "kind": "bus",
+      "routes": [
+        "26"
+      ],
+      "first_seen_ts": 1779800769652,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 170,
+          "kind": "bus",
+          "line": "26",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap"
+          ],
+          "evidence": null,
+          "ts": 1779800769652,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmr2tjo7o22l",
+          "resolved_post_url": null,
+          "bot_description": "Route 26 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 10 buses missing this past hour",
+            "One gap between buses is 3.4x the scheduled wait"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmr2tljkkm2a",
+      "kind": "bus",
+      "routes": [
+        "66"
+      ],
+      "first_seen_ts": 1779799264528,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 171,
+          "kind": "bus",
+          "line": "66",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1779799264528,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmr2tljkkm2a",
+          "resolved_post_url": null,
+          "bot_description": "Route 66 service appears degraded — fewer buses than scheduled and buses running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "8 of 18 buses missing this past hour",
+            "4 buses recently bunched together"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmqz5wcsev2h",
       "kind": "train",
