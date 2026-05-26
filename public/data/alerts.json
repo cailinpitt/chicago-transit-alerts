@@ -1,7 +1,50 @@
 {
-  "generated_at": 1779793985134,
+  "generated_at": 1779799144964,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmqz5wcsev2h",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1779797948280,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 169,
+          "kind": "train",
+          "line": "red",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1779797948280,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmqz5wcsev2h",
+          "resolved_post_url": null,
+          "bot_description": "Red Line service appears degraded — longer-than-scheduled headways between trains and trains running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between trains is 5.4x the scheduled wait",
+            "3 trains recently bunched together"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmnksdphx42a",
       "kind": "bus",
