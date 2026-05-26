@@ -1,7 +1,62 @@
 {
-  "generated_at": 1779811203569,
+  "generated_at": 1779821292620,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmrnrvaubr2l",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1779821042736,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 394,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "from_station": "Belmont (Red/Brown/Purple)",
+          "to_station": "Diversey (Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.2,
+            "minutesSinceLastTrain": 19,
+            "lookbackMin": 23,
+            "coldThresholdMin": 18,
+            "trainsOutsideRun": 7,
+            "coldStations": 3,
+            "coldStationNames": [
+              "Belmont (Red/Brown/Purple)",
+              "Wellington (Brown/Purple)",
+              "Diversey (Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.05,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779821042736,
+          "onset_ts": 1779819902736,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmrnrvaubr2l",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 19 min — scheduled every 7 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmra7af2nx2s",
       "kind": "train",
