@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779771846026,
+  "generated_at": 1779793985134,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -593,6 +593,49 @@
           "bot_evidence_bullets": [
             "3 buses recently bunched together",
             "One gap between buses is 4.3x the scheduled wait"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmque56dl42s",
+      "kind": "bus",
+      "routes": [
+        "55N"
+      ],
+      "first_seen_ts": 1779583803419,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 392,
+          "kind": "bus",
+          "line": "55N",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "thin-gap",
+          "signals": null,
+          "evidence": {
+            "headwayMin": 22,
+            "windowMin": 60,
+            "missedTrips": 2
+          },
+          "ts": 1779583803419,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:f4z2wrejskmfwkapi3codqdm/post/3mmque56dl42s",
+          "resolved_post_url": null,
+          "bot_description": "Route 55N service appears degraded — no buses observed within a full scheduled headway.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No buses moved through this stretch in the last 20 min — scheduled every 22 min."
           ]
         }
       ]
