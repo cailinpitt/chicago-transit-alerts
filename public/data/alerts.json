@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779682092117,
+  "generated_at": 1779771846026,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -2559,8 +2559,8 @@
         "147"
       ],
       "first_seen_ts": 1779408123235,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779771604108,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -2569,10 +2569,10 @@
         "headline": "Temporary Reroute",
         "short_description": "#7, #126, #143, and #147 buses will be rerouted during the Suenos Music Festival. Visit transitchicago.com for details.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmfmylwykq2a",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmq7qdmroq2l",
         "first_seen_ts": 1779408123235,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779771604108,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
@@ -3169,8 +3169,8 @@
         "28"
       ],
       "first_seen_ts": 1779361323502,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779771604108,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -3179,10 +3179,10 @@
         "headline": "Temporary Reroute",
         "short_description": "#2, #6, #10, #J14, #26, and #28 buses will be rerouted due to the Suenos Music Festival. Visit transitchicago.com/alerts for details.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmebfuboml2l",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmq7qcn4zg2q",
         "first_seen_ts": 1779361323502,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779771604108,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
