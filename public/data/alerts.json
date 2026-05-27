@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779842528638,
+  "generated_at": 1779843171046,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -10,7 +10,7 @@
         "purple",
         "brown"
       ],
-      "first_seen_ts": 1779840903692,
+      "first_seen_ts": 1779838622239,
       "resolved_ts": null,
       "active": true,
       "sources": [
@@ -2653,7 +2653,7 @@
         "brown",
         "orange"
       ],
-      "first_seen_ts": 1779481504629,
+      "first_seen_ts": 1779481022585,
       "resolved_ts": 1779482463466,
       "active": false,
       "sources": [
@@ -6037,7 +6037,7 @@
         "brown",
         "orange"
       ],
-      "first_seen_ts": 1779106984504,
+      "first_seen_ts": 1779106022858,
       "resolved_ts": 1779107943565,
       "active": false,
       "sources": [
@@ -6956,13 +6956,52 @@
       ]
     },
     {
+      "id": "3mlykkyu5ag2s",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "first_seen_ts": 1778957523183,
+      "resolved_ts": 1778960223081,
+      "active": false,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 74,
+          "kind": "train",
+          "line": "blue",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap"
+          ],
+          "evidence": null,
+          "ts": 1778957523183,
+          "onset_ts": null,
+          "resolved_ts": 1778960223081,
+          "duration_ms": 2699898,
+          "active": false,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlykkyu5ag2s",
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlymjmarjs2x",
+          "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
+          "bot_resolved_description": "Blue Line service appears to be back to normal."
+        }
+      ]
+    },
+    {
       "id": "3mlylftrwvw2s",
       "kind": "train",
       "routes": [
         "pink",
         "green"
       ],
-      "first_seen_ts": 1778959743526,
+      "first_seen_ts": 1778957282577,
       "resolved_ts": 1778965263743,
       "active": false,
       "sources": [
@@ -7066,45 +7105,6 @@
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (4 stations affected) in the last 55 min — scheduled every 20 min, ~2 trains missed (13 trains still moving elsewhere on the line)."
           ]
-        }
-      ]
-    },
-    {
-      "id": "3mlykkyu5ag2s",
-      "kind": "train",
-      "routes": [
-        "blue"
-      ],
-      "first_seen_ts": 1778957523183,
-      "resolved_ts": 1778960223081,
-      "active": false,
-      "sources": [
-        "bot"
-      ],
-      "cta": null,
-      "observations": [
-        {
-          "id": 74,
-          "kind": "train",
-          "line": "blue",
-          "direction": null,
-          "from_station": null,
-          "to_station": null,
-          "detection_source": "roundup",
-          "signals": [
-            "ghost",
-            "gap"
-          ],
-          "evidence": null,
-          "ts": 1778957523183,
-          "onset_ts": null,
-          "resolved_ts": 1778960223081,
-          "duration_ms": 2699898,
-          "active": false,
-          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlykkyu5ag2s",
-          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlymjmarjs2x",
-          "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-          "bot_resolved_description": "Blue Line service appears to be back to normal."
         }
       ]
     },
@@ -9091,12 +9091,51 @@
       ]
     },
     {
+      "id": "3mloz6s33wn2c",
+      "kind": "bus",
+      "routes": [
+        "147"
+      ],
+      "first_seen_ts": 1778630941906,
+      "resolved_ts": 1778633342428,
+      "active": false,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 38,
+          "kind": "bus",
+          "line": "147",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap"
+          ],
+          "evidence": null,
+          "ts": 1778630941906,
+          "onset_ts": null,
+          "resolved_ts": 1778633342428,
+          "duration_ms": 2400522,
+          "active": false,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mloz6s33wn2c",
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp3gebdut2a",
+          "bot_description": "Route 147 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
+          "bot_resolved_description": "Route 147 service appears to be back to normal."
+        }
+      ]
+    },
+    {
       "id": "3mlozw2exta2c",
       "kind": "train",
       "routes": [
         "blue"
       ],
-      "first_seen_ts": 1778631722375,
+      "first_seen_ts": 1778630766412,
       "resolved_ts": 1778640123733,
       "active": false,
       "sources": [
@@ -9185,45 +9224,6 @@
           "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp6rmkk6t2s",
           "bot_description": "Blue Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
           "bot_resolved_description": "Blue Line service appears to be back to normal."
-        }
-      ]
-    },
-    {
-      "id": "3mloz6s33wn2c",
-      "kind": "bus",
-      "routes": [
-        "147"
-      ],
-      "first_seen_ts": 1778630941906,
-      "resolved_ts": 1778633342428,
-      "active": false,
-      "sources": [
-        "bot"
-      ],
-      "cta": null,
-      "observations": [
-        {
-          "id": 38,
-          "kind": "bus",
-          "line": "147",
-          "direction": null,
-          "from_station": null,
-          "to_station": null,
-          "detection_source": "roundup",
-          "signals": [
-            "ghost",
-            "gap"
-          ],
-          "evidence": null,
-          "ts": 1778630941906,
-          "onset_ts": null,
-          "resolved_ts": 1778633342428,
-          "duration_ms": 2400522,
-          "active": false,
-          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mloz6s33wn2c",
-          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mlp3gebdut2a",
-          "bot_description": "Route 147 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-          "bot_resolved_description": "Route 147 service appears to be back to normal."
         }
       ]
     },
