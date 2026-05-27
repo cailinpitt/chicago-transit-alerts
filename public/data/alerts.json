@@ -1,11 +1,12 @@
 {
-  "generated_at": 1779841089489,
+  "generated_at": 1779841445260,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
       "id": "3mmsa2hmli42h",
       "kind": "train",
       "routes": [
+        "red",
         "purple",
         "brown"
       ],
@@ -18,8 +19,8 @@
       ],
       "cta": {
         "alert_id": "115169",
-        "headline": "Kimball-bound Brown and Linden-bound Purple Line Service Delayed near Belmont",
-        "short_description": "Kimball-bound Brown and Linden-bound Purple Line trains are standing near Belmont due to a mechanical problem. Crews working to restore service.",
+        "headline": "Kimball-bound Brown, Howard-bound Red and Linden-bound Purple Line Service Delayed near Belmont",
+        "short_description": "Kimball-bound Brown, Howard-bound Red and Linden-bound Purple Line trains are standing near Belmont. Crews working to restore service",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsa2hmli42h",
         "resolved_reply_url": null,
         "first_seen_ts": 1779840903692,
@@ -32,7 +33,25 @@
         "cta_event_start_ts": 1779840660000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
-        "cta_event_end_is_date_only": false
+        "cta_event_end_is_date_only": false,
+        "versions": [
+          {
+            "ts": 1779840903692,
+            "headline": "Kimball-bound Brown and Linden-bound Purple Line Service Delayed near Belmont",
+            "short_description": "Kimball-bound Brown and Linden-bound Purple Line trains are standing near Belmont due to a mechanical problem. Crews working to restore service.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          },
+          {
+            "ts": 1779841262962,
+            "headline": "Kimball-bound Brown, Howard-bound Red and Linden-bound Purple Line Service Delayed near Belmont",
+            "short_description": "Kimball-bound Brown, Howard-bound Red and Linden-bound Purple Line trains are standing near Belmont. Crews working to restore service",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          }
+        ]
       },
       "observations": [
         {
@@ -71,6 +90,33 @@
           "bot_resolved_description": null,
           "bot_evidence_bullets": [
             "No trains moved through this 5.7-mi stretch (2 stations affected) in the last 26 min — scheduled every 11 min, ~2 trains missed (8 trains still moving elsewhere on the line)."
+          ]
+        },
+        {
+          "id": 176,
+          "kind": "train",
+          "line": "red",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "ghost"
+          ],
+          "evidence": null,
+          "ts": 1779840483598,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsakj4rqf2g",
+          "resolved_post_url": null,
+          "bot_description": "Red Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between trains is 3.0x the scheduled wait",
+            "5 of 12 trains missing this past hour"
           ]
         },
         {
