@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779846249971,
+  "generated_at": 1779846547085,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "77"
       ],
       "first_seen_ts": 1779844023725,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779845165865,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -31,13 +31,13 @@
           "evidence": null,
           "ts": 1779844023725,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779845165865,
+          "duration_ms": 1142140,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmse6rdcwg2s",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsfclt4ui2h",
           "bot_description": "Route 77 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Route 77 service appears to be back to normal.",
           "bot_evidence_bullets": [
             "One gap between buses is 3.8x the scheduled wait",
             "3 of 9 buses missing this past hour"
@@ -197,13 +197,13 @@
           "evidence": null,
           "ts": 1779840483598,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779844925832,
+          "duration_ms": 4442234,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsakj4rqf2g",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsfcjv3ln2c",
           "bot_description": "Red Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Red Line service appears to be back to normal.",
           "bot_evidence_bullets": [
             "One gap between trains is 3.0x the scheduled wait",
             "5 of 12 trains missing this past hour"
