@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779910212180,
+  "generated_at": 1779910313187,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -22,8 +22,8 @@
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmua3oboef2s",
         "resolved_reply_url": null,
         "first_seen_ts": 1779909663112,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779910264268,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
