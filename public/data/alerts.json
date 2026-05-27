@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779853329235,
+  "generated_at": 1779853745081,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -66,8 +66,8 @@
         "red"
       ],
       "first_seen_ts": 1779851282801,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779852603993,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -88,13 +88,13 @@
           "evidence": null,
           "ts": 1779851282801,
           "onset_ts": 1779850082801,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779852603993,
+          "duration_ms": 2521192,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsl6bbpkc2a",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmslz4pcr22h",
           "bot_description": "Red Line service appears degraded — a stretch of the line without trains and fewer trains than scheduled.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Red Line service appears to be back to normal.",
           "bot_evidence_bullets": [
             "Possible service gap forming Berwyn → Wilson",
             "3 of 9 trains missing this past hour"
