@@ -1510,6 +1510,16 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
                         <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                           {e.obs.bot_description}
                         </p>
+                        {/* The affected stretch — without it, multiple
+                            pulse-cold detections on the same line read as
+                            duplicates since the bot_description sentence is
+                            generic ("Brown Line service appears degraded…"). */}
+                        {e.obs.from_station && e.obs.to_station && (
+                          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                            <StationName name={e.obs.from_station} stationIndex={stationIndex} /> →{' '}
+                            <StationName name={e.obs.to_station} stationIndex={stationIndex} />
+                          </p>
+                        )}
                         {Array.isArray(e.obs.bot_evidence_bullets) &&
                           e.obs.bot_evidence_bullets.length > 0 && (
                             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">

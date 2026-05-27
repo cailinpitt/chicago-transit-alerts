@@ -312,11 +312,13 @@ describe('EventPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Loop Elevated Service Delayed')).toBeInTheDocument();
     });
-    // Primary obs (Purple) endpoints.
-    expect(screen.getByRole('link', { name: 'Belmont' })).toBeInTheDocument();
+    // Primary obs (Purple) endpoints. Belmont/Chicago can appear in both the
+    // affected-stations chips and the per-obs stretch line in the timeline
+    // rail, so allow >=1 match.
+    expect(screen.getAllByRole('link', { name: 'Belmont' }).length).toBeGreaterThan(0);
     // Extra obs (Pink) endpoint — proves we go beyond the primary observation.
-    expect(screen.getByRole('link', { name: 'Washington/Wabash' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Ashland' })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Washington/Wabash' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: 'Ashland' }).length).toBeGreaterThan(0);
   });
 
   it('renders the combined multi-line map for a multi-line incident', async () => {
