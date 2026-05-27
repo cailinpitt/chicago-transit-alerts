@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779841445260,
+  "generated_at": 1779841450270,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -54,6 +54,45 @@
         ]
       },
       "observations": [
+        {
+          "id": 399,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "from_station": "Wellington (Brown/Purple)",
+          "to_station": "Fullerton",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.2,
+            "minutesSinceLastTrain": 23,
+            "lookbackMin": 24,
+            "coldThresholdMin": 19,
+            "trainsOutsideRun": 9,
+            "coldStations": 3,
+            "coldStationNames": [
+              "Wellington (Brown/Purple)",
+              "Diversey (Brown/Purple)",
+              "Fullerton"
+            ],
+            "expectedTrains": 3,
+            "headwayMin": 7.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779841202846,
+          "onset_ts": 1779839822846,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsaknijem2c",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 23 min — scheduled every 8 min, ~3 trains missed (9 trains still moving elsewhere on the line)."
+          ]
+        },
         {
           "id": 397,
           "kind": "train",
