@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779848410703,
+  "generated_at": 1779849306463,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -265,8 +265,8 @@
         "brown"
       ],
       "first_seen_ts": 1779838622239,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779849063757,
+      "active": false,
       "sources": [
         "cta",
         "bot"
@@ -276,10 +276,10 @@
         "headline": "Brown Line Service Running with Delays near Belmont",
         "short_description": "Brown Line Service running w/significant delays following an earlier mechanical problem at Belmont.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsa2hmli42h",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmshutdo5i2a",
         "first_seen_ts": 1779840903692,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779849063757,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
