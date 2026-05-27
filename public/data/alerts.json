@@ -1,7 +1,61 @@
 {
-  "generated_at": 1779840009264,
+  "generated_at": 1779840850588,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mms7ysnycv2u",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1779840602839,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 397,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "from_station": "Wilson",
+          "to_station": "Belmont (Red/Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 5.7,
+            "minutesSinceLastTrain": 26,
+            "lookbackMin": 31,
+            "coldThresholdMin": 26,
+            "trainsOutsideRun": 8,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Wilson",
+              "Belmont (Red/Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 10.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779840602839,
+          "onset_ts": 1779839042839,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mms7ysnycv2u",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 5.7-mi stretch (2 stations affected) in the last 26 min — scheduled every 11 min, ~2 trains missed (8 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mms77pzsc72s",
       "kind": "train",
