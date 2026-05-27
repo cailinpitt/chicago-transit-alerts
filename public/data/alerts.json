@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779847282013,
+  "generated_at": 1779847992702,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -46,11 +46,160 @@
       ]
     },
     {
+      "id": "3mmsbha3vil2a",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1779842162187,
+      "resolved_ts": 1779845762431,
+      "active": false,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 402,
+          "kind": "train",
+          "line": "red",
+          "direction": "all",
+          "from_station": "Addison (Red)",
+          "to_station": "Belmont (Red/Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.7,
+            "minutesSinceLastTrain": 20,
+            "lookbackMin": 21,
+            "coldThresholdMin": 16,
+            "trainsOutsideRun": 16,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Addison (Red)",
+              "Belmont (Red/Brown/Purple)"
+            ],
+            "expectedTrains": 3,
+            "headwayMin": 6.25,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779842162187,
+          "onset_ts": 1779840962187,
+          "resolved_ts": 1779845762431,
+          "duration_ms": 4800244,
+          "active": false,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsbha3vil2a",
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmseznngqm2s",
+          "bot_description": "Red Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal.",
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.7-mi stretch (2 stations affected) in the last 20 min — scheduled every 6 min, ~3 trains missed (16 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mms7ysnycv2u",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1779840602839,
+      "resolved_ts": 1779841322353,
+      "active": false,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 397,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "from_station": "Wilson",
+          "to_station": "Belmont (Red/Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 5.7,
+            "minutesSinceLastTrain": 26,
+            "lookbackMin": 31,
+            "coldThresholdMin": 26,
+            "trainsOutsideRun": 8,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Wilson",
+              "Belmont (Red/Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 10.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779840602839,
+          "onset_ts": 1779839042839,
+          "resolved_ts": 1779841322353,
+          "duration_ms": 2279514,
+          "active": false,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mms7ysnycv2u",
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsavhqceh2u",
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
+          "bot_evidence_bullets": [
+            "No trains moved through this 5.7-mi stretch (2 stations affected) in the last 26 min — scheduled every 11 min, ~2 trains missed (8 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmsakj4rqf2g",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1779840483598,
+      "resolved_ts": 1779844925832,
+      "active": false,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 176,
+          "kind": "train",
+          "line": "red",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "ghost"
+          ],
+          "evidence": null,
+          "ts": 1779840483598,
+          "onset_ts": null,
+          "resolved_ts": 1779844925832,
+          "duration_ms": 4442234,
+          "active": false,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsakj4rqf2g",
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsfcjv3ln2c",
+          "bot_description": "Red Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
+          "bot_resolved_description": "Red Line service appears to be back to normal.",
+          "bot_evidence_bullets": [
+            "One gap between trains is 3.0x the scheduled wait",
+            "5 of 12 trains missing this past hour"
+          ]
+        }
+      ]
+    },
+    {
       "id": "3mmsa2hmli42h",
       "kind": "train",
       "routes": [
-        "red",
-        "purple",
         "brown"
       ],
       "first_seen_ts": 1779838622239,
@@ -62,8 +211,8 @@
       ],
       "cta": {
         "alert_id": "115169",
-        "headline": "Brown, Red and Purple Line Service Running with Delays near Belmont",
-        "short_description": "Brown, Red and Purple trains are running w/significant delays following an earlier mechanical problem at Belmont.",
+        "headline": "Brown Line Service Running with Delays near Belmont",
+        "short_description": "Brown Line Service running w/significant delays following an earlier mechanical problem at Belmont.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsa2hmli42h",
         "resolved_reply_url": null,
         "first_seen_ts": 1779840903692,
@@ -117,6 +266,14 @@
             "affected_from_station": null,
             "affected_to_station": null,
             "affected_direction": null
+          },
+          {
+            "ts": 1779847742454,
+            "headline": "Brown Line Service Running with Delays near Belmont",
+            "short_description": "Brown Line Service running w/significant delays following an earlier mechanical problem at Belmont.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
           }
         ]
       },
@@ -158,71 +315,6 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 23 min — scheduled every 8 min, ~3 trains missed (9 trains still moving elsewhere on the line)."
-          ]
-        },
-        {
-          "id": 397,
-          "kind": "train",
-          "line": "purple",
-          "direction": "branch-0-outbound",
-          "from_station": "Wilson",
-          "to_station": "Belmont (Red/Brown/Purple)",
-          "detection_source": "pulse-cold",
-          "signals": null,
-          "evidence": {
-            "runLengthMi": 5.7,
-            "minutesSinceLastTrain": 26,
-            "lookbackMin": 31,
-            "coldThresholdMin": 26,
-            "trainsOutsideRun": 8,
-            "coldStations": 2,
-            "coldStationNames": [
-              "Wilson",
-              "Belmont (Red/Brown/Purple)"
-            ],
-            "expectedTrains": 2,
-            "headwayMin": 10.5,
-            "synthetic": false,
-            "held": null
-          },
-          "ts": 1779840602839,
-          "onset_ts": 1779839042839,
-          "resolved_ts": 1779841322353,
-          "duration_ms": 2279514,
-          "active": false,
-          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mms7ysnycv2u",
-          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsavhqceh2u",
-          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
-          "bot_evidence_bullets": [
-            "No trains moved through this 5.7-mi stretch (2 stations affected) in the last 26 min — scheduled every 11 min, ~2 trains missed (8 trains still moving elsewhere on the line)."
-          ]
-        },
-        {
-          "id": 176,
-          "kind": "train",
-          "line": "red",
-          "direction": null,
-          "from_station": null,
-          "to_station": null,
-          "detection_source": "roundup",
-          "signals": [
-            "gap",
-            "ghost"
-          ],
-          "evidence": null,
-          "ts": 1779840483598,
-          "onset_ts": null,
-          "resolved_ts": 1779844925832,
-          "duration_ms": 4442234,
-          "active": false,
-          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsakj4rqf2g",
-          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsfcjv3ln2c",
-          "bot_description": "Red Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-          "bot_resolved_description": "Red Line service appears to be back to normal.",
-          "bot_evidence_bullets": [
-            "One gap between trains is 3.0x the scheduled wait",
-            "5 of 12 trains missing this past hour"
           ]
         },
         {
@@ -305,44 +397,6 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
-          ]
-        },
-        {
-          "id": 402,
-          "kind": "train",
-          "line": "red",
-          "direction": "all",
-          "from_station": "Addison (Red)",
-          "to_station": "Belmont (Red/Brown/Purple)",
-          "detection_source": "pulse-cold",
-          "signals": null,
-          "evidence": {
-            "runLengthMi": 1.7,
-            "minutesSinceLastTrain": 20,
-            "lookbackMin": 21,
-            "coldThresholdMin": 16,
-            "trainsOutsideRun": 16,
-            "coldStations": 2,
-            "coldStationNames": [
-              "Addison (Red)",
-              "Belmont (Red/Brown/Purple)"
-            ],
-            "expectedTrains": 3,
-            "headwayMin": 6.25,
-            "synthetic": false,
-            "held": null
-          },
-          "ts": 1779842162187,
-          "onset_ts": 1779840962187,
-          "resolved_ts": 1779845762431,
-          "duration_ms": 4800244,
-          "active": false,
-          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsbha3vil2a",
-          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmseznngqm2s",
-          "bot_description": "Red Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal.",
-          "bot_evidence_bullets": [
-            "No trains moved through this 1.7-mi stretch (2 stations affected) in the last 20 min — scheduled every 6 min, ~3 trains missed (16 trains still moving elsewhere on the line)."
           ]
         },
         {
