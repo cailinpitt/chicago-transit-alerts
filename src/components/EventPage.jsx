@@ -1035,6 +1035,33 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
     [flatSubject, alerts, observations],
   );
 
+  // Bot-lead-time callout. When our bot's earliest observation (back-dated to
+  // the last train through the cold stretch / earliest signal) predates the
+  // CTA alert's post time, surface the lead so the UI doesn't read as if CTA
+  // detected first. Skipped under 2 min (CTA effectively kept pace).
+  let botLeadPhrase = null;
+  let botLeadOnsetTs = null;
+  if (isMerged && cta?.first_seen_ts != null) {
+    const earliestOnset = (incident.observations || []).reduce(
+      (min, o) => Math.min(min, o.onset_ts ?? o.ts),
+      Number.POSITIVE_INFINITY,
+    );
+    if (Number.isFinite(earliestOnset)) {
+      const leadMs = cta.first_seen_ts - earliestOnset;
+      const TWO_MIN = 2 * 60 * 1000;
+      if (leadMs >= TWO_MIN) {
+        botLeadOnsetTs = earliestOnset;
+        const leadMin = Math.round(leadMs / 60_000);
+        if (leadMin < 60) botLeadPhrase = `${leadMin} min`;
+        else {
+          const h = Math.floor(leadMin / 60);
+          const m = leadMin % 60;
+          botLeadPhrase = m > 0 ? `${h}h ${m}m` : `${h}h`;
+        }
+      }
+    }
+  }
+
   // CTA-planned-start callout. When CTA tagged the alert with an EventStart
   // that meaningfully predates our first sighting, the disruption was a
   // planned event scheduled in advance rather than a live reactive post.
@@ -1371,17 +1398,39 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
         // message tagged as the Latest update, which reads as if it's still
         // happening. The clear entry only makes sense once there's CTA copy to
         // anchor the rail, so a content-less alert stays untouched.
+        //
+        // For merged CTA+bot incidents, interleave bot detection entries
+        // (back-dated to obs.onset_ts) so the chronology answers "who detected
+        // this first." Each entry is tagged with its source label below.
         const hasResolved = !incident.active && incident.resolved_ts != null;
-        const entries = [...versions]
-          .sort((a, b) => b.ts - a.ts)
-          .map((v) => ({ type: 'version', ...v }));
-        if (hasResolved && versions.length > 0) {
+        const obsDetections = isMerged
+          ? (incident.observations || []).map((o) => ({
+              type: 'obs-detect',
+              ts: o.onset_ts ?? o.ts,
+              obs: o,
+            }))
+          : [];
+        const entries = [
+          ...versions.map((v) => ({ type: 'version', ...v })),
+          ...obsDetections,
+        ].sort((a, b) => b.ts - a.ts);
+        if (hasResolved && entries.length > 0) {
           entries.unshift({ type: 'cleared', ts: incident.resolved_ts });
         }
         if (entries.length === 0) return null;
 
-        // A single CTA message with no clear yet stays a simple quote block.
-        if (entries.length === 1) {
+        const hasObsEntries = obsDetections.length > 0;
+        const sectionTitle = hasObsEntries
+          ? `Timeline · ${entries.length} updates`
+          : `Per CTA · ${entries.length} updates`;
+        const sourceLabel = (e) =>
+          e.type === 'obs-detect' ? 'Per bot' : e.type === 'cleared' ? 'Per CTA' : 'Per CTA';
+        const joinBullets = (items) => items.map((b) => b.replace(/\.\s*$/, '')).join('; ') + '.';
+
+        // A single CTA message with no clear yet — and no bot entries to
+        // interleave — stays a simple quote block. Merged incidents always
+        // get the rail since they carry at least one obs detection.
+        if (entries.length === 1 && !hasObsEntries) {
           const v = entries[0];
           if (!v.short_description) return null;
           return (
@@ -1399,7 +1448,7 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
         return (
           <section className="mt-4">
             <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
-              Per CTA · {entries.length} updates
+              {sectionTitle}
             </p>
             {/* LinkedIn-style rail: each <li> renders its own connector
                 segment running from just below its dot down into the
@@ -1411,15 +1460,19 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
                 const isLatest = i === 0;
                 const isOldest = i === entries.length - 1;
                 const isCleared = e.type === 'cleared';
+                const isObsDetect = e.type === 'obs-detect';
                 // Headline only re-shown when it changed from the next OLDER
-                // version (skip the clear entry, which carries no headline).
+                // version (skip non-version entries, which carry no headline).
                 // Most edits keep the headline and only revise the body, so
                 // reprinting it on every entry would be noise.
                 const prevVersion = entries.slice(i + 1).find((x) => x.type === 'version');
                 const showHeadline =
-                  !isCleared && (!prevVersion || prevVersion.headline !== e.headline);
+                  e.type === 'version' && (!prevVersion || prevVersion.headline !== e.headline);
                 return (
-                  <li key={`${e.type}-${e.ts}`} className="relative pl-6">
+                  <li
+                    key={e.type === 'obs-detect' ? `obs-${e.obs.id}` : `${e.type}-${e.ts}`}
+                    className="relative pl-6"
+                  >
                     {!isOldest && (
                       <span
                         aria-hidden="true"
@@ -1437,6 +1490,11 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
                       <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                         {formatDate(e.ts)} · {formatTime(e.ts)}
                       </p>
+                      {hasObsEntries && (
+                        <span className="text-[10px] uppercase tracking-wider font-medium text-slate-400 dark:text-slate-500">
+                          {sourceLabel(e)}
+                        </span>
+                      )}
                       {isLatest && (
                         <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-500">
                           Latest
@@ -1447,6 +1505,18 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
                       <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                         CTA cleared this alert.
                       </p>
+                    ) : isObsDetect ? (
+                      <>
+                        <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                          {e.obs.bot_description}
+                        </p>
+                        {Array.isArray(e.obs.bot_evidence_bullets) &&
+                          e.obs.bot_evidence_bullets.length > 0 && (
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                              {joinBullets(e.obs.bot_evidence_bullets)}
+                            </p>
+                          )}
+                      </>
                     ) : (
                       <>
                         {showHeadline && e.headline && (
@@ -1494,6 +1564,23 @@ function EventDetail({ incident, incidents, alerts, observations, stationIndex, 
               Duration
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">{duration}</dd>
+          </div>
+        )}
+        {botLeadPhrase && (
+          <div
+            className="sm:col-span-2"
+            title="Our bot's observation predates CTA's alert post time."
+          >
+            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Bot lead time
+            </dt>
+            <dd className="text-slate-700 dark:text-slate-200">
+              Bot flagged this <strong>{botLeadPhrase}</strong> before CTA{' '}
+              <span className="text-slate-400 dark:text-slate-500 text-xs">
+                (first observed {formatTime(botLeadOnsetTs)} on {formatDate(botLeadOnsetTs)}; CTA
+                posted {formatTime(cta.first_seen_ts)})
+              </span>
+            </dd>
           </div>
         )}
         {ctaPlannedPhrase && (
