@@ -1,7 +1,62 @@
 {
-  "generated_at": 1779866345655,
+  "generated_at": 1779880570121,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmteyk4en42q",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1779880322290,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 412,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "from_station": "Wilson",
+          "to_station": "Wellington (Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 6.2,
+            "minutesSinceLastTrain": null,
+            "lookbackMin": 33,
+            "coldThresholdMin": 28,
+            "trainsOutsideRun": 5,
+            "coldStations": 3,
+            "coldStationNames": [
+              "Wilson",
+              "Belmont (Red/Brown/Purple)",
+              "Wellington (Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 11.166666666666666,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779880322290,
+          "onset_ts": 1779878642290,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmteyk4en42q",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 6.2-mi stretch (3 stations affected) in the last 33 min — scheduled every 11 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmsx6rka3y2u",
       "kind": "train",
