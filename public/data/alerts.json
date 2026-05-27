@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779909665073,
+  "generated_at": 1779910212180,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -8,11 +8,12 @@
       "routes": [
         "brown"
       ],
-      "first_seen_ts": 1779909663112,
+      "first_seen_ts": 1779909002380,
       "resolved_ts": null,
       "active": true,
       "sources": [
-        "cta"
+        "cta",
+        "bot"
       ],
       "cta": {
         "alert_id": "115185",
@@ -32,7 +33,46 @@
         "cta_event_start_is_date_only": false,
         "cta_event_end_is_date_only": false
       },
-      "observations": []
+      "observations": [
+        {
+          "id": 420,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "from_station": "Belmont (Red/Brown/Purple)",
+          "to_station": "Wellington (Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1,
+            "minutesSinceLastTrain": 16,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 6,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Belmont (Red/Brown/Purple)",
+              "Wellington (Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 6,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779909962380,
+          "onset_ts": 1779909002380,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmualvw6g62c",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1-mi stretch (2 stations affected) in the last 16 min — scheduled every 6 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
     },
     {
       "id": "3mmtzteu46z2a",
