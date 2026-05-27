@@ -1,7 +1,50 @@
 {
-  "generated_at": 1779885730373,
+  "generated_at": 1779887345254,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmtlci2snn2s",
+      "kind": "bus",
+      "routes": [
+        "66"
+      ],
+      "first_seen_ts": 1779885665964,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 180,
+          "kind": "bus",
+          "line": "66",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1779885665964,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmtlci2snn2s",
+          "resolved_post_url": null,
+          "bot_description": "Route 66 service appears degraded — fewer buses than scheduled and buses running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "7 of 18 buses missing this past hour",
+            "5 buses recently bunched together"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmtj4uvtsu2s",
       "kind": "train",
