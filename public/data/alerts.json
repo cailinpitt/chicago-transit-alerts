@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779843171046,
+  "generated_at": 1779843602941,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -19,8 +19,8 @@
       ],
       "cta": {
         "alert_id": "115169",
-        "headline": "Kimball-bound Brown, Howard-bound Red and Linden-bound Purple Line Service Delayed near Belmont",
-        "short_description": "Kimball-bound Brown, Howard-bound Red and Linden-bound Purple Line trains are standing near Belmont. Crews working to restore service",
+        "headline": "Brown, Red and Purple Line Service Delayed near Belmont",
+        "short_description": "Brown, Red and Purple Line trains are standing near Belmont due to a mechanical problem. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsa2hmli42h",
         "resolved_reply_url": null,
         "first_seen_ts": 1779840903692,
@@ -47,6 +47,14 @@
             "ts": 1779841262962,
             "headline": "Kimball-bound Brown, Howard-bound Red and Linden-bound Purple Line Service Delayed near Belmont",
             "short_description": "Kimball-bound Brown, Howard-bound Red and Linden-bound Purple Line trains are standing near Belmont. Crews working to restore service",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          },
+          {
+            "ts": 1779843183514,
+            "headline": "Brown, Red and Purple Line Service Delayed near Belmont",
+            "short_description": "Brown, Red and Purple Line trains are standing near Belmont due to a mechanical problem. Crews working to restore service.",
             "affected_from_station": null,
             "affected_to_station": null,
             "affected_direction": null
