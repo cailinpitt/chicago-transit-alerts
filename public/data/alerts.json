@@ -1,7 +1,62 @@
 {
-  "generated_at": 1779900277310,
+  "generated_at": 1779901572161,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmtykhhdix2h",
+      "kind": "train",
+      "routes": [
+        "pink"
+      ],
+      "first_seen_ts": 1779901322867,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 416,
+          "kind": "train",
+          "line": "pink",
+          "direction": "branch-0-outbound",
+          "from_station": "Ashland (Green/Pink)",
+          "to_station": "Clinton (Green/Pink)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 2.5,
+            "minutesSinceLastTrain": 25,
+            "lookbackMin": 30,
+            "coldThresholdMin": 25,
+            "trainsOutsideRun": 5,
+            "coldStations": 3,
+            "coldStationNames": [
+              "Ashland (Green/Pink)",
+              "Morgan (Green/Pink)",
+              "Clinton (Green/Pink)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 10,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779901322867,
+          "onset_ts": 1779899822867,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmtykhhdix2h",
+          "resolved_post_url": null,
+          "bot_description": "Pink Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 2.5-mi stretch (3 stations affected) in the last 25 min — scheduled every 10 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmtlci2snn2s",
       "kind": "bus",
