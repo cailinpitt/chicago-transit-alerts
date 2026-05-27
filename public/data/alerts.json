@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779842410361,
+  "generated_at": 1779842528638,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -82,13 +82,13 @@
           },
           "ts": 1779841202846,
           "onset_ts": 1779839822846,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779842042100,
+          "duration_ms": 2219254,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsaknijem2c",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsbkrxh2i2q",
           "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 23 min — scheduled every 8 min, ~3 trains missed (9 trains still moving elsewhere on the line)."
           ]
@@ -188,13 +188,13 @@
           },
           "ts": 1779841562356,
           "onset_ts": 1779840422356,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779842042100,
+          "duration_ms": 1619744,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsavfrzse24",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsbks6t7c2c",
           "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
           ]
