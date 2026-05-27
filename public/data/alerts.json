@@ -1,7 +1,63 @@
 {
-  "generated_at": 1779901572161,
+  "generated_at": 1779901692053,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmtynzmdcq2c",
+      "kind": "train",
+      "routes": [
+        "pink"
+      ],
+      "first_seen_ts": 1779901442141,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 417,
+          "kind": "train",
+          "line": "pink",
+          "direction": "branch-1-inbound",
+          "from_station": "Ashland (Green/Pink)",
+          "to_station": "Clark/Lake",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 3,
+            "minutesSinceLastTrain": 30,
+            "lookbackMin": 30,
+            "coldThresholdMin": 25,
+            "trainsOutsideRun": 4,
+            "coldStations": 4,
+            "coldStationNames": [
+              "Ashland (Green/Pink)",
+              "Morgan (Green/Pink)",
+              "Clinton (Green/Pink)",
+              "Clark/Lake"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 10,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779901442141,
+          "onset_ts": 1779899642141,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmtynzmdcq2c",
+          "resolved_post_url": null,
+          "bot_description": "Pink Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 3-mi stretch (4 stations affected) in the last 30 min — scheduled every 10 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmtykhhdix2h",
       "kind": "train",
