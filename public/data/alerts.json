@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779841812037,
+  "generated_at": 1779842410361,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -238,6 +238,44 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
+          ]
+        },
+        {
+          "id": 402,
+          "kind": "train",
+          "line": "red",
+          "direction": "all",
+          "from_station": "Addison (Red)",
+          "to_station": "Belmont (Red/Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.7,
+            "minutesSinceLastTrain": 20,
+            "lookbackMin": 21,
+            "coldThresholdMin": 16,
+            "trainsOutsideRun": 16,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Addison (Red)",
+              "Belmont (Red/Brown/Purple)"
+            ],
+            "expectedTrains": 3,
+            "headwayMin": 6.25,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779842162187,
+          "onset_ts": 1779840962187,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsbha3vil2a",
+          "resolved_post_url": null,
+          "bot_description": "Red Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.7-mi stretch (2 stations affected) in the last 20 min — scheduled every 6 min, ~3 trains missed (16 trains still moving elsewhere on the line)."
           ]
         }
       ]
