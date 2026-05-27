@@ -1,7 +1,50 @@
 {
-  "generated_at": 1779843602941,
+  "generated_at": 1779845344777,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmse6rdcwg2s",
+      "kind": "bus",
+      "routes": [
+        "77"
+      ],
+      "first_seen_ts": 1779844023725,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 177,
+          "kind": "bus",
+          "line": "77",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "ghost"
+          ],
+          "evidence": null,
+          "ts": 1779844023725,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmse6rdcwg2s",
+          "resolved_post_url": null,
+          "bot_description": "Route 77 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between buses is 3.8x the scheduled wait",
+            "3 of 9 buses missing this past hour"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmsa2hmli42h",
       "kind": "train",
