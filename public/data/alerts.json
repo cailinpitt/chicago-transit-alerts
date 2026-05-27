@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779846969480,
+  "generated_at": 1779847282013,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -63,7 +63,7 @@
       "cta": {
         "alert_id": "115169",
         "headline": "Brown, Red and Purple Line Service Running with Delays near Belmont",
-        "short_description": "Brown, Red and Purple trains are running w/major delays following an earlier mechanical problem at Belmont.",
+        "short_description": "Brown, Red and Purple trains are running w/significant delays following an earlier mechanical problem at Belmont.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsa2hmli42h",
         "resolved_reply_url": null,
         "first_seen_ts": 1779840903692,
@@ -106,6 +106,14 @@
             "ts": 1779846903016,
             "headline": "Brown, Red and Purple Line Service Running with Delays near Belmont",
             "short_description": "Brown, Red and Purple trains are running w/major delays following an earlier mechanical problem at Belmont.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          },
+          {
+            "ts": 1779847262973,
+            "headline": "Brown, Red and Purple Line Service Running with Delays near Belmont",
+            "short_description": "Brown, Red and Purple trains are running w/significant delays following an earlier mechanical problem at Belmont.",
             "affected_from_station": null,
             "affected_to_station": null,
             "affected_direction": null
