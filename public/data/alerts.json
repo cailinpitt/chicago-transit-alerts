@@ -1,7 +1,62 @@
 {
-  "generated_at": 1779916145540,
+  "generated_at": 1779916211554,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmug6qgwgz24",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1779915842040,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 422,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "from_station": "Central (Purple)",
+          "to_station": "Foster",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1,
+            "minutesSinceLastTrain": 20,
+            "lookbackMin": 21,
+            "coldThresholdMin": 16,
+            "trainsOutsideRun": 6,
+            "coldStations": 3,
+            "coldStationNames": [
+              "Central (Purple)",
+              "Noyes",
+              "Foster"
+            ],
+            "expectedTrains": 3,
+            "headwayMin": 6.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779915842040,
+          "onset_ts": 1779914642040,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmug6qgwgz24",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1-mi stretch (3 stations affected) in the last 20 min — scheduled every 7 min, ~3 trains missed (6 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmug4rujs52h",
       "kind": "bus",
