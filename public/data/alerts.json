@@ -1,20 +1,39 @@
 {
-  "generated_at": 1779840850588,
+  "generated_at": 1779840905562,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
-      "id": "3mms7ysnycv2u",
+      "id": "3mmsa2hmli42h",
       "kind": "train",
       "routes": [
-        "purple"
+        "purple",
+        "brown"
       ],
-      "first_seen_ts": 1779840602839,
+      "first_seen_ts": 1779840903692,
       "resolved_ts": null,
       "active": true,
       "sources": [
+        "cta",
         "bot"
       ],
-      "cta": null,
+      "cta": {
+        "alert_id": "115169",
+        "headline": "Kimball-bound Brown and Linden-bound Purple Line Service Delayed near Belmont",
+        "short_description": "Kimball-bound Brown and Linden-bound Purple Line trains are standing near Belmont due to a mechanical problem. Crews working to restore service.",
+        "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsa2hmli42h",
+        "resolved_reply_url": null,
+        "first_seen_ts": 1779840903692,
+        "resolved_ts": null,
+        "active": true,
+        "affected_from_station": null,
+        "affected_to_station": null,
+        "affected_direction": null,
+        "mentioned_stations": [],
+        "cta_event_start_ts": 1779840660000,
+        "cta_event_end_ts": null,
+        "cta_event_start_is_date_only": false,
+        "cta_event_end_is_date_only": false
+      },
       "observations": [
         {
           "id": 397,
