@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779841450270,
+  "generated_at": 1779841812037,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -120,13 +120,13 @@
           },
           "ts": 1779840602839,
           "onset_ts": 1779839042839,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779841322353,
+          "duration_ms": 2279514,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mms7ysnycv2u",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsavhqceh2u",
           "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 5.7-mi stretch (2 stations affected) in the last 26 min — scheduled every 11 min, ~2 trains missed (8 trains still moving elsewhere on the line)."
           ]
@@ -156,6 +156,47 @@
           "bot_evidence_bullets": [
             "One gap between trains is 3.0x the scheduled wait",
             "5 of 12 trains missing this past hour"
+          ]
+        },
+        {
+          "id": 400,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-1-inbound",
+          "from_station": "Belmont (Red/Brown/Purple)",
+          "to_station": "Armitage (Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 2.5,
+            "minutesSinceLastTrain": 19,
+            "lookbackMin": 24,
+            "coldThresholdMin": 19,
+            "trainsOutsideRun": 5,
+            "coldStations": 5,
+            "coldStationNames": [
+              "Belmont (Red/Brown/Purple)",
+              "Wellington (Brown/Purple)",
+              "Diversey (Brown/Purple)",
+              "Fullerton",
+              "Armitage (Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779841562356,
+          "onset_ts": 1779840422356,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsavfrzse24",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
           ]
         },
         {
