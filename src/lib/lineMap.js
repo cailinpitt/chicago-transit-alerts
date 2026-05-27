@@ -420,12 +420,61 @@ export function buildLineMap(
 //                  tagged with the (normalized) line keys it serves so the
 //                  renderer can decide which dots are affected.
 // Returns null when no requested line resolves to data.
+// Build the four corners of a padded bounding box around the named stations,
+// for use as the only inputs to makeProjection. Padding adds ~25% breathing
+// room on each axis so the affected area doesn't run up against the SVG edge,
+// plus a small absolute floor (≈ 0.5 km) so a single-station crop doesn't
+// collapse to a point. Returns null when no station name resolves — caller
+// falls back to projecting over the full geometry.
+function cropProjectionPoints(stationNames, lineStations) {
+  if (!Array.isArray(stationNames) || stationNames.length === 0) return null;
+  const wanted = new Set(stationNames.map((n) => normalizeStationKey(n)));
+  const hits = lineStations.filter((s) => wanted.has(normalizeStationKey(s.name)));
+  if (hits.length === 0) return null;
+
+  let minLat = Number.POSITIVE_INFINITY;
+  let maxLat = Number.NEGATIVE_INFINITY;
+  let minLon = Number.POSITIVE_INFINITY;
+  let maxLon = Number.NEGATIVE_INFINITY;
+  for (const s of hits) {
+    if (s.lat < minLat) minLat = s.lat;
+    if (s.lat > maxLat) maxLat = s.lat;
+    if (s.lon < minLon) minLon = s.lon;
+    if (s.lon > maxLon) maxLon = s.lon;
+  }
+  const latPad = (maxLat - minLat) * 0.25 + 0.005;
+  const lonPad = (maxLon - minLon) * 0.25 + 0.005;
+  return [
+    [minLat - latPad, minLon - lonPad],
+    [minLat - latPad, maxLon + lonPad],
+    [maxLat + latPad, minLon - lonPad],
+    [maxLat + latPad, maxLon + lonPad],
+  ];
+}
+
+// Loose station-name key for crop lookup: lowercase, strip trailing line
+// qualifiers ("Belmont (Red/Brown/Purple)" → "belmont"), trim whitespace.
+// Mirrors EventMap's `normalize` so callers can pass either the raw or
+// qualified form.
+function normalizeStationKey(name) {
+  if (!name) return '';
+  return String(name)
+    .toLowerCase()
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .trim();
+}
+
 /**
  * @param {string[]} lineKeys full-name line keys ('purple', 'pink', …)
  * @param {object} [options]
  * @param {number} [options.maxWidth]
  * @param {number} [options.maxHeight]
  * @param {number} [options.margin]
+ * @param {string[]} [options.cropToStationNames] When provided, the projection's
+ *   bounding box is computed from these stations + a buffer instead of the full
+ *   line geometries. Tracks/stations outside this box still get projected (and
+ *   so are clipped by the SVG viewBox) — used to zoom into just the affected
+ *   area on an incident map so dense urban clusters don't squish together.
  * @returns {{
  *   width: number,
  *   height: number,
@@ -433,7 +482,10 @@ export function buildLineMap(
  *   stations: Array<{ name: string, slug: string|null, lines: string[], x: number, y: number }>,
  * } | null}
  */
-export function buildMultiLineMap(lineKeys, { maxWidth = 720, maxHeight = 420, margin = 24 } = {}) {
+export function buildMultiLineMap(
+  lineKeys,
+  { maxWidth = 720, maxHeight = 420, margin = 24, cropToStationNames = null } = {},
+) {
   const keys = [...new Set((lineKeys || []).filter((k) => TRAIN_LINE_ORDER.includes(k)))];
   if (keys.length === 0) return null;
 
@@ -451,14 +503,24 @@ export function buildMultiLineMap(lineKeys, { maxWidth = 720, maxHeight = 420, m
     (s) => Array.isArray(s.lines) && s.lines.some((l) => shorts.has(l)),
   );
 
-  const points = [];
-  for (const s of lineStations) points.push([s.lat, s.lon]);
-  for (const d of drawable) {
-    for (const seg of d.segs) {
-      for (const p of seg) points.push(p);
+  // Either project over the affected area (with buffer for context) or the full
+  // line geometries. The crop path uses the four corners of the padded
+  // bounding box as the only projection points so off-screen geometry can't
+  // expand the box back out.
+  let projectionPoints;
+  const cropped = cropProjectionPoints(cropToStationNames, lineStations);
+  if (cropped) {
+    projectionPoints = cropped;
+  } else {
+    projectionPoints = [];
+    for (const s of lineStations) projectionPoints.push([s.lat, s.lon]);
+    for (const d of drawable) {
+      for (const seg of d.segs) {
+        for (const p of seg) projectionPoints.push(p);
+      }
     }
   }
-  const proj = makeProjection(points, { maxWidth, maxHeight, margin, rotate: false });
+  const proj = makeProjection(projectionPoints, { maxWidth, maxHeight, margin, rotate: false });
   if (!proj) return null;
 
   const projectedStations = lineStations.map((s) => ({

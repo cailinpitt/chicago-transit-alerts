@@ -29,13 +29,21 @@ export default function MultiLineEventMap({
   active = false,
   sharedTrackage = false,
 }) {
-  // lineKeys is a fresh array each render; key the memo on its contents so the
-  // map only rebuilds when the affected lines actually change.
+  // lineKeys and segments are fresh arrays each render; key the memo on their
+  // contents so the map only rebuilds when the affected lines or stretches
+  // actually change.
   const lineKeysKey = (Array.isArray(lineKeys) ? lineKeys : []).join(',');
-  // biome-ignore lint/correctness/useExhaustiveDependencies: lineKeysKey captures lineKeys identity
+  const cropNames = (segments || []).flatMap((s) => [s.from, s.to]).filter(Boolean);
+  const cropKey = cropNames.join('|');
+  // biome-ignore lint/correctness/useExhaustiveDependencies: lineKeysKey + cropKey capture identity
   const map = useMemo(
-    () => buildMultiLineMap(lineKeys, { maxWidth: 720, maxHeight: 420 }),
-    [lineKeysKey],
+    () =>
+      buildMultiLineMap(lineKeys, {
+        maxWidth: 720,
+        maxHeight: 420,
+        cropToStationNames: cropNames,
+      }),
+    [lineKeysKey, cropKey],
   );
 
   if (!map) return null;
@@ -117,8 +125,11 @@ export default function MultiLineEventMap({
   }
   // On-segment length per stripe, in px along the path. Each line in an N-line
   // group is "on" for DASH px then "off" for DASH*(N-1) px, offset by its index
-  // — so the N colors tile the line continuously with no gaps.
-  const DASH = 9;
+  // — so the N colors tile the line continuously with no gaps. Longer dashes
+  // give each color a continuous run that's easier to read than rapid-fire
+  // alternation, which mushes into a single warm-pink blur on Brown/Red/Purple
+  // shared trackage.
+  const DASH = 16;
   const stretchPaths = [...stretchGroups.values()].flatMap((group) => {
     const d = group[0].d;
     if (group.length === 1) {
@@ -198,7 +209,7 @@ export default function MultiLineEventMap({
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label={`Affected stretches across ${map.tracksByLine.length} train lines`}
-              className="block w-full h-auto"
+              className="block w-full h-auto overflow-hidden"
             >
               <title>{`Affected stretches across ${map.tracksByLine.length} train lines`}</title>
               {/* Faint full tracks, one set per affected line in its color. */}
