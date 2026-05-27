@@ -1,7 +1,64 @@
 {
-  "generated_at": 1779849493071,
+  "generated_at": 1779852730406,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmsl2s4auw2c",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1779852482646,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 410,
+          "kind": "train",
+          "line": "red",
+          "direction": "all",
+          "from_station": "Bryn Mawr",
+          "to_station": "Wilson",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.7,
+            "minutesSinceLastTrain": 20,
+            "lookbackMin": 24,
+            "coldThresholdMin": 19,
+            "trainsOutsideRun": 11,
+            "coldStations": 5,
+            "coldStationNames": [
+              "Bryn Mawr",
+              "Berwyn",
+              "Argyle",
+              "Lawrence",
+              "Wilson"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779852482646,
+          "onset_ts": 1779851282646,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsl2s4auw2c",
+          "resolved_post_url": null,
+          "bot_description": "Red Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.7-mi stretch (5 stations affected) in the last 20 min — scheduled every 8 min, ~2 trains missed (11 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmsh23eygh2x",
       "kind": "train",
