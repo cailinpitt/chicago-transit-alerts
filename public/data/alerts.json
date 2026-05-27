@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779845770868,
+  "generated_at": 1779846249971,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -318,13 +318,13 @@
           },
           "ts": 1779842162187,
           "onset_ts": 1779840962187,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779845762431,
+          "duration_ms": 4800244,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsbha3vil2a",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmseznngqm2s",
           "bot_description": "Red Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (2 stations affected) in the last 20 min — scheduled every 6 min, ~3 trains missed (16 trains still moving elsewhere on the line)."
           ]
