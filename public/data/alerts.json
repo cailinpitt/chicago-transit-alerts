@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779891850416,
+  "generated_at": 1779900277310,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -629,7 +629,9 @@
       "id": "3mmsa2hmli42h",
       "kind": "train",
       "routes": [
-        "brown"
+        "red",
+        "brown",
+        "purple"
       ],
       "first_seen_ts": 1779838622239,
       "resolved_ts": 1779849063757,
@@ -1092,11 +1094,11 @@
       "id": "3mmra7af2nx2s",
       "kind": "train",
       "routes": [
-        "purple",
-        "pink",
-        "green",
         "brown",
-        "orange"
+        "green",
+        "orange",
+        "pink",
+        "purple"
       ],
       "first_seen_ts": 1779806702918,
       "resolved_ts": 1779807183505,
@@ -1353,8 +1355,8 @@
       "id": "3mmn7ohykrp2c",
       "kind": "train",
       "routes": [
-        "pink",
-        "green"
+        "green",
+        "pink"
       ],
       "first_seen_ts": 1779668702517,
       "resolved_ts": 1779676863037,
@@ -1601,6 +1603,7 @@
       "id": "3mmmoldbcdk2h",
       "kind": "train",
       "routes": [
+        "red",
         "yellow"
       ],
       "first_seen_ts": 1779650343264,
@@ -3237,11 +3240,11 @@
       "id": "3mmhrdjygur2i",
       "kind": "train",
       "routes": [
-        "purple",
-        "pink",
-        "green",
         "brown",
-        "orange"
+        "green",
+        "orange",
+        "pink",
+        "purple"
       ],
       "first_seen_ts": 1779481022585,
       "resolved_ts": 1779482463466,
@@ -5108,8 +5111,8 @@
       "id": "3mmcdnxcto42s",
       "kind": "train",
       "routes": [
-        "pink",
-        "green"
+        "green",
+        "pink"
       ],
       "first_seen_ts": 1779295022627,
       "resolved_ts": 1779295262673,
@@ -6621,11 +6624,11 @@
       "id": "3mm4ujxoivt2c",
       "kind": "train",
       "routes": [
-        "purple",
-        "pink",
-        "green",
         "brown",
-        "orange"
+        "green",
+        "orange",
+        "pink",
+        "purple"
       ],
       "first_seen_ts": 1779106022858,
       "resolved_ts": 1779107943565,
@@ -6860,6 +6863,7 @@
       "id": "3mm3x5esaxv2q",
       "kind": "train",
       "routes": [
+        "blue",
         "pink"
       ],
       "first_seen_ts": 1779075423568,
@@ -7588,8 +7592,8 @@
       "id": "3mlylftrwvw2s",
       "kind": "train",
       "routes": [
-        "pink",
-        "green"
+        "green",
+        "pink"
       ],
       "first_seen_ts": 1778957282577,
       "resolved_ts": 1778965263743,
@@ -8058,8 +8062,8 @@
       "id": "3mlxvq2fof22u",
       "kind": "train",
       "routes": [
-        "pink",
-        "green"
+        "green",
+        "pink"
       ],
       "first_seen_ts": 1778936463725,
       "resolved_ts": 1778943183937,
@@ -9573,8 +9577,8 @@
       "id": "3mlqnd4w37n2s",
       "kind": "train",
       "routes": [
-        "pink",
-        "green"
+        "green",
+        "pink"
       ],
       "first_seen_ts": 1778686922078,
       "resolved_ts": 1778688124481,
