@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779845344777,
+  "generated_at": 1779845770868,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -327,6 +327,46 @@
           "bot_resolved_description": null,
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (2 stations affected) in the last 20 min — scheduled every 6 min, ~3 trains missed (16 trains still moving elsewhere on the line)."
+          ]
+        },
+        {
+          "id": 405,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-1-inbound",
+          "from_station": "Damen (Brown)",
+          "to_station": "Addison (Brown)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 2,
+            "minutesSinceLastTrain": null,
+            "lookbackMin": 24,
+            "coldThresholdMin": 19,
+            "trainsOutsideRun": 10,
+            "coldStations": 4,
+            "coldStationNames": [
+              "Damen (Brown)",
+              "Montrose (Brown)",
+              "Irving Park (Brown)",
+              "Addison (Brown)"
+            ],
+            "expectedTrains": 3,
+            "headwayMin": 7.75,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779845522942,
+          "onset_ts": 1779844382942,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmselfwafh2i",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 2-mi stretch (4 stations affected) in the last 24 min — scheduled every 8 min, ~3 trains missed (10 trains still moving elsewhere on the line)."
           ]
         }
       ]
