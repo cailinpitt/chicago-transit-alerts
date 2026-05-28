@@ -281,6 +281,11 @@ function relatedDescription(incident, stationIndex) {
       <>
         <StationName name={primary.from_station} stationIndex={stationIndex} /> →{' '}
         <StationName name={primary.to_station} stationIndex={stationIndex} />
+        {primary.direction_label && (
+          <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-500 font-normal">
+            ({primary.direction_label})
+          </span>
+        )}
       </>
     );
   }
@@ -426,7 +431,8 @@ function describeText(incident) {
   if (incident.cta) return incident.cta.headline;
   const { primary } = splitObservations(incident);
   if (primary?.from_station && primary?.to_station) {
-    return `${displayStationName(primary.from_station)} → ${displayStationName(primary.to_station)}`;
+    const seg = `${displayStationName(primary.from_station)} → ${displayStationName(primary.to_station)}`;
+    return primary.direction_label ? `${seg} (${primary.direction_label})` : seg;
   }
   if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
     return `Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
@@ -443,6 +449,11 @@ function describe(incident, stationIndex) {
       <>
         <StationName name={primary.from_station} stationIndex={stationIndex} /> →{' '}
         <StationName name={primary.to_station} stationIndex={stationIndex} />
+        {primary.direction_label && (
+          <span className="ml-2 text-base font-normal text-slate-500 dark:text-slate-400">
+            ({primary.direction_label})
+          </span>
+        )}
       </>
     );
   }

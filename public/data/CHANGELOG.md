@@ -5,6 +5,20 @@ Breaking and notable changes to the published data at
 Newest first. If you build on this data, watch this file before pinning to the
 format.
 
+## 2026-05-27 — `observations[].direction_label` (additive)
+
+Each bot observation now carries a pre-rendered **`direction_label`** string
+(e.g. `"toward Kimball"`, `"toward the Loop"`, `"toward 95th/Dan Ryan"`)
+alongside the existing opaque `direction` key. `null` when the observation
+carries no usable direction info (single-branch lines, buses, or unrecognized
+direction keys).
+
+This lets renderers distinguish opposite-direction bot detections on the same
+line (e.g. two simultaneous Pink Line pulse-cold posts, one inbound and one
+outbound through West Loop) without having to know per-line terminus geometry.
+Consumers that don't need it can ignore the field — the underlying `direction`
+key is unchanged.
+
 ## 2026-05-23 — Unified incident model (breaking)
 
 `alerts.json` now publishes a single top-level **`incidents[]`** array,

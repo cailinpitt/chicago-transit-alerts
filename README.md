@@ -176,6 +176,7 @@ The top-level array is `incidents` — **one object per real-world disruption**.
           "signals": ["gap", "bunching"],   // populated for roundups
           "from_station": "Howard",
           "to_station": "Loyola",
+          "direction_label": "toward the Loop", // pre-rendered "toward <terminus>"; null when unavailable
           "ts": 1715199000000,          // when the bot posted; matches post_url
           "onset_ts": 1715197860000,    // disruption start, back-dated to the last observed train
                                         // (pulse-cold/thin-gap); null when not back-dated — use ts

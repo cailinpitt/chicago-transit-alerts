@@ -112,6 +112,10 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   // The description is either highlightable text (alerts/roundups) or a JSX
   // fragment (segment endpoints, where station names may render as links).
   let description;
+  // Pre-computed "toward <terminus>" string on the bot observation. Lets two
+  // pulse-cold posts on opposite directions of the same line read as distinct
+  // at a glance instead of looking identical.
+  const directionLabel = primary?.direction_label ?? null;
   if (cta) {
     description = <HighlightedText text={cta.headline} query={searchQuery} />;
   } else if (obsFrom && obsTo) {
@@ -119,6 +123,11 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
       <>
         <StationName name={obsFrom} stationIndex={stationIndex} searchQuery={searchQuery} /> →{' '}
         <StationName name={obsTo} stationIndex={stationIndex} searchQuery={searchQuery} />
+        {directionLabel && (
+          <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-500 font-normal">
+            ({directionLabel})
+          </span>
+        )}
       </>
     );
   } else if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
@@ -270,6 +279,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
               <StationName name={obsFrom} stationIndex={stationIndex} searchQuery={searchQuery} /> →{' '}
               <StationName name={obsTo} stationIndex={stationIndex} searchQuery={searchQuery} />
+              {directionLabel && <span className="ml-1.5">({directionLabel})</span>}
             </p>
           )}
 
