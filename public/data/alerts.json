@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779974587290,
+  "generated_at": 1779976144906,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -64,8 +64,8 @@
         "66"
       ],
       "first_seen_ts": 1779972064219,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779975542708,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -87,13 +87,13 @@
           "evidence": null,
           "ts": 1779972064219,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1779975542708,
+          "duration_ms": 3478489,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmw3re3pkm2q",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmw5yw32z524",
           "bot_description": "Route 66 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Route 66 service appears to be back to normal.",
           "bot_evidence_bullets": [
             "8 of 18 buses missing this past hour",
             "3 buses recently bunched together"
