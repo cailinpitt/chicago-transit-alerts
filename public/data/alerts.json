@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779973693032,
+  "generated_at": 1779973745509,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -53,6 +53,50 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1-mi stretch (2 stations affected) in the last 16 min — scheduled every 4 min, ~3 trains missed (8 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmw3re3pkm2q",
+      "kind": "bus",
+      "routes": [
+        "66"
+      ],
+      "first_seen_ts": 1779972064219,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 188,
+          "kind": "bus",
+          "line": "66",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1779972064219,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmw3re3pkm2q",
+          "resolved_post_url": null,
+          "bot_description": "Route 66 service appears degraded — fewer buses than scheduled and buses running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "8 of 18 buses missing this past hour",
+            "3 buses recently bunched together"
           ]
         }
       ]
