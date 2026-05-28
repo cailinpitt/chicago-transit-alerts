@@ -1,7 +1,62 @@
 {
-  "generated_at": 1779977347037,
+  "generated_at": 1779977773755,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmw7jeuofi2c",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1779977522001,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 430,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Kimball",
+          "from_station": "Sedgwick (Brown/Purple)",
+          "to_station": "Chicago (Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 2.5,
+            "minutesSinceLastTrain": 17,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 7,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Sedgwick (Brown/Purple)",
+              "Chicago (Brown/Purple)"
+            ],
+            "expectedTrains": 3,
+            "headwayMin": 5.766666666666667,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779977522001,
+          "onset_ts": 1779976502001,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmw7jeuofi2c",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 2.5-mi stretch (2 stations affected) in the last 17 min — scheduled every 6 min, ~3 trains missed (7 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmw74nlynz2c",
       "kind": "train",
