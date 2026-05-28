@@ -164,7 +164,8 @@ function flattenIncidentAlert(inc) {
  * @property {number} id
  * @property {'train' | 'bus'} kind
  * @property {string} line                  'red'/'g'/etc. for trains, route number string for buses.
- * @property {string | null} [direction]
+ * @property {string | null} [direction]     Opaque per-line direction key (e.g. 'branch-0-outbound', 'branch-len116-41722--87624', 'all'). Use `direction_label` for display.
+ * @property {string | null} [direction_label] Pre-rendered 'toward <terminus>' string for the renderer (e.g. 'toward Kimball', 'toward the Loop', 'toward 95th/Dan Ryan'). Null when `direction` carries no usable terminus info (single-branch lines, buses, unrecognized keys).
  * @property {string | null} [from_station]
  * @property {string | null} [to_station]
  * @property {'roundup' | string} [detection_source]  'roundup' = multi-signal correlation.

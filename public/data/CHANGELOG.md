@@ -5,7 +5,7 @@ Breaking and notable changes to the published data at
 Newest first. If you build on this data, watch this file before pinning to the
 format.
 
-## 2026-05-27 — `observations[].direction_label` (additive)
+## 2026-05-27 — `direction_label` (additive)
 
 Each bot observation now carries a pre-rendered **`direction_label`** string
 (e.g. `"toward Kimball"`, `"toward the Loop"`, `"toward 95th/Dan Ryan"`)
@@ -18,6 +18,14 @@ line (e.g. two simultaneous Pink Line pulse-cold posts, one inbound and one
 outbound through West Loop) without having to know per-line terminus geometry.
 Consumers that don't need it can ignore the field — the underlying `direction`
 key is unchanged.
+
+- **`alerts.json`** — new field at `incidents[].observations[].direction_label`.
+- **`alerts.csv`** — new column `direction_label` inserted immediately after
+  the existing `direction` column. Populated on `observation` rows only; blank
+  on `alert` rows (CTA-side alerts don't carry a parallel label). Header-based
+  CSV readers (pandas `read_csv`, etc.) are unaffected; positional readers
+  pinned to column index will need to shift everything after `direction` by
+  one slot.
 
 ## 2026-05-23 — Unified incident model (breaking)
 

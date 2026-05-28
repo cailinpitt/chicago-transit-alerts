@@ -17,7 +17,8 @@ export const CSV_COLUMNS = [
   'signals', // observations only, semicolon-separated
   'from_station',
   'to_station',
-  'direction',
+  'direction', // opaque per-line direction key (alerts: cardinal; observations: 'branch-N-…' / 'branch-len…')
+  'direction_label', // observations only — pre-rendered 'toward <terminus>' string; blank otherwise
   'first_seen_ts', // ISO 8601 (UTC) — when the bot first posted; matches post_url
   // ISO 8601 (UTC) or empty — disruption start, back-dated to the last observed
   // train for absence-style observations (pulse-cold, thin-gap). Empty when not
@@ -65,6 +66,7 @@ export function alertRow(a) {
     from_station: a.affected_from_station ?? '',
     to_station: a.affected_to_station ?? '',
     direction: a.affected_direction ?? '',
+    direction_label: '', // observations-only field; blank for alert rows
     first_seen_ts: isoOrEmpty(a.first_seen_ts),
     onset_ts: '', // alerts carry CTA's own start in cta_event_start_ts, not onset_ts
     resolved_ts: isoOrEmpty(a.resolved_ts),
@@ -96,6 +98,7 @@ export function observationRow(o) {
     from_station: o.from_station ?? '',
     to_station: o.to_station ?? '',
     direction: o.direction ?? '',
+    direction_label: o.direction_label ?? '',
     first_seen_ts: isoOrEmpty(o.ts),
     onset_ts: isoOrEmpty(o.onset_ts),
     resolved_ts: isoOrEmpty(o.resolved_ts),
