@@ -1,7 +1,63 @@
 {
-  "generated_at": 1779984546930,
+  "generated_at": 1779985210333,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmwggzfgn72h",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1779984962798,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 434,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Kimball",
+          "from_station": "Damen (Brown)",
+          "to_station": "Irving Park (Brown)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.5,
+            "minutesSinceLastTrain": 19,
+            "lookbackMin": 24,
+            "coldThresholdMin": 19,
+            "trainsOutsideRun": 4,
+            "coldStations": 3,
+            "coldStationNames": [
+              "Damen (Brown)",
+              "Montrose (Brown)",
+              "Irving Park (Brown)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779984962798,
+          "onset_ts": 1779983822798,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmwggzfgn72h",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.5-mi stretch (3 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmwftb2up22u",
       "kind": "train",
