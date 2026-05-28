@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780005489770,
+  "generated_at": 1780005905943,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -66,8 +66,8 @@
         "blue"
       ],
       "first_seen_ts": 1780004223173,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780005664027,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -76,10 +76,10 @@
         "headline": "Forest Park-bound Blue Line Service Delayed at Rosemont",
         "short_description": "Forest Park-bound Blue Line trains are standing due to police activity at Rosemont.. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmwy5rj43i2q",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmwzpudnx72i",
         "first_seen_ts": 1780004223173,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780005664027,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
