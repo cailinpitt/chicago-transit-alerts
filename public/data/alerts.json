@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779973745509,
+  "generated_at": 1779974587290,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -108,8 +108,8 @@
         "orange"
       ],
       "first_seen_ts": 1779970802657,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1779974342632,
+      "active": false,
       "sources": [
         "cta",
         "bot"
@@ -119,10 +119,10 @@
         "headline": "Orange Line service Delayed near Ashland",
         "short_description": "Orange Line trains are standing near Ashland due to an unauthorized person on the tracks. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmw2ghuvi72s",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmw4kilhwj2s",
         "first_seen_ts": 1779972302649,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1779974342632,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
