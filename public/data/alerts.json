@@ -1,7 +1,62 @@
 {
-  "generated_at": 1779972304953,
+  "generated_at": 1779972609047,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmw2pi6fn62l",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1779972362297,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 427,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Kimball",
+          "from_station": "Paulina",
+          "to_station": "Southport",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1,
+            "minutesSinceLastTrain": 16,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 8,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Paulina",
+              "Southport"
+            ],
+            "expectedTrains": 3,
+            "headwayMin": 4.333333333333334,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1779972362297,
+          "onset_ts": 1779971402297,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmw2pi6fn62l",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1-mi stretch (2 stations affected) in the last 16 min — scheduled every 4 min, ~3 trains missed (8 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmw2ghuvi72s",
       "kind": "train",
