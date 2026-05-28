@@ -1,7 +1,41 @@
 {
-  "generated_at": 1779926945745,
+  "generated_at": 1779928145396,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmurcgapog2c",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1779928143785,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "cta"
+      ],
+      "cta": {
+        "alert_id": "115188",
+        "headline": "Howard-bound Red Line Service Delayed at Garfield",
+        "short_description": "Howard-bound Red Line trains are standing at Garfield due to a mechanical problem on a train. Crews working to restore service.",
+        "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmurcgapog2c",
+        "resolved_reply_url": null,
+        "first_seen_ts": 1779928143785,
+        "resolved_ts": null,
+        "active": true,
+        "affected_from_station": null,
+        "affected_to_station": null,
+        "affected_direction": null,
+        "mentioned_stations": [
+          "Garfield (Red)"
+        ],
+        "cta_event_start_ts": 1779927660000,
+        "cta_event_end_ts": null,
+        "cta_event_start_is_date_only": false,
+        "cta_event_end_is_date_only": false
+      },
+      "observations": []
+    },
     {
       "id": "3mmuq6oahg52s",
       "kind": "bus",
