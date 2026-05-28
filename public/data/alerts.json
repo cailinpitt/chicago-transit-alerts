@@ -1,5 +1,5 @@
 {
-  "generated_at": 1779928606755,
+  "generated_at": 1779929345521,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -35,6 +35,49 @@
         "cta_event_end_is_date_only": false
       },
       "observations": []
+    },
+    {
+      "id": "3mmusg6buvg2c",
+      "kind": "bus",
+      "routes": [
+        "66"
+      ],
+      "first_seen_ts": 1779927664001,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 185,
+          "kind": "bus",
+          "line": "66",
+          "direction": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1779927664001,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmusg6buvg2c",
+          "resolved_post_url": null,
+          "bot_description": "Route 66 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between buses is 5.1x the scheduled wait",
+            "2 buses recently bunched together"
+          ]
+        }
+      ]
     },
     {
       "id": "3mmuq6oahg52s",
