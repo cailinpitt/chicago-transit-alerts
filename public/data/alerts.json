@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780022682370,
+  "generated_at": 1780022772201,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -234,8 +234,8 @@
         "red"
       ],
       "first_seen_ts": 1780021082821,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780021442757,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -271,13 +271,13 @@
           },
           "ts": 1780021082821,
           "onset_ts": 1780019942821,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780021442757,
+          "duration_ms": 1499936,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxi3hmses2m",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjgf4nfz2m",
           "bot_description": "Red Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 4.7-mi stretch (4 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (12 trains still moving elsewhere on the line)."
           ]
@@ -291,8 +291,8 @@
         "blue"
       ],
       "first_seen_ts": 1780021082821,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780021442757,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -327,13 +327,13 @@
           },
           "ts": 1780021082821,
           "onset_ts": 1780019882821,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780021442757,
+          "duration_ms": 1559936,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxi3kooce25",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjghd2l52v",
           "bot_description": "Blue Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.2-mi stretch (3 stations affected) in the last 20 min — scheduled every 8 min, ~2 trains missed (17 trains still moving elsewhere on the line)."
           ]
