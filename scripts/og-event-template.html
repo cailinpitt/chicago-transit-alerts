@@ -58,6 +58,16 @@
         background: var(--accent);
         color: var(--accent-text);
       }
+      /* When the incident occurred. Lower-case + no tracking so the date reads
+         as a date rather than a shouty label, and a lighter fill so it sits
+         behind the state + line chips in the visual hierarchy. */
+      .badge.date {
+        background: #f1f5f9;
+        color: #475569;
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 600;
+      }
       .badge .dot {
         width: 9px;
         height: 9px;
@@ -117,6 +127,7 @@
       <div class="badge-row">
         <div class="badge"><span class="dot"></span>__BADGE__</div>
         __LINE_CHIPS__
+        __DATE_BADGE__
       </div>
       <h1 class="title">__TITLE__</h1>
       <p class="subtitle">__SUBTITLE__</p>

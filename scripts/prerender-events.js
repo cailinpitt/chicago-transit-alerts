@@ -21,6 +21,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { normalizeTrainLine, TRAIN_LINES } from '../src/lib/ctaLines.js';
+import { formatDate, formatTime } from '../src/lib/format.js';
 import {
   flattenIncidents,
   formatRoutesLabel,
@@ -137,6 +138,17 @@ function describeObservation(obs) {
       ? phrases[0]
       : `${phrases.slice(0, -1).join(', ')} and ${phrases[phrases.length - 1]}`;
   return `Bot detected ${list} on this route.`;
+}
+
+// When the incident first occurred, for the OG card — matches the event
+// page's "First seen" line ("May 14, 2024 · 4:43 PM", Chicago time) so a
+// shared card reads the same as the page it links to, and a months-old
+// incident no longer looks like it's happening right now. Uses the same
+// start instant as the JSON-LD `startDate`.
+function formatCardDate(incident) {
+  const ts = incident.first_seen_ts ?? incident.ts ?? null;
+  if (ts == null) return null;
+  return `${formatDate(ts)} · ${formatTime(ts)}`;
 }
 
 function summarize(incident) {
@@ -308,11 +320,16 @@ function fillTemplate(tpl, fields) {
         `<div class="badge line" style="background: ${c.color}; color: ${c.text};">${escHtml(c.label)}</div>`,
     )
     .join('\n        ');
+  // Date pill — omitted entirely when the incident carries no usable
+  // timestamp, so the badge row just collapses rather than showing an empty
+  // chip.
+  const dateBadgeHtml = fields.date ? `<div class="badge date">${escHtml(fields.date)}</div>` : '';
   return tpl
     .replaceAll('__ACCENT__', fields.accent.color)
     .replaceAll('__ACCENT_SOFT__', fields.accent.soft)
     .replaceAll('__ACCENT_TEXT__', fields.accent.text)
     .replaceAll('__LINE_CHIPS__', chipsHtml)
+    .replaceAll('__DATE_BADGE__', dateBadgeHtml)
     .replaceAll('__BADGE__', fields.badge)
     .replaceAll('__TITLE__', escHtml(fields.title))
     .replaceAll('__SUBTITLE__', escHtml(fields.subtitle))
@@ -321,9 +338,9 @@ function fillTemplate(tpl, fields) {
 
 // Hash the inputs that affect the rendered PNG. If this is unchanged from the
 // last build's signature, we can skip Playwright entirely for this event.
-function signatureFor({ id, title, subtitle, badge, accent, templateHash }) {
+function signatureFor({ id, title, subtitle, badge, date, accent, templateHash }) {
   const h = createHash('sha256');
-  h.update(JSON.stringify({ id, title, subtitle, badge, accent, templateHash }));
+  h.update(JSON.stringify({ id, title, subtitle, badge, date, accent, templateHash }));
   return h.digest('hex');
 }
 
@@ -387,6 +404,7 @@ async function main() {
     seenIds.add(id);
     const accent = accentFor(incident);
     const { title, subtitle } = summarize(incident);
+    const date = formatCardDate(incident);
 
     // Variant A: canonical /event/:id (badge reflects current state).
     const canonicalBadge = incident.active ? 'Active' : 'Archived';
@@ -395,6 +413,7 @@ async function main() {
       title,
       subtitle,
       badge: canonicalBadge,
+      date,
       accent,
       templateHash,
     });
@@ -416,7 +435,7 @@ async function main() {
     } else {
       renders.push({
         id,
-        html: fillTemplate(template, { id, title, subtitle, badge: canonicalBadge, accent }),
+        html: fillTemplate(template, { id, title, subtitle, badge: canonicalBadge, date, accent }),
         outDir: canonicalDir,
         cacheDir,
         cachedPng,
@@ -452,6 +471,7 @@ async function main() {
         title,
         subtitle,
         badge: 'Archived',
+        date,
         accent,
         templateHash,
       });
@@ -466,7 +486,7 @@ async function main() {
       } else {
         renders.push({
           id: `${id}/resolved`,
-          html: fillTemplate(template, { id, title, subtitle, badge: 'Archived', accent }),
+          html: fillTemplate(template, { id, title, subtitle, badge: 'Archived', date, accent }),
           outDir: resolvedDir,
           cacheDir,
           cachedPng: resolvedCachedPng,
