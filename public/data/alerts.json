@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780026649559,
+  "generated_at": 1780030145499,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -143,8 +143,8 @@
         "9"
       ],
       "first_seen_ts": 1780019163626,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780029543695,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -166,13 +166,13 @@
           "evidence": null,
           "ts": 1780019163626,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780029543695,
+          "duration_ms": 10380069,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxhe4bmfv2v",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxqca7ees2m",
           "bot_description": "Route 9 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Route 9 service appears to be back to normal.",
           "bot_evidence_bullets": [
             "2 of 11 buses missing this past hour",
             "One gap between buses is 4.3x the scheduled wait"
