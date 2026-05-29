@@ -434,73 +434,66 @@ export default function LinePage({ kind, lineId }) {
                 (reliability?.currentStreakDays ?? 0) > 0 ||
                 (disruption?.disruptedMinutes ?? 0) > 0) && (
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 px-1">
-                  <div className="space-y-1">
-                    <p className="text-sm text-slate-600 dark:text-slate-300">
-                      <strong className="text-slate-800 dark:text-slate-100">
-                        {summary.weeklyCount}
-                      </strong>{' '}
-                      incident{summary.weeklyCount === 1 ? '' : 's'} in the last 7 days
-                      {(reliability?.currentStreakDays ?? 0) >= 2 && (
-                        <>
-                          <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
-                          <span>{reliability.currentStreakDays} days since last incident</span>
-                        </>
-                      )}
-                    </p>
-                    {disruption && disruption.disruptedMinutes > 0 && (
-                      <p
-                        className="text-xs text-slate-500 dark:text-slate-400"
-                        title={`Total line-time spent in a detected disruption over the last 30 days, against an assumed ${21}h/day service window.`}
-                      >
-                        <strong className="text-slate-700 dark:text-slate-200">
-                          {formatMinutesAsHours(disruption.disruptedMinutes)}
-                        </strong>{' '}
-                        disrupted over the last 30 days
-                        {disruption.ratio > 0 && (
-                          <>
-                            {' · '}
-                            <strong className="text-slate-700 dark:text-slate-200">
-                              {disruption.ratio < 0.001
-                                ? '<0.1%'
-                                : `${(disruption.ratio * 100).toFixed(disruption.ratio < 0.01 ? 2 : 1)}%`}
-                            </strong>{' '}
-                            of service hours
-                          </>
-                        )}
-                      </p>
-                    )}
-                    {reliability && reliability.incidentFreeDays < reliability.totalDays && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        <strong className="text-slate-700 dark:text-slate-200">
-                          {reliability.incidentFreeDays} of {reliability.totalDays} days
-                        </strong>{' '}
-                        incident-free (90d)
-                        {reliability.longestStreakDays >= 2 && (
-                          <>
-                            <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
-                            <span>
-                              longest streak{' '}
-                              <strong className="text-slate-700 dark:text-slate-200">
-                                {reliability.longestStreakDays} day
-                                {reliability.longestStreakDays === 1 ? '' : 's'}
-                              </strong>
-                            </span>
-                          </>
-                        )}
-                        {reliability.medianGapHours != null && (
-                          <>
-                            <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>
-                            <span>
-                              median{' '}
-                              <strong className="text-slate-700 dark:text-slate-200">
-                                {formatGap(reliability.medianGapHours)}
-                              </strong>{' '}
-                              between incidents
-                            </span>
-                          </>
-                        )}
-                      </p>
-                    )}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {(() => {
+                      // Scannable stat grid (mirrors the homepage's stat cards)
+                      // instead of a run-on of small text that wrapped badly on
+                      // mobile. Each cell is a bold value + a quiet label.
+                      const pct =
+                        disruption && disruption.ratio > 0
+                          ? disruption.ratio < 0.001
+                            ? '<0.1%'
+                            : `${(disruption.ratio * 100).toFixed(disruption.ratio < 0.01 ? 2 : 1)}%`
+                          : null;
+                      const cells = [{ v: String(summary.weeklyCount), l: 'in last 7 days' }];
+                      if (disruption && disruption.disruptedMinutes > 0) {
+                        cells.push({
+                          v: formatMinutesAsHours(disruption.disruptedMinutes),
+                          l: pct ? `disrupted, 30d · ${pct}` : 'disrupted, 30d',
+                        });
+                      }
+                      if (reliability) {
+                        cells.push({
+                          v: `${reliability.incidentFreeDays}/${reliability.totalDays}`,
+                          l: 'incident-free days (90d)',
+                        });
+                        if (reliability.longestStreakDays >= 2) {
+                          cells.push({
+                            v: `${reliability.longestStreakDays}d`,
+                            l: 'longest clean streak',
+                          });
+                        }
+                        if (reliability.medianGapHours != null) {
+                          cells.push({
+                            v: formatGap(reliability.medianGapHours),
+                            l: 'median between incidents',
+                          });
+                        }
+                        if (reliability.currentStreakDays >= 2) {
+                          cells.push({
+                            v: `${reliability.currentStreakDays}d`,
+                            l: 'since last incident',
+                          });
+                        }
+                      }
+                      return (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {cells.map((c) => (
+                            <div
+                              key={c.l}
+                              className="rounded-lg border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface px-3 py-2"
+                            >
+                              <div className="text-base font-semibold text-slate-800 dark:text-slate-100 tabular-nums leading-tight">
+                                {c.v}
+                              </div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                                {c.l}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                     {yoy?.enoughData && yoy.pctChange != null && (
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         <strong
