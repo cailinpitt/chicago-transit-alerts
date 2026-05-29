@@ -1,7 +1,62 @@
 {
-  "generated_at": 1780075266020,
+  "generated_at": 1780076293354,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmz3bjxx5y27",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1780076042974,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 482,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Linden",
+          "from_station": "Main",
+          "to_station": "South Boulevard",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.2,
+            "minutesSinceLastTrain": 29,
+            "lookbackMin": 30,
+            "coldThresholdMin": 25,
+            "trainsOutsideRun": 3,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Main",
+              "South Boulevard"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 10.000000000000002,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780076042974,
+          "onset_ts": 1780074302974,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmz3bjxx5y27",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.2-mi stretch (2 stations affected) in the last 29 min — scheduled every 10 min, ~2 trains missed (3 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmyzicr24623",
       "kind": "train",
