@@ -104,6 +104,22 @@ function DurationScale({ stats }) {
           style={{ left: `calc(${pct(stats.thisMs)}% - 2px)` }}
         />
       </div>
+      {/* Inline legend for the blue marker — the ticks rely on hover titles,
+          which don't exist on touch, so name the marker explicitly. */}
+      <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+        <span aria-hidden="true" className="inline-block w-2 h-2 rounded-sm bg-blue-500" />
+        <span>
+          This incident
+          {stats.thisMs != null && (
+            <>
+              {' · '}
+              <strong className="text-slate-700 dark:text-slate-200">
+                {formatDuration(stats.thisMs)}
+              </strong>
+            </>
+          )}
+        </span>
+      </div>
       <div className="flex justify-between mt-1 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
         <span>0</span>
         <span>median {formatDuration(stats.medianMs)}</span>
