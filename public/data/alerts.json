@@ -1,7 +1,118 @@
 {
-  "generated_at": 1780058412879,
+  "generated_at": 1780058899033,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmyl2yf6qs2f",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1780058642206,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 474,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Kimball",
+          "from_station": "Montrose (Brown)",
+          "to_station": "Irving Park (Brown)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.2,
+            "minutesSinceLastTrain": 15,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 7,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Montrose (Brown)",
+              "Irving Park (Brown)"
+            ],
+            "expectedTrains": 3,
+            "headwayMin": 4.3,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780058642206,
+          "onset_ts": 1780057742206,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmyl2yf6qs2f",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.2-mi stretch (2 stations affected) in the last 15 min — scheduled every 4 min, ~3 trains missed (7 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmyl34g3yy2e",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1780058642206,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 475,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Linden",
+          "from_station": "Davis",
+          "to_station": "Main",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.7,
+            "minutesSinceLastTrain": 19,
+            "lookbackMin": 23,
+            "coldThresholdMin": 18,
+            "trainsOutsideRun": 7,
+            "coldStations": 3,
+            "coldStationNames": [
+              "Davis",
+              "Dempster",
+              "Main"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.199999999999999,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780058642206,
+          "onset_ts": 1780057502206,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmyl34g3yy2e",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.7-mi stretch (3 stations affected) in the last 19 min — scheduled every 7 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmyk2pgkn52v",
       "kind": "train",
