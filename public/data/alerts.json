@@ -1,7 +1,85 @@
 {
-  "generated_at": 1780022945131,
+  "generated_at": 1780023009779,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmxjnl3jxx2k",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1780022762878,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 456,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Linden",
+          "from_station": "Linden",
+          "to_station": "Merchandise Mart (Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 16.6,
+            "minutesSinceLastTrain": null,
+            "lookbackMin": 30,
+            "coldThresholdMin": 30,
+            "trainsOutsideRun": 0,
+            "coldStations": 25,
+            "coldStationNames": [
+              "Linden",
+              "Central (Purple)",
+              "Noyes",
+              "Foster",
+              "Davis",
+              "Dempster",
+              "Main",
+              "South Boulevard",
+              "Howard",
+              "Wilson",
+              "Belmont (Red/Brown/Purple)",
+              "Wellington (Brown/Purple)",
+              "Diversey (Brown/Purple)",
+              "Fullerton",
+              "Armitage (Brown/Purple)",
+              "Sedgwick (Brown/Purple)",
+              "Chicago (Brown/Purple)",
+              "Clark/Lake",
+              "Washington/Wabash",
+              "Adams/Wabash",
+              "Harold Washington Library-State/Van Buren",
+              "LaSalle/Van Buren",
+              "Quincy",
+              "Washington/Wells",
+              "Merchandise Mart (Brown/Purple)"
+            ],
+            "expectedTrains": 2.4,
+            "headwayMin": 10,
+            "synthetic": true,
+            "held": null
+          },
+          "ts": 1780022762878,
+          "onset_ts": 1780020962878,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjnl3jxx2k",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains observed anywhere on the line in the last 30 min (25 stations affected) — scheduled every 10 min."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmxjdtk3ld2i",
       "kind": "bus",
