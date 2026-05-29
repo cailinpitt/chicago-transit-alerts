@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780060144669,
+  "generated_at": 1780060744907,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -265,8 +265,8 @@
         "purple"
       ],
       "first_seen_ts": 1780057325537,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780058767239,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -289,13 +289,13 @@
           "evidence": null,
           "ts": 1780057325537,
           "onset_ts": 1780056425537,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780058767239,
+          "duration_ms": 2341702,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmykkn5fy324",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmyms6plh42a",
           "bot_description": "Purple Line service appears degraded — trains running bunched together, a stretch of the line without trains, and longer-than-scheduled headways between trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Purple Line service appears to be back to normal.",
           "bot_evidence_bullets": [
             "2 trains recently bunched together",
             "Possible service gap forming Belmont (Red/Brown/Purple) → Diversey (Brown/Purple)",
