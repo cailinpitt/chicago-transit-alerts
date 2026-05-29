@@ -1,7 +1,52 @@
 {
-  "generated_at": 1780022681441,
+  "generated_at": 1780022682370,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmxjdtk3ld2i",
+      "kind": "bus",
+      "routes": [
+        "63"
+      ],
+      "first_seen_ts": 1780022582353,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 453,
+          "kind": "bus",
+          "line": "63",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "kind": "cold",
+            "lookbackMin": 33,
+            "expectedActive": 10.8,
+            "minHeadwayMin": 8.455
+          },
+          "ts": 1780022582353,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdtk3ld2i",
+          "resolved_post_url": null,
+          "bot_description": "Route 63 service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No buses moved through this stretch in the last 33 min."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmxjdoaubz2m",
       "kind": "bus",
