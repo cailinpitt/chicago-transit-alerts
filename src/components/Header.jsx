@@ -79,9 +79,12 @@ export default function Header({
 
   return (
     <header className="bg-white dark:bg-gh-surface border-b border-slate-200 dark:border-gh-border">
-      <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-        <div className="min-w-0 relative">
-          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+      <div className="max-w-5xl mx-auto px-4 py-4">
+        {/* Top row: title + controls share a line at every width, so the
+            controls no longer stack into a separate block below the meta on
+            mobile (which pushed page content past the fold). */}
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="min-w-0 text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             <button
               type="button"
               onClick={onResetFilters}
@@ -91,13 +94,36 @@ export default function Header({
               Chicago Transit Alerts
             </button>
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Major CTA alerts and service observations &middot;{' '}
-            <span className="text-xs">
-              Unofficial, not affiliated with the Chicago Transit Authority
-            </span>
-          </p>
-          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+          <div className="relative flex items-center gap-2 flex-shrink-0">
+            <BrowseMenu alerts={alerts} observations={observations} align="responsive" />
+            <button
+              type="button"
+              onClick={onToggleDark}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {dark ? '☀️' : '🌙'}
+              <span>{dark ? 'Light' : 'Dark'}</span>
+            </button>
+            {/* Last updated — beside the toggle on sm+; folded into the meta
+                row below on mobile to keep this row short. */}
+            {updatedStr && (
+              <div className="hidden sm:flex items-center text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                <span>Last data change: {updatedStr}</span>
+                <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
+              </div>
+            )}
+          </div>
+        </div>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+          Major CTA alerts and service observations &middot;{' '}
+          <span className="text-xs">
+            Unofficial, not affiliated with the Chicago Transit Authority
+          </span>
+        </p>
+        {/* Meta row: bot links, plus the last-updated note on mobile. */}
+        <div className="relative flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-xs text-slate-400 dark:text-slate-500 mr-1">Bluesky bots</span>
             {BOTS.map((bot) => (
               <a
@@ -112,28 +138,8 @@ export default function Header({
               </a>
             ))}
           </div>
-          {/* Last updated — below bots on mobile, hidden on sm+ (shown in right column) */}
           {updatedStr && (
-            <div className="sm:hidden flex items-center text-xs text-slate-400 dark:text-slate-500 mt-2">
-              <span>Last data change: {updatedStr}</span>
-              <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
-            </div>
-          )}
-        </div>
-        <div className="relative flex items-center gap-2 sm:pt-1 flex-shrink-0 self-start">
-          <BrowseMenu alerts={alerts} observations={observations} align="responsive" />
-          <button
-            type="button"
-            onClick={onToggleDark}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {dark ? '☀️' : '🌙'}
-            <span>{dark ? 'Light' : 'Dark'}</span>
-          </button>
-          {/* Last updated — right of toggle on sm+, hidden on mobile */}
-          {updatedStr && (
-            <div className="hidden sm:flex items-center text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+            <div className="sm:hidden flex items-center text-xs text-slate-400 dark:text-slate-500">
               <span>Last data change: {updatedStr}</span>
               <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
             </div>
