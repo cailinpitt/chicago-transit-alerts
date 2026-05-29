@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780074545250,
+  "generated_at": 1780074965367,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -132,7 +132,7 @@
           "Cumberland"
         ],
         "cta_event_start_ts": 1780072140000,
-        "cta_event_end_ts": 1780075740000,
+        "cta_event_end_ts": 1780074900000,
         "cta_event_start_is_date_only": false,
         "cta_event_end_is_date_only": false,
         "versions": [
