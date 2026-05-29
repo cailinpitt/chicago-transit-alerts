@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780022676568,
+  "generated_at": 1780022681441,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -40,6 +40,51 @@
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdoaubz2m",
           "resolved_post_url": null,
           "bot_description": "Route 66 service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No buses moved through this stretch in the last 26 min."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmxjdowrl22e",
+      "kind": "bus",
+      "routes": [
+        "79"
+      ],
+      "first_seen_ts": 1780021982534,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 452,
+          "kind": "bus",
+          "line": "79",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "kind": "cold",
+            "lookbackMin": 26,
+            "expectedActive": 17.9,
+            "minHeadwayMin": 7.716666666666667
+          },
+          "ts": 1780021982534,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdowrl22e",
+          "resolved_post_url": null,
+          "bot_description": "Route 79 service appears degraded — a stretch of the line without trains.",
           "bot_resolved_description": null,
           "bot_evidence_bullets": [
             "No buses moved through this stretch in the last 26 min."
