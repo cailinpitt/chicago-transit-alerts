@@ -1,0 +1,52 @@
+import { SIGNAL_LABELS, splitObservations } from '../../lib/incidents.js';
+import { displayStationName } from '../../lib/stations.js';
+import StationName from '../StationName.jsx';
+
+// Pull the routes/line out of an incident in a uniform shape. Alerts/merged
+// records carry plural `routes`; standalone observations carry singular `line`.
+export function incidentRoutes(incident) {
+  if (Array.isArray(incident?.routes) && incident.routes.length > 0) return incident.routes;
+  if (incident?.line) return [incident.line];
+  return [];
+}
+
+// Plain-string variant of `describe` for places that can't render JSX —
+// document.title, plain text logging, etc.
+export function describeText(incident) {
+  if (incident.cta) return incident.cta.headline;
+  const { primary } = splitObservations(incident);
+  if (primary?.from_station && primary?.to_station) {
+    const seg = `${displayStationName(primary.from_station)} → ${displayStationName(primary.to_station)}`;
+    return primary.direction_label ? `${seg} (${primary.direction_label})` : seg;
+  }
+  if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
+    return `Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
+  }
+  if (primary?.detection_source === 'roundup') return 'Multiple simultaneous disruptions detected';
+  return 'Service disruption detected';
+}
+
+export function describe(incident, stationIndex) {
+  if (incident.cta) return incident.cta.headline;
+  const { primary } = splitObservations(incident);
+  if (primary?.from_station && primary?.to_station) {
+    return (
+      <>
+        <StationName name={primary.from_station} stationIndex={stationIndex} /> →{' '}
+        <StationName name={primary.to_station} stationIndex={stationIndex} />
+        {primary.direction_label && (
+          <span className="ml-2 text-base font-normal text-slate-500 dark:text-slate-400">
+            ({primary.direction_label})
+          </span>
+        )}
+      </>
+    );
+  }
+  if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
+    return `Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
+  }
+  if (primary?.detection_source === 'roundup') {
+    return 'Multiple simultaneous disruptions detected';
+  }
+  return 'Service disruption detected';
+}
