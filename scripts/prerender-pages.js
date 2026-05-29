@@ -363,6 +363,7 @@ function planPages(payload, dailyPayload) {
       outDir: resolve(DIST, 'line', lineId),
       url: `${SITE}/line/${lineId}`,
       path: `/line/${lineId}`,
+      feedPath: `/feed/line/${lineId}.xml`,
       label: `${info.label} Line`,
       // Train pill already says "Red Line"; an additional headline would
       // be redundant. Leave the title empty so the template hides it.
@@ -401,6 +402,7 @@ function planPages(payload, dailyPayload) {
       outDir: resolve(DIST, 'route', String(route)),
       url: `${SITE}/route/${route}`,
       path: `/route/${route}`,
+      feedPath: `/feed/route/${route}.xml`,
       label: `#${route}`,
       title: name ?? '',
       ogTitle: `${ogLabel} · Chicago Transit Alerts`,
@@ -510,9 +512,18 @@ function buildHtmlStub(shell, page) {
   const image = `${page.url}/og.png`;
   const ogTitle = page.ogTitle.slice(0, 200);
   const desc = page.desc.slice(0, 280);
+  // Feed autodiscovery: line/route pages advertise their per-line/route Atom
+  // feed so readers can subscribe straight from the page. Appended after the
+  // canonical link (only for pages that carry a feedPath).
+  const feedLink = page.feedPath
+    ? `\n    <link rel="alternate" type="application/atom+xml" title="${escAttr(ogTitle)}" href="${escAttr(`${SITE}${page.feedPath}`)}" />`
+    : '';
   return shell
     .replace(/<title>[^<]*<\/title>/, `<title>${escHtml(ogTitle)}</title>`)
-    .replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${escAttr(page.url)}" />`)
+    .replace(
+      /<link rel="canonical"[^>]*>/,
+      `<link rel="canonical" href="${escAttr(page.url)}" />${feedLink}`,
+    )
     .replace(
       /<meta name="description"[^>]*>/,
       `<meta name="description" content="${escAttr(desc)}" />`,

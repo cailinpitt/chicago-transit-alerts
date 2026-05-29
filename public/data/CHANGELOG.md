@@ -1,9 +1,26 @@
 # Data API Changelog
 
 Breaking and notable changes to the published data at
-<https://chicagotransitalerts.app/data/> — `alerts.json` and `alerts.csv`.
-Newest first. If you build on this data, watch this file before pinning to the
-format.
+<https://chicagotransitalerts.app/data/> — `alerts.json` and `alerts.csv` — and
+the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
+per-line/route feeds under `/feed/`). Newest first. If you build on this data,
+watch this file before pinning to the format.
+
+## 2026-05-29 — Per-line and per-route feeds (additive)
+
+The Atom + JSON feed is now also published scoped to a single line or route,
+alongside the existing global `/feed.xml` and `/feed.json`:
+
+- Train line — `/feed/line/:line.xml` and `/feed/line/:line.json` (full line
+  names: `red`, `blue`, `brown`, `green`, `orange`, `pink`, `purple`,
+  `yellow`).
+- Bus route — `/feed/route/:route.xml` and `/feed/route/:route.json`.
+
+A feed exists for every train line and **every** bus route in the CTA roster up
+front — not only ones with a prior incident — so a route can be subscribed
+before its first incident (the feed is valid but carries no `<entry>` until
+then). The global feed's URL, `<id>`, and entry format are unchanged; existing
+subscribers are unaffected.
 
 ## 2026-05-27 — `direction_label` (additive)
 

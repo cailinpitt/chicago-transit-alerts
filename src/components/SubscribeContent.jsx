@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
 const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
-const FEED_URL = 'https://chicagotransitalerts.app/feed.xml';
+const SITE = 'https://chicagotransitalerts.app';
+const FEED_URL = `${SITE}/feed.xml`;
 const CSV_URL = 'https://chicagotransitalerts.app/data/alerts.csv';
 const JSON_URL = 'https://chicagotransitalerts.app/data/alerts.json';
 const CHANGELOG_URL = 'https://chicagotransitalerts.app/data/CHANGELOG.md';
@@ -96,6 +97,25 @@ export default function SubscribeContent() {
           {copied === 'feed' ? 'Copied' : 'Copy'}
         </button>
       </div>
+
+      <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-3">
+        Just one line or route
+      </h3>
+      <p>
+        Only care about your commute? Every train line and every bus route has its own feed at a
+        predictable URL — swap in your line or route:
+      </p>
+      <ul className="list-disc list-outside ml-5 space-y-1 text-xs font-mono break-all">
+        <li>{`${SITE}/feed/line/red.xml`}</li>
+        <li>{`${SITE}/feed/route/66.xml`}</li>
+      </ul>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        These exist for every line and every roster route up front, so you can subscribe to your
+        route today — the feed just stays quiet until something happens, then fills in
+        automatically. Every line and route page also carries a{' '}
+        <span className="whitespace-nowrap">“🔔 Subscribe (RSS)”</span> link. A JSON Feed version
+        lives at the same path with a <code>.json</code> extension.
+      </p>
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">
         Popular feed readers

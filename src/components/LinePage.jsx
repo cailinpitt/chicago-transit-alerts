@@ -385,6 +385,16 @@ export default function LinePage({ kind, lineId }) {
             {!isTrain && busName && (
               <span className="text-sm text-slate-500 dark:text-slate-400">{busName}</span>
             )}
+            {/* Per-line/route Atom feed — subscribe to just this line/route.
+                The feed exists for every line and every roster route, so this
+                link works even before the first incident is ever recorded. */}
+            <a
+              href={`/feed/${isTrain ? 'line' : 'route'}/${effectiveLineId}.xml`}
+              className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-400 hover:underline"
+              title={`Subscribe to ${heading} alerts via RSS/Atom`}
+            >
+              🔔 Subscribe (RSS)
+            </a>
           </div>
         </div>
 

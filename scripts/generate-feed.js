@@ -5,10 +5,11 @@
 // feed regenerates on every Pages deploy, which itself only happens when
 // alerts.json changes — so the feed updates exactly when there's new data.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TRAIN_LINES } from '../src/lib/ctaLines.js';
+import { BUS_ROUTE_NAMES, compareBusRoutes } from '../src/lib/busRoutes.js';
+import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../src/lib/format.js';
 import {
   flattenIncidents,
@@ -28,9 +29,9 @@ const OUT_JSON = resolve(ROOT, 'dist', 'feed.json');
 
 const SITE = 'https://chicagotransitalerts.app';
 // The 2026 here is the tag URI authority date (RFC 4151) — pinned forever,
-// not a "current year". Changing it would alter every entry <id> and re-mark
-// every subscriber's read entries as unread.
-const FEED_ID = 'tag:chicagotransitalerts.app,2026:feed';
+// not a "current year". Changing it would alter every entry/feed <id> and
+// re-mark every subscriber's read entries as unread.
+const TAG_AUTHORITY = 'tag:chicagotransitalerts.app,2026';
 const ENTRY_LIMIT = 50;
 // Skip standalone observation-only incidents that resolved within this window
 // — almost always a transient detector hiccup (single missed snapshot, etc.)
@@ -312,7 +313,7 @@ function buildEntryRecord(incident) {
   };
 }
 
-function emitAtom(records, feedUpdatedIso) {
+function emitAtom(records, feedUpdatedIso, meta) {
   const entries = records
     .map((r) => {
       const lines = [
@@ -348,12 +349,12 @@ function emitAtom(records, feedUpdatedIso) {
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
-  <id>${FEED_ID}</id>
-  <title>Chicago Transit Alerts</title>
-  <subtitle>Chicago Transit Authority service alerts and bot-detected disruptions.</subtitle>
-  <link rel="alternate" type="text/html" href="${SITE}/"/>
-  <link rel="self" type="application/atom+xml" href="${SITE}/feed.xml"/>
-  <link rel="alternate" type="application/feed+json" href="${SITE}/feed.json"/>
+  <id>${escapeXml(meta.id)}</id>
+  <title>${escapeXml(meta.title)}</title>
+  <subtitle>${escapeXml(meta.subtitle)}</subtitle>
+  <link rel="alternate" type="text/html" href="${escapeXml(meta.homeUrl)}"/>
+  <link rel="self" type="application/atom+xml" href="${escapeXml(meta.selfXml)}"/>
+  <link rel="alternate" type="application/feed+json" href="${escapeXml(meta.selfJson)}"/>
   <link rel="hub" href="https://pubsubhubbub.superfeedr.com/"/>
   <updated>${feedUpdatedIso}</updated>
   <author><name>chicago-transit-alerts</name></author>
@@ -362,13 +363,13 @@ ${entries}
 `;
 }
 
-function emitJsonFeed(records) {
+function emitJsonFeed(records, meta) {
   return {
     version: 'https://jsonfeed.org/version/1.1',
-    title: 'Chicago Transit Alerts',
-    description: 'Chicago Transit Authority service alerts and bot-detected disruptions.',
-    home_page_url: `${SITE}/`,
-    feed_url: `${SITE}/feed.json`,
+    title: meta.title,
+    description: meta.subtitle,
+    home_page_url: meta.homeUrl,
+    feed_url: meta.selfJson,
     language: 'en-US',
     authors: [{ name: 'chicago-transit-alerts' }],
     hubs: [{ type: 'WebSub', url: 'https://pubsubhubbub.superfeedr.com/' }],
@@ -388,6 +389,37 @@ function emitJsonFeed(records) {
   };
 }
 
+// Feed-level metadata for a given scope. `idPath`/`selfBase` are appended to
+// the tag authority and site root respectively, so the global feed and every
+// per-line/route feed carry a stable, distinct <id> and self link.
+function feedMeta({ idPath, title, subtitle, homePath, selfBase }) {
+  return {
+    id: `${TAG_AUTHORITY}:${idPath}`,
+    title,
+    subtitle,
+    homeUrl: `${SITE}${homePath}`,
+    selfXml: `${SITE}${selfBase}.xml`,
+    selfJson: `${SITE}${selfBase}.json`,
+  };
+}
+
+// Write one feed's Atom + JSON pair, creating the parent directory as needed
+// (the per-line/route feeds live under dist/feed/{line,route}/).
+function writeFeed(records, meta, feedUpdatedIso, xmlPath, jsonPath) {
+  mkdirSync(dirname(xmlPath), { recursive: true });
+  writeFileSync(xmlPath, emitAtom(records, feedUpdatedIso, meta));
+  writeFileSync(jsonPath, `${JSON.stringify(emitJsonFeed(records, meta), null, 2)}\n`);
+}
+
+// Most-recent-first slice of `pool` scoped to one route, capped at ENTRY_LIMIT.
+// `pool` is already sorted newest-first, so the slice preserves that order.
+function scopedRecords(pool, kind, route) {
+  return pool
+    .filter((i) => i.kind === kind && routesFor(i).includes(route))
+    .slice(0, ENTRY_LIMIT)
+    .map(buildEntryRecord);
+}
+
 function main() {
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
@@ -397,7 +429,9 @@ function main() {
   );
 
   let dropped = 0;
-  const all = [...merged, ...standaloneAlerts, ...standaloneObs]
+  // Full candidate set (newest first), not yet capped — each scoped feed takes
+  // its own most-recent ENTRY_LIMIT from this pool.
+  const pool = [...merged, ...standaloneAlerts, ...standaloneObs]
     .filter((i) => startTs(i))
     .filter((i) => {
       if (isLikelyDetectorBlip(i)) {
@@ -406,23 +440,82 @@ function main() {
       }
       return true;
     })
-    .sort((a, b) => updatedTs(b) - updatedTs(a))
-    .slice(0, ENTRY_LIMIT);
+    .sort((a, b) => updatedTs(b) - updatedTs(a));
 
-  const feedUpdated = all.length
-    ? toIso(updatedTs(all[0]))
+  const feedUpdated = pool.length
+    ? toIso(updatedTs(pool[0]))
     : toIso(payload.generated_at || Date.now());
+  // Per-scope <updated>: the newest entry in that scope (records are
+  // newest-first), falling back to the global timestamp for an empty scope.
+  const isoUpdated = (records) => (records.length ? toIso(records[0].updatedMs) : feedUpdated);
 
-  const records = all.map(buildEntryRecord);
+  // Global feed — unchanged URLs and <id>, so existing subscribers are
+  // unaffected by the per-line additions below.
+  const globalRecords = pool.slice(0, ENTRY_LIMIT).map(buildEntryRecord);
+  writeFeed(
+    globalRecords,
+    feedMeta({
+      idPath: 'feed',
+      title: 'Chicago Transit Alerts',
+      subtitle: 'Chicago Transit Authority service alerts and bot-detected disruptions.',
+      homePath: '/',
+      selfBase: '/feed',
+    }),
+    feedUpdated,
+    OUT_ATOM,
+    OUT_JSON,
+  );
 
-  const atom = emitAtom(records, feedUpdated);
-  writeFileSync(OUT_ATOM, atom);
+  // One feed per train line (all eight) and one per bus route in the CTA
+  // roster — every line/route is subscribable up front, so a rider can follow
+  // their route today and just get a quiet feed until something happens,
+  // rather than waiting for a first incident to bring the feed into existence.
+  let lineFeeds = 0;
+  for (const line of TRAIN_LINE_ORDER) {
+    const records = scopedRecords(pool, 'train', line);
+    const label = TRAIN_LINES[line]?.label ?? line;
+    writeFeed(
+      records,
+      feedMeta({
+        idPath: `feed/line/${line}`,
+        title: `Chicago Transit Alerts · ${label} Line`,
+        subtitle: `CTA service alerts and bot-detected disruptions on the ${label} Line.`,
+        homePath: `/line/${line}`,
+        selfBase: `/feed/line/${line}`,
+      }),
+      isoUpdated(records),
+      resolve(ROOT, 'dist', 'feed', 'line', `${line}.xml`),
+      resolve(ROOT, 'dist', 'feed', 'line', `${line}.json`),
+    );
+    lineFeeds++;
+  }
 
-  const jsonFeed = emitJsonFeed(records);
-  writeFileSync(OUT_JSON, `${JSON.stringify(jsonFeed, null, 2)}\n`);
+  let routeFeeds = 0;
+  for (const route of Object.keys(BUS_ROUTE_NAMES).sort(compareBusRoutes)) {
+    const records = scopedRecords(pool, 'bus', route);
+    const name = BUS_ROUTE_NAMES[route];
+    const label = name ? `#${route} ${name}` : `#${route}`;
+    writeFeed(
+      records,
+      feedMeta({
+        idPath: `feed/route/${route}`,
+        title: `Chicago Transit Alerts · ${label}`,
+        subtitle: `CTA service alerts and bot-detected disruptions on the ${label} bus.`,
+        homePath: `/route/${route}`,
+        selfBase: `/feed/route/${route}`,
+      }),
+      isoUpdated(records),
+      resolve(ROOT, 'dist', 'feed', 'route', `${route}.xml`),
+      resolve(ROOT, 'dist', 'feed', 'route', `${route}.json`),
+    );
+    routeFeeds++;
+  }
 
   const droppedNote = dropped > 0 ? ` (${dropped} short-lived obs skipped)` : '';
-  console.log(`generate-feed: wrote ${all.length} entries to feed.xml + feed.json${droppedNote}`);
+  console.log(
+    `generate-feed: wrote ${globalRecords.length} entries to feed.xml + feed.json, ` +
+      `plus ${lineFeeds} line + ${routeFeeds} route feeds${droppedNote}`,
+  );
 }
 
 main();

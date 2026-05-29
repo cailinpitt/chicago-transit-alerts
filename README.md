@@ -85,7 +85,14 @@ An Atom feed of the 50 most recent incidents (alerts + bot observations, all lin
 
 Each entry carries `<media:thumbnail>`, `<media:content>`, and a small HTML `<content type="html">` body so readers that support those (Inoreader, Feedly) display the per-event OG card as the entry icon and a richer preview pane than the one-line `<summary>`.
 
-The feed is regenerated as a postbuild step from the same `alerts.json` the SPA reads, so it updates whenever the underlying data does.
+**Per-line and per-route feeds.** If you only care about one line or route, subscribe to its own feed instead of the firehose:
+
+- Train line — `/feed/line/:line.xml` (e.g. [`/feed/line/red.xml`](https://chicagotransitalerts.app/feed/line/red.xml))
+- Bus route — `/feed/route/:route.xml` (e.g. [`/feed/route/66.xml`](https://chicagotransitalerts.app/feed/route/66.xml))
+
+A feed exists for every train line and **every** bus route in the CTA roster up front — not just ones with a prior incident — so you can subscribe to your route today and it simply stays quiet until something happens. Each line and route page links its feed (the “🔔 Subscribe (RSS)” control), and prerendered pages advertise it via `<link rel="alternate" type="application/atom+xml">` for reader autodiscovery. Every feed also has a JSON Feed twin at the same path with a `.json` extension.
+
+The feeds are regenerated as a postbuild step from the same `alerts.json` the SPA reads, so they update whenever the underlying data does.
 
 ## What's tracked
 
@@ -194,7 +201,7 @@ The top-level array is `incidents` — **one object per real-world disruption**.
 }
 ```
 
-Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/incidents.js). An [Atom feed](https://chicagotransitalerts.app/feed.xml) is also published if you want notifications without polling.
+Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/incidents.js). An [Atom feed](https://chicagotransitalerts.app/feed.xml) is also published if you want notifications without polling — globally, or [per line/route](#subscribe) (e.g. `/feed/line/red.xml`, `/feed/route/66.xml`), each with a JSON Feed twin.
 
 A flat CSV mirror is also published for spreadsheet and pandas users — the incidents are flattened back to **one row per alert or observation**, with an explicit `type` column:
 
