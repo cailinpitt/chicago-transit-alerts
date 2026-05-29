@@ -1,7 +1,120 @@
 {
-  "generated_at": 1780020544730,
+  "generated_at": 1780021333718,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmxi3hmses2m",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1780021082821,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 442,
+          "kind": "train",
+          "line": "red",
+          "direction": "all",
+          "direction_label": null,
+          "from_station": "Sox-35th",
+          "to_station": "63rd",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 4.7,
+            "minutesSinceLastTrain": 19,
+            "lookbackMin": 24,
+            "coldThresholdMin": 19,
+            "trainsOutsideRun": 12,
+            "coldStations": 4,
+            "coldStationNames": [
+              "Sox-35th",
+              "47th (Red)",
+              "Garfield (Red)",
+              "63rd"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780021082821,
+          "onset_ts": 1780019942821,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxi3hmses2m",
+          "resolved_post_url": null,
+          "bot_description": "Red Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 4.7-mi stretch (4 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (12 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmxi3kooce25",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "first_seen_ts": 1780021082821,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 443,
+          "kind": "train",
+          "line": "blue",
+          "direction": "all",
+          "direction_label": null,
+          "from_station": "Belmont (Blue)",
+          "to_station": "California (Blue)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 2.2,
+            "minutesSinceLastTrain": 20,
+            "lookbackMin": 24,
+            "coldThresholdMin": 19,
+            "trainsOutsideRun": 17,
+            "coldStations": 3,
+            "coldStationNames": [
+              "Belmont (Blue)",
+              "Logan Square",
+              "California (Blue)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780021082821,
+          "onset_ts": 1780019882821,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxi3kooce25",
+          "resolved_post_url": null,
+          "bot_description": "Blue Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 2.2-mi stretch (3 stations affected) in the last 20 min — scheduled every 8 min, ~2 trains missed (17 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmxhe4bmfv2v",
       "kind": "bus",
