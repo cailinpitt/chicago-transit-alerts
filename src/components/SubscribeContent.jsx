@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
+import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 
 const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
 const SITE = 'https://chicagotransitalerts.app';
@@ -9,8 +11,23 @@ const CHANGELOG_URL = 'https://chicagotransitalerts.app/data/CHANGELOG.md';
 
 const CURL_CMD = `curl -s ${JSON_URL} | jq '.incidents | length'`;
 
+// Picker options for the per-line/route feed chooser. Values are the feed path
+// segment after `/feed/` (e.g. `line/red`, `route/66`).
+const LINE_FEED_OPTIONS = TRAIN_LINE_ORDER.map((id) => ({
+  value: `line/${id}`,
+  label: `${TRAIN_LINES[id]?.label ?? id} Line`,
+}));
+const ROUTE_FEED_OPTIONS = Object.keys(BUS_ROUTE_NAMES)
+  .sort(compareBusRoutes)
+  .map((r) => ({
+    value: `route/${r}`,
+    label: BUS_ROUTE_NAMES[r] ? `#${r} ${BUS_ROUTE_NAMES[r]}` : `#${r}`,
+  }));
+
 export default function SubscribeContent() {
   const [copied, setCopied] = useState(null);
+  const [pickedFeed, setPickedFeed] = useState('line/red');
+  const pickedFeedUrl = `${SITE}/feed/${pickedFeed}.xml`;
 
   useEffect(() => {
     if (!copied) return;
@@ -102,17 +119,57 @@ export default function SubscribeContent() {
         Just one line or route
       </h3>
       <p>
-        Only care about your commute? Every train line and every bus route has its own feed at a
-        predictable URL — swap in your line or route:
+        Only care about your commute? Pick a line or route to get its own feed — every train line
+        and every bus route has one at a predictable URL (
+        <code className="text-xs">/feed/line/:line.xml</code> or{' '}
+        <code className="text-xs">/feed/route/:route.xml</code>):
       </p>
-      <ul className="list-disc list-outside ml-5 space-y-1 text-xs font-mono break-all">
-        <li>{`${SITE}/feed/line/red.xml`}</li>
-        <li>{`${SITE}/feed/route/66.xml`}</li>
-      </ul>
+      <div className="space-y-2">
+        <label htmlFor="feed-picker" className="sr-only">
+          Choose a line or route
+        </label>
+        <select
+          id="feed-picker"
+          value={pickedFeed}
+          onChange={(e) => setPickedFeed(e.target.value)}
+          className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200"
+        >
+          <optgroup label="Train lines">
+            {LINE_FEED_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Bus routes">
+            {ROUTE_FEED_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </optgroup>
+        </select>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            readOnly
+            value={pickedFeedUrl}
+            onFocus={(e) => e.target.select()}
+            className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200"
+          />
+          <button
+            type="button"
+            onClick={copy('picked', pickedFeedUrl)}
+            className="px-3 py-1.5 text-xs font-medium rounded border border-slate-200 dark:border-gh-border text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gh-border transition-colors"
+          >
+            {copied === 'picked' ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+      </div>
       <p className="text-xs text-slate-500 dark:text-slate-400">
-        These exist for every line and every roster route up front, so you can subscribe to your
-        route today — the feed just stays quiet until something happens, then fills in
-        automatically. Every line and route page also carries a{' '}
+        Feeds exist for every line and every roster route up front, so you can subscribe to your
+        route today — it just stays quiet until something happens, then fills in automatically.
+        Every line and route page also carries a{' '}
         <span className="whitespace-nowrap">“🔔 Subscribe (RSS)”</span> link. A JSON Feed version
         lives at the same path with a <code>.json</code> extension.
       </p>
