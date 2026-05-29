@@ -1,7 +1,51 @@
 {
-  "generated_at": 1780087744741,
+  "generated_at": 1780088945426,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmzh2m6b6w2q",
+      "kind": "bus",
+      "routes": [
+        "22"
+      ],
+      "first_seen_ts": 1780088765629,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 213,
+          "kind": "bus",
+          "line": "22",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap"
+          ],
+          "evidence": null,
+          "ts": 1780088765629,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmzh2m6b6w2q",
+          "resolved_post_url": null,
+          "bot_description": "Route 22 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 10 buses missing this past hour",
+            "One gap between buses is 6.4x the scheduled wait"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmze434b7e24",
       "kind": "train",
