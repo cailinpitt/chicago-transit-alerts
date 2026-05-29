@@ -7,7 +7,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../src/lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../src/lib/format.js';
@@ -55,7 +55,7 @@ function escapeXml(s) {
 // pipeline stamps it to the snapshot time, which would mark every active
 // incident unread on every deploy. Resolution is the only state change worth
 // re-surfacing for; otherwise the entry's start time is its updated time.
-function updatedTs(incident) {
+export function updatedTs(incident) {
   return incident.resolved_ts || incident._sortTs || incident.first_seen_ts || incident.ts;
 }
 
@@ -69,7 +69,7 @@ function routesFor(incident) {
   return [];
 }
 
-function entryId(incident) {
+export function entryId(incident) {
   const rkey = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url);
   if (rkey) return `tag:chicagotransitalerts.app,2026:event/${rkey}`;
   // Fallback for records without a Bluesky post (shouldn't happen in practice).
@@ -280,7 +280,7 @@ function toIso(ms) {
 // snapshot, a pulse that flips back inside the same minute) rather than a
 // real outage worth a push notification. Anything backed by a CTA alert
 // (merged or standalone alert) passes regardless of duration.
-function isLikelyDetectorBlip(incident) {
+export function isLikelyDetectorBlip(incident) {
   if (incident.alert_id || incident.headline) return false; // alert-backed
   if (!incident.resolved_ts) return false;
   const start = startTs(incident);
@@ -288,7 +288,7 @@ function isLikelyDetectorBlip(incident) {
   return incident.resolved_ts - start < FP_FILTER_MS;
 }
 
-function buildEntryRecord(incident) {
+export function buildEntryRecord(incident) {
   const id = entryId(incident);
   const link = entryLink(incident);
   const title = entryTitle(incident);
@@ -313,7 +313,7 @@ function buildEntryRecord(incident) {
   };
 }
 
-function emitAtom(records, feedUpdatedIso, meta) {
+export function emitAtom(records, feedUpdatedIso, meta) {
   const entries = records
     .map((r) => {
       const lines = [
@@ -392,7 +392,7 @@ function emitJsonFeed(records, meta) {
 // Feed-level metadata for a given scope. `idPath`/`selfBase` are appended to
 // the tag authority and site root respectively, so the global feed and every
 // per-line/route feed carry a stable, distinct <id> and self link.
-function feedMeta({ idPath, title, subtitle, homePath, selfBase }) {
+export function feedMeta({ idPath, title, subtitle, homePath, selfBase }) {
   return {
     id: `${TAG_AUTHORITY}:${idPath}`,
     title,
@@ -413,7 +413,7 @@ function writeFeed(records, meta, feedUpdatedIso, xmlPath, jsonPath) {
 
 // Most-recent-first slice of `pool` scoped to one route, capped at ENTRY_LIMIT.
 // `pool` is already sorted newest-first, so the slice preserves that order.
-function scopedRecords(pool, kind, route) {
+export function scopedRecords(pool, kind, route) {
   return pool
     .filter((i) => i.kind === kind && routesFor(i).includes(route))
     .slice(0, ENTRY_LIMIT)
@@ -518,4 +518,8 @@ function main() {
   );
 }
 
-main();
+// Run only when invoked directly (`node scripts/generate-feed.js`), not when
+// imported by tests — the pure builders below are exported for unit testing.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
