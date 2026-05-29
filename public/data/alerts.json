@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780074372440,
+  "generated_at": 1780074545250,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -56,6 +56,50 @@
           "bot_resolved_description": null,
           "bot_evidence_bullets": [
             "No trains moved through this 3.2-mi stretch (5 stations affected) in the last 25 min — scheduled every 10 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmyznievso23",
+      "kind": "bus",
+      "routes": [
+        "49"
+      ],
+      "first_seen_ts": 1780072867195,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 210,
+          "kind": "bus",
+          "line": "49",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1780072867195,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmyznievso23",
+          "resolved_post_url": null,
+          "bot_description": "Route 49 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between buses is 3.4x the scheduled wait",
+            "3 buses recently bunched together"
           ]
         }
       ]
