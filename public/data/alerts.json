@@ -1,7 +1,64 @@
 {
-  "generated_at": 1780024144855,
+  "generated_at": 1780024209854,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmxkrci2zs2y",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "first_seen_ts": 1780023962715,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 465,
+          "kind": "train",
+          "line": "blue",
+          "direction": "all",
+          "direction_label": null,
+          "from_station": "Damen (Blue)",
+          "to_station": "Grand (Blue)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 3.2,
+            "minutesSinceLastTrain": 20,
+            "lookbackMin": 24,
+            "coldThresholdMin": 19,
+            "trainsOutsideRun": 17,
+            "coldStations": 4,
+            "coldStationNames": [
+              "Damen (Blue)",
+              "Division",
+              "Chicago (Blue)",
+              "Grand (Blue)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.500000000000001,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780023962715,
+          "onset_ts": 1780022762715,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxkrci2zs2y",
+          "resolved_post_url": null,
+          "bot_description": "Blue Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 3.2-mi stretch (4 stations affected) in the last 20 min — scheduled every 8 min, ~2 trains missed (17 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmxkpfmlp22y",
       "kind": "train",
