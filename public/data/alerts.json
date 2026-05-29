@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780021333718,
+  "generated_at": 1780021445412,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -111,6 +111,50 @@
           "bot_resolved_description": null,
           "bot_evidence_bullets": [
             "No trains moved through this 2.2-mi stretch (3 stations affected) in the last 20 min — scheduled every 8 min, ~2 trains missed (17 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmxi6wzb462w",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1780020483934,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 201,
+          "kind": "train",
+          "line": "red",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "pulse-cold",
+            "ghost"
+          ],
+          "evidence": null,
+          "ts": 1780020483934,
+          "onset_ts": 1780019343934,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxi6wzb462w",
+          "resolved_post_url": null,
+          "bot_description": "Red Line service appears degraded — a stretch of the line without trains and fewer trains than scheduled.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "Possible service gap forming 47th (Red) → 63rd",
+            "3 of 10 trains missing this past hour"
           ]
         }
       ]
