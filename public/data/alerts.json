@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780023009779,
+  "generated_at": 1780023077037,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -87,8 +87,8 @@
         "63"
       ],
       "first_seen_ts": 1780022582353,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780022682142,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -112,13 +112,13 @@
           },
           "ts": 1780022582353,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780022682142,
+          "duration_ms": 99789,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdtk3ld2i",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjphonps2e",
           "bot_description": "Route 63 service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Buses observed again on Route 63, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No buses moved through this stretch in the last 33 min."
           ]
@@ -132,8 +132,8 @@
         "66"
       ],
       "first_seen_ts": 1780021982534,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780022682142,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -157,13 +157,13 @@
           },
           "ts": 1780021982534,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780022682142,
+          "duration_ms": 699608,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdoaubz2m",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjpjbdso2y",
           "bot_description": "Route 66 service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Buses observed again on Route 66, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No buses moved through this stretch in the last 26 min."
           ]
@@ -177,8 +177,8 @@
         "79"
       ],
       "first_seen_ts": 1780021982534,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780022682142,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -202,13 +202,13 @@
           },
           "ts": 1780021982534,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780022682142,
+          "duration_ms": 699608,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdowrl22e",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjplwke22e",
           "bot_description": "Route 79 service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Buses observed again on Route 79, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No buses moved through this stretch in the last 26 min."
           ]
@@ -222,8 +222,8 @@
         "54"
       ],
       "first_seen_ts": 1780021863010,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780022682142,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -247,13 +247,13 @@
           },
           "ts": 1780021863010,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780022682142,
+          "duration_ms": 819132,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdmfyot2f",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjpgbil72x",
           "bot_description": "Route 54 service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Buses observed again on Route 54, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No buses moved through this stretch in the last 27 min."
           ]
@@ -267,8 +267,8 @@
         "72"
       ],
       "first_seen_ts": 1780021863010,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780022682142,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -292,13 +292,13 @@
           },
           "ts": 1780021863010,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780022682142,
+          "duration_ms": 819132,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdmzflr2m",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjpkmydz2v",
           "bot_description": "Route 72 service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Buses observed again on Route 72, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No buses moved through this stretch in the last 25 min."
           ]
