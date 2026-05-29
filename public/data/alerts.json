@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780088945426,
+  "generated_at": 1780091345963,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "22"
       ],
       "first_seen_ts": 1780088765629,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780090742628,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -32,13 +32,13 @@
           "evidence": null,
           "ts": 1780088765629,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780090742628,
+          "duration_ms": 1976999,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmzh2m6b6w2q",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmzjc5npcy23",
           "bot_description": "Route 22 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Route 22 service appears to be back to normal.",
           "bot_evidence_bullets": [
             "3 of 10 buses missing this past hour",
             "One gap between buses is 6.4x the scheduled wait"
