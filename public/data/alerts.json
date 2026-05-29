@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780075090013,
+  "generated_at": 1780075266020,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -111,8 +111,8 @@
         "blue"
       ],
       "first_seen_ts": 1780072263857,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780075024571,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -121,10 +121,10 @@
         "headline": "O'Hare-bound Blue Line Delays",
         "short_description": "O'Hare-bound Blue Line trains are running w/residual delays following an earlier mechanical problem near Cumberland.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmyxjk7erh2y",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmz2cxe4ff2y",
         "first_seen_ts": 1780072263857,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780075024571,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
