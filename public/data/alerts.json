@@ -1,7 +1,97 @@
 {
-  "generated_at": 1780021445412,
+  "generated_at": 1780022674743,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmxjdmfyot2f",
+      "kind": "bus",
+      "routes": [
+        "54"
+      ],
+      "first_seen_ts": 1780021863010,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 446,
+          "kind": "bus",
+          "line": "54",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "kind": "cold",
+            "lookbackMin": 27,
+            "expectedActive": 7.6,
+            "minHeadwayMin": 7.941666666666666
+          },
+          "ts": 1780021863010,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdmfyot2f",
+          "resolved_post_url": null,
+          "bot_description": "Route 54 service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No buses moved through this stretch in the last 27 min."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmxjdmzflr2m",
+      "kind": "bus",
+      "routes": [
+        "72"
+      ],
+      "first_seen_ts": 1780021863010,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 449,
+          "kind": "bus",
+          "line": "72",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "kind": "cold",
+            "lookbackMin": 25,
+            "expectedActive": 12.5,
+            "minHeadwayMin": 5.818333333333333
+          },
+          "ts": 1780021863010,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxjdmzflr2m",
+          "resolved_post_url": null,
+          "bot_description": "Route 72 service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No buses moved through this stretch in the last 25 min."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmxi3hmses2m",
       "kind": "train",
