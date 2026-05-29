@@ -1,7 +1,62 @@
 {
-  "generated_at": 1780056849981,
+  "generated_at": 1780057329594,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmyjmesyb724",
+      "kind": "train",
+      "routes": [
+        "orange"
+      ],
+      "first_seen_ts": 1780057082461,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 470,
+          "kind": "train",
+          "line": "orange",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Midway",
+          "from_station": "35th/Archer",
+          "to_station": "Ashland (Orange)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 2.7,
+            "minutesSinceLastTrain": 18,
+            "lookbackMin": 23,
+            "coldThresholdMin": 18,
+            "trainsOutsideRun": 7,
+            "coldStations": 2,
+            "coldStationNames": [
+              "35th/Archer",
+              "Ashland (Orange)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.073333333333333,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780057082461,
+          "onset_ts": 1780056002461,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmyjmesyb724",
+          "resolved_post_url": null,
+          "bot_description": "Orange Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 2.7-mi stretch (2 stations affected) in the last 18 min — scheduled every 7 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmyibicqmv25",
       "kind": "train",
