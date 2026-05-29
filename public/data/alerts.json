@@ -1,7 +1,62 @@
 {
-  "generated_at": 1780069745665,
+  "generated_at": 1780071131620,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmywhmrojx27",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1780070882811,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 478,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Kimball",
+          "from_station": "Southport",
+          "to_station": "Belmont (Red/Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1,
+            "minutesSinceLastTrain": 19,
+            "lookbackMin": 24,
+            "coldThresholdMin": 19,
+            "trainsOutsideRun": 7,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Southport",
+              "Belmont (Red/Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780070882811,
+          "onset_ts": 1780069742811,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmywhmrojx27",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1-mi stretch (2 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmyuixgkus25",
       "kind": "train",
