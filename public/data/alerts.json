@@ -1,7 +1,51 @@
 {
-  "generated_at": 1780023852711,
+  "generated_at": 1780024144855,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mmxkpfmlp22y",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1780023604899,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 202,
+          "kind": "train",
+          "line": "brown",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "pulse-cold"
+          ],
+          "evidence": null,
+          "ts": 1780023604899,
+          "onset_ts": 1780022104899,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxkpfmlp22y",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — fewer trains than scheduled and a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 10 trains missing this past hour",
+            "Possible service gap forming Rockwell → Damen (Brown)"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mmxkgkulks2y",
       "kind": "train",
@@ -244,6 +288,52 @@
           "bot_resolved_description": null,
           "bot_evidence_bullets": [
             "No trains observed anywhere on the line in the last 30 min (25 stations affected) — scheduled every 10 min."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mmxkpgr4nk2w",
+      "kind": "bus",
+      "routes": [
+        "79"
+      ],
+      "first_seen_ts": 1780022670682,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 203,
+          "kind": "bus",
+          "line": "79",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap",
+            "pulse-cold"
+          ],
+          "evidence": null,
+          "ts": 1780022670682,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmxkpgr4nk2w",
+          "resolved_post_url": null,
+          "bot_description": "Route 79 service appears degraded — fewer buses than scheduled, longer-than-scheduled gaps between buses, and a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "2 of 10 buses missing this past hour",
+            "One gap between buses is 3.5x the scheduled wait",
+            "Possible service gap forming"
           ]
         }
       ]
