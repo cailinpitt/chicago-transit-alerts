@@ -29,6 +29,7 @@ import {
   StationChips,
   StationsByLine,
 } from './AffectedStations.jsx';
+import { computeBotLead, computeCtaEstimate, computeCtaPlanned } from './callouts.js';
 import { describe, incidentRoutes } from './incidentText.jsx';
 import { MiniTimeline } from './MiniTimeline.jsx';
 
@@ -151,28 +152,13 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // the last train through the cold stretch / earliest signal) predates the
   // CTA alert's post time, surface the lead so the UI doesn't read as if CTA
   // detected first. Skipped under 2 min (CTA effectively kept pace).
-  let botLeadPhrase = null;
-  let botLeadOnsetTs = null;
-  if (isMerged && cta?.first_seen_ts != null) {
-    const earliestOnset = (incident.observations || []).reduce(
-      (min, o) => Math.min(min, o.onset_ts ?? o.ts),
-      Number.POSITIVE_INFINITY,
-    );
-    if (Number.isFinite(earliestOnset)) {
-      const leadMs = cta.first_seen_ts - earliestOnset;
-      const TWO_MIN = 2 * 60 * 1000;
-      if (leadMs >= TWO_MIN) {
-        botLeadOnsetTs = earliestOnset;
-        const leadMin = Math.round(leadMs / 60_000);
-        if (leadMin < 60) botLeadPhrase = `${leadMin} min`;
-        else {
-          const h = Math.floor(leadMin / 60);
-          const m = leadMin % 60;
-          botLeadPhrase = m > 0 ? `${h}h ${m}m` : `${h}h`;
-        }
-      }
-    }
-  }
+  const botLead = computeBotLead({
+    isMerged,
+    ctaFirstSeenTs: cta?.first_seen_ts ?? null,
+    observations: incident.observations,
+  });
+  const botLeadPhrase = botLead?.phrase ?? null;
+  const botLeadOnsetTs = botLead?.onsetTs ?? null;
 
   // CTA-planned-start callout. When CTA tagged the alert with an EventStart
   // that meaningfully predates our first sighting, the disruption was a
@@ -180,26 +166,8 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // Skipped when the gap is < 10 minutes (CTA fired effectively in real
   // time) or > 14 days (a stale EventStart from a long-running planned
   // alert isn't informative).
-  let ctaPlannedPhrase = null;
   const ctaStart = cta?.cta_event_start_ts ?? null;
-  if (ctaStart != null && startTs != null) {
-    const aheadMs = startTs - ctaStart;
-    const TEN_MIN = 10 * 60 * 1000;
-    const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
-    if (aheadMs >= TEN_MIN && aheadMs <= FOURTEEN_DAYS) {
-      const aheadMin = Math.round(aheadMs / 60_000);
-      if (aheadMin < 60) ctaPlannedPhrase = `${aheadMin} min ahead`;
-      else if (aheadMin < 24 * 60) {
-        const h = Math.floor(aheadMin / 60);
-        const m = aheadMin % 60;
-        ctaPlannedPhrase = m > 0 ? `${h}h ${m}m ahead` : `${h}h ahead`;
-      } else {
-        const d = Math.floor(aheadMin / (24 * 60));
-        const hours = Math.round((aheadMin - d * 24 * 60) / 60);
-        ctaPlannedPhrase = hours > 0 ? `${d}d ${hours}h ahead` : `${d}d ahead`;
-      }
-    }
-  }
+  const ctaPlannedPhrase = computeCtaPlanned({ ctaStartTs: ctaStart, startTs });
 
   // CTA's claimed end-time vs actual resolution. Pure CTA alerts and merged
   // records carry `cta_event_end_ts` when CTA originally tagged the alert
@@ -225,29 +193,16 @@ export function EventDetail({ incident, incidents, alerts, observations, station
     activeEndPhrase != null &&
     (activeEndPhrase.startsWith('in ~') || activeEndPhrase === 'later today');
 
-  let ctaEstimateBlock = null;
-  const ctaEnd = cta?.cta_event_end_ts ?? null;
   // The retrospective "X min early/late" comparison is only meaningful when
   // CTA posted a time. Date-only EventEnd ("through May 25") has no minute
-  // precision to compare against, so we skip the early/late framing in that
-  // case and just show the date as context.
-  if (ctaEnd != null && incident.resolved_ts != null && !ctaEndIsDateOnly) {
-    const deltaMs = incident.resolved_ts - ctaEnd;
-    const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-    if (Math.abs(deltaMs) <= WEEK_MS) {
-      const absMin = Math.round(Math.abs(deltaMs) / 60_000);
-      const sameMinute = absMin === 0;
-      const earlyLate = deltaMs > 0 ? 'late' : 'early';
-      const minPhrase =
-        absMin < 60
-          ? `${absMin} min`
-          : `${Math.floor(absMin / 60)}h${absMin % 60 ? ` ${absMin % 60}m` : ''}`;
-      ctaEstimateBlock = {
-        sameMinute,
-        phrase: sameMinute ? 'cleared right on schedule' : `${minPhrase} ${earlyLate}`,
-      };
-    }
-  }
+  // precision to compare against, so it's skipped (and the date shown as
+  // context elsewhere). See computeCtaEstimate.
+  const ctaEnd = cta?.cta_event_end_ts ?? null;
+  const ctaEstimateBlock = computeCtaEstimate({
+    ctaEndTs: ctaEnd,
+    resolvedTs: incident.resolved_ts ?? null,
+    dateOnly: ctaEndIsDateOnly,
+  });
 
   // Stabilization delta: only meaningful when the CTA alert cleared before
   // the bot saw service return. The bot's resolved_ts represents sustained
