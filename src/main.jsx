@@ -1,7 +1,6 @@
-import { StrictMode } from 'react';
+import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App from './App.jsx';
 import { installStaleAssetReload } from './lib/staleAssetReload.js';
 
 // Reload long-open tabs after a deploy invalidates the cached HTML's
@@ -9,17 +8,24 @@ import { installStaleAssetReload } from './lib/staleAssetReload.js';
 // CSS bundle and renders unstyled until the user hard-refreshes.
 installStaleAssetReload();
 
-import AboutPage from './components/AboutPage.jsx';
-import CalendarPage from './components/CalendarPage.jsx';
-import ComparePage from './components/ComparePage.jsx';
-import DayPage from './components/DayPage.jsx';
-import EventPage from './components/EventPage.jsx';
-import LinePage from './components/LinePage.jsx';
-import NotFoundPage from './components/NotFoundPage.jsx';
-import StationPage from './components/StationPage.jsx';
-import StatsPage from './components/StatsPage.jsx';
-import SubscribePage from './components/SubscribePage.jsx';
-import SystemHealthPage from './components/SystemHealthPage.jsx';
+// Route components are lazy-loaded so a visitor landing on one page (e.g. a
+// shared /event/:id link, the bulk of social traffic) doesn't download the JS
+// for every other page. Each becomes its own chunk and Rollup hoists shared
+// deps (React, lib/*, common components) into shared chunks. `#root` is empty
+// in both the SPA shell and the prerendered stubs, so there's no prerendered
+// content for the Suspense fallback to flash over.
+const App = lazy(() => import('./App.jsx'));
+const AboutPage = lazy(() => import('./components/AboutPage.jsx'));
+const CalendarPage = lazy(() => import('./components/CalendarPage.jsx'));
+const ComparePage = lazy(() => import('./components/ComparePage.jsx'));
+const DayPage = lazy(() => import('./components/DayPage.jsx'));
+const EventPage = lazy(() => import('./components/EventPage.jsx'));
+const LinePage = lazy(() => import('./components/LinePage.jsx'));
+const NotFoundPage = lazy(() => import('./components/NotFoundPage.jsx'));
+const StationPage = lazy(() => import('./components/StationPage.jsx'));
+const StatsPage = lazy(() => import('./components/StatsPage.jsx'));
+const SubscribePage = lazy(() => import('./components/SubscribePage.jsx'));
+const SystemHealthPage = lazy(() => import('./components/SystemHealthPage.jsx'));
 
 // Client-side routing. GitHub Pages serves `404.html` (a copy of `index.html`)
 // for any unknown path, so the SPA boots and we dispatch to the right page
@@ -81,4 +87,12 @@ if (eventMatch) {
   page = <NotFoundPage />;
 }
 
-createRoot(document.getElementById('root')).render(<StrictMode>{page}</StrictMode>);
+// `null` fallback keeps `#root` empty (its served state) for the brief moment
+// the route chunk downloads — identical to the pre-render blank before this
+// split, so no new flash. Each page renders its own loading skeleton once
+// mounted.
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <Suspense fallback={null}>{page}</Suspense>
+  </StrictMode>,
+);
