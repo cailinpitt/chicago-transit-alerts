@@ -5,6 +5,7 @@ import { buildCalendarWeeks } from '../lib/calendar.js';
 import { formatChicagoDay } from '../lib/format.js';
 import { SOURCE_TYPES } from '../lib/incidents.js';
 import { buildSearch, parseUrlState } from '../lib/urlState.js';
+import BackLink from './BackLink.jsx';
 import Filters from './Filters.jsx';
 import Header from './Header.jsx';
 
@@ -219,12 +220,7 @@ export default function CalendarPage() {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
-          <a
-            href="/"
-            className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3"
-          >
-            ← Back to all incidents
-          </a>
+          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
           <div className="flex flex-wrap items-baseline gap-3">
             <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Calendar</h1>
             {grid && (

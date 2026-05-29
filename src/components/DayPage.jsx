@@ -6,6 +6,7 @@ import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
 import { filterIncidents, flattenIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc } from '../lib/urlState.js';
+import BackLink from './BackLink.jsx';
 import Header from './Header.jsx';
 import IncidentList from './IncidentList.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
@@ -134,12 +135,7 @@ export default function DayPage({ dateStr }) {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
-          <a
-            href="/"
-            className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3"
-          >
-            ← Back to all incidents
-          </a>
+          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
           <div className="flex flex-wrap items-baseline gap-3">
             <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">{dayLabel}</h1>
             {data && (

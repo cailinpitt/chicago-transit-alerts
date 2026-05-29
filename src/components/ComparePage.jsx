@@ -17,6 +17,7 @@ import {
   SIGNAL_LABELS,
   SIGNAL_TYPES,
 } from '../lib/incidents.js';
+import BackLink from './BackLink.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 
@@ -567,12 +568,7 @@ export default function ComparePage() {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>
-          <a
-            href="/"
-            className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3"
-          >
-            ← Back to all incidents
-          </a>
+          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Compare</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Side-by-side reliability and signal mix for up to {MAX_SELECTED} train lines or bus

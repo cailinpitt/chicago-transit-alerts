@@ -19,6 +19,7 @@ import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format
 import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
+import BackLink from './BackLink.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
@@ -373,12 +374,7 @@ export default function LinePage({ kind, lineId }) {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         <div>
-          <a
-            href="/"
-            className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3"
-          >
-            ← Back to all incidents
-          </a>
+          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
           <div className="flex flex-wrap items-center gap-3">
             <span
               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold"
