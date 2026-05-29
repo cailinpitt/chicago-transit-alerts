@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780058346241,
+  "generated_at": 1780058412879,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "purple"
       ],
       "first_seen_ts": 1780057562859,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780057833325,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -44,13 +44,13 @@
           },
           "ts": 1780057562859,
           "onset_ts": 1780056542859,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780057833325,
+          "duration_ms": 1290466,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmyk2pgkn52v",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmykmnok762e",
           "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2-mi stretch (2 stations affected) in the last 17 min — scheduled every 6 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
           ]
@@ -110,8 +110,8 @@
         "orange"
       ],
       "first_seen_ts": 1780057082461,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780057833325,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -145,13 +145,13 @@
           },
           "ts": 1780057082461,
           "onset_ts": 1780056002461,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780057833325,
+          "duration_ms": 1830864,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmyjmesyb724",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmykmltuut24",
           "bot_description": "Orange Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Orange Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.7-mi stretch (2 stations affected) in the last 18 min — scheduled every 7 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
           ]
