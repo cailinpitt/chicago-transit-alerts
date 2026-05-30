@@ -411,9 +411,30 @@ export default function App() {
             {(todaySummary || summaryStats) && (
               <section className="space-y-3">
                 {todaySummary && (
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200 px-1">
-                    🗓️ {todaySummary}
-                  </p>
+                  <div className="px-1">
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                      🗓️ {todaySummary.text}
+                      {todaySummary.lastWeek && (
+                        <>
+                          {' · '}
+                          {todaySummary.lastWeek.count} last{' '}
+                          <a
+                            href={`/day/${todaySummary.lastWeek.iso}/`}
+                            className="text-blue-500 hover:text-blue-400 hover:underline"
+                          >
+                            {todaySummary.lastWeek.label}
+                          </a>
+                        </>
+                      )}
+                      .
+                    </p>
+                    {todaySummary.lastWeek && (
+                      <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                        Counts incidents that started each day; a day page can show more, since it
+                        also includes ones still ongoing from earlier.
+                      </p>
+                    )}
+                  </div>
                 )}
                 {summaryStats && (
                   <SummaryStats

@@ -1008,15 +1008,26 @@ export function computeTypicalDurations(
 // merged incidents so an alert+observation pair counts once. Returns null
 // when there's no data to summarize (e.g. before data_start_ts).
 //
-// Outputs one of three shapes:
-//   - quiet day:   "Quiet today — 0 new incidents so far · 14 hours since the last."
-//   - busy day:    "Today: 5 incidents across 3 lines · 1 still ongoing."
-//   - simple busy: "Today: 1 incident on the Red Line."
+// Returns `{ text, lastWeek }` where `text` is the periodless narrative and
+// `lastWeek` (or null) carries the same-weekday-last-week comparison so the
+// renderer can turn the date into a link to that day's page. The trailing
+// period is the renderer's job since the last-week clause comes after it.
+//
+// `text` takes one of three shapes:
+//   - quiet day:   "Quiet today — 0 new incidents so far · 14 hours since the last"
+//   - busy day:    "Today: 5 incidents across 3 lines · 1 still ongoing"
+//   - simple busy: "Today: 1 incident on the Red Line"
+//
+// `lastWeek`, when present: `{ count, label, iso }` — e.g.
+//   `{ count: 24, label: 'Saturday, May 23', iso: '2026-05-23' }`. The count
+// is incidents that *started* that day (matches today's started-today count
+// for a fair weekly comparison); note the day page counts incidents that
+// *overlap* the day, so its total can be higher.
 /**
  * @param {import('./incidents.js').Alert[]} alerts
  * @param {import('./incidents.js').Observation[]} observations
  * @param {number} [now]
- * @returns {string | null}
+ * @returns {{ text: string, lastWeek: { count: number, label: string, iso: string } | null } | null}
  */
 export function buildTodaySummary(alerts, observations, now = Date.now()) {
   const todayUtc = chicagoDayUTC(now);
@@ -1046,13 +1057,19 @@ export function buildTodaySummary(alerts, observations, now = Date.now()) {
   if (todays.length === 0) {
     const lastTs = Math.max(...allTs);
     const elapsedMs = now - lastTs;
-    if (elapsedMs < 0) return 'Quiet today — 0 new incidents so far.';
+    if (elapsedMs < 0) return { text: 'Quiet today — 0 new incidents so far', lastWeek: null };
     const hours = Math.floor(elapsedMs / (60 * 60 * 1000));
     if (hours < 24) {
-      return `Quiet today — 0 new incidents so far · ${hours} hour${hours === 1 ? '' : 's'} since the last.`;
+      return {
+        text: `Quiet today — 0 new incidents so far · ${hours} hour${hours === 1 ? '' : 's'} since the last`,
+        lastWeek: null,
+      };
     }
     const days = Math.floor(hours / 24);
-    return `Quiet today — 0 new incidents so far · ${days} day${days === 1 ? '' : 's'} since the last incident.`;
+    return {
+      text: `Quiet today — 0 new incidents so far · ${days} day${days === 1 ? '' : 's'} since the last incident`,
+      lastWeek: null,
+    };
   }
 
   const activeCount = todays.filter((i) => i.active).length;
@@ -1081,6 +1098,7 @@ export function buildTodaySummary(alerts, observations, now = Date.now()) {
   //     may have just a couple hours, so the comparison is unfair before
   //     the day really gets going)
   const hoursIntoToday = (now - todayUtc) / (60 * 60 * 1000);
+  let lastWeek = null;
   if (lastWeekSameDayCount > 0 && hoursIntoToday >= 6) {
     // Anchor the formatter at noon Chicago a week ago so the date components
     // can't be flipped by a UTC-vs-Chicago day boundary (lastWeekUtc is the
@@ -1093,10 +1111,13 @@ export function buildTodaySummary(alerts, observations, now = Date.now()) {
       month: 'long',
       day: 'numeric',
     }).format(weekAgo);
+    // lastWeekUtc is the UTC-midnight instant for that Chicago day, so its
+    // ISO date slice is the /day/:date path component verbatim.
+    const iso = new Date(lastWeekUtc).toISOString().slice(0, 10);
     // Intl returns "Wednesday, May 6" with a comma already.
-    head += ` · ${lastWeekSameDayCount} last ${labeled}`;
+    lastWeek = { count: lastWeekSameDayCount, label: labeled, iso };
   }
-  return `${head}.`;
+  return { text: head, lastWeek };
 }
 
 // Leaderboard-style stats for the /stats page. Computed against the full

@@ -165,6 +165,16 @@ export default function DayPage({ dateStr }) {
               </span>
             )}
           </div>
+          {/* Clarify the count's definition: it counts incidents active on the
+              day, including ones that started earlier and were still ongoing —
+              so it can exceed a "started this day" tally (e.g. the homepage's
+              same-weekday comparison). */}
+          {data && totalCount > 0 && !isFuture && (
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+              Includes incidents still ongoing from earlier days, not just ones that started this
+              day.
+            </p>
+          )}
           {/* Scope banner — when the day view was opened filtered to a line
               or route, name the filter and offer a one-click escape to the
               full day. Without the escape hatch a scoped permalink looks like

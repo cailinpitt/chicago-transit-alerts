@@ -1079,13 +1079,13 @@ describe('buildTodaySummary', () => {
     // doesn't cross local midnight; this case is mid-afternoon, so safe.
     // But the incident *is* on today, so this case will fall into busy-day.
     const out = buildTodaySummary([], [o], TODAY_NOW);
-    expect(out).toMatch(/Today: 1 incident/);
+    expect(out.text).toMatch(/Today: 1 incident/);
   });
 
   it('formats busy-day with single line', () => {
     const o = makeObs({ line: 'red', ts: TODAY_NOW - 60_000 });
     const out = buildTodaySummary([], [o], TODAY_NOW);
-    expect(out).toMatch(/Red Line/);
+    expect(out.text).toMatch(/Red Line/);
   });
 
   it('reports active count when at least one incident is ongoing', () => {
@@ -1098,8 +1098,18 @@ describe('buildTodaySummary', () => {
     });
     const o2 = makeObs({ id: 2, line: 'blue', ts: TODAY_NOW - 5 * 60_000 });
     const out = buildTodaySummary([], [o1, o2], TODAY_NOW);
-    expect(out).toMatch(/2 incidents/);
-    expect(out).toMatch(/1 still ongoing/);
+    expect(out.text).toMatch(/2 incidents/);
+    expect(out.text).toMatch(/1 still ongoing/);
+  });
+
+  it('exposes last-week link metadata for incidents that started that day', () => {
+    const today = makeObs({ id: 1, ts: TODAY_NOW - 60_000 });
+    // Same weekday a week earlier (TODAY_NOW is 2026-05-09 → 2026-05-02).
+    const weekAgo = makeObs({ id: 2, ts: TODAY_NOW - 7 * DAY + 60_000 });
+    const out = buildTodaySummary([], [today, weekAgo], TODAY_NOW);
+    expect(out.lastWeek).toEqual({ count: 1, label: 'Saturday, May 2', iso: '2026-05-02' });
+    // The clause lives in lastWeek, not the narrative text.
+    expect(out.text).not.toMatch(/last Saturday/);
   });
 });
 
