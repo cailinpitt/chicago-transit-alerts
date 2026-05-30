@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780168445470,
+  "generated_at": 1780170545316,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "151"
       ],
       "first_seen_ts": 1780167665779,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780169942514,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -32,13 +32,13 @@
           "evidence": null,
           "ts": 1780167665779,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780169942514,
+          "duration_ms": 2276735,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3r3vr27d2y",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3t2ivomj23",
           "bot_description": "Route 151 service appears degraded — fewer buses than scheduled and buses running bunched together.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Route 151 service appears to be back to normal.",
           "bot_evidence_bullets": [
             "4 of 10 buses missing this past hour",
             "4 buses recently bunched together"
