@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780180449926,
+  "generated_at": 1780180990585,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -142,8 +142,8 @@
         "55N"
       ],
       "first_seen_ts": 1780175523626,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780180263126,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -166,13 +166,13 @@
           },
           "ts": 1780175523626,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780180263126,
+          "duration_ms": 4739500,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:f4z2wrejskmfwkapi3codqdm/post/3mn433ypyno2o",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:f4z2wrejskmfwkapi3codqdm/post/3mn44rnb7tn2n",
           "bot_description": "Route 55N service appears degraded — no buses observed within a full scheduled headway.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Buses observed again on Route 55N, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No buses moved through this stretch in the last 20 min — scheduled every 30 min."
           ]
