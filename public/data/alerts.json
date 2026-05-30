@@ -1,7 +1,63 @@
 {
-  "generated_at": 1780158177000,
+  "generated_at": 1780159210632,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mn3iio23m424",
+      "kind": "train",
+      "routes": [
+        "orange"
+      ],
+      "first_seen_ts": 1780158962446,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 490,
+          "kind": "train",
+          "line": "orange",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Midway",
+          "from_station": "35th/Archer",
+          "to_station": "Halsted (Orange)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 5.2,
+            "minutesSinceLastTrain": 25,
+            "lookbackMin": 30,
+            "coldThresholdMin": 25,
+            "trainsOutsideRun": 6,
+            "coldStations": 3,
+            "coldStationNames": [
+              "35th/Archer",
+              "Ashland (Orange)",
+              "Halsted (Orange)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 10,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780158962446,
+          "onset_ts": 1780157462446,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3iio23m424",
+          "resolved_post_url": null,
+          "bot_description": "Orange Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 5.2-mi stretch (3 stations affected) in the last 25 min — scheduled every 10 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
+          ]
+        }
+      ]
+    },
     {
       "id": "3mn3ehw3qoj2i",
       "kind": "train",
