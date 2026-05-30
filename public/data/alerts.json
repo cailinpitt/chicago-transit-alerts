@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780155492210,
+  "generated_at": 1780158177000,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -249,10 +249,13 @@
         "first_seen_ts": 1780110182565,
         "resolved_ts": null,
         "active": true,
-        "affected_from_station": null,
-        "affected_to_station": null,
+        "affected_from_station": "Pulaski",
+        "affected_to_station": "54th/Cermak",
         "affected_direction": null,
-        "mentioned_stations": [],
+        "mentioned_stations": [
+          "Pulaski (Pink)",
+          "54th/Cermak"
+        ],
         "cta_event_start_ts": 1780110000000,
         "cta_event_end_ts": 1780304400000,
         "cta_event_start_is_date_only": false,
@@ -2762,7 +2765,9 @@
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
-        "mentioned_stations": [],
+        "mentioned_stations": [
+          "51st"
+        ],
         "cta_event_start_ts": 1779949620000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -4105,7 +4110,9 @@
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
-        "mentioned_stations": [],
+        "mentioned_stations": [
+          "Belmont (Red/Brown/Purple)"
+        ],
         "cta_event_start_ts": 1779840660000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -6155,7 +6162,9 @@
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
-        "mentioned_stations": [],
+        "mentioned_stations": [
+          "47th (Red)"
+        ],
         "cta_event_start_ts": 1779551520000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -10454,10 +10463,13 @@
         "first_seen_ts": 1779075423568,
         "resolved_ts": 1779075783601,
         "active": false,
-        "affected_from_station": null,
-        "affected_to_station": null,
+        "affected_from_station": "54th/Cermak",
+        "affected_to_station": "Polk",
         "affected_direction": null,
-        "mentioned_stations": [],
+        "mentioned_stations": [
+          "54th/Cermak",
+          "Polk"
+        ],
         "cta_event_start_ts": 1779075360000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -16645,8 +16657,8 @@
         "first_seen_ts": 1777518123500,
         "resolved_ts": 1777540323801,
         "active": false,
-        "affected_from_station": null,
-        "affected_to_station": null,
+        "affected_from_station": "LaSalle",
+        "affected_to_station": "Grand",
         "affected_direction": null,
         "mentioned_stations": [
           "LaSalle",
@@ -16680,8 +16692,8 @@
         "first_seen_ts": 1777234323058,
         "resolved_ts": 1777264924056,
         "active": false,
-        "affected_from_station": null,
-        "affected_to_station": null,
+        "affected_from_station": "Dempster-Skokie",
+        "affected_to_station": "Howard",
         "affected_direction": null,
         "mentioned_stations": [
           "Dempster-Skokie",
