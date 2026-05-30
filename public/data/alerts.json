@@ -1,7 +1,53 @@
 {
-  "generated_at": 1780170545316,
+  "generated_at": 1780171744743,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mn3u67wukw23",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1780170603416,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 221,
+          "kind": "train",
+          "line": "red",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap",
+            "pulse-cold"
+          ],
+          "evidence": null,
+          "ts": 1780170603416,
+          "onset_ts": 1780169583416,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3u67wukw23",
+          "resolved_post_url": null,
+          "bot_description": "Red Line service appears degraded — fewer trains than scheduled, longer-than-scheduled headways between trains, and a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 9 trains missing this past hour",
+            "One gap between trains is 3.5x the scheduled wait",
+            "Possible service gap forming Clark/Division → Grand (Red)"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mn3r3vr27d2y",
       "kind": "bus",
