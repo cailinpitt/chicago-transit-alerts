@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780172645322,
+  "generated_at": 1780174146307,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "9"
       ],
       "first_seen_ts": 1780171565610,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780172461917,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -32,13 +32,13 @@
           "evidence": null,
           "ts": 1780171565610,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780172461917,
+          "duration_ms": 896307,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3uz2nqiw2e",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3wft3qlc2o",
           "bot_description": "Route 9 service appears degraded — buses running bunched together and longer-than-scheduled gaps between buses.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Route 9 service appears to be back to normal.",
           "bot_evidence_bullets": [
             "3 buses recently bunched together",
             "One gap between buses is 4.3x the scheduled wait"
@@ -53,8 +53,8 @@
         "red"
       ],
       "first_seen_ts": 1780170603416,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780173423227,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -77,13 +77,13 @@
           "evidence": null,
           "ts": 1780170603416,
           "onset_ts": 1780169583416,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780173423227,
+          "duration_ms": 3839811,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3u67wukw23",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3wframzk2y",
           "bot_description": "Red Line service appears degraded — fewer trains than scheduled, longer-than-scheduled headways between trains, and a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Red Line service appears to be back to normal.",
           "bot_evidence_bullets": [
             "3 of 9 trains missing this past hour",
             "One gap between trains is 3.5x the scheduled wait",
