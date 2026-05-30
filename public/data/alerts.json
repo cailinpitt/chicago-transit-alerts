@@ -1,60 +1,7 @@
 {
-  "generated_at": 1780112465005,
+  "generated_at": 1780112704101,
   "data_start_ts": 1777234323058,
   "incidents": [
-    {
-      "id": "3mn24xlamab2q",
-      "kind": "train",
-      "routes": [
-        "red"
-      ],
-      "first_seen_ts": 1780112463600,
-      "resolved_ts": null,
-      "active": true,
-      "sources": [
-        "cta"
-      ],
-      "cta": {
-        "alert_id": "114934",
-        "headline": "Subway trains rerouted to elevated tracks",
-        "short_description": "Red Line subway trains will be rerouted to the elevated tracks between Cermak-Chinatown and Fullerton in both directions.",
-        "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn24xlamab2q",
-        "resolved_reply_url": null,
-        "first_seen_ts": 1780112463600,
-        "resolved_ts": null,
-        "active": true,
-        "affected_from_station": "Cermak-Chinatown",
-        "affected_to_station": "Fullerton",
-        "affected_direction": null,
-        "mentioned_stations": [
-          "Cermak-Chinatown",
-          "Fullerton"
-        ],
-        "cta_event_start_ts": 1780110000000,
-        "cta_event_end_ts": 1780304400000,
-        "cta_event_start_is_date_only": false,
-        "cta_event_end_is_date_only": false,
-        "versions": [
-          {
-            "ts": 1780112223747,
-            "headline": "Subway trains rerouted to elevated tracks",
-            "short_description": "Red Line subway trains will be rerouted to the elevated tracks between Cermak-Chinatown and Fullerton in both directions.",
-            "affected_from_station": "Cermak-Chinatown",
-            "affected_to_station": "Fullerton in both directions",
-            "affected_direction": null
-          },
-          {
-            "ts": 1780112463600,
-            "headline": "Subway trains rerouted to elevated tracks",
-            "short_description": "Red Line subway trains will be rerouted to the elevated tracks between Cermak-Chinatown and Fullerton in both directions.",
-            "affected_from_station": "Cermak-Chinatown",
-            "affected_to_station": "Fullerton",
-            "affected_direction": null
-          }
-        ]
-      },
-      "observations": []
-    },
     {
       "id": "3mn23z67x6f27",
       "kind": "train",
