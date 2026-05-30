@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780180990585,
+  "generated_at": 1780181346891,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -65,8 +65,8 @@
         "blue"
       ],
       "first_seen_ts": 1780178883639,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780179726088,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -88,52 +88,19 @@
           "evidence": null,
           "ts": 1780178883639,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780179726088,
+          "duration_ms": 842449,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn43pmdj7a23",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn454fldwa2n",
           "bot_description": "Blue Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Blue Line service appears to be back to normal.",
           "bot_evidence_bullets": [
             "One gap between trains is 2.8x the scheduled wait",
             "4 of 11 trains missing this past hour"
           ]
         }
       ]
-    },
-    {
-      "id": "3mn42gjoedd2n",
-      "kind": "train",
-      "routes": [
-        "red",
-        "brown"
-      ],
-      "first_seen_ts": 1780178463600,
-      "resolved_ts": 1780179064726,
-      "active": false,
-      "sources": [
-        "cta"
-      ],
-      "cta": {
-        "alert_id": "115237",
-        "headline": "Red and Brown Line Service Delayed near Armitage",
-        "short_description": "Red and Brown Line trains are standing near Armitage due to track conditions. Crews working to restore service.",
-        "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn42gjoedd2n",
-        "resolved_reply_url": null,
-        "first_seen_ts": 1780178463600,
-        "resolved_ts": 1780179064726,
-        "active": false,
-        "affected_from_station": null,
-        "affected_to_station": null,
-        "affected_direction": null,
-        "mentioned_stations": [],
-        "cta_event_start_ts": 1780178400000,
-        "cta_event_end_ts": null,
-        "cta_event_start_is_date_only": false,
-        "cta_event_end_is_date_only": false
-      },
-      "observations": []
     },
     {
       "id": "3mn433ypyno2o",
@@ -180,18 +147,37 @@
       ]
     },
     {
-      "id": "3mn3xjkuia42c",
+      "id": "3mn42gjoedd2n",
       "kind": "train",
       "routes": [
-        "red"
+        "red",
+        "brown"
       ],
       "first_seen_ts": 1780175227769,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780179064726,
+      "active": false,
       "sources": [
+        "cta",
         "bot"
       ],
-      "cta": null,
+      "cta": {
+        "alert_id": "115237",
+        "headline": "Red and Brown Line Service Delayed near Armitage",
+        "short_description": "Red and Brown Line trains are standing near Armitage due to track conditions. Crews working to restore service.",
+        "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn42gjoedd2n",
+        "resolved_reply_url": null,
+        "first_seen_ts": 1780178463600,
+        "resolved_ts": 1780179064726,
+        "active": false,
+        "affected_from_station": null,
+        "affected_to_station": null,
+        "affected_direction": null,
+        "mentioned_stations": [],
+        "cta_event_start_ts": 1780178400000,
+        "cta_event_end_ts": null,
+        "cta_event_start_is_date_only": false,
+        "cta_event_end_is_date_only": false
+      },
       "observations": [
         {
           "id": 223,
@@ -209,13 +195,13 @@
           "evidence": null,
           "ts": 1780175227769,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780179004522,
+          "duration_ms": 3776753,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3xjkuia42c",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn454ejqft2e",
           "bot_description": "Red Line service appears degraded — fewer trains than scheduled and longer-than-scheduled headways between trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Red Line service appears to be back to normal.",
           "bot_evidence_bullets": [
             "4 of 10 trains missing this past hour",
             "One gap between trains is 2.7x the scheduled wait"
