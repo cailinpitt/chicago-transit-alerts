@@ -1499,3 +1499,159 @@ export function computeYearOverYear(
     priorEndTs,
   };
 }
+
+// ── Event-page insight helpers ────────────────────────────────────────────
+// These read the nested `incidents[]` payload directly (one object per
+// real-world disruption) rather than the flat alert/observation arrays the
+// aggregators above were written against. They power the per-event callouts:
+// "is this a chronic trouble spot?", "was this a bad one?", "is this a busy
+// hour for the line?". All are pure and windowed off `now`.
+
+// Span of a single nested incident in ms: resolved_ts - first_seen_ts. Null
+// for still-active incidents (no honest endpoint) — severity framing is
+// retrospective, so an open incident gets no rank.
+function incidentSpanMs(inc) {
+  if (inc.resolved_ts == null || inc.first_seen_ts == null) return null;
+  const d = inc.resolved_ts - inc.first_seen_ts;
+  return d > 0 ? d : null;
+}
+
+// True when a nested incident touches any of `routeSet` and matches `kind`.
+function incidentTouchesRoutes(inc, kind, routeSet) {
+  if (inc.kind !== kind) return false;
+  return (inc.routes || []).some((r) => routeSet.has(r));
+}
+
+// Place-scoped recurrence: how many incidents in the window hit the exact same
+// line stretch (from→to) as this one. Counts whole incidents (not raw
+// observations) so a merged record with two pulse-cold obs on the stretch
+// still counts once. Train-only and stretch-only — the caller passes the
+// subject's line/from/to (from its primary bot observation); CTA-only and bus
+// incidents have no comparable stretch and yield null upstream.
+//
+// Returns null unless the stretch recurred at least once *besides* this
+// incident (priorCount >= 1) — a one-off isn't a "trouble spot".
+export function computeStretchRecurrence(
+  incidents,
+  { line, fromStation, toStation, selfId = null, now = Date.now(), windowDays = 90 } = {},
+) {
+  if (!line || !fromStation || !toStation) return null;
+  const cutoff = now - windowDays * DAY_MS;
+  let count = 0;
+  let priorCount = 0;
+  let lastOtherTs = null;
+  const days = new Set();
+  for (const inc of incidents || []) {
+    if (inc.kind !== 'train') continue;
+    const ts = inc.first_seen_ts;
+    if (ts == null || ts < cutoff) continue;
+    const matches = (inc.observations || []).some(
+      (o) =>
+        o.detection_source !== 'roundup' &&
+        o.line === line &&
+        o.from_station === fromStation &&
+        o.to_station === toStation,
+    );
+    if (!matches) continue;
+    count += 1;
+    days.add(chicagoDayUTC(ts));
+    if (inc.id !== selfId) {
+      priorCount += 1;
+      if (lastOtherTs == null || ts > lastOtherTs) lastOtherTs = ts;
+    }
+  }
+  if (priorCount < 1) return null;
+  return {
+    count,
+    priorCount,
+    distinctDays: days.size,
+    lastOtherTs,
+    line,
+    fromStation,
+    toStation,
+    windowDays,
+  };
+}
+
+// Line-wide severity rank: where this incident's duration sits among all
+// resolved incidents touching the same line/route in the window, regardless
+// of signal type (so a pure CTA alert still ranks). Returns a tier only when
+// notable — the longest, or within the top decile — and only with a cohort
+// big enough (`minCohort`) that "longest of 3" can't masquerade as severe.
+export function computeLineDurationRank(
+  incident,
+  incidents,
+  { now = Date.now(), windowDays = 30, minCohort = 8 } = {},
+) {
+  const routes = incident?.routes || [];
+  if (routes.length === 0) return null;
+  const thisMs = incidentSpanMs(incident);
+  if (thisMs == null) return null; // active or unbounded — no retrospective rank
+  const routeSet = new Set(routes);
+  const cutoff = now - windowDays * DAY_MS;
+
+  const spans = [];
+  for (const inc of incidents || []) {
+    if (!incidentTouchesRoutes(inc, incident.kind, routeSet)) continue;
+    if (inc.first_seen_ts == null || inc.first_seen_ts < cutoff) continue;
+    const d = incidentSpanMs(inc);
+    if (d == null) continue;
+    spans.push({ id: inc.id, d });
+  }
+  if (spans.length < minCohort) return null;
+
+  spans.sort((a, b) => b.d - a.d); // longest first
+  const rankIdx = spans.findIndex((x) => x.id === incident.id);
+  if (rankIdx < 0) return null;
+  const count = spans.length;
+  let tier = null;
+  if (rankIdx === 0) tier = 'longest';
+  else if (rankIdx / count <= 0.1) tier = 'top10';
+  else return null;
+  return { tier, rank: rankIdx + 1, count, windowDays, thisMs };
+}
+
+// Hour-of-day context: is the clock-hour this incident started in a
+// relatively busy (or unusually quiet) one for disruptions on its line?
+// Builds a 24-bucket Chicago-local hour histogram from the line's incidents
+// in the window and compares this incident's bucket to the flat mean. Coarse
+// on purpose — a full 7×24 hour-of-week grid is too sparse per line to read a
+// single cell off. Conservative thresholds + a min sample keep it from
+// narrating noise. Returns null when not notable or under-sampled.
+export function computeHourOfDayContext(
+  incident,
+  incidents,
+  { now = Date.now(), windowDays = 90, minTotal = 24 } = {},
+) {
+  const routes = incident?.routes || [];
+  if (routes.length === 0 || incident.first_seen_ts == null) return null;
+  const routeSet = new Set(routes);
+  const cutoff = now - windowDays * DAY_MS;
+
+  const hours = new Array(24).fill(0);
+  let total = 0;
+  for (const inc of incidents || []) {
+    if (!incidentTouchesRoutes(inc, incident.kind, routeSet)) continue;
+    const ts = inc.first_seen_ts;
+    if (ts == null || ts < cutoff) continue;
+    const { hour } = chicagoWeekdayHour(ts);
+    if (hour == null) continue;
+    hours[hour] += 1;
+    total += 1;
+  }
+  if (total < minTotal) return null;
+
+  const { hour: thisHour } = chicagoWeekdayHour(incident.first_seen_ts);
+  if (thisHour == null) return null;
+  const inThisHour = hours[thisHour];
+  const mean = total / 24;
+  if (mean <= 0) return null;
+  const ratio = inThisHour / mean;
+
+  if (ratio >= 1.75) return { tier: 'busy', hour: thisHour, count: inThisHour, total, ratio };
+  // Require a denser sample before calling an hour "unusually quiet" — with a
+  // thin cohort a 0-count hour is just sampling, not a real lull.
+  if (ratio <= 0.4 && total >= 40)
+    return { tier: 'quiet', hour: thisHour, count: inThisHour, total, ratio };
+  return null;
+}

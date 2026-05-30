@@ -141,7 +141,12 @@ export function parseUrlState(search = window.location.search) {
     out.selectedBusRoutes = routesParam
       .split(',')
       .map((s) => s.trim())
-      .filter((s) => /^\d+$/.test(s));
+      // CTA route ids aren't always plain numbers — express/owl/named routes
+      // carry letters (X9, J14, N5, 53A, 55N). Accept any token with at least
+      // one digit and only alphanumerics; that admits every real route while
+      // still dropping garbage like "abc" or "none". Non-existent ids simply
+      // match no incident downstream, so the filter is harmless either way.
+      .filter((s) => /^[A-Za-z]*\d+[A-Za-z]*$/.test(s));
   }
 
   const rangeParam = params.get('range');

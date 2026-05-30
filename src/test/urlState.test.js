@@ -51,8 +51,15 @@ describe('parseUrlState', () => {
     expect(parseUrlState('?routes=66,77').selectedBusRoutes).toEqual(['66', '77']);
   });
 
-  it('drops non-numeric bus routes', () => {
-    expect(parseUrlState('?routes=66,abc,77').selectedBusRoutes).toEqual(['66', '77']);
+  it('keeps alphanumeric bus route ids (X9, J14, N5, 53A), drops garbage', () => {
+    expect(parseUrlState('?routes=66,X9,J14,N5,53A,abc,none,77').selectedBusRoutes).toEqual([
+      '66',
+      'X9',
+      'J14',
+      'N5',
+      '53A',
+      '77',
+    ]);
   });
 
   it('parses range=all as null', () => {

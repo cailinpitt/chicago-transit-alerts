@@ -72,3 +72,56 @@ export function computeCtaEstimate({ ctaEndTs, resolvedTs, dateOnly }) {
     phrase: sameMinute ? 'cleared right on schedule' : `${minPhrase} ${earlyLate}`,
   };
 }
+
+// Chronological neighbors of an incident for the prev/next footer nav.
+// Sorts by first_seen_ts (ties broken by id so the order is stable), finds
+// the subject, and returns the incident immediately before/after it. With
+// `sameRouteOnly`, the walk is restricted to incidents of the same kind that
+// share at least one route — so "next on the Blue Line" skips unrelated
+// lines. Returns `{ prev, next }`, either of which may be null at an end.
+export function findIncidentNeighbors(incident, incidents, { sameRouteOnly = false } = {}) {
+  if (!incident || !Array.isArray(incidents)) return { prev: null, next: null };
+  const routeSet = sameRouteOnly ? new Set(incident.routes || []) : null;
+  const pool = incidents.filter((inc) => {
+    if (sameRouteOnly) {
+      if (inc.kind !== incident.kind) return false;
+      if (!(inc.routes || []).some((r) => routeSet.has(r))) return false;
+    }
+    return inc.first_seen_ts != null;
+  });
+  pool.sort(
+    (a, b) => a.first_seen_ts - b.first_seen_ts || String(a.id).localeCompare(String(b.id)),
+  );
+  const idx = pool.findIndex((inc) => inc.id === incident.id);
+  if (idx < 0) return { prev: null, next: null };
+  return {
+    prev: idx > 0 ? pool[idx - 1] : null,
+    next: idx < pool.length - 1 ? pool[idx + 1] : null,
+  };
+}
+
+// Plain-text one-incident summary for the "Copy summary" button — something
+// you can paste into a chat or thread without the recipient needing to open
+// the page. Takes pre-formatted strings (the component owns date/duration
+// formatting) so this stays a pure string assembler. Shape:
+//   <Line>: <headline>
+//   <date> · ongoing | lasted <duration>
+//   <url>
+export function buildEventSummaryText({
+  description,
+  lineLabel,
+  dateText,
+  durationText,
+  active,
+  url,
+}) {
+  const lines = [];
+  lines.push(lineLabel ? `${lineLabel}: ${description}` : description);
+  const meta = [];
+  if (dateText) meta.push(dateText);
+  if (active) meta.push('ongoing');
+  else if (durationText) meta.push(`lasted ${durationText}`);
+  if (meta.length > 0) lines.push(meta.join(' · '));
+  if (url) lines.push(url);
+  return lines.join('\n');
+}

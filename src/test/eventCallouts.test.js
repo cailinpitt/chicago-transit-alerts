@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildEventSummaryText,
   computeBotLead,
   computeCtaEstimate,
   computeCtaPlanned,
+  findIncidentNeighbors,
   formatLeadTime,
 } from '../components/event/callouts.js';
 
@@ -108,5 +110,54 @@ describe('computeCtaEstimate', () => {
     expect(
       computeCtaEstimate({ ctaEndTs: NOW, resolvedTs: NOW + 8 * DAY, dateOnly: false }),
     ).toBeNull();
+  });
+});
+
+describe('findIncidentNeighbors', () => {
+  const incidents = [
+    { id: 'a', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 3 * HOUR },
+    { id: 'b', kind: 'train', routes: ['red'], first_seen_ts: NOW - 2 * HOUR },
+    { id: 'c', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 1 * HOUR },
+    { id: 'd', kind: 'bus', routes: ['66'], first_seen_ts: NOW },
+  ];
+
+  it('walks global chronological neighbors', () => {
+    const { prev, next } = findIncidentNeighbors(incidents[1], incidents);
+    expect(prev.id).toBe('a');
+    expect(next.id).toBe('c');
+  });
+
+  it('restricts to the same route when asked', () => {
+    const { prev, next } = findIncidentNeighbors(incidents[2], incidents, { sameRouteOnly: true });
+    expect(prev.id).toBe('a'); // skips 'b' (red) and finds the prior blue
+    expect(next).toBeNull(); // newest blue
+  });
+
+  it('returns nulls at the ends', () => {
+    expect(findIncidentNeighbors(incidents[0], incidents).prev).toBeNull();
+    expect(findIncidentNeighbors(incidents[3], incidents).next).toBeNull();
+  });
+});
+
+describe('buildEventSummaryText', () => {
+  it('assembles a multi-line summary for a resolved incident', () => {
+    expect(
+      buildEventSummaryText({
+        description: 'Trains standing near Ashland',
+        lineLabel: 'Orange Line',
+        dateText: 'May 28, 2026',
+        durationText: '59 min',
+        active: false,
+        url: 'https://chicagotransitalerts.app/event/abc',
+      }),
+    ).toBe(
+      'Orange Line: Trains standing near Ashland\nMay 28, 2026 · lasted 59 min\nhttps://chicagotransitalerts.app/event/abc',
+    );
+  });
+
+  it('marks an active incident ongoing and omits missing pieces', () => {
+    expect(buildEventSummaryText({ description: 'Service disruption', active: true })).toBe(
+      'Service disruption\nongoing',
+    );
   });
 });

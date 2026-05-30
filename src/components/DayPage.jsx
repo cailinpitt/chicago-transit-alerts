@@ -5,10 +5,11 @@ import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
 import { filterIncidents, flattenIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
-import { dayStringToUtc } from '../lib/urlState.js';
+import { dayStringToUtc, parseUrlState } from '../lib/urlState.js';
 import BackLink from './BackLink.jsx';
 import Header from './Header.jsx';
 import IncidentList from './IncidentList.jsx';
+import LinePill from './LinePill.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -30,6 +31,17 @@ export default function DayPage({ dateStr }) {
   // not-found card without bothering to fetch.
   const dayUtc = useMemo(() => dayStringToUtc(dateStr), [dateStr]);
   const dayLabel = dayUtc != null ? formatChicagoDay(dayUtc) : null;
+
+  // Optional line/route scope carried in the query string (?lines=orange,
+  // ?lines=none&routes=66). Lets a "view this day" link from a line-scoped
+  // surface — e.g. the event page's mini timeline — land filtered to the
+  // line in question instead of the whole system. Parsed once: the page is
+  // bootstrap-routed, so the query string is stable for its lifetime.
+  const scope = useMemo(() => parseUrlState(), []);
+  const scopedLines =
+    scope.selectedLines && scope.selectedLines.length > 0 ? scope.selectedLines : null;
+  const scopedBusRoutes = scope.selectedBusRoutes.length > 0 ? scope.selectedBusRoutes : null;
+  const isScoped = scopedLines != null || scopedBusRoutes != null;
 
   // Future days never have data; show a friendly state rather than an empty
   // list. Past-but-out-of-window days fall through to the "no incidents"
@@ -60,16 +72,20 @@ export default function DayPage({ dateStr }) {
   const filtered = useMemo(() => {
     if (!data || dayUtc == null) return [];
     return filterIncidents(data.incidents, {
-      lines: null,
+      // selectedLines: a real array (even empty) narrows trains; null shows
+      // all. A bus-route scope sets lines to [] so trains drop out, leaving
+      // just the scoped routes. showBus follows the same contextual default
+      // the homepage uses (hidden once a train line is pinned).
+      lines: scope.selectedLines,
       startTs: null,
-      showBus: true,
-      busRoutes: null,
+      showBus: scope.showBus,
+      busRoutes: scopedBusRoutes,
       selectedDay: dayUtc,
       signals: null,
       search: '',
       now,
     });
-  }, [data, dayUtc, now]);
+  }, [data, dayUtc, now, scope, scopedBusRoutes]);
 
   const stationIndex = useMemo(() => {
     if (!flat) return null;
@@ -120,6 +136,10 @@ export default function DayPage({ dateStr }) {
   const prevStr = new Date(dayUtc - DAY_MS).toISOString().slice(0, 10);
   const nextStr = new Date(dayUtc + DAY_MS).toISOString().slice(0, 10);
   const showNext = dayUtc + DAY_MS <= chicagoDayUTC(now);
+  // Carry the scope filter onto the neighbor links so walking a streak of
+  // days stays pinned to the same line/route instead of springing open to
+  // the whole system on the next click.
+  const scopeSuffix = isScoped ? window.location.search : '';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
@@ -145,8 +165,30 @@ export default function DayPage({ dateStr }) {
               </span>
             )}
           </div>
-          {/* Line/route pills touched this day */}
-          {data && (breakdown.trains.length > 0 || breakdown.buses.length > 0) && (
+          {/* Scope banner — when the day view was opened filtered to a line
+              or route, name the filter and offer a one-click escape to the
+              full day. Without the escape hatch a scoped permalink looks like
+              the day only had that line's incidents. */}
+          {isScoped && (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3 text-sm text-slate-500 dark:text-slate-400">
+              <span>Filtered to</span>
+              {scopedLines ? (
+                <LinePill kind="train" routes={scopedLines} />
+              ) : (
+                <LinePill kind="bus" routes={scopedBusRoutes} />
+              )}
+              <span className="text-slate-300 dark:text-slate-600">·</span>
+              <a
+                href={`/day/${dateStr}`}
+                className="text-blue-500 hover:text-blue-400 hover:underline"
+              >
+                Show all incidents this day →
+              </a>
+            </div>
+          )}
+          {/* Line/route pills touched this day — suppressed under a scope
+              filter, where the banner above already names the single line. */}
+          {!isScoped && data && (breakdown.trains.length > 0 || breakdown.buses.length > 0) && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {breakdown.trains.map((line) => {
                 const info = TRAIN_LINES[line];
@@ -201,14 +243,14 @@ export default function DayPage({ dateStr }) {
         {data && (
           <div className="flex justify-between items-center text-sm pt-2">
             <a
-              href={`/day/${prevStr}`}
+              href={`/day/${prevStr}${scopeSuffix}`}
               className="text-blue-500 hover:text-blue-400 hover:underline"
             >
               ← Previous day
             </a>
             {showNext ? (
               <a
-                href={`/day/${nextStr}`}
+                href={`/day/${nextStr}${scopeSuffix}`}
                 className="text-blue-500 hover:text-blue-400 hover:underline"
               >
                 Next day →

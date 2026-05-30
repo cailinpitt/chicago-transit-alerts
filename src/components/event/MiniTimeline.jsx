@@ -115,11 +115,23 @@ function cellTextColor(hex, opacity, dark) {
   return lum > 150 ? '#000' : '#fff';
 }
 
+// Day link, scoped to this row's line/route so the destination day page opens
+// filtered to the line in question rather than the whole system. Trains use
+// ?lines=<line>; buses set ?lines=none (drop trains) plus ?routes=<route>.
+// Mirrors the canonical query scheme parseUrlState/DayPage read.
+function scopedDayHref(dateStr, kind, route) {
+  const query =
+    kind === 'bus'
+      ? `?lines=none&routes=${encodeURIComponent(route)}`
+      : `?lines=${encodeURIComponent(route)}`;
+  return `/day/${dateStr}${query}`;
+}
+
 // One day = one square cell, shaded by incident count (darker = more) and
 // stamped with the exact count when it's 2+. Single-incident and empty days
 // stay unlabeled so the row reads as a heatmap with numbers only where the
 // magnitude is worth spelling out.
-function TimelineRow({ counts, dayUtcs, centerDayUtc, color, dark }) {
+function TimelineRow({ counts, dayUtcs, centerDayUtc, color, dark, kind, route }) {
   return (
     <div
       className="grid gap-1 flex-1 min-w-0"
@@ -130,20 +142,39 @@ function TimelineRow({ counts, dayUtcs, centerDayUtc, color, dark }) {
         const isPinned = dayUtc === centerDayUtc;
         const label = `${formatChicagoDay(dayUtc)}: ${count} incident${count === 1 ? '' : 's'}`;
         const opacity = cellOpacity(count);
+        const cellClass = `aspect-square rounded-sm flex items-center justify-center text-[11px] font-bold leading-none ${
+          isPinned ? 'ring-1 ring-slate-700 dark:ring-slate-200' : ''
+        }`;
+        const cellStyle = {
+          backgroundColor: count > 0 ? hexToRgba(color, opacity) : 'var(--timeline-empty)',
+        };
+        const inner = count >= 2 && (
+          <span style={{ color: cellTextColor(color, opacity, dark) }}>{count}</span>
+        );
+        // Days with at least one incident link to that day's page; empty days
+        // stay inert squares (a /day page for them is just a "nothing
+        // happened" shell, so there's nothing to drill into). dayUtc is a
+        // UTC-midnight epoch, so toISOString().slice(0,10) reads back the
+        // YYYY-MM-DD the /day route expects — same pattern CalendarPage and
+        // the leaderboard "worst day" links use.
+        if (count > 0) {
+          const dateStr = new Date(dayUtc).toISOString().slice(0, 10);
+          return (
+            <a
+              key={dayUtc}
+              href={scopedDayHref(dateStr, kind, route)}
+              title={`${label} — view day`}
+              aria-label={`${label} — view day`}
+              className={`${cellClass} cursor-pointer transition-shadow hover:ring-2 hover:ring-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400`}
+              style={cellStyle}
+            >
+              {inner}
+            </a>
+          );
+        }
         return (
-          <div
-            key={dayUtc}
-            title={label}
-            className={`aspect-square rounded-sm flex items-center justify-center text-[11px] font-bold leading-none ${
-              isPinned ? 'ring-1 ring-slate-700 dark:ring-slate-200' : ''
-            }`}
-            style={{
-              backgroundColor: count > 0 ? hexToRgba(color, opacity) : 'var(--timeline-empty)',
-            }}
-          >
-            {count >= 2 && (
-              <span style={{ color: cellTextColor(color, opacity, dark) }}>{count}</span>
-            )}
+          <div key={dayUtc} title={label} className={cellClass} style={cellStyle}>
+            {inner}
           </div>
         );
       })}
@@ -200,6 +231,8 @@ export function MiniTimeline({ incident, incidents, dark }) {
                 centerDayUtc={centerDayUtc}
                 color={routeColor(incident.kind, route)}
                 dark={dark}
+                kind={incident.kind}
+                route={route}
               />
             </div>
           ))}
@@ -219,6 +252,8 @@ export function MiniTimeline({ incident, incidents, dark }) {
             centerDayUtc={centerDayUtc}
             color={routeColor(incident.kind, routes[0])}
             dark={dark}
+            kind={incident.kind}
+            route={routes[0]}
           />
           <div className="flex justify-between mt-1.5 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
             <span>{firstLabel}</span>

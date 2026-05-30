@@ -1,5 +1,11 @@
 import { useMemo } from 'react';
-import { computeCohortDurationStats } from '../../lib/aggregate.js';
+import { useNow } from '../../hooks/useNow.js';
+import {
+  computeCohortDurationStats,
+  computeHourOfDayContext,
+  computeLineDurationRank,
+  computeStretchRecurrence,
+} from '../../lib/aggregate.js';
 import {
   formatDate,
   formatDuration,
@@ -11,6 +17,7 @@ import {
   affectedLineSegments,
   flattenIncidents,
   formatEvidenceChip,
+  formatRoutesLabel,
   mergeMatchingIncidents,
   SIGNAL_LABELS,
   splitObservations,
@@ -29,9 +36,39 @@ import {
   StationChips,
   StationsByLine,
 } from './AffectedStations.jsx';
-import { computeBotLead, computeCtaEstimate, computeCtaPlanned } from './callouts.js';
-import { describe, incidentRoutes } from './incidentText.jsx';
+import CopySummary from './CopySummary.jsx';
+import {
+  buildEventSummaryText,
+  computeBotLead,
+  computeCtaEstimate,
+  computeCtaPlanned,
+} from './callouts.js';
+import { describe, describeText, incidentRoutes } from './incidentText.jsx';
 import { MiniTimeline } from './MiniTimeline.jsx';
+
+// 0–23 Chicago clock hour → "3 PM" / "12 AM". Used by the time-of-day context
+// line; kept local since it's the only consumer.
+function formatHourLabel(hour) {
+  const period = hour < 12 ? 'AM' : 'PM';
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${h12} ${period}`;
+}
+
+// Compact pill for a severity tier. amber = notable, red = the worst.
+function SeverityBadge({ children, tone = 'amber', title }) {
+  const cls =
+    tone === 'red'
+      ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300'
+      : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300';
+  return (
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${cls}`}
+      title={title}
+    >
+      {children}
+    </span>
+  );
+}
 
 // The affected_* stations now render as chips at the top of the card;
 // formatAffected is only left to surface the direction string (e.g.
@@ -164,6 +201,58 @@ export function EventDetail({ incident, incidents, alerts, observations, station
     [flatSubject, alerts, observations],
   );
 
+  // Wall-clock ticker (1-minute cadence) so an active incident shows a running
+  // "ongoing for…" that advances without waiting on the 5-minute data poll.
+  const now = useNow();
+  const elapsedMs = incident.active && startTs != null ? Math.max(0, now - startTs) : null;
+
+  // ── Severity / context insights ──────────────────────────────────────────
+  // All windowed off Date.now() at compute time (no `now` tick dependency) so
+  // they recompute on data poll, not every minute. The label they share.
+  const routes = incidentRoutes(incident);
+  const lineLabel = formatRoutesLabel(incident.kind, routes);
+
+  // Line-wide severity: where this incident's duration ranks among ALL
+  // incidents on the line over 30d (any signal, incl. pure CTA alerts).
+  const lineRank = useMemo(
+    () => computeLineDurationRank(incident, incidents, { windowDays: 30 }),
+    [incident, incidents],
+  );
+
+  // Signal-cohort severity: derived from the same cohort the DurationScale
+  // bar draws (same kind+line+signal, 90d). "Longest" when at/above the
+  // cohort max, "top 10%" when at/above p90. Pure CTA alerts have no cohort
+  // (cohortStats null) and get no signal badge.
+  const signalSeverity = useMemo(() => {
+    if (!cohortStats || cohortStats.thisMs == null || cohortStats.count < 5) return null;
+    if (cohortStats.thisMs >= cohortStats.maxMs)
+      return { tier: 'longest', count: cohortStats.count };
+    if (cohortStats.thisMs >= cohortStats.p90Ms) return { tier: 'top10', count: cohortStats.count };
+    return null;
+  }, [cohortStats]);
+  const signalLabel = primary?.detection_source
+    ? (SIGNAL_LABELS[primary.detection_source] ?? primary.detection_source)
+    : null;
+
+  // Place recurrence: has this exact stretch flared up repeatedly lately?
+  const stretchRecurrence = useMemo(
+    () =>
+      computeStretchRecurrence(incidents, {
+        line: primary?.line ?? null,
+        fromStation: primary?.from_station ?? null,
+        toStation: primary?.to_station ?? null,
+        selfId: incident.id,
+        windowDays: 90,
+      }),
+    [incidents, primary, incident.id],
+  );
+
+  // Time-of-day: is the hour this started in a busy/quiet one for the line?
+  const hourContext = useMemo(
+    () => computeHourOfDayContext(incident, incidents, { windowDays: 90 }),
+    [incident, incidents],
+  );
+
   // Bot-lead-time callout. When our bot's earliest observation (back-dated to
   // the last train through the cold stretch / earliest signal) predates the
   // CTA alert's post time, surface the lead so the UI doesn't read as if CTA
@@ -286,9 +375,49 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         )}
       </div>
 
+      {/* Severity badges — "was this a bad one?" at a glance. The line-wide
+          badge ranks duration against every incident on the line (30d); the
+          signal badge ranks it against the same-signal cohort the
+          DurationScale below draws (90d). Both only appear when notable. */}
+      {(lineRank || signalSeverity) && (
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          {lineRank && (
+            <SeverityBadge
+              tone={lineRank.tier === 'longest' ? 'red' : 'amber'}
+              title={`Ranked by duration against all ${lineLabel} incidents resolved in the last ${lineRank.windowDays} days (cohort of ${lineRank.count}).`}
+            >
+              {lineRank.tier === 'longest'
+                ? `Longest ${lineLabel} incident in ${lineRank.windowDays}d`
+                : `Top 10% longest on ${lineLabel} (${lineRank.windowDays}d)`}
+            </SeverityBadge>
+          )}
+          {signalSeverity && signalLabel && (
+            <SeverityBadge
+              tone="amber"
+              title={`Ranked against ${signalSeverity.count} similar ${signalLabel.toLowerCase()} incidents on ${lineLabel} in the last 90 days.`}
+            >
+              {signalSeverity.tier === 'longest'
+                ? `Longest ${signalLabel.toLowerCase()} on ${lineLabel} (90d)`
+                : `Top 10% ${signalLabel.toLowerCase()} on ${lineLabel} (90d)`}
+            </SeverityBadge>
+          )}
+        </div>
+      )}
+
       <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100 leading-snug mb-2">
         {description}
       </h1>
+
+      {/* Bot-only incidents had no matching official CTA alert — say so
+          plainly. The bot caught something the CTA's own channels didn't
+          announce, which is the point of the auto-detection layer. Neutral
+          phrasing: plenty of minor disruptions legitimately don't warrant a
+          CTA post. */}
+      {isObsOnly && (
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-2 italic">
+          No matching CTA alert — surfaced from live vehicle tracking only.
+        </p>
+      )}
 
       {/* Chips only when the headline isn't already the station pair. For
           pure observations the description IS "From → To" — rendering the
@@ -659,6 +788,23 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             <dd className="text-slate-700 dark:text-slate-200">{duration}</dd>
           </div>
         )}
+        {/* Live elapsed time for an active incident — ticks each minute. The
+            "Duration" row above only renders once resolved, so this is the
+            running counterpart while it's still open. */}
+        {elapsedMs != null && (
+          <div title="Time since this incident was first seen — still ongoing.">
+            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Ongoing for
+            </dt>
+            <dd className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-medium tabular-nums">
+              {formatDuration(elapsedMs)}
+              <span
+                aria-hidden="true"
+                className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"
+              />
+            </dd>
+          </div>
+        )}
         {botLeadPhrase && (
           <div
             className="sm:col-span-2"
@@ -797,12 +943,71 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           />
         ))}
 
+      {/* Context insights — place recurrence ("is this a chronic trouble
+          spot?") and time-of-day ("a busy hour for this line?"). Both are
+          drawn from the surrounding incident set and only render when they
+          clear their notability thresholds, so a one-off in a quiet hour
+          shows nothing here. */}
+      {(stretchRecurrence || hourContext) && (
+        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gh-border">
+          <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+            Context
+          </p>
+          <ul className="space-y-1.5 text-sm text-slate-600 dark:text-slate-300">
+            {stretchRecurrence && (
+              <li>
+                Recurring stretch:{' '}
+                <StationName name={stretchRecurrence.fromStation} stationIndex={stationIndex} /> →{' '}
+                <StationName name={stretchRecurrence.toStation} stationIndex={stationIndex} /> has
+                had{' '}
+                <strong className="text-slate-700 dark:text-slate-200">
+                  {stretchRecurrence.count} disruptions
+                </strong>{' '}
+                detected here in the last {stretchRecurrence.windowDays} days.
+              </li>
+            )}
+            {hourContext && (
+              <li>
+                {hourContext.tier === 'busy' ? (
+                  <>
+                    <strong className="text-slate-700 dark:text-slate-200">
+                      {formatHourLabel(hourContext.hour)}
+                    </strong>{' '}
+                    is a relatively busy hour for {lineLabel} disruptions — {hourContext.count} of
+                    the last {hourContext.total} (90d) landed around then.
+                  </>
+                ) : (
+                  <>
+                    An unusually quiet hour for {lineLabel} disruptions — only {hourContext.count}{' '}
+                    of the last {hourContext.total} (90d) landed around{' '}
+                    <strong className="text-slate-700 dark:text-slate-200">
+                      {formatHourLabel(hourContext.hour)}
+                    </strong>
+                    .
+                  </>
+                )}
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+
       <DurationScale stats={cohortStats} />
 
       <MiniTimeline incident={incident} incidents={incidents} dark={dark} />
 
       <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t border-slate-100 dark:border-gh-border">
         <ShareLink eventId={eventId} title={description} />
+        <CopySummary
+          text={buildEventSummaryText({
+            description: describeText(incident),
+            lineLabel,
+            dateText: formatDate(startTs),
+            durationText: duration,
+            active: !!incident.active,
+            url: typeof window !== 'undefined' ? `${window.location.origin}/event/${eventId}` : '',
+          })}
+        />
         {primaryUrl && (
           <a
             href={primaryUrl}

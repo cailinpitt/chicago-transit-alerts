@@ -5,6 +5,7 @@ import { buildStationIndex } from '../lib/stations.js';
 import BackLink from './BackLink.jsx';
 import BrowseMenu from './BrowseMenu.jsx';
 import { EventDetail } from './event/EventDetail.jsx';
+import EventNav from './event/EventNav.jsx';
 import { describeText, incidentRoutes } from './event/incidentText.jsx';
 import { CrossLineContext, RelatedIncidents } from './event/RelatedIncidents.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
@@ -130,6 +131,7 @@ export default function EventPage({ eventId }) {
               incidents={data.incidents}
               stationIndex={stationIndex}
             />
+            <EventNav incident={incident} incidents={data.incidents} />
           </>
         )}
       </main>
