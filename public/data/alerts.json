@@ -1,7 +1,40 @@
 {
-  "generated_at": 1780116549773,
+  "generated_at": 1780151585171,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mn3bfgiegs2s",
+      "kind": "train",
+      "routes": [
+        "green",
+        "pink"
+      ],
+      "first_seen_ts": 1780151583198,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "cta"
+      ],
+      "cta": {
+        "alert_id": "115230",
+        "headline": "Green and Pink Line Service Experiencing Significant Delays Due to Raised Bridge",
+        "short_description": "Green and Pink Line service is experiencing delays due to a raised bridge at the Chicago River, downtown.",
+        "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn3bfgiegs2s",
+        "resolved_reply_url": null,
+        "first_seen_ts": 1780151583198,
+        "resolved_ts": null,
+        "active": true,
+        "affected_from_station": null,
+        "affected_to_station": null,
+        "affected_direction": null,
+        "mentioned_stations": [],
+        "cta_event_start_ts": 1780151280000,
+        "cta_event_end_ts": null,
+        "cta_event_start_is_date_only": false,
+        "cta_event_end_is_date_only": false
+      },
+      "observations": []
+    },
     {
       "id": "3mn256sbugj2f",
       "kind": "train",
