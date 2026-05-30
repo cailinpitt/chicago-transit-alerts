@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780178465154,
+  "generated_at": 1780179185110,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -10,8 +10,8 @@
         "brown"
       ],
       "first_seen_ts": 1780178463600,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780179064726,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -22,8 +22,8 @@
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn42gjoedd2n",
         "resolved_reply_url": null,
         "first_seen_ts": 1780178463600,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780179064726,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
@@ -34,6 +34,50 @@
         "cta_event_end_is_date_only": false
       },
       "observations": []
+    },
+    {
+      "id": "3mn433ypyno2o",
+      "kind": "bus",
+      "routes": [
+        "55N"
+      ],
+      "first_seen_ts": 1780175523626,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 492,
+          "kind": "bus",
+          "line": "55N",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "thin-gap",
+          "signals": null,
+          "evidence": {
+            "headwayMin": 30,
+            "windowMin": 60,
+            "missedTrips": 2
+          },
+          "ts": 1780175523626,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:f4z2wrejskmfwkapi3codqdm/post/3mn433ypyno2o",
+          "resolved_post_url": null,
+          "bot_description": "Route 55N service appears degraded — no buses observed within a full scheduled headway.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No buses moved through this stretch in the last 20 min — scheduled every 30 min."
+          ]
+        }
+      ]
     },
     {
       "id": "3mn3xjkuia42c",
