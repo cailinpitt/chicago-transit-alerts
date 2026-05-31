@@ -1,0 +1,51 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://chicagotransitalerts.app/.well-known/api-catalog",
+      "service-doc": [
+        {
+          "href": "https://github.com/cailinpitt/chicago-transit-alerts#data-as-an-api",
+          "type": "text/html",
+          "title": "Data API documentation"
+        }
+      ],
+      "item": [
+        {
+          "href": "https://chicagotransitalerts.app/data/alerts.json",
+          "type": "application/json",
+          "title": "Incidents — full archive of CTA alerts and bot-detected disruptions"
+        },
+        {
+          "href": "https://chicagotransitalerts.app/data/daily-counts.json",
+          "type": "application/json",
+          "title": "Daily incident counts"
+        },
+        {
+          "href": "https://chicagotransitalerts.app/data/alerts.csv",
+          "type": "text/csv",
+          "title": "Incidents — CSV export"
+        },
+        {
+          "href": "https://chicagotransitalerts.app/data/CHANGELOG.md",
+          "type": "text/markdown",
+          "title": "Data API changelog"
+        },
+        {
+          "href": "https://chicagotransitalerts.app/feed.xml",
+          "type": "application/atom+xml",
+          "title": "Atom feed — recent incidents (per-line and per-route feeds under /feed/)"
+        },
+        {
+          "href": "https://chicagotransitalerts.app/feed.json",
+          "type": "application/feed+json",
+          "title": "JSON feed — recent incidents"
+        },
+        {
+          "href": "https://chicagotransitalerts.app/sitemap.xml",
+          "type": "application/xml",
+          "title": "Sitemap"
+        }
+      ]
+    }
+  ]
+}
