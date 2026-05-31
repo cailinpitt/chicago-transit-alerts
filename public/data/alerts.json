@@ -1,7 +1,97 @@
 {
-  "generated_at": 1780196291122,
+  "generated_at": 1780196945484,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mn4lncdndo2d",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1780195445289,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 231,
+          "kind": "train",
+          "line": "brown",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "pulse-cold"
+          ],
+          "evidence": null,
+          "ts": 1780195445289,
+          "onset_ts": 1780193885289,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn4lncdndo2d",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — fewer trains than scheduled and a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 8 trains missing this past hour",
+            "Possible service gap forming Damen (Brown) → Montrose (Brown)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mn4lnawb6w2d",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1780195444523,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 230,
+          "kind": "train",
+          "line": "red",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap",
+            "pulse-cold"
+          ],
+          "evidence": null,
+          "ts": 1780195444523,
+          "onset_ts": 1780194184523,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn4lnawb6w2d",
+          "resolved_post_url": null,
+          "bot_description": "Red Line service appears degraded — fewer trains than scheduled, longer-than-scheduled headways between trains, and a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 9 trains missing this past hour",
+            "One gap between trains is 2.5x the scheduled wait",
+            "Possible service gap forming Morse → Granville"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mn4khrlddh2x",
       "kind": "train",
