@@ -437,6 +437,10 @@ describe('EventPage', () => {
     });
     // onset (1) + detection (1) + clear (1) = 3 updates.
     expect(screen.getByText(/Per bot · 3 updates/)).toBeInTheDocument();
+    // The detection entry carries the DETECTED badge (the "flagged a problem"
+    // beat); the resolution stays the Latest entry.
+    expect(screen.getByText('Detected')).toBeInTheDocument();
+    expect(screen.getByText('Latest')).toBeInTheDocument();
     expect(
       screen.getByText(
         'Trains observed again on the Green Line, service appears to be back to normal.',

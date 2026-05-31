@@ -560,6 +560,12 @@ export function EventDetail({ incident, incidents, alerts, observations, station
               {entries.map((e, i) => {
                 const isLatest = i === 0;
                 const isOldest = i === entries.length - 1;
+                // The detection entry is the moment the bot officially flagged
+                // the disruption — give it an amber dot + DETECTED badge so the
+                // "this is a problem" beat is the visual anchor of the rail. It
+                // wins over the Latest badge when it's also the newest entry (an
+                // active, not-yet-resolved incident).
+                const isDetect = e.key === 'detect';
                 return (
                   <li key={e.key} className="relative pl-6">
                     {!isOldest && (
@@ -572,14 +578,23 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                     <span
                       aria-hidden="true"
                       className={`absolute left-0 top-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white dark:ring-gh-surface ${
-                        isLatest ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-500'
+                        isDetect
+                          ? 'bg-amber-500'
+                          : isLatest
+                            ? 'bg-blue-500'
+                            : 'bg-slate-400 dark:bg-slate-500'
                       }`}
                     />
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
                       <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                         {formatDate(e.ts)} · {formatTime(e.ts)}
                       </p>
-                      {isLatest && (
+                      {isDetect && (
+                        <span className="text-[10px] uppercase tracking-wider font-semibold text-amber-600 dark:text-amber-400">
+                          Detected
+                        </span>
+                      )}
+                      {isLatest && !isDetect && (
                         <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-500">
                           Latest
                         </span>
