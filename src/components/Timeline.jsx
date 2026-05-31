@@ -199,6 +199,10 @@ export default function Timeline({
         />
         <div ref={scrollRef} className="overflow-x-auto pt-1 pb-4">
           <table className="border-collapse">
+            <caption className="sr-only">
+              Incident timeline. Rows are train lines and bus routes; columns are days. Each cell
+              links to that day's incidents.
+            </caption>
             <thead>
               <tr>
                 {/* Corner spacer — matches the width of line label cells */}
@@ -207,12 +211,13 @@ export default function Timeline({
                 {days.map(({ col, day, month }) => (
                   <th
                     key={col}
+                    scope="col"
                     className="p-0 pr-0.5 pb-1 align-bottom text-left"
                     style={{ width: 12 }}
                   >
                     {day === 1 && (
                       <span
-                        className="text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                        className="text-slate-500 dark:text-slate-400 whitespace-nowrap"
                         style={{ fontSize: 10 }}
                       >
                         {month}
@@ -254,7 +259,7 @@ export default function Timeline({
                         <span className="block">{info.label}</span>
                         {pctClean != null && (
                           <span
-                            className="block font-normal text-slate-400 dark:text-slate-500 tabular-nums"
+                            className="block font-normal text-slate-500 dark:text-slate-400 tabular-nums"
                             style={{ fontSize: 9 }}
                           >
                             {pctClean}% · {streak}d
@@ -338,7 +343,7 @@ export default function Timeline({
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-slate-100 dark:border-gh-border">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Less</span>
             <div className="flex gap-0.5">
               <div
                 className="w-2.5 h-2.5 rounded-sm"
@@ -350,11 +355,11 @@ export default function Timeline({
               />
               <div className="w-2.5 h-2.5 rounded-sm bg-slate-500" />
             </div>
-            <span className="text-xs text-slate-400 dark:text-slate-500">More</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">More</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={NO_DATA_STYLE} />
-            <span className="text-xs text-slate-400 dark:text-slate-500">No data</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">No data</span>
           </div>
           <span className="text-xs text-slate-300 dark:text-slate-600">
             · Click a day to filter · Under each line: % of days with no incident · current clean

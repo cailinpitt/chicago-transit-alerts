@@ -91,7 +91,7 @@ export default function HourOfWeekHeatmap({
             <button
               type="button"
               onClick={() => setMode('absolute')}
-              className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
+              className={`min-h-[24px] px-2.5 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
                 effectiveMode === 'absolute'
                   ? 'bg-white dark:bg-gh-surface text-slate-700 dark:text-slate-100 shadow-sm'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
@@ -104,7 +104,7 @@ export default function HourOfWeekHeatmap({
               type="button"
               onClick={() => setMode('anomaly')}
               disabled={!anomalyAvailable}
-              className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
+              className={`min-h-[24px] px-2.5 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
                 effectiveMode === 'anomaly'
                   ? 'bg-white dark:bg-gh-surface text-slate-700 dark:text-slate-100 shadow-sm'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-40'
@@ -129,7 +129,7 @@ export default function HourOfWeekHeatmap({
             <div key={h} className="pb-1 text-left">
               {HOUR_LABELS.includes(h) && (
                 <span
-                  className="text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                  className="text-slate-500 dark:text-slate-400 whitespace-nowrap"
                   style={{ fontSize: 10 }}
                 >
                   {formatHour(h)}
@@ -179,7 +179,7 @@ export default function HourOfWeekHeatmap({
         {/* Legend */}
         {effectiveMode === 'absolute' ? (
           <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-gh-border">
-            <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Less</span>
             <div className="flex gap-0.5">
               {[0, 0.1, 0.3, 0.55, 0.8, 1].map((r) => (
                 <div
@@ -194,14 +194,14 @@ export default function HourOfWeekHeatmap({
                 />
               ))}
             </div>
-            <span className="text-xs text-slate-400 dark:text-slate-500">More</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">More</span>
             <span className="text-xs text-slate-300 dark:text-slate-600 ml-2">
               · Each cell = incidents starting in that hour
             </span>
           </div>
         ) : (
           <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-gh-border">
-            <span className="text-xs text-slate-400 dark:text-slate-500">Quieter</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Quieter</span>
             <div className="flex gap-0.5">
               {[-2.5, -1.5, -0.5, 0, 0.5, 1.5, 2.5].map((z) => (
                 <div
@@ -211,7 +211,7 @@ export default function HourOfWeekHeatmap({
                 />
               ))}
             </div>
-            <span className="text-xs text-slate-400 dark:text-slate-500">Busier</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Busier</span>
             <span className="text-xs text-slate-300 dark:text-slate-600 ml-2">
               · Cells colored by standard deviations from the grid average ({zStats.mean.toFixed(1)}
               )

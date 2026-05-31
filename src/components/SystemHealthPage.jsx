@@ -186,7 +186,7 @@ function sortRows(rows, sortKey, kind) {
 function RouteGrid({ kind, rows, sortKey, onSortChange }) {
   if (rows.length === 0) {
     return (
-      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-6 text-center text-sm text-slate-400 dark:text-slate-500">
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-6 text-center text-sm text-slate-500 dark:text-slate-400">
         No routes with recent incidents.
       </div>
     );
@@ -219,7 +219,7 @@ function RouteGrid({ kind, rows, sortKey, onSortChange }) {
             type="button"
             key={opt.key}
             onClick={() => onSortChange(opt.key)}
-            className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
+            className={`min-h-[24px] px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
               sortKey === opt.key
                 ? 'bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900'
                 : 'bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
@@ -234,7 +234,7 @@ function RouteGrid({ kind, rows, sortKey, onSortChange }) {
           uses a 4-col variant matching the row template (no trend
           column). */}
       <div
-        className={`${ROW_GRID} py-2 border-b border-slate-100 dark:border-gh-border text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500`}
+        className={`${ROW_GRID} py-2 border-b border-slate-100 dark:border-gh-border text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400`}
       >
         <span>{isTrain ? 'Line' : 'Route'}</span>
         <span className="text-right">Active</span>
@@ -291,7 +291,7 @@ function RouteGrid({ kind, rows, sortKey, onSortChange }) {
           </a>
         ))}
       </div>
-      <div className="sm:hidden px-4 py-2 border-t border-slate-100 dark:border-gh-border text-[11px] text-slate-400 dark:text-slate-500">
+      <div className="sm:hidden px-4 py-2 border-t border-slate-100 dark:border-gh-border text-[11px] text-slate-500 dark:text-slate-400">
         Tap a row for the 30-day trend.
       </div>
     </div>
@@ -313,7 +313,7 @@ function Leaderboard({ kind, title, rows, metric, formatValue, emptyLabel }) {
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
           {title}
         </p>
-        <p className="text-sm text-slate-400 dark:text-slate-500 italic">{emptyLabel}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 italic">{emptyLabel}</p>
       </div>
     );
   }
@@ -516,7 +516,7 @@ export default function SystemHealthPage({ kind }) {
         alerts={flat?.alerts}
         observations={flat?.observations}
       />
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
+      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
           <Breadcrumb items={topLevelTrail(headline)} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">{headline}</h1>
@@ -681,7 +681,7 @@ export default function SystemHealthPage({ kind }) {
                     type="button"
                     key={opt.key}
                     onClick={() => setDateScope(opt.key)}
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                    className={`min-h-[24px] px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
                       dateScope === opt.key
                         ? 'bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900'
                         : 'bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
@@ -701,7 +701,7 @@ export default function SystemHealthPage({ kind }) {
             </section>
 
             {modeAlerts.length === 0 && modeObservations.length === 0 && (
-              <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+              <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
                 No {modeLabel.toLowerCase()} incidents on record.
               </div>
             )}

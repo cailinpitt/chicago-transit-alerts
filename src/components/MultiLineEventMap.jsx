@@ -178,7 +178,7 @@ export default function MultiLineEventMap({
           {heading}
         </h2>
         {(hasBotSegments || sharedTrackage) && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{note}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{note}</p>
         )}
       </div>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">

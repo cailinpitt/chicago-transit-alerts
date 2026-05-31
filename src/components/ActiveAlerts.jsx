@@ -232,7 +232,7 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
               +{desktopOverflow}
             </span>
           )}
-          <span className="text-xs text-slate-400 dark:text-slate-500">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {elapsedText} ongoing
             {typicalText && (
               <>
@@ -319,7 +319,7 @@ function ActiveRow({ incident, now, isNew }) {
       <span className="flex-1 min-w-0 truncate whitespace-nowrap text-slate-700 dark:text-slate-200">
         {descriptionText}
       </span>
-      <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0 tabular-nums">
+      <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 tabular-nums">
         {elapsedText}
       </span>
     </>
@@ -359,7 +359,7 @@ function ActiveMiniGantt({ incidents, now }) {
 
   return (
     <div className="bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 px-3 py-2.5 mb-2">
-      <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+      <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
         Started
       </p>
       <div className="space-y-1">
@@ -436,7 +436,7 @@ function ActiveMiniGantt({ incidents, now }) {
           default to `min-width: auto`, which lets `whitespace-nowrap`
           content blow past `w-24` and pull the axis out of alignment. */}
       <div className="flex items-center gap-2 mt-1.5">
-        <div className="flex-1 flex justify-between text-xs text-slate-400 dark:text-slate-500 min-w-0">
+        <div className="flex-1 flex justify-between text-xs text-slate-500 dark:text-slate-400 min-w-0">
           <span>{leftLabel} ago</span>
           <span>{midLabel ? `${midLabel} ago` : ''}</span>
           <span>now</span>
@@ -492,7 +492,7 @@ export default function ActiveAlerts({
         </div>
         <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wider">
           Active Now
-          <span className="ml-2 normal-case font-normal text-slate-400 dark:text-slate-500">
+          <span className="ml-2 normal-case font-normal text-slate-500 dark:text-slate-400">
             ({totalActive})
           </span>
         </h2>

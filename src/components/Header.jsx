@@ -108,7 +108,7 @@ export default function Header({
             {/* Last updated — beside the toggle on sm+; folded into the meta
                 row below on mobile to keep this row short. */}
             {updatedStr && (
-              <div className="hidden sm:flex items-center text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+              <div className="hidden sm:flex items-center text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
                 <span>Last data change: {updatedStr}</span>
                 <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
               </div>
@@ -124,14 +124,14 @@ export default function Header({
         {/* Meta row: bot links, plus the last-updated note on mobile. */}
         <div className="relative flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs text-slate-400 dark:text-slate-500 mr-1">Bluesky bots</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 mr-1">Bluesky bots</span>
             {BOTS.map((bot) => (
               <a
                 key={bot.href}
                 href={bot.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
+                className="inline-flex items-center gap-1 min-h-[24px] px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
               >
                 <span>{bot.emoji}</span>
                 <span className="hidden sm:inline">{bot.label}</span>
@@ -139,7 +139,7 @@ export default function Header({
             ))}
           </div>
           {updatedStr && (
-            <div className="sm:hidden flex items-center text-xs text-slate-400 dark:text-slate-500">
+            <div className="sm:hidden flex items-center text-xs text-slate-500 dark:text-slate-400">
               <span>Last data change: {updatedStr}</span>
               <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
             </div>

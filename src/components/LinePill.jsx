@@ -6,7 +6,7 @@ import { TRAIN_LINES } from '../lib/ctaLines.js';
 // dim) rather than a competing visual cue. Multi-route alerts render one
 // pill per route, each with its own destination.
 const PILL_BASE =
-  'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity';
+  'inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity';
 
 export default function LinePill({ kind, line, routes }) {
   const keys = routes?.length > 0 ? routes : [line];

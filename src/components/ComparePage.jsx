@@ -103,14 +103,21 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
   return (
     <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4 overflow-x-auto">
       <table className="w-full text-left">
+        <caption className="sr-only">
+          Reliability metrics over the last 90 days, comparing the selected lines or routes.
+        </caption>
         <thead>
           <tr className="border-b border-slate-200 dark:border-gh-border">
-            <th className="py-2 pr-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap sticky left-0 bg-white dark:bg-gh-surface z-10">
+            <th
+              scope="col"
+              className="py-2 pr-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap sticky left-0 bg-white dark:bg-gh-surface z-10"
+            >
               Metric (90 days)
             </th>
             {selected.map((key, idx) => (
               <th
                 key={key}
+                scope="col"
                 className="py-2 pr-3 text-xs font-semibold whitespace-nowrap"
                 style={{ color: colorFor(kind, key, idx) }}
               >
@@ -121,23 +128,32 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
         </thead>
         <tbody>
           <tr>
-            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
+            <th
+              scope="row"
+              className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap font-normal text-left"
+            >
               Incident-free days
-            </td>
+            </th>
             {perLine.map(({ reliability }, idx) =>
               cell(`${reliability.incidentFreeDays} / ${reliability.totalDays}`, idx),
             )}
           </tr>
           <tr>
-            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
+            <th
+              scope="row"
+              className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap font-normal text-left"
+            >
               Longest streak
-            </td>
+            </th>
             {perLine.map(({ reliability }, idx) => cell(`${reliability.longestStreakDays}d`, idx))}
           </tr>
           <tr>
-            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
+            <th
+              scope="row"
+              className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap font-normal text-left"
+            >
               Median gap
-            </td>
+            </th>
             {perLine.map(({ reliability }, idx) =>
               cell(
                 reliability.medianGapHours == null ? '—' : formatGap(reliability.medianGapHours),
@@ -146,15 +162,21 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
             )}
           </tr>
           <tr>
-            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
+            <th
+              scope="row"
+              className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap font-normal text-left"
+            >
               Last 30 days
-            </td>
+            </th>
             {yoyByLine.map((y, idx) => cell(`${y.currentCount}`, idx))}
           </tr>
           <tr title="Severity-weighted: total line-time spent in a detected disruption over the last 30 days, against an assumed 21h/day service window.">
-            <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
+            <th
+              scope="row"
+              className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap font-normal text-left"
+            >
               Disrupted (30d)
-            </td>
+            </th>
             {perLine.map(({ disruption30d }, idx) =>
               cell(
                 disruption30d.disruptedMinutes === 0
@@ -170,9 +192,12 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
           </tr>
           {haveYoy && (
             <tr>
-              <td className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap">
+              <th
+                scope="row"
+                className="py-2 pr-3 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 sticky left-0 bg-white dark:bg-gh-surface z-10 whitespace-nowrap font-normal text-left"
+              >
                 YoY (vs 1y ago)
-              </td>
+              </th>
               {yoyByLine.map((y, idx) => {
                 if (!y.enoughData || y.pctChange == null) return cell('—', idx);
                 const pct = Math.round(y.pctChange * 100);
@@ -420,7 +445,7 @@ function ChipPicker({ kind, selected, available, onToggle, onClearAll }) {
                   active
                     ? ''
                     : disabled
-                      ? 'opacity-30 cursor-not-allowed bg-slate-100 dark:bg-gh-subtle text-slate-400 dark:text-slate-500'
+                      ? 'opacity-30 cursor-not-allowed bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-400'
                       : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
                 }`}
                 style={active ? { backgroundColor: info.color, color: info.textColor } : undefined}
@@ -439,7 +464,7 @@ function ChipPicker({ kind, selected, available, onToggle, onClearAll }) {
                 active
                   ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
                   : disabled
-                    ? 'opacity-30 cursor-not-allowed bg-slate-100 dark:bg-gh-subtle text-slate-400 dark:text-slate-500'
+                    ? 'opacity-30 cursor-not-allowed bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-400'
                     : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
               }`}
             >
@@ -451,13 +476,13 @@ function ChipPicker({ kind, selected, available, onToggle, onClearAll }) {
           <button
             type="button"
             onClick={onClearAll}
-            className="ml-2 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+            className="ml-2 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
           >
             Clear
           </button>
         )}
       </div>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
         Pick up to {MAX_SELECTED}.{' '}
         {kind === 'bus' && 'Only routes that have appeared in the data are shown.'}
       </p>
@@ -567,7 +592,7 @@ export default function ComparePage() {
         alerts={flat?.alerts}
         observations={flat?.observations}
       />
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
+      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>
           <Breadcrumb items={topLevelTrail('Compare')} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Compare</h1>
@@ -612,7 +637,7 @@ export default function ComparePage() {
         />
 
         {selected.length === 0 && (
-          <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+          <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
             Pick {kind === 'train' ? 'two or three train lines' : 'two or three bus routes'} above
             to compare.
           </div>
@@ -634,7 +659,7 @@ export default function ComparePage() {
         )}
 
         {selected.length > 0 && kind === 'bus' && selected.some((k) => BUS_ROUTE_NAMES[k]) && (
-          <div className="text-xs text-slate-400 dark:text-slate-500 px-1">
+          <div className="text-xs text-slate-500 dark:text-slate-400 px-1">
             {selected
               .filter((k) => BUS_ROUTE_NAMES[k])
               .map((k) => `${formatBusRoute(k)}`)

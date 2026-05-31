@@ -219,7 +219,7 @@ export default function CalendarPage() {
         alerts={browseData?.alerts}
         observations={browseData?.observations}
       />
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
+      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
           <Breadcrumb items={topLevelTrail('Calendar')} className="mb-3" />
           <div className="flex flex-wrap items-baseline gap-3">
@@ -267,7 +267,7 @@ export default function CalendarPage() {
               }
             />
             {(selectedSignals.length > 0 || selectedSources.length < SOURCE_TYPES.length) && (
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                 Signal and source filters don't apply to the calendar — daily breakdowns aren't kept
                 per signal or source. Cell counts reflect line/route filters only.
               </p>
@@ -313,7 +313,7 @@ function CalendarGrid({ grid }) {
                   >
                     {label && (
                       <span
-                        className="text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                        className="text-slate-500 dark:text-slate-400 whitespace-nowrap"
                         style={{ fontSize: 10 }}
                       >
                         {label}
@@ -332,7 +332,7 @@ function CalendarGrid({ grid }) {
                   // biome-ignore lint/suspicious/noArrayIndexKey: fixed seven weekdays, position is the key
                   <div key={i} className="h-3 flex items-center" style={{ minWidth: 24 }}>
                     {label && (
-                      <span className="text-slate-400 dark:text-slate-500" style={{ fontSize: 10 }}>
+                      <span className="text-slate-500 dark:text-slate-400" style={{ fontSize: 10 }}>
                         {label}
                       </span>
                     )}
@@ -355,7 +355,7 @@ function CalendarGrid({ grid }) {
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 pt-3 border-t border-slate-100 dark:border-gh-border">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Less</span>
             <div className="flex gap-0.5">
               {[0, 0.1, 0.3, 0.55, 0.8, 1].map((r) => {
                 const count = Math.ceil(r * Math.max(maxCount, 1));
@@ -371,11 +371,11 @@ function CalendarGrid({ grid }) {
                 );
               })}
             </div>
-            <span className="text-xs text-slate-400 dark:text-slate-500">More</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">More</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-sm" style={NO_DATA_STYLE} />
-            <span className="text-xs text-slate-400 dark:text-slate-500">No data</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">No data</span>
           </div>
           <span className="text-xs text-slate-300 dark:text-slate-600">
             · Each cell = one calendar day · Rows are weekdays, columns are weeks

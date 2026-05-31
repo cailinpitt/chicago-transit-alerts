@@ -104,6 +104,7 @@ export default function SubscribeContent() {
           readOnly
           value={FEED_URL}
           onFocus={(e) => e.target.select()}
+          aria-label="Full feed URL"
           className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200"
         />
         <button
@@ -155,6 +156,7 @@ export default function SubscribeContent() {
             readOnly
             value={pickedFeedUrl}
             onFocus={(e) => e.target.select()}
+            aria-label="Selected line or route feed URL"
             className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200"
           />
           <button

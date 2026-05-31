@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Skip-to-main-content link: the first focusable element, visually hidden
+   until it receives keyboard focus, then pinned to the top-left so a keyboard
+   user can jump past the header straight into the page's <main>. */
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background-color: #2563eb;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transform: translateY(-150%);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+/* The <main> skip target takes focus programmatically; suppress the focus
+   ring on the region itself (the scroll + skip-link already signal the jump). */
+main:focus {
+  outline: none;
+}
+
 /* iOS rubber-band overscroll exposes the <html> background. Without these
    the dark-mode page shows a white strip when you pull past the top/bottom. */
 html {

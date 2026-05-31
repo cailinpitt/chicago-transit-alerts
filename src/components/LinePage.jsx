@@ -68,7 +68,7 @@ function DayOfWeekBars({ data }) {
                   </div>
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 tabular-nums w-20 text-right">
-                  {count} <span className="text-slate-400 dark:text-slate-500">({perWeek}/wk)</span>
+                  {count} <span className="text-slate-500 dark:text-slate-400">({perWeek}/wk)</span>
                 </div>
               </Fragment>
             );
@@ -121,7 +121,7 @@ function DurationHistogram({ histogram }) {
             );
           })}
         </div>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-3 pt-3 border-t border-slate-100 dark:border-gh-border">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 pt-3 border-t border-slate-100 dark:border-gh-border">
           {histogram.total} resolved incident{histogram.total === 1 ? '' : 's'} · active incidents
           excluded (no final duration yet)
         </p>
@@ -373,7 +373,7 @@ export default function LinePage({ kind, lineId }) {
         alerts={flat?.alerts}
         observations={flat?.observations}
       />
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
+      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         <div>
           <Breadcrumb items={topLevelTrail(heading)} className="mb-3" />
           <div className="flex flex-wrap items-center gap-3">
@@ -554,7 +554,7 @@ export default function LinePage({ kind, lineId }) {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 px-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 px-1">
                   Cold or held stretches detected on the same segment more than once. Direction-
                   aware — a segment can show up twice if both directions have trouble.
                 </p>
@@ -600,7 +600,7 @@ export default function LinePage({ kind, lineId }) {
         )}
 
         {data && lineAlerts.length === 0 && lineObservations.length === 0 && (
-          <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+          <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
             No incidents on record for {heading}.
           </div>
         )}

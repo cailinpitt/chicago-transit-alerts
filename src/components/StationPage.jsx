@@ -121,7 +121,7 @@ export default function StationPage({ slug }) {
         alerts={flat?.alerts}
         observations={flat?.observations}
       />
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
+      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         <div>
           <Breadcrumb
             items={topLevelTrail(station ? displayStationName(station.name) : 'Station')}
@@ -140,7 +140,7 @@ export default function StationPage({ slug }) {
                     <a
                       key={line}
                       href={`/line/${line}`}
-                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
+                      className="inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
                       style={{ backgroundColor: info.color, color: info.textColor }}
                     >
                       {info.label}

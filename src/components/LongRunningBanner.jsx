@@ -103,7 +103,7 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
         <svg
           aria-hidden="true"
           viewBox="0 0 12 12"
-          className={`h-3 w-3 flex-shrink-0 text-slate-400 dark:text-slate-500 transition-transform ${
+          className={`h-3 w-3 flex-shrink-0 text-slate-500 dark:text-slate-400 transition-transform ${
             open ? 'rotate-90' : ''
           }`}
         >
@@ -116,7 +116,7 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
             strokeLinejoin="round"
           />
         </svg>
-        <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 flex-shrink-0">
+        <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 flex-shrink-0">
           Long-running ({incidents.length})
         </span>
         {!open && shownPills.length > 0 && (
@@ -141,7 +141,7 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
               each incident (whose own pills are still capped at one). */}
           {routeSummary.length > HEADER_PILL_LIMIT && (
             <div className="flex flex-wrap items-center gap-1 px-1 pt-1">
-              <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-1">
+              <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">
                 All routes
               </span>
               {routeSummary.map(({ kind, routeKey }) => (
@@ -185,14 +185,14 @@ export default function LongRunningBanner({ incidents, now = Date.now() }) {
                     Day {dayN}
                   </span>
                   <span
-                    className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                    className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap"
                     title={`Started ${duration} ago`}
                   >
                     · {duration}
                   </span>
                   {estimatedEndText && (
                     <span
-                      className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                      className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap"
                       title="CTA tagged this alert with an estimated end time when it was posted."
                     >
                       · CTA estimated end {estimatedEndText}

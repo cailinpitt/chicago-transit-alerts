@@ -293,7 +293,7 @@ export default function LineMap({ lineKey, stationIndex }) {
         {/* Legend mirrors the calendar/hour-grid scale */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-slate-100 dark:border-gh-border">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 dark:text-slate-500">Less</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Less</span>
             <div className="flex gap-0.5">
               {[0, 0.1, 0.3, 0.55, 0.8, 1].map((r) => {
                 const count = Math.ceil(r * Math.max(map.maxCount, 1));
@@ -311,7 +311,7 @@ export default function LineMap({ lineKey, stationIndex }) {
                 );
               })}
             </div>
-            <span className="text-xs text-slate-400 dark:text-slate-500">More</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">More</span>
           </div>
           <span className="text-xs text-slate-300 dark:text-slate-600">
             · Each dot = one station · Click for the station's incident history

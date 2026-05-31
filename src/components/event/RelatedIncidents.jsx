@@ -20,7 +20,7 @@ function relatedDescription(incident, stationIndex) {
         <StationName name={primary.from_station} stationIndex={stationIndex} /> →{' '}
         <StationName name={primary.to_station} stationIndex={stationIndex} />
         {primary.direction_label && (
-          <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-500 font-normal">
+          <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-400 font-normal">
             ({primary.direction_label})
           </span>
         )}
@@ -60,21 +60,21 @@ function ContextRow({ other, stationIndex, showLinePill }) {
       <div className="relative flex items-start gap-3 flex-1 min-w-0 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
         <div className="flex-shrink-0 w-20 text-right">
           <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(ts)}</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(ts)}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{formatTime(ts)}</p>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
             {showLinePill && <LinePill kind={other.kind} routes={other.routes} />}
             {otherIsMerged && (
-              <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+              <span className="text-xs text-slate-500 dark:text-slate-400 italic">
                 via CTA + auto-detection
               </span>
             )}
             {!otherIsMerged && otherIsAlert && (
-              <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 italic">via CTA</span>
             )}
             {!otherIsMerged && !otherIsAlert && (
-              <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+              <span className="text-xs text-slate-500 dark:text-slate-400 italic">
                 via auto-detection
               </span>
             )}

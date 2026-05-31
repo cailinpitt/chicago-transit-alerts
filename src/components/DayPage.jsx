@@ -154,7 +154,7 @@ export default function DayPage({ dateStr }) {
         alerts={flat?.alerts}
         observations={flat?.observations}
       />
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
+      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
           <Breadcrumb items={dayTrail(dayUtc)} className="mb-3" />
           <div className="flex flex-wrap items-baseline gap-3">
@@ -171,7 +171,7 @@ export default function DayPage({ dateStr }) {
               so it can exceed a "started this day" tally (e.g. the homepage's
               same-weekday comparison). */}
           {data && totalCount > 0 && !isFuture && (
-            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Includes incidents still ongoing from earlier days, not just ones that started this
               day.
             </p>
@@ -208,7 +208,7 @@ export default function DayPage({ dateStr }) {
                   <a
                     key={line}
                     href={`/line/${line}`}
-                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
+                    className="inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
                     style={{ backgroundColor: info.color, color: info.textColor }}
                   >
                     {info.label}
@@ -219,7 +219,7 @@ export default function DayPage({ dateStr }) {
                 <a
                   key={route}
                   href={`/route/${route}`}
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-500 text-white hover:opacity-80 transition-opacity"
+                  className="inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-bold bg-slate-500 text-white hover:opacity-80 transition-opacity"
                 >
                   #{route}
                 </a>
@@ -236,7 +236,7 @@ export default function DayPage({ dateStr }) {
         )}
 
         {data && totalCount === 0 && !isFuture && (
-          <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+          <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
             No incidents on record for {dayLabel}.
           </div>
         )}

@@ -22,7 +22,7 @@ function NavLink({ incident, dir }) {
       }`}
       title={label}
     >
-      <span className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500">
+      <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
         {isPrev ? '← Previous' : 'Next →'}
       </span>
       <span className="max-w-full truncate text-sm text-blue-500 group-hover:text-blue-400 group-hover:underline">
@@ -72,7 +72,7 @@ export default function EventNav({ incident, incidents }) {
       {hasSameLine && (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               On {lineLabel}
             </p>
             {listHref && (
@@ -89,7 +89,7 @@ export default function EventNav({ incident, incidents }) {
       )}
       {hasGlobal && (
         <div className="space-y-1.5">
-          <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
             All incidents
           </p>
           <NavRow prev={global.prev} next={global.next} />

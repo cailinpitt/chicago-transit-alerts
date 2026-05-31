@@ -27,7 +27,7 @@ function trendArrow(band) {
 function trendColorClass(band) {
   if (band === 'up') return 'text-red-500';
   if (band === 'down') return 'text-green-600 dark:text-green-500';
-  return 'text-slate-400 dark:text-slate-500';
+  return 'text-slate-500 dark:text-slate-400';
 }
 
 function trendLabel(ratio, band) {

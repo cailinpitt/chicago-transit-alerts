@@ -11,6 +11,14 @@ function FlapText({ target, delay = 0, className = '' }) {
   const [text, setText] = useState(() => ' '.repeat(target.length));
 
   useEffect(() => {
+    // Respect the OS "reduce motion" setting: skip the split-flap shuffle and
+    // land on the final text immediately. The CSS animations elsewhere are
+    // gated in index.css, but this rAF-driven effect needs its own check.
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setText(target);
+      return;
+    }
+
     let frame = 0;
     const totalFrames = 18 + Math.floor(target.length * 1.2);
     let raf;
@@ -97,7 +105,11 @@ export default function NotFoundPage() {
         alerts={null}
         observations={null}
       />
-      <main className="max-w-3xl mx-auto px-3 sm:px-4 py-8 sm:py-12 w-full flex-1">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="max-w-3xl mx-auto px-3 sm:px-4 py-8 sm:py-12 w-full flex-1"
+      >
         <div className="bg-black rounded-lg border-2 border-amber-900/60 shadow-[0_0_40px_rgba(252,191,73,0.15)] overflow-hidden">
           <div className="flex items-center justify-between bg-amber-900/30 px-4 py-2 border-b border-amber-900/60 font-mono text-xs text-amber-400/80 uppercase tracking-widest">
             <span>● Departures</span>

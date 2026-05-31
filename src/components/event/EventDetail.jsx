@@ -112,7 +112,7 @@ function DurationScale({ stats }) {
       title={`Cohort: ${stats.count} resolved incidents of this signal type on this line in the last 90 days. Median ${formatDuration(stats.medianMs)}, p90 ${formatDuration(stats.p90Ms)}.`}
     >
       <div className="flex items-baseline justify-between gap-2 mb-2">
-        <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+        <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
           Duration vs typical
         </p>
         {summary && (
@@ -157,7 +157,7 @@ function DurationScale({ stats }) {
           )}
         </span>
       </div>
-      <div className="flex justify-between mt-1 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+      <div className="flex justify-between mt-1 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
         <span>0</span>
         <span>median {formatDuration(stats.medianMs)}</span>
         <span>p90 {formatDuration(stats.p90Ms)}</span>
@@ -354,18 +354,18 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         <LinePill kind={incident.kind} routes={incident.routes} />
         {isMerged && (
           <>
-            <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 italic">via CTA</span>
             <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-            <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+            <span className="text-xs text-slate-500 dark:text-slate-400 italic">
               via auto-detection
             </span>
           </>
         )}
         {isAlert && (
-          <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400 italic">via CTA</span>
         )}
         {isObsOnly && (
-          <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+          <span className="text-xs text-slate-500 dark:text-slate-400 italic">
             via auto-detection
           </span>
         )}
@@ -414,7 +414,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           phrasing: plenty of minor disruptions legitimately don't warrant a
           CTA post. */}
       {isObsOnly && (
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-2 italic">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 italic">
           No matching CTA alert — surfaced from live vehicle tracking only.
         </p>
       )}
@@ -445,7 +445,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
 
       {isObsOnly && primary?.signals?.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mt-2">
-          <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
             Signals
           </span>
           {primary.signals.map((signal) => (
@@ -473,7 +473,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             className="flex flex-wrap items-center gap-2 mt-2"
             title="The auto-detection signal that triggered this incident. These are derived from the bot's evidence payload at first sighting."
           >
-            <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Detection
             </span>
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-700 dark:text-slate-300">
@@ -485,7 +485,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
 
       {affected && (
         <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">
-          <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-2">
+          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-2">
             Direction
           </span>
           {affected}
@@ -533,7 +533,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         if (!resolution && !hasOnset) {
           return (
             <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
-              <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+              <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Per bot
               </p>
               <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
@@ -553,7 +553,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         if (hasOnset) entries.push({ key: 'onset', ts: onsetTs, text: onsetText });
         return (
           <section className="mt-4">
-            <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+            <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               Per bot · {entries.length} updates
             </p>
             <ol className="space-y-6">
@@ -682,7 +682,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           if (!v.short_description) return null;
           return (
             <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
-              <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+              <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Per CTA
               </p>
               <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
@@ -694,7 +694,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
 
         return (
           <section className="mt-4">
-            <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+            <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               {sectionTitle}
             </p>
             {/* LinkedIn-style rail: each <li> renders its own connector
@@ -738,7 +738,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                         {formatDate(e.ts)} · {formatTime(e.ts)}
                       </p>
                       {hasObsEntries && (
-                        <span className="text-[10px] uppercase tracking-wider font-medium text-slate-400 dark:text-slate-500">
+                        <span className="text-[10px] uppercase tracking-wider font-medium text-slate-500 dark:text-slate-400">
                           {sourceLabel(e)}
                         </span>
                       )}
@@ -798,7 +798,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
 
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-4">
         <div>
-          <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
             First seen
           </dt>
           <dd className="text-slate-700 dark:text-slate-200">
@@ -807,7 +807,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         </div>
         {endTs && (
           <div>
-            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Last seen
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">
@@ -817,7 +817,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         )}
         {duration && (
           <div>
-            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Duration
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">{duration}</dd>
@@ -828,7 +828,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             running counterpart while it's still open. */}
         {elapsedMs != null && (
           <div title="Time since this incident was first seen — still ongoing.">
-            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Ongoing for
             </dt>
             <dd className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-medium tabular-nums">
@@ -845,12 +845,12 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             className="sm:col-span-2"
             title="Our bot's observation predates CTA's alert post time."
           >
-            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Bot lead time
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">
               Bot flagged this <strong>{botLeadPhrase}</strong> before CTA{' '}
-              <span className="text-slate-400 dark:text-slate-500 text-xs">
+              <span className="text-slate-500 dark:text-slate-400 text-xs">
                 (first observed {formatTime(botLeadOnsetTs)} on {formatDate(botLeadOnsetTs)}; CTA
                 posted {formatTime(cta.first_seen_ts)})
               </span>
@@ -862,12 +862,12 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             className="sm:col-span-2"
             title="CTA's EventStart predates our first sighting — the alert was planned in advance rather than fired live."
           >
-            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               CTA scheduled
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">
               <strong>{ctaPlannedPhrase}</strong> of the first sighting{' '}
-              <span className="text-slate-400 dark:text-slate-500 text-xs">
+              <span className="text-slate-500 dark:text-slate-400 text-xs">
                 (tagged {formatTime(ctaStart)} on {formatDate(ctaStart)})
               </span>
             </dd>
@@ -878,7 +878,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             className="sm:col-span-2"
             title="CTA tagged this alert with an estimated end time (EventEnd) when it was posted."
           >
-            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               CTA estimated end
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">
@@ -888,7 +888,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                   {showRelativeParenthetical && (
                     <>
                       {' '}
-                      <span className="text-slate-400 dark:text-slate-500 text-xs">
+                      <span className="text-slate-500 dark:text-slate-400 text-xs">
                         ({activeEndPhrase})
                       </span>
                     </>
@@ -900,7 +900,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                   {showRelativeParenthetical && (
                     <>
                       {' '}
-                      <span className="text-slate-400 dark:text-slate-500 text-xs">
+                      <span className="text-slate-500 dark:text-slate-400 text-xs">
                         ({activeEndPhrase})
                       </span>
                     </>
@@ -918,7 +918,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             className="sm:col-span-2"
             title="CTA posted this alert's EventEnd as a date with no time, so there's no minute-level comparison to make."
           >
-            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               CTA estimated end
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">{formatDate(ctaEnd)}</dd>
@@ -929,12 +929,12 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             className="sm:col-span-2"
             title="CTA tagged this alert with an estimated end time (EventEnd) when it was first posted. This compares that estimate to when the alert actually cleared."
           >
-            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               vs CTA's stated end
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">
               {ctaEstimateBlock.phrase}{' '}
-              <span className="text-slate-400 dark:text-slate-500 text-xs">
+              <span className="text-slate-500 dark:text-slate-400 text-xs">
                 (estimated {formatTime(ctaEnd)} on {formatDate(ctaEnd)})
               </span>
             </dd>
@@ -945,7 +945,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             className="sm:col-span-2"
             title="Time between CTA marking the alert cleared and the bot seeing sustained normal service. The bot's clear requires several consecutive clean passes, so this is closer to the felt return-to-normal than the CTA timestamp alone."
           >
-            <dt className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Service stabilized
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">
@@ -985,7 +985,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           shows nothing here. */}
       {(stretchRecurrence || hourContext) && (
         <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gh-border">
-          <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+          <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Context
           </p>
           <ul className="space-y-1.5 text-sm text-slate-600 dark:text-slate-300">

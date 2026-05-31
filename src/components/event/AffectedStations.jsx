@@ -233,7 +233,7 @@ export function StationChips({ stations, direction }) {
   }
   return (
     <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-      <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-1">
+      <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">
         Stations
       </span>
       {stations.map((name, i) => {
@@ -255,7 +255,7 @@ export function StationChips({ stations, direction }) {
           <span key={name} className="inline-flex items-center gap-1.5">
             {link}
             {!isLast && stations.length === 2 && (
-              <span className="text-slate-400 dark:text-slate-500">{segmentGlyph}</span>
+              <span className="text-slate-500 dark:text-slate-400">{segmentGlyph}</span>
             )}
             {!isLast && stations.length !== 2 && (
               <span className="text-slate-300 dark:text-slate-600">·</span>
@@ -299,7 +299,7 @@ export function StationsByLine({ groups, direction, sharedTrackage = false }) {
   // the duplicate stretches don't read as separate detections.
   return (
     <div className="mt-1">
-      <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
+      <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
         {sharedTrackage ? 'Affected stations (shared trackage)' : 'Bot observed impacted stations'}
       </span>
       <div className="mt-1 space-y-1">
@@ -321,7 +321,7 @@ export function StationsByLine({ groups, direction, sharedTrackage = false }) {
                   {si > 0 && <span className="text-slate-300 dark:text-slate-600">·</span>}
                   <StationLink name={seg.from} />
                   {seg.from && seg.to && (
-                    <span className="text-slate-400 dark:text-slate-500">{glyph}</span>
+                    <span className="text-slate-500 dark:text-slate-400">{glyph}</span>
                   )}
                   <StationLink name={seg.to} />
                 </span>

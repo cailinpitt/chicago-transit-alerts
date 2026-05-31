@@ -27,7 +27,7 @@ export default function SubscribePage() {
         alerts={null}
         observations={null}
       />
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
+      <main id="main" tabIndex={-1} className="max-w-3xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>
           <Breadcrumb items={topLevelTrail('Subscribe')} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Subscribe</h1>

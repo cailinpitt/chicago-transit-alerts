@@ -364,7 +364,7 @@ export default function App() {
         alerts={data?.alerts}
         observations={data?.observations}
       />
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
+      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         {!data && (
           <div className="space-y-4 animate-pulse">
             <div className="h-16 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
@@ -429,7 +429,7 @@ export default function App() {
                       .
                     </p>
                     {todaySummary.lastWeek && (
-                      <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                         Counts incidents that started each day; a day page can show more, since it
                         also includes ones still ongoing from earlier.
                       </p>

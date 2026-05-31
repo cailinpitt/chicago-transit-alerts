@@ -124,7 +124,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
         <StationName name={obsFrom} stationIndex={stationIndex} searchQuery={searchQuery} /> →{' '}
         <StationName name={obsTo} stationIndex={stationIndex} searchQuery={searchQuery} />
         {directionLabel && (
-          <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-500 font-normal">
+          <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-400 font-normal">
             ({directionLabel})
           </span>
         )}
@@ -167,7 +167,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
       )}
       <div className="relative flex items-start gap-3 flex-1 min-w-0 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto [&_summary]:pointer-events-auto">
         <div className="flex-shrink-0 w-14 text-right">
-          <p className="text-xs text-slate-400 dark:text-slate-500">{formatTime(startTs)}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{formatTime(startTs)}</p>
         </div>
 
         <div className="flex-1 min-w-0">
@@ -175,31 +175,31 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             <LinePill kind={incident.kind} routes={incident.routes} />
             {isMerged && (
               <>
-                <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 italic">via CTA</span>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-                <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                <span className="text-xs text-slate-500 dark:text-slate-400 italic">
                   via auto-detection
                 </span>
               </>
             )}
             {isAlert && (
-              <span className="text-xs text-slate-400 dark:text-slate-500 italic">via CTA</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 italic">via CTA</span>
             )}
             {isObsOnly && (
-              <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+              <span className="text-xs text-slate-500 dark:text-slate-400 italic">
                 via auto-detection
               </span>
             )}
             {duration && (
               <>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-                <span className="text-xs text-slate-400 dark:text-slate-500">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {duration} duration
                 </span>
               </>
             )}
             {!endTs && !incident.active && (
-              <span className="text-xs text-slate-400 dark:text-slate-500">duration unknown</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">duration unknown</span>
             )}
             {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
             {incident.active &&
@@ -213,7 +213,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                   <>
                     <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
                     <span
-                      className="text-xs text-slate-400 dark:text-slate-500"
+                      className="text-xs text-slate-500 dark:text-slate-400"
                       title="CTA tagged this alert with an estimated end time when it was posted."
                     >
                       CTA estimated end {phrase}
@@ -225,7 +225,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
               <>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
                 <span
-                  className="text-xs text-slate-400 dark:text-slate-500"
+                  className="text-xs text-slate-500 dark:text-slate-400"
                   title="CTA tagged this alert with an estimated end time when it was posted."
                 >
                   CTA estimated end{' '}
@@ -243,7 +243,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
               divided by a bar, so a Loop-wide event shows every line's stops
               instead of just the primary obs's stretch. */}
           {isMultiLineSegments && (
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
               {lineGroups.map(({ line, segments }, gi) => (
                 <Fragment key={line}>
                   {gi > 0 && (
@@ -276,7 +276,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
 
           {/* Merged, single line: show the specific segment from the bot observation */}
           {!isMultiLineSegments && isMerged && obsFrom && obsTo && (
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               <StationName name={obsFrom} stationIndex={stationIndex} searchQuery={searchQuery} /> →{' '}
               <StationName name={obsTo} stationIndex={stationIndex} searchQuery={searchQuery} />
               {directionLabel && <span className="ml-1.5">({directionLabel})</span>}
@@ -431,7 +431,7 @@ export default function IncidentList({
         placeholder="Search Red, 66, Chicago, Howard…"
         aria-label="Search by line, route, station, or text"
         title="Search line names (Red, Blue), bus routes by number (66) or name (Chicago), station names (Howard, Belmont), and alert text."
-        className="w-full pl-3 pr-7 py-1 text-xs rounded-full bg-slate-100 dark:bg-gh-subtle text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-transparent focus:outline-none focus:border-slate-300 dark:focus:border-gh-border"
+        className="w-full pl-3 pr-7 py-1 text-xs rounded-full bg-slate-100 dark:bg-gh-subtle text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-transparent focus:outline-none focus:border-slate-300 dark:focus:border-gh-border focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400"
       />
       {search && (
         <button
@@ -493,7 +493,7 @@ export default function IncidentList({
             {searchInput}
           </div>
         </div>
-        <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+        <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
           {search ? `No incidents match "${search}".` : 'No incidents in this range.'}
         </div>
       </section>
@@ -505,7 +505,7 @@ export default function IncidentList({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
         <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
           Incident History{' '}
-          <span className="normal-case font-normal text-slate-400 dark:text-slate-500">
+          <span className="normal-case font-normal text-slate-500 dark:text-slate-400">
             ({total})
           </span>
         </h2>
@@ -521,7 +521,7 @@ export default function IncidentList({
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 {formatChicagoDay(group.dayUtc)}
               </h3>
-              <span className="text-xs text-slate-400 dark:text-slate-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {group.total} incident{group.total === 1 ? '' : 's'}
               </span>
             </div>

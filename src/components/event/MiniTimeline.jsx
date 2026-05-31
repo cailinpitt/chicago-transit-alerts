@@ -213,7 +213,7 @@ export function MiniTimeline({ incident, incidents, dark }) {
 
   return (
     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gh-border">
-      <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+      <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
         Surrounding {dayUtcs.length} days on {formatRoutesLabel(incident.kind, routes)}
       </p>
       {multi ? (
@@ -238,7 +238,7 @@ export function MiniTimeline({ incident, incidents, dark }) {
           ))}
           <div className="flex">
             <div className="w-12 flex-shrink-0" />
-            <div className="flex-1 flex justify-between mt-1.5 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+            <div className="flex-1 flex justify-between mt-1.5 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
               <span>{firstLabel}</span>
               <span>{lastLabel}</span>
             </div>
@@ -255,7 +255,7 @@ export function MiniTimeline({ incident, incidents, dark }) {
             kind={incident.kind}
             route={routes[0]}
           />
-          <div className="flex justify-between mt-1.5 text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+          <div className="flex justify-between mt-1.5 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
             <span>{firstLabel}</span>
             <span>{lastLabel}</span>
           </div>

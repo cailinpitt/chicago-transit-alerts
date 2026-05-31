@@ -61,8 +61,8 @@ function RestorationDeltaList({ title, subtitle, rows }) {
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
           {title}
         </p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">{subtitle}</p>
-        <p className="text-sm text-slate-400 dark:text-slate-500 italic">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{subtitle}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 italic">
           No incidents in this direction.
         </p>
       </div>
@@ -74,7 +74,7 @@ function RestorationDeltaList({ title, subtitle, rows }) {
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
           {title}
         </p>
-        <p className="text-xs text-slate-400 dark:text-slate-500">{subtitle}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
       </div>
       <div className="divide-y divide-slate-100 dark:divide-gh-border">
         {rows.map((row) => {
@@ -181,7 +181,7 @@ export default function StatsPage() {
         alerts={flat?.alerts}
         observations={flat?.observations}
       />
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
+      <main id="main" tabIndex={-1} className="max-w-3xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>
           <Breadcrumb items={topLevelTrail('Stats')} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Stats</h1>
@@ -300,7 +300,7 @@ export default function StatsPage() {
                     );
                   })}
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 px-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 px-1">
                   Bot-detected stretches without trains, or held trains, that recurred on the same
                   segment over the last 90 days. Direction-aware — a segment can show up twice if
                   both directions have trouble.

@@ -295,7 +295,7 @@ export default function Filters({
               key={key}
               onClick={() => toggleLine(key)}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                dimmed ? 'bg-slate-200 dark:bg-gh-subtle text-slate-400 dark:text-slate-500' : ''
+                dimmed ? 'bg-slate-200 dark:bg-gh-subtle text-slate-500 dark:text-slate-400' : ''
               }`}
               style={dimmed ? {} : { backgroundColor: info.color, color: info.textColor }}
             >

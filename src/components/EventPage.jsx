@@ -89,7 +89,7 @@ export default function EventPage({ eventId }) {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
-      <main className="max-w-3xl mx-auto px-4 py-6 w-full flex-1">
+      <main id="main" tabIndex={-1} className="max-w-3xl mx-auto px-4 py-6 w-full flex-1">
         <div className="flex items-center justify-between mb-4">
           <Breadcrumb
             items={

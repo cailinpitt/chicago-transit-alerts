@@ -27,7 +27,7 @@ export default function CollapsibleSection({
         <svg
           aria-hidden="true"
           viewBox="0 0 12 12"
-          className={`h-3 w-3 flex-shrink-0 text-slate-400 dark:text-slate-500 transition-transform ${
+          className={`h-3 w-3 flex-shrink-0 text-slate-500 dark:text-slate-400 transition-transform ${
             open ? 'rotate-90' : ''
           }`}
         >
@@ -44,7 +44,7 @@ export default function CollapsibleSection({
           {title}
         </span>
         {subtitle && (
-          <span className="text-xs font-normal normal-case text-slate-400 dark:text-slate-500">
+          <span className="text-xs font-normal normal-case text-slate-500 dark:text-slate-400">
             {subtitle}
           </span>
         )}

@@ -19,7 +19,7 @@ export default function Footer() {
           Data provided by CTA. Unofficial — not affiliated with, endorsed by, or sponsored by the
           Chicago Transit Authority.
         </div>
-        <div className="max-w-5xl mx-auto px-4 py-6 sm:py-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-400 dark:text-slate-500">
+        <div className="max-w-5xl mx-auto px-4 py-6 sm:py-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
           <span>Built by Cailin</span>
           <button
             type="button"

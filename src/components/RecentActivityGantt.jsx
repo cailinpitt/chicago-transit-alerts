@@ -82,7 +82,7 @@ export default function RecentActivityGantt({ incidents, now }) {
         <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
           Last 24 hours
         </h2>
-        <span className="text-xs text-slate-400 dark:text-slate-500">
+        <span className="text-xs text-slate-500 dark:text-slate-400">
           {data.totalCount} incident{data.totalCount === 1 ? '' : 's'}
         </span>
       </div>
@@ -92,7 +92,7 @@ export default function RecentActivityGantt({ incidents, now }) {
             const items = data.rows.get(key) ?? [];
             return (
               <div key={key} className="flex items-center gap-2">
-                <span className="w-12 shrink-0 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                <span className="w-12 shrink-0 text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {label}
                 </span>
                 <div className="relative flex-1 h-2.5 rounded-sm bg-slate-100 dark:bg-gh-subtle">
@@ -140,7 +140,7 @@ export default function RecentActivityGantt({ incidents, now }) {
           })}
         </div>
 
-        <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mt-2 pl-14">
+        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-2 pl-14">
           <span>24h ago</span>
           <span>12h ago</span>
           <span>now</span>
