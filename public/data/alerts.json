@@ -1,7 +1,41 @@
 {
-  "generated_at": 1780232945722,
+  "generated_at": 1780234452055,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mn5okvrc222i",
+      "kind": "bus",
+      "routes": [
+        "18",
+        "21",
+        "60"
+      ],
+      "first_seen_ts": 1780234443542,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "cta"
+      ],
+      "cta": {
+        "alert_id": "115245",
+        "headline": "Temporary Reroute at Cermak/Ashland",
+        "short_description": "#60 Blue Island, #21 Cermak and #18 16th/18th buses are temporarily rerouted in both directions due to a marathon/race near Cermak/Ashland.",
+        "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn5okvrc222i",
+        "resolved_reply_url": null,
+        "first_seen_ts": 1780234443542,
+        "resolved_ts": null,
+        "active": true,
+        "affected_from_station": null,
+        "affected_to_station": null,
+        "affected_direction": null,
+        "mentioned_stations": [],
+        "cta_event_start_ts": 1780234380000,
+        "cta_event_end_ts": null,
+        "cta_event_start_is_date_only": false,
+        "cta_event_end_is_date_only": false
+      },
+      "observations": []
+    },
     {
       "id": "3mn5kwmdhnz2n",
       "kind": "bus",
