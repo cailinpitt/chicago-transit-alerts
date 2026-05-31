@@ -1669,10 +1669,20 @@ export function computeHourOfDayContext(
   if (mean <= 0) return null;
   const ratio = inThisHour / mean;
 
-  if (ratio >= 1.75) return { tier: 'busy', hour: thisHour, count: inThisHour, total, ratio };
-  // Require a denser sample before calling an hour "unusually quiet" — with a
-  // thin cohort a 0-count hour is just sampling, not a real lull.
-  if (ratio <= 0.4 && total >= 40)
+  // A ratio gate alone isn't enough: the flat 24-hour mean is dragged down by
+  // dead overnight hours, so an ordinary daytime hour clears 1.75× on a thin
+  // cohort (e.g. 4 of 54 ≈ 1.78× but only ~1.2σ above expectation — noise). So
+  // also require the bucket to be a statistically meaningful excess/deficit:
+  // ≥2σ under a Poisson(mean) model, where σ = √mean. This self-scales — a
+  // small mean demands a proportionally larger count before it reads "busy."
+  const sd = Math.sqrt(mean);
+  const sigma = 2;
+
+  if (ratio >= 1.75 && inThisHour - mean >= sigma * sd)
+    return { tier: 'busy', hour: thisHour, count: inThisHour, total, ratio };
+  // Quiet keeps its denser-sample floor (a 0-count hour on a thin cohort is
+  // just sampling, not a real lull) plus the same significance bar.
+  if (ratio <= 0.4 && total >= 40 && mean - inThisHour >= sigma * sd)
     return { tier: 'quiet', hour: thisHour, count: inThisHour, total, ratio };
   return null;
 }

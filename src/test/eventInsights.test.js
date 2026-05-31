@@ -151,4 +151,32 @@ describe('computeHourOfDayContext', () => {
     const sparse = [subject, incidents[0], incidents[1]];
     expect(computeHourOfDayContext(subject, sparse, { now: NOW })).toBeNull();
   });
+
+  it('does not flag a thin daytime hour that only clears the ratio (4 of 54)', () => {
+    // Reproduces the "11 AM is a relatively busy hour … 4 of the last 54" noise:
+    // 4/54 ≈ 1.78× the flat mean but only ~1.2σ above expectation, so it must
+    // not read as busy.
+    const THIS_HOUR = NOW; // subject's hour
+    const list = [{ id: 'subj', kind: 'train', routes: ['blue'], first_seen_ts: THIS_HOUR }];
+    // 3 more in the subject's hour → 4 total in-hour.
+    for (let i = 1; i < 4; i++)
+      list.push({
+        id: `in${i}`,
+        kind: 'train',
+        routes: ['blue'],
+        first_seen_ts: THIS_HOUR - i * DAY,
+      });
+    // 50 spread across OTHER hours (offset by hours, not whole days) → total 54.
+    for (let i = 0; i < 50; i++) {
+      list.push({
+        id: `out${i}`,
+        kind: 'train',
+        routes: ['blue'],
+        first_seen_ts: THIS_HOUR - ((i % 12) + 1) * HOUR - i * DAY,
+      });
+    }
+    const subj = list[0];
+    const out = computeHourOfDayContext(subj, list, { now: NOW, windowDays: 90 });
+    expect(out).toBeNull();
+  });
 });
