@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780240925903,
+  "generated_at": 1780246114746,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -90,7 +90,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 30 min — scheduled every 12 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -257,7 +258,8 @@
           "bot_resolved_description": "Trains observed again on the Green Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (2 stations affected) in the last 80 min — scheduled every 30 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 75 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -483,7 +485,8 @@
           "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (11 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -540,7 +543,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.2-mi stretch (4 stations affected) in the last 25 min — scheduled every 10 min, ~2 trains missed (3 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -595,7 +599,8 @@
           "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (2 stations affected) in the last 35 min — scheduled every 12 min, ~2 trains missed (3 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -871,7 +876,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.7-mi stretch (3 stations affected) in the last 21 min — scheduled every 9 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -1256,7 +1262,8 @@
           "bot_resolved_description": "Trains observed again on the Orange Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 5.2-mi stretch (3 stations affected) in the last 25 min — scheduled every 10 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -1312,7 +1319,8 @@
           "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2-mi stretch (3 stations affected) in the last 24 min — scheduled every 8 min, ~3 trains missed (15 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 19 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -1661,7 +1669,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -1850,7 +1859,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 6.7-mi stretch (4 stations affected) in the last 29 min — scheduled every 10 min, ~3 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 24 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -1993,7 +2003,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (2 stations affected) in the last 29 min — scheduled every 10 min, ~2 trains missed (3 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -2051,7 +2062,8 @@
           "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 3.2-mi stretch (5 stations affected) in the last 25 min — scheduled every 10 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -2202,7 +2214,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1-mi stretch (2 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -2513,7 +2526,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (2 stations affected) in the last 15 min — scheduled every 4 min, ~3 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -2569,7 +2583,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (3 stations affected) in the last 19 min — scheduled every 7 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -2624,7 +2639,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2-mi stretch (2 stations affected) in the last 17 min — scheduled every 6 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -2725,7 +2741,8 @@
           "bot_resolved_description": "Trains observed again on the Orange Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.7-mi stretch (2 stations affected) in the last 18 min — scheduled every 7 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -2780,7 +2797,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (2 stations affected) in the last 16 min — scheduled every 5 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -3103,7 +3121,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.5-mi stretch (4 stations affected) in the last 18 min — scheduled every 7 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -3284,7 +3303,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 6.7-mi stretch (4 stations affected) in the last 29 min — scheduled every 10 min, ~3 trains missed (4 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 24 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -3384,7 +3404,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 4.9-mi stretch (3 stations affected) in the last 16 min (2 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -3572,7 +3593,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.5-mi stretch (3 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -3719,7 +3741,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2-mi stretch (4 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -3774,7 +3797,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (2 stations affected) in the last 17 min — scheduled every 6 min, ~3 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -3875,7 +3899,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1-mi stretch (2 stations affected) in the last 16 min — scheduled every 4 min, ~3 trains missed (8 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -3995,7 +4020,8 @@
           "bot_resolved_description": "Trains observed again on the Orange Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 4.2-mi stretch (3 stations affected) in the last 20 min — scheduled every 8 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -4383,7 +4409,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 18 min — scheduled every 7 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -4439,7 +4466,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1-mi stretch (3 stations affected) in the last 20 min — scheduled every 7 min, ~3 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -4556,7 +4584,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1-mi stretch (2 stations affected) in the last 16 min — scheduled every 6 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -4647,7 +4676,8 @@
           "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 3-mi stretch (4 stations affected) in the last 30 min — scheduled every 10 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -4703,7 +4733,8 @@
           "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (3 stations affected) in the last 25 min — scheduled every 10 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -4804,7 +4835,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2-mi stretch (4 stations affected) in the last 16 min — scheduled every 6 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -4906,7 +4938,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 6.2-mi stretch (3 stations affected) in the last 33 min — scheduled every 11 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 28 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -5032,7 +5065,8 @@
           "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (5 stations affected) in the last 20 min — scheduled every 8 min, ~2 trains missed (11 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -5139,7 +5173,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 4.4-mi stretch (10 stations affected) in the last 24 min — scheduled every 10 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -5238,7 +5273,8 @@
           "bot_resolved_description": "Trains observed again on the Red Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (2 stations affected) in the last 20 min — scheduled every 6 min, ~3 trains missed (16 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -5293,7 +5329,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 5.7-mi stretch (2 stations affected) in the last 26 min — scheduled every 11 min, ~2 trains missed (8 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -5465,7 +5502,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 23 min — scheduled every 8 min, ~3 trains missed (9 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         },
         {
           "id": 400,
@@ -5507,7 +5545,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         },
         {
           "id": 396,
@@ -5549,7 +5588,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         },
         {
           "id": 405,
@@ -5563,7 +5603,7 @@
           "signals": null,
           "evidence": {
             "runLengthMi": 2,
-            "minutesSinceLastTrain": null,
+            "minutesSinceLastTrain": 109,
             "lookbackMin": 24,
             "coldThresholdMin": 19,
             "trainsOutsideRun": 10,
@@ -5580,17 +5620,18 @@
             "held": null
           },
           "ts": 1779845522942,
-          "onset_ts": 1779844382942,
+          "onset_ts": 1779838982942,
           "resolved_ts": 1779846394500,
-          "duration_ms": 2011558,
+          "duration_ms": 7411558,
           "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmselfwafh2i",
           "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmsfp4qmfz2c",
           "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
-            "No trains moved through this 2-mi stretch (4 stations affected) in the last 24 min — scheduled every 8 min, ~3 trains missed (10 trains still moving elsewhere on the line)."
-          ]
+            "No trains moved through this 2-mi stretch (4 stations affected) in the last 109 min — scheduled every 8 min, ~3 trains missed (10 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -5812,7 +5853,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 19 min — scheduled every 7 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -6168,7 +6210,7 @@
           "signals": null,
           "evidence": {
             "runLengthMi": 3.7,
-            "minutesSinceLastTrain": null,
+            "minutesSinceLastTrain": 59,
             "lookbackMin": 35,
             "coldThresholdMin": 30,
             "trainsOutsideRun": 4,
@@ -6187,17 +6229,18 @@
             "held": null
           },
           "ts": 1779674161936,
-          "onset_ts": 1779672361936,
+          "onset_ts": 1779670621936,
           "resolved_ts": 1779675025358,
-          "duration_ms": 2663422,
+          "duration_ms": 4403422,
           "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmneykia2d2h",
           "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mmnfnwrh5g2s",
           "bot_description": "Pink Line service appears degraded — a stretch of the line without trains.",
           "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
-            "No trains moved through this 3.7-mi stretch (6 stations affected) in the last 35 min — scheduled every 12 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
-          ]
+            "No trains moved through this 3.7-mi stretch (6 stations affected) in the last 59 min — scheduled every 12 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -6729,7 +6772,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 0.7-mi stretch (2 stations affected) in the last 29 min — scheduled every 10 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -7777,7 +7821,8 @@
           "bot_resolved_description": "Trains observed again on the Orange Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 4.2-mi stretch (3 stations affected) in the last 24 min — scheduled every 10 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -7957,7 +8002,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 16 min — scheduled every 6 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -8099,7 +8145,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.9-mi stretch (3 stations affected) in the last 15 min — scheduled every 6 min, ~2 trains missed (8 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         },
         {
           "id": 375,
@@ -8141,7 +8188,8 @@
           "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 3.5-mi stretch (5 stations affected) in the last 26 min — scheduled every 9 min, ~3 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 21 min when this was flagged — the gap likely began here or earlier."
         },
         {
           "id": 376,
@@ -8181,7 +8229,8 @@
           "bot_resolved_description": "Trains observed again on the Orange Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 4.2-mi stretch (3 stations affected) in the last 21 min — scheduled every 8 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         },
         {
           "id": 377,
@@ -8225,7 +8274,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 4.7-mi stretch (7 stations affected) in the last 21 min — scheduled every 8 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         },
         {
           "id": 378,
@@ -8268,7 +8318,8 @@
           "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 3.7-mi stretch (6 stations affected) in the last 21 min — scheduled every 9 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -8457,7 +8508,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (4 stations affected) in the last 20 min — scheduled every 8 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -8850,7 +8902,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 18 min — scheduled every 7 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -8907,7 +8960,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2-mi stretch (4 stations affected) in the last 16 min — scheduled every 5 min, ~3 trains missed (8 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -8965,7 +9019,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 16 min — scheduled every 6 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -9064,7 +9119,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (2 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -9288,7 +9344,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.2-mi stretch (3 stations affected) in the last 16 min — scheduled every 6 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -9878,7 +9935,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 5.9-mi stretch (2 stations affected) in the last 29 min — scheduled every 10 min, ~3 trains missed (8 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 24 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -10000,7 +10058,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 6.7-mi stretch (4 stations affected) in the last 25 min — scheduled every 10 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -10177,7 +10236,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1-mi stretch (3 stations affected) in the last 15 min — scheduled every 4 min, ~3 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -10272,7 +10332,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 5.9-mi stretch (2 stations affected) in the last 33 min — scheduled every 11 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 28 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -10503,7 +10564,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 0.7-mi stretch (2 stations affected) in the last 16 min — scheduled every 5 min, ~3 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -10558,7 +10620,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 4.5-mi stretch (2 stations affected) in the last 24 min — scheduled every 10 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -10655,7 +10718,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (4 stations affected) in the last 19 min — scheduled every 7 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -10750,7 +10814,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.5-mi stretch (2 stations affected) in the last 15 min — scheduled every 6 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -11227,7 +11292,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 7.4-mi stretch (6 stations affected) in the last 30 min — scheduled every 10 min, ~3 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 25 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -11333,7 +11399,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.9-mi stretch (3 stations affected) in the last 16 min — scheduled every 6 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -11531,7 +11598,8 @@
           "bot_resolved_description": "Trains observed again on the Orange Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 5.9-mi stretch (3 stations affected) in the last 19 min — scheduled every 8 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -12518,7 +12586,8 @@
           "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (3 stations affected) in the last 26 min — scheduled every 10 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         },
         {
           "id": 331,
@@ -12559,7 +12628,8 @@
           "bot_resolved_description": "Trains observed again on the Green Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.5-mi stretch (4 stations affected) in the last 55 min — scheduled every 20 min, ~2 trains missed (13 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 50 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -13246,7 +13316,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 17 min — scheduled every 7 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -13436,7 +13507,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 5.9-mi stretch (2 stations affected) in the last 29 min — scheduled every 10 min, ~3 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 24 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -14465,7 +14537,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (4 stations affected) in the last 16 min — scheduled every 6 min, ~2 trains missed (10 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -14694,7 +14767,8 @@
           "bot_resolved_description": "Trains observed again on the Blue Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.7-mi stretch (3 stations affected) in the last 24 min — scheduled every 8 min, ~3 trains missed (27 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 19 min when this was flagged — the gap likely began here or earlier."
         },
         {
           "id": 39,
@@ -14773,7 +14847,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 0.7-mi stretch (2 stations affected) in the last 24 min — scheduled every 8 min, ~3 trains missed (7 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 19 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -14862,7 +14937,8 @@
           "bot_resolved_description": "Trains observed again on the Yellow Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains observed anywhere on the line in the last 20 min (3 stations affected) — scheduled every 15 min."
-          ]
+          ],
+          "onset_description": "No trains on the line for at least 20 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -15382,7 +15458,8 @@
           "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 3.5-mi stretch (7 stations affected) in the last 26 min — scheduled every 10 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -15480,7 +15557,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2.2-mi stretch (5 stations affected) in the last 35 min — scheduled every 14 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -15682,7 +15760,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 2-mi stretch (5 stations affected) in the last 43 min — scheduled every 15 min, ~2 trains missed (3 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 38 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -15737,7 +15816,8 @@
           "bot_resolved_description": "Trains observed again on the Pink Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1-mi stretch (2 stations affected) in the last 42 min — scheduled every 15 min, ~2 trains missed (2 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 37 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -15966,7 +16046,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 3.4-mi stretch (7 stations affected) in the last 22 min — scheduled every 9 min, ~2 trains missed (6 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
@@ -16214,7 +16295,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 0.7-mi stretch (2 stations affected) in the last 39 min — scheduled every 14 min, ~2 trains missed (4 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "No trains through this stretch for at least 34 min when this was flagged — the gap likely began here or earlier."
         }
       ]
     },
@@ -16494,7 +16576,8 @@
           "bot_resolved_description": "Trains observed again on the Brown Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 20 min — scheduled every 7 min, ~3 trains missed (8 trains still moving elsewhere on the line)."
-          ]
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
         }
       ]
     },
