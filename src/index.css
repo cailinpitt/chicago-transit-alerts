@@ -27,11 +27,29 @@ main:focus {
   outline: none;
 }
 
+/* Smooth cross-document transitions between the site's full-page navigations.
+   Progressive enhancement: ignored where unsupported, and the UA skips the
+   default cross-fade under prefers-reduced-motion. */
+@view-transition {
+  navigation: auto;
+}
+
 /* iOS rubber-band overscroll exposes the <html> background. Without these
-   the dark-mode page shows a white strip when you pull past the top/bottom. */
+   the dark-mode page shows a white strip when you pull past the top/bottom.
+   `scrollbar-gutter: stable` reserves the scrollbar's space so content doesn't
+   shift horizontally when a scrollbar appears/disappears (CLS). */
 html {
   background-color: #f8fafc;
+  scrollbar-gutter: stable;
 } /* slate-50 */
+
+/* Skip rendering offscreen incident rows until they scroll near the viewport.
+   `contain-intrinsic-size: auto <h>` remembers each row's real height after its
+   first render, so the placeholder estimate only applies before that. */
+.cv-auto-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 96px;
+}
 html.dark {
   background-color: #0d1117;
 } /* gh-canvas */

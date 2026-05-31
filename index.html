@@ -85,5 +85,32 @@
     <a href="#main" class="skip-link">Skip to main content</a>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!-- Speculation Rules: pages use full-page navigation (no client router),
+         so prefetching same-origin links on hover makes clicks much faster,
+         and prerendering the hub pages makes them feel instant. /data/* (the
+         JSON/CSV API) is excluded from document prefetch. -->
+    <script type="speculationrules">
+      {
+        "prefetch": [
+          {
+            "source": "document",
+            "where": {
+              "and": [
+                { "href_matches": "/*" },
+                { "not": { "href_matches": "/data/*" } }
+              ]
+            },
+            "eagerness": "moderate"
+          }
+        ],
+        "prerender": [
+          {
+            "source": "list",
+            "urls": ["/", "/calendar", "/stats"],
+            "eagerness": "moderate"
+          }
+        ]
+      }
+    </script>
   </body>
 </html>

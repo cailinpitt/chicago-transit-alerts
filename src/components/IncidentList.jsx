@@ -145,7 +145,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
 
   return (
     <div
-      className={`relative flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0 ${
+      className={`cv-auto-row relative flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0 ${
         eventId ? 'hover:bg-slate-50 dark:hover:bg-gh-subtle/40 -mx-2 px-2 rounded' : ''
       } ${isNew ? 'animate-fade-highlight' : ''}`}
     >
