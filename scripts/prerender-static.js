@@ -61,7 +61,10 @@ for (const page of PAGES) {
       /<meta property="og:description"[^>]*>/,
       `<meta property="og:description" content="${escAttr(page.desc)}" />`,
     )
-    .replace(/<meta property="og:url"[^>]*>/, `<meta property="og:url" content="${escAttr(url)}" />`)
+    .replace(
+      /<meta property="og:url"[^>]*>/,
+      `<meta property="og:url" content="${escAttr(url)}" />`,
+    )
     .replace(
       /<meta name="twitter:title"[^>]*>/,
       `<meta name="twitter:title" content="${escAttr(title)}" />`,
