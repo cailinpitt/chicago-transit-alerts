@@ -10,6 +10,14 @@ export function useDarkMode() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
     localStorage.setItem('darkMode', String(dark));
+    // Keep the browser chrome (theme-color) in sync with the in-app toggle,
+    // which can diverge from the OS preference the media-scoped metas track.
+    // Dropping `media` lets the resolved choice win over the OS-based pair.
+    const color = dark ? '#0d1117' : '#f8fafc';
+    for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
+      meta.setAttribute('content', color);
+      meta.removeAttribute('media');
+    }
   }, [dark]);
 
   const toggle = useCallback(() => setDark((d) => !d), []);
