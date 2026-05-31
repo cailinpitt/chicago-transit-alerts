@@ -14,6 +14,7 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Chicago Transit Alerts</title>
     <meta name="description" content="Major CTA alerts and service observations." />
+    <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://chicagotransitalerts.app/" />
 
     <meta property="og:type" content="website" />
@@ -56,6 +57,28 @@
       title="Chicago Transit Alerts"
       href="/feed.json"
     />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://chicagotransitalerts.app/#website",
+            "url": "https://chicagotransitalerts.app/",
+            "name": "Chicago Transit Alerts",
+            "description": "A public archive of CTA service alerts and bot-detected disruptions, with a 90-day heatmap of incident frequency.",
+            "inLanguage": "en-US",
+            "publisher": { "@id": "https://chicagotransitalerts.app/#org" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://chicagotransitalerts.app/#org",
+            "name": "Chicago Transit Alerts (unofficial)",
+            "url": "https://chicagotransitalerts.app/"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -116,6 +116,17 @@ export function formatChicagoDay(dayUtc) {
   });
 }
 
+// `YYYY-MM-DD` slug for a value produced by `chicagoDayUTC` — matches the
+// `/day/:date` route. The components are read back in UTC for the same reason
+// `formatChicagoDay` formats in UTC: `chicagoDayUTC` encodes the Chicago Y/M/D
+// at UTC midnight, so re-applying an offset would shift the date.
+export function chicagoDayIsoUTC(dayUtc) {
+  const d = new Date(dayUtc);
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${m}-${day}`;
+}
+
 export function formatTime(ts) {
   return new Date(ts).toLocaleTimeString('en-US', {
     hour: 'numeric',

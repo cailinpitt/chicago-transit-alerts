@@ -20,6 +20,7 @@ import {
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { breadcrumbJsonLd, eventTrail } from '../src/lib/breadcrumbs.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../src/lib/ctaLines.js';
 import { formatDate, formatTime } from '../src/lib/format.js';
 import {
@@ -248,7 +249,13 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant =
   // Inject JSON-LD just before </head>. `<` inside the JSON has to be escaped
   // because </script> in a string literal would otherwise close the tag.
   const jsonLd = buildJsonLd(incident, { ogTitle, desc, url }).replaceAll('<', '\\u003c');
-  const ldTag = `<script type="application/ld+json">${jsonLd}</script>`;
+  // BreadcrumbList trail (Home › day › this incident) — mirrors the visible
+  // trail the page renders via lib/breadcrumbs, so structured data and UI agree.
+  const trail = eventTrail(incident.first_seen_ts ?? incident.ts ?? null, accent.label);
+  const breadcrumbLd = JSON.stringify(breadcrumbJsonLd(trail, SITE)).replaceAll('<', '\\u003c');
+  const ldTag =
+    `<script type="application/ld+json">${jsonLd}</script>` +
+    `\n    <script type="application/ld+json">${breadcrumbLd}</script>`;
   // canonical always points at the bare URL even on the /resolved variant —
   // search engines should treat /resolved as a duplicate, not a separate page.
   let html = shell
@@ -301,8 +308,12 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant =
   if (variant === 'resolved') {
     // noindex the variant — it's a Bluesky-card-cache target, not a destination
     // page. Without this, search engines see /event/:id and /event/:id/resolved
-    // as two near-identical pages competing for the same incident.
-    html = html.replace('</head>', '<meta name="robots" content="noindex,follow" />\n  </head>');
+    // as two near-identical pages competing for the same incident. Replace the
+    // shell's default index,follow so the page carries a single robots directive.
+    html = html.replace(
+      /<meta name="robots"[^>]*>/,
+      '<meta name="robots" content="noindex,follow" />',
+    );
   }
   return html;
 }

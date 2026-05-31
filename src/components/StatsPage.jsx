@@ -7,10 +7,11 @@ import {
   computeStatsLeaderboards,
   computeYearOverYear,
 } from '../lib/aggregate.js';
+import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay, formatDate, formatDuration, formatTime } from '../lib/format.js';
 import { flattenIncidents, formatRoutesLabel } from '../lib/incidents.js';
-import BackLink from './BackLink.jsx';
+import Breadcrumb from './Breadcrumb.jsx';
 import Header from './Header.jsx';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -182,7 +183,7 @@ export default function StatsPage() {
       />
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>
-          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
+          <Breadcrumb items={topLevelTrail('Stats')} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Stats</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Worst days, hours, stations, and longest incidents on record.

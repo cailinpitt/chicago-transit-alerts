@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
+import { dayTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
 import { filterIncidents, flattenIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc, parseUrlState } from '../lib/urlState.js';
-import BackLink from './BackLink.jsx';
+import Breadcrumb from './Breadcrumb.jsx';
 import Header from './Header.jsx';
 import IncidentList from './IncidentList.jsx';
 import LinePill from './LinePill.jsx';
@@ -155,7 +156,7 @@ export default function DayPage({ dateStr }) {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
-          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
+          <Breadcrumb items={dayTrail(dayUtc)} className="mb-3" />
           <div className="flex flex-wrap items-baseline gap-3">
             <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">{dayLabel}</h1>
             {data && (

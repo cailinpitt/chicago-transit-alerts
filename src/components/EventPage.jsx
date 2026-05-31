@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
+import { eventTrail } from '../lib/breadcrumbs.js';
 import { findIncidentById, flattenIncidents, formatRoutesLabel } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
-import BackLink from './BackLink.jsx';
+import Breadcrumb from './Breadcrumb.jsx';
 import BrowseMenu from './BrowseMenu.jsx';
 import { EventDetail } from './event/EventDetail.jsx';
 import EventNav from './event/EventNav.jsx';
@@ -90,7 +91,16 @@ export default function EventPage({ eventId }) {
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
       <main className="max-w-3xl mx-auto px-4 py-6 w-full flex-1">
         <div className="flex items-center justify-between mb-4">
-          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline" />
+          <Breadcrumb
+            items={
+              incident
+                ? eventTrail(
+                    incident.first_seen_ts ?? incident.ts,
+                    formatRoutesLabel(incident.kind, incidentRoutes(incident)),
+                  )
+                : [{ label: 'Home', href: '/' }, { label: 'Incident' }]
+            }
+          />
           <div className="flex items-center gap-2">
             <BrowseMenu alerts={flat?.alerts} observations={flat?.observations} />
             <button

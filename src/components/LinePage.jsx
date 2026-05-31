@@ -13,13 +13,14 @@ import {
   computeWorstDay,
   computeYearOverYear,
 } from '../lib/aggregate.js';
+import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
 import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
-import BackLink from './BackLink.jsx';
+import Breadcrumb from './Breadcrumb.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
@@ -374,7 +375,7 @@ export default function LinePage({ kind, lineId }) {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         <div>
-          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
+          <Breadcrumb items={topLevelTrail(heading)} className="mb-3" />
           <div className="flex flex-wrap items-center gap-3">
             <span
               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold"

@@ -8,13 +8,14 @@ import {
   computeWorstDay,
   computeYearOverYear,
 } from '../lib/aggregate.js';
+import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { chicagoDayUTC, formatChicagoDay, formatMinutesAsHours } from '../lib/format.js';
 import { filterIncidents, flattenIncidents, mergeMatchingIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
-import BackLink from './BackLink.jsx';
+import Breadcrumb from './Breadcrumb.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
@@ -517,7 +518,7 @@ export default function SystemHealthPage({ kind }) {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
-          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
+          <Breadcrumb items={topLevelTrail(headline)} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">{headline}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{subhead}</p>
         </div>

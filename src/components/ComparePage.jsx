@@ -8,6 +8,7 @@ import {
   computeYearOverYear,
   DURATION_BINS,
 } from '../lib/aggregate.js';
+import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatGap, formatMinutesAsHours } from '../lib/format.js';
@@ -17,7 +18,7 @@ import {
   SIGNAL_LABELS,
   SIGNAL_TYPES,
 } from '../lib/incidents.js';
-import BackLink from './BackLink.jsx';
+import Breadcrumb from './Breadcrumb.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 
@@ -568,7 +569,7 @@ export default function ComparePage() {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>
-          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
+          <Breadcrumb items={topLevelTrail('Compare')} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Compare</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Side-by-side reliability and signal mix for up to {MAX_SELECTED} train lines or bus

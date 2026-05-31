@@ -308,13 +308,18 @@ describe('EventPage', () => {
       expect(screen.getByText('Red Line Delays at Howard')).toBeInTheDocument();
     });
     expect(screen.getByText('View on Bluesky →')).toBeInTheDocument();
-    expect(screen.getByText(/back to all incidents/i)).toBeInTheDocument();
+    // Breadcrumb replaces the old "← Back" link: Home › <day> › <route>.
+    const crumbs = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(within(crumbs).getByRole('link', { name: 'Home' })).toBeInTheDocument();
+    expect(within(crumbs).getByText('Red Line')).toBeInTheDocument();
   });
 
   it('renders a standalone observation by id', async () => {
     render(<EventPage eventId="bus99" />);
+    // "#66 Chicago" appears both in the breadcrumb's current crumb and the
+    // page body, so assert presence rather than uniqueness.
     await waitFor(() => {
-      expect(screen.getByText('#66 Chicago')).toBeInTheDocument();
+      expect(screen.getAllByText('#66 Chicago').length).toBeGreaterThan(0);
     });
     expect(screen.getByText('ongoing')).toBeInTheDocument();
   });

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
+import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { buildCalendarWeeks } from '../lib/calendar.js';
 import { formatChicagoDay } from '../lib/format.js';
 import { SOURCE_TYPES } from '../lib/incidents.js';
 import { buildSearch, parseUrlState } from '../lib/urlState.js';
-import BackLink from './BackLink.jsx';
+import Breadcrumb from './Breadcrumb.jsx';
 import Filters from './Filters.jsx';
 import Header from './Header.jsx';
 
@@ -220,7 +221,7 @@ export default function CalendarPage() {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>
-          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
+          <Breadcrumb items={topLevelTrail('Calendar')} className="mb-3" />
           <div className="flex flex-wrap items-baseline gap-3">
             <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Calendar</h1>
             {grid && (

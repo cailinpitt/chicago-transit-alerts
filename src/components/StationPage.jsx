@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import { computeTypicalDurations } from '../lib/aggregate.js';
+import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex, displayStationName, rosterStationBySlug } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
-import BackLink from './BackLink.jsx';
+import Breadcrumb from './Breadcrumb.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
@@ -122,7 +123,10 @@ export default function StationPage({ slug }) {
       />
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         <div>
-          <BackLink className="text-sm text-blue-500 hover:text-blue-400 hover:underline inline-block mb-3" />
+          <Breadcrumb
+            items={topLevelTrail(station ? displayStationName(station.name) : 'Station')}
+            className="mb-3"
+          />
           {station && (
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">

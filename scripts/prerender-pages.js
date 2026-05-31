@@ -32,6 +32,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { computeStatsLeaderboards } from '../src/lib/aggregate.js';
+import { breadcrumbJsonLd, dayTrail, topLevelTrail } from '../src/lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES } from '../src/lib/busRoutes.js';
 import { buildCalendarMonths, maxCountAcrossMonths } from '../src/lib/calendar.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
@@ -469,6 +470,7 @@ function planPages(payload, dailyPayload) {
       outDir: resolve(DIST, 'day', isoDate),
       url: `${SITE}/day/${isoDate}`,
       path: `/day/${isoDate}`,
+      dayUtc,
       ogTitle: `${formatChicagoDay(dayUtc)} · Chicago Transit Alerts`,
       desc: `CTA service alerts and bot-detected disruptions on ${formatChicagoDay(dayUtc)} — archived on chicagotransitalerts.app.`,
       title: formatChicagoDay(dayUtc),
@@ -508,10 +510,62 @@ function planPages(payload, dailyPayload) {
   return pages;
 }
 
+// Breadcrumb trail for a page kind — mirrors the visible trail each page
+// renders via lib/breadcrumbs, so structured data and UI stay in sync.
+function trailFor(page) {
+  switch (page.kind) {
+    case 'day':
+      return dayTrail(page.dayUtc);
+    case 'station':
+      return topLevelTrail(page.stationName);
+    case 'system':
+      return topLevelTrail(page.title);
+    case 'calendar':
+      return topLevelTrail('Calendar');
+    case 'compare':
+      return topLevelTrail('Compare');
+    case 'stats':
+      return topLevelTrail('Stats');
+    case 'line':
+    case 'route':
+      return topLevelTrail(page.label);
+    default:
+      return null;
+  }
+}
+
+// JSON-LD <script> tags for a page: a WebPage/CollectionPage node describing
+// the page itself (#11) plus a BreadcrumbList trail (#12). Pages that collect
+// incidents (line/route/station/day) are CollectionPage; the rest are WebPage.
+function structuredDataTags(page, ogTitle, desc) {
+  const collection = ['line', 'route', 'station', 'day'].includes(page.kind);
+  const blocks = [
+    {
+      '@context': 'https://schema.org',
+      '@type': collection ? 'CollectionPage' : 'WebPage',
+      '@id': page.url,
+      url: page.url,
+      name: ogTitle,
+      description: desc,
+      inLanguage: 'en-US',
+      isPartOf: { '@type': 'WebSite', '@id': `${SITE}/#website` },
+    },
+  ];
+  const trail = trailFor(page);
+  if (trail) blocks.push(breadcrumbJsonLd(trail, SITE));
+  return blocks
+    .map(
+      (b) =>
+        `<script type="application/ld+json">${JSON.stringify(b).replaceAll('<', '\\u003c')}</script>`,
+    )
+    .join('\n    ');
+}
+
 function buildHtmlStub(shell, page) {
   const image = `${page.url}/og.png`;
   const ogTitle = page.ogTitle.slice(0, 200);
   const desc = page.desc.slice(0, 280);
+  const ldTags = structuredDataTags(page, ogTitle, desc);
   // Feed autodiscovery: line/route pages advertise their per-line/route Atom
   // feed so readers can subscribe straight from the page. Appended after the
   // canonical link (only for pages that carry a feedPath).
@@ -563,7 +617,8 @@ function buildHtmlStub(shell, page) {
     .replace(
       /<meta name="twitter:image:alt"[^>]*>/,
       `<meta name="twitter:image:alt" content="${escAttr(ogTitle)}" />`,
-    );
+    )
+    .replace('</head>', `${ldTags}\n  </head>`);
 }
 
 const ACTIVE_RIBBON_HTML =
