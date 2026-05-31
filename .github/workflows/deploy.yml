@@ -26,7 +26,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
           # Need enough history to diff against the previous deployed commit
@@ -66,7 +66,7 @@ jobs:
             echo "data_only=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -83,7 +83,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -95,7 +95,7 @@ jobs:
         run: npx playwright install-deps chromium
 
       - name: Restore OG image cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             .og-cache
