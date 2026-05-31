@@ -560,11 +560,13 @@ export function EventDetail({ incident, incidents, alerts, observations, station
               {entries.map((e, i) => {
                 const isLatest = i === 0;
                 const isOldest = i === entries.length - 1;
-                // The detection entry is the moment the bot officially flagged
-                // the disruption — give it an amber dot + DETECTED badge so the
-                // "this is a problem" beat is the visual anchor of the rail. It
-                // wins over the Latest badge when it's also the newest entry (an
-                // active, not-yet-resolved incident).
+                // The detection entry is the moment the bot raised the alarm —
+                // give it an amber dot + ALERTED badge so the "this is a problem"
+                // beat is the visual anchor of the rail. "Alerted" (not
+                // "Detected") because the gap may have begun earlier — the onset
+                // entry below carries the real start; this marks when we posted.
+                // It wins over the Latest badge when it's also the newest entry
+                // (an active, not-yet-resolved incident).
                 const isDetect = e.key === 'detect';
                 return (
                   <li key={e.key} className="relative pl-6">
@@ -591,7 +593,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                       </p>
                       {isDetect && (
                         <span className="text-[10px] uppercase tracking-wider font-semibold text-amber-600 dark:text-amber-400">
-                          Detected
+                          Alerted
                         </span>
                       )}
                       {isLatest && !isDetect && (
