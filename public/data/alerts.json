@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780225625271,
+  "generated_at": 1780228385600,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "red"
       ],
       "first_seen_ts": 1780225623931,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780228143165,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -19,10 +19,10 @@
         "headline": "Howard-bound Red Line Service Delayed at Bryn Mawr",
         "short_description": "Howard-bound Red Line trains are standing at Bryn Mawr due to a mechanical problem on a train. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn5gdzd5xw2y",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn5iwbl3th2o",
         "first_seen_ts": 1780225623931,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780228143165,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
