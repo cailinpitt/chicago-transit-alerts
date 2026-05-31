@@ -177,6 +177,7 @@ function flattenIncidentAlert(inc) {
  * @property {boolean} active
  * @property {string} [post_url]
  * @property {string | null} [resolved_post_url]
+ * @property {string} [onset_description]   Pre-rendered sentence for the onset timeline entry (the back-dated start at `onset_ts`). Omitted when there's no meaningful back-date.
  */
 
 /**

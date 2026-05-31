@@ -6,6 +6,29 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-05-31 — `onset_description` + more accurate `onset_ts` (additive)
+
+Two related changes to absence-style bot observations (`detection_source`
+`pulse-cold` / `thin-gap`):
+
+- **New field `onset_description`** — a pre-rendered sentence labelling the
+  back-dated start of the gap (e.g. _"Last train observed through this stretch
+  around here — the service gap began about now."_), for rendering a timeline
+  entry at `onset_ts`. Omitted when there's no meaningful back-date (the start
+  is within ~5 min of the post). Field at
+  `incidents[].observations[].onset_description`.
+- **More accurate `onset_ts`** — when the last vehicle through the stretch
+  predated the detector's short lookback window, `onset_ts` previously floored
+  to the cold threshold (a lower bound). It's now recovered from the wider 2h
+  position history to the concrete last-seen vehicle, capped at 2h and guarded
+  against crossing a scheduled no-service gap (so an early-morning detection
+  isn't back-dated to the prior night's final train). `onset_ts` may therefore
+  be earlier (more accurate) than before for these observations, and
+  `duration_ms` moves with it. The field's meaning and shape are unchanged.
+
+No fields were removed or renamed; consumers that ignore `onset_description`
+are unaffected.
+
 ## 2026-05-29 — Per-line and per-route feeds (additive)
 
 The Atom + JSON feed is now also published scoped to a single line or route,

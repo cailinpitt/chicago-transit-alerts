@@ -193,6 +193,8 @@ The top-level array is `incidents` — **one object per real-world disruption**.
           "post_url": "https://bsky.app/profile/.../post/...",
           "resolved_post_url": null,
           "bot_description": "…",       // pre-rendered plain-English summary
+          "onset_description": "…",     // pre-rendered "the gap began here" sentence for the
+                                        // onset timeline entry; omitted when there's no back-date
           "evidence": { /* … */ }       // small "why the bot fired" payload
         }
       ]

@@ -226,6 +226,42 @@ const PAYLOAD = {
         },
       ],
     },
+    {
+      // Obs-only pulse-cold with a back-dated concrete onset. "First seen"
+      // tracks onset_ts (80 min ago) but the detection post is only 10 min ago;
+      // the timeline must carry a third "Per bot" entry at the onset, ahead of
+      // the detection and clear entries, so the rail lines up with First seen.
+      id: 'greenonset',
+      kind: 'train',
+      routes: ['green'],
+      first_seen_ts: NOW - 80 * 60_000,
+      resolved_ts: NOW - 4 * 60_000,
+      active: false,
+      sources: ['bot'],
+      cta: null,
+      observations: [
+        {
+          id: 502,
+          kind: 'train',
+          line: 'green',
+          from_station: 'Roosevelt',
+          to_station: 'Cermak-McCormick Place',
+          detection_source: 'pulse-cold',
+          ts: NOW - 10 * 60_000,
+          onset_ts: NOW - 80 * 60_000,
+          resolved_ts: NOW - 4 * 60_000,
+          active: false,
+          bot_description:
+            'Green Line service appears degraded — a stretch of the line without trains.',
+          bot_resolved_description:
+            'Trains observed again on the Green Line, service appears to be back to normal.',
+          onset_description:
+            'Last train observed through this stretch around here — the service gap began about now.',
+          post_url: 'https://bsky.app/profile/did:plc:xyz/post/greenonset',
+          resolved_post_url: 'https://bsky.app/profile/did:plc:xyz/post/greenonsetclear',
+        },
+      ],
+    },
   ],
 };
 
@@ -387,6 +423,25 @@ describe('EventPage', () => {
     expect(screen.getByText(/Per CTA · 2 updates/)).toBeInTheDocument();
     // The CTA body text still renders in its version entry.
     expect(screen.getByText(/raised bridge/)).toBeInTheDocument();
+  });
+
+  it('adds an onset entry to the Per bot timeline for a back-dated cold start', async () => {
+    // pulse-cold posts only after the stretch has been cold a while, so the
+    // detection dot lands well after the gap began. With onset_description +
+    // onset_ts the rail gains a third entry at the real start.
+    render(<EventPage eventId="greenonset" />);
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Last train observed through this stretch around here/),
+      ).toBeInTheDocument();
+    });
+    // onset (1) + detection (1) + clear (1) = 3 updates.
+    expect(screen.getByText(/Per bot · 3 updates/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Trains observed again on the Green Line, service appears to be back to normal.',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('does not render a station chips row for bus alerts', async () => {

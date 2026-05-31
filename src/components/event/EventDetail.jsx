@@ -508,6 +508,8 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         const detection = isObsOnly ? primary?.bot_description : null;
         const resolution = isObsOnly ? primary?.bot_resolved_description : null;
         const bullets = isObsOnly ? primary?.bot_evidence_bullets : null;
+        const onsetText = isObsOnly ? (primary?.onset_description ?? null) : null;
+        const onsetTs = isObsOnly ? (primary?.onset_ts ?? null) : null;
         if (!detection) return null;
         const joinBullets = (items) => items.map((b) => b.replace(/\.\s*$/, '')).join('; ') + '.';
         const bulletsBlock =
@@ -516,7 +518,19 @@ export function EventDetail({ incident, incidents, alerts, observations, station
               {joinBullets(bullets)}
             </p>
           ) : null;
-        if (!resolution) {
+        // Onset entry — the back-dated start of the gap, oldest on the rail.
+        // Absence detections (pulse-cold/thin-gap) post only after the stretch
+        // has been cold a while, so the detection dot lands well after the gap
+        // actually began; this anchors a "started here" dot at onset_ts so the
+        // timeline lines up with "First seen". Only when the export supplied
+        // the sentence AND the start is ≥5 min before the post (mirrors the
+        // server's own gate, so a stale field can't draw a dot under detection).
+        const hasOnset =
+          !!onsetText &&
+          onsetTs != null &&
+          primary?.ts != null &&
+          primary.ts - onsetTs >= 5 * 60 * 1000;
+        if (!resolution && !hasOnset) {
           return (
             <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
               <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
@@ -529,55 +543,59 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             </blockquote>
           );
         }
-        // Two entries: resolution (latest) at top, detection (oldest) below.
-        // Matches the visual rhythm of the multi-version CTA block above.
-        // Bullets only belong on the detection entry — the resolution post is
-        // a single "back to normal" sentence with no per-signal detail.
-        const entries = [
-          { ts: incident.resolved_ts, text: resolution, isLatest: true, isOldest: false },
-          { ts: primary.ts, text: detection, isLatest: false, isOldest: true, bullets },
-        ];
+        // Newest first: resolution (if cleared), detection, onset (if known).
+        // Bullets only belong on the detection entry — the resolution post is a
+        // single "back to normal" sentence and the onset is a one-line marker.
+        const entries = [];
+        if (resolution)
+          entries.push({ key: 'resolved', ts: incident.resolved_ts, text: resolution });
+        entries.push({ key: 'detect', ts: primary.ts, text: detection, bullets });
+        if (hasOnset) entries.push({ key: 'onset', ts: onsetTs, text: onsetText });
         return (
           <section className="mt-4">
             <p className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
-              Per bot · 2 updates
+              Per bot · {entries.length} updates
             </p>
             <ol className="space-y-6">
-              {entries.map((e) => (
-                <li key={e.ts} className="relative pl-6">
-                  {!e.isOldest && (
+              {entries.map((e, i) => {
+                const isLatest = i === 0;
+                const isOldest = i === entries.length - 1;
+                return (
+                  <li key={e.key} className="relative pl-6">
+                    {!isOldest && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute left-[3px] top-2 w-px bg-slate-200 dark:bg-gh-border"
+                        style={{ bottom: '-1.5rem' }}
+                      />
+                    )}
                     <span
                       aria-hidden="true"
-                      className="absolute left-[3px] top-2 w-px bg-slate-200 dark:bg-gh-border"
-                      style={{ bottom: '-1.5rem' }}
+                      className={`absolute left-0 top-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white dark:ring-gh-surface ${
+                        isLatest ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-500'
+                      }`}
                     />
-                  )}
-                  <span
-                    aria-hidden="true"
-                    className={`absolute left-0 top-1.5 w-[7px] h-[7px] rounded-full ring-2 ring-white dark:ring-gh-surface ${
-                      e.isLatest ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-500'
-                    }`}
-                  />
-                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                      {formatDate(e.ts)} · {formatTime(e.ts)}
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                        {formatDate(e.ts)} · {formatTime(e.ts)}
+                      </p>
+                      {isLatest && (
+                        <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-500">
+                          Latest
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                      {e.text}
                     </p>
-                    {e.isLatest && (
-                      <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-500">
-                        Latest
-                      </span>
+                    {Array.isArray(e.bullets) && e.bullets.length > 0 && (
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                        {joinBullets(e.bullets)}
+                      </p>
                     )}
-                  </div>
-                  <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                    {e.text}
-                  </p>
-                  {Array.isArray(e.bullets) && e.bullets.length > 0 && (
-                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                      {joinBullets(e.bullets)}
-                    </p>
-                  )}
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ol>
           </section>
         );
