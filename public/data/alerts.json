@@ -1,7 +1,51 @@
 {
-  "generated_at": 1780228385600,
+  "generated_at": 1780230545340,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mn5kwmdhnz2n",
+      "kind": "bus",
+      "routes": [
+        "9"
+      ],
+      "first_seen_ts": 1780229164903,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 233,
+          "kind": "bus",
+          "line": "9",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "ghost"
+          ],
+          "evidence": null,
+          "ts": 1780229164903,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn5kwmdhnz2n",
+          "resolved_post_url": null,
+          "bot_description": "Route 9 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between buses is 4.1x the scheduled wait",
+            "2 of 5 buses missing this past hour"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mn5gdzd5xw2y",
       "kind": "train",
