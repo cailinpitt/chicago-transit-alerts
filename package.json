@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "node scripts/prerender-events.js && node scripts/prerender-pages.js && node scripts/generate-feed.js && node scripts/generate-sitemap.js && node scripts/generate-csv.js",
+    "postbuild": "node scripts/prerender-events.js && node scripts/prerender-pages.js && node scripts/prerender-static.js && node scripts/generate-feed.js && node scripts/generate-sitemap.js && node scripts/generate-csv.js",
     "preview": "vite preview",
     "test": "vitest",
     "lint": "biome check",

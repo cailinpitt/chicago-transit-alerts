@@ -65,6 +65,12 @@ function main() {
   entries.push(urlEntry(`${SITE}/system/trains`, generatedIso, 'daily', 0.7));
   entries.push(urlEntry(`${SITE}/system/buses`, generatedIso, 'daily', 0.7));
 
+  // Static utility pages — prerendered by prerender-static.js so they return
+  // 200 with self-referential canonicals. Low priority, rarely change.
+  entries.push(urlEntry(`${SITE}/about`, generatedIso, 'monthly', 0.3));
+  entries.push(urlEntry(`${SITE}/subscribe`, generatedIso, 'monthly', 0.3));
+  entries.push(urlEntry(`${SITE}/privacy`, generatedIso, 'yearly', 0.2));
+
   // Train lines — stable set of 8.
   for (const line of TRAIN_LINE_ORDER) {
     entries.push(urlEntry(`${SITE}/line/${line}`, generatedIso, 'daily', 0.7));

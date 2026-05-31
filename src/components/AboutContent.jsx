@@ -72,6 +72,17 @@ export default function AboutContent() {
         calendar, and leaderboard views all draw from this window.
       </p>
 
+      <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">Privacy</h3>
+      <p>
+        No accounts, no cookies, no analytics, and no third-party trackers — the site doesn't
+        collect personal data. Your dark-mode and filter preferences are saved locally in your
+        browser and never leave your device. Full details on the{' '}
+        <a className={LINK} href="/privacy">
+          privacy page
+        </a>
+        .
+      </p>
+
       <p className="pt-2 text-xs text-slate-500 dark:text-slate-400">
         Source on{' '}
         <a

@@ -22,6 +22,7 @@ const DayPage = lazy(() => import('./components/DayPage.jsx'));
 const EventPage = lazy(() => import('./components/EventPage.jsx'));
 const LinePage = lazy(() => import('./components/LinePage.jsx'));
 const NotFoundPage = lazy(() => import('./components/NotFoundPage.jsx'));
+const PrivacyPage = lazy(() => import('./components/PrivacyPage.jsx'));
 const StationPage = lazy(() => import('./components/StationPage.jsx'));
 const StatsPage = lazy(() => import('./components/StatsPage.jsx'));
 const SubscribePage = lazy(() => import('./components/SubscribePage.jsx'));
@@ -57,6 +58,7 @@ const compareMatch = /^\/compare\/?$/.exec(path);
 const systemMatch = /^\/system\/(trains|buses)\/?$/.exec(path);
 const aboutMatch = /^\/about\/?$/.exec(path);
 const subscribeMatch = /^\/subscribe\/?$/.exec(path);
+const privacyMatch = /^\/privacy\/?$/.exec(path);
 
 let page;
 if (eventMatch) {
@@ -81,6 +83,8 @@ if (eventMatch) {
   page = <AboutPage />;
 } else if (subscribeMatch) {
   page = <SubscribePage />;
+} else if (privacyMatch) {
+  page = <PrivacyPage />;
 } else if (path === '/' || path === '') {
   page = <App />;
 } else {

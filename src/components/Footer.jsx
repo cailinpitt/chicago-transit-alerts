@@ -36,6 +36,12 @@ export default function Footer() {
             Subscribe
           </button>
           <a
+            href="/privacy"
+            className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          >
+            Privacy
+          </a>
+          <a
             href="https://bsky.app/profile/ticketmasterceo.com"
             target="_blank"
             rel="noopener noreferrer"
