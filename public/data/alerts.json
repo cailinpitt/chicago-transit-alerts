@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780205705545,
+  "generated_at": 1780206665275,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "brown"
       ],
       "first_seen_ts": 1780205702874,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780206423962,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -19,10 +19,10 @@
         "headline": "Kimball-bound Brown Line Service Delayed at Chicago.",
         "short_description": "Kimball-bound Brown Line trains are standing at Chicago due to police activity. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn4tsd7mkp25",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn4uoxmgeh2o",
         "first_seen_ts": 1780205702874,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780206423962,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
