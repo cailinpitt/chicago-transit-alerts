@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780239966069,
+  "generated_at": 1780240925903,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -13,8 +13,8 @@
         "124"
       ],
       "first_seen_ts": 1780237803884,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780240684327,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -23,10 +23,10 @@
         "headline": "Temporary Reroute",
         "short_description": "NB J14 and 56, and WB 20, 60 and 124 buses will operate via Madison, Franklin, Randolph, and Clinton; J14, 20, 56 via Madison. 60, 124 via Clinton.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn5royxlkv2n",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn5ulz2r2r2n",
         "first_seen_ts": 1780237803884,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780240684327,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
