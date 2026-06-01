@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780351446287,
+  "generated_at": 1780351745302,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -56,6 +56,50 @@
             "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 16 min — scheduled every 5 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
           ],
           "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
+    {
+      "id": "3mnb3soe7yc2e",
+      "kind": "bus",
+      "routes": [
+        "X49"
+      ],
+      "first_seen_ts": 1780350366500,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 242,
+          "kind": "bus",
+          "line": "X49",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap"
+          ],
+          "evidence": null,
+          "ts": 1780350366500,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnb3soe7yc2e",
+          "resolved_post_url": null,
+          "bot_description": "Route X49 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "2 of 9 buses missing this past hour",
+            "One gap between buses is 4.2x the scheduled wait"
+          ]
         }
       ]
     },
