@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780283285553,
+  "generated_at": 1780304705127,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -1598,8 +1598,8 @@
         "red"
       ],
       "first_seen_ts": 1780112705441,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780304472111,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -1608,10 +1608,10 @@
         "headline": "Subway trains rerouted to elevated tracks",
         "short_description": "Red Line subway trains will be rerouted to the elevated tracks between Cermak-Chinatown and Fullerton in both directions.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn256sbugj2f",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn7pyrkdl72a",
         "first_seen_ts": 1780112705441,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780304472111,
+        "active": false,
         "affected_from_station": "Cermak-Chinatown",
         "affected_to_station": "Fullerton",
         "affected_direction": null,
