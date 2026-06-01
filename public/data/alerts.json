@@ -1,7 +1,66 @@
 {
-  "generated_at": 1780350545273,
+  "generated_at": 1780350609970,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mnb2qtfpdj23",
+      "kind": "train",
+      "routes": [
+        "pink"
+      ],
+      "first_seen_ts": 1780350362606,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 513,
+          "kind": "train",
+          "line": "pink",
+          "direction": "branch-1-inbound",
+          "direction_label": "toward the Loop",
+          "from_station": "Kostner",
+          "to_station": "California (Pink)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 2.5,
+            "minutesSinceLastTrain": 22,
+            "lookbackMin": 26,
+            "coldThresholdMin": 21,
+            "trainsOutsideRun": 3,
+            "coldStations": 5,
+            "coldStationNames": [
+              "Kostner",
+              "Pulaski (Pink)",
+              "Central Park",
+              "Kedzie (Pink)",
+              "California (Pink)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 8.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780350362606,
+          "onset_ts": 1780349042606,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnb2qtfpdj23",
+          "resolved_post_url": null,
+          "bot_description": "Pink Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 2.5-mi stretch (5 stations affected) in the last 22 min — scheduled every 9 min, ~2 trains missed (3 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
     {
       "id": "3mnb26xhiz72x",
       "kind": "train",
