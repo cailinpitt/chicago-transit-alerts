@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780320545039,
+  "generated_at": 1780320850607,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,11 +9,12 @@
         "green",
         "orange"
       ],
-      "first_seen_ts": 1780320302470,
+      "first_seen_ts": 1780319342673,
       "resolved_ts": null,
       "active": true,
       "sources": [
-        "cta"
+        "cta",
+        "bot"
       ],
       "cta": {
         "alert_id": "115263",
@@ -33,7 +34,50 @@
         "cta_event_start_is_date_only": false,
         "cta_event_end_is_date_only": false
       },
-      "observations": []
+      "observations": [
+        {
+          "id": 508,
+          "kind": "train",
+          "line": "orange",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Midway",
+          "from_station": "Western (Orange)",
+          "to_station": "Halsted (Orange)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 6.4,
+            "minutesSinceLastTrain": 21,
+            "lookbackMin": 26,
+            "coldThresholdMin": 21,
+            "trainsOutsideRun": 7,
+            "coldStations": 4,
+            "coldStationNames": [
+              "Western (Orange)",
+              "35th/Archer",
+              "Ashland (Orange)",
+              "Halsted (Orange)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 8.5,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780320602673,
+          "onset_ts": 1780319342673,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mna6zvdsti2d",
+          "resolved_post_url": null,
+          "bot_description": "Orange Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 6.4-mi stretch (4 stations affected) in the last 21 min — scheduled every 9 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
     },
     {
       "id": "3mna6qt4fk42b",
