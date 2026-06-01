@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780278545752,
+  "generated_at": 1780283285553,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -1710,8 +1710,8 @@
       ],
       "cta": {
         "alert_id": "114904",
-        "headline": "Bus Substitution Between Pulaski and 54th/Cermak Stations",
-        "short_description": "Shuttle buses will replace Pink Line service between Pulaski and 54th/Cermak.",
+        "headline": "EXTENDED: Bus Substitution Between Pulaski and 54th/Cermak Stations",
+        "short_description": "EXTENDED: Shuttle buses continue to replace Pink Line service between Pulaski and 54th/Cermak due to unforeseen utility issues during planned weekend work.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn22tm7zmy2e",
         "resolved_reply_url": null,
         "first_seen_ts": 1780110182565,
@@ -1727,7 +1727,25 @@
         "cta_event_start_ts": 1780110000000,
         "cta_event_end_ts": 1780304400000,
         "cta_event_start_is_date_only": false,
-        "cta_event_end_is_date_only": false
+        "cta_event_end_is_date_only": false,
+        "versions": [
+          {
+            "ts": 1780110182565,
+            "headline": "Bus Substitution Between Pulaski and 54th/Cermak Stations",
+            "short_description": "Shuttle buses will replace Pink Line service between Pulaski and 54th/Cermak.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          },
+          {
+            "ts": 1780283102901,
+            "headline": "EXTENDED: Bus Substitution Between Pulaski and 54th/Cermak Stations",
+            "short_description": "EXTENDED: Shuttle buses continue to replace Pink Line service between Pulaski and 54th/Cermak due to unforeseen utility issues during planned weekend work.",
+            "affected_from_station": "Pulaski",
+            "affected_to_station": "54th/Cermak",
+            "affected_direction": null
+          }
+        ]
       },
       "observations": []
     },
