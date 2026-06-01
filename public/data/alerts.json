@@ -1,7 +1,64 @@
 {
-  "generated_at": 1780350609970,
+  "generated_at": 1780350850412,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mnb2xxat2b2l",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1780350602762,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 514,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Kimball",
+          "from_station": "Southport",
+          "to_station": "Wellington (Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.2,
+            "minutesSinceLastTrain": 16,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 9,
+            "coldStations": 3,
+            "coldStationNames": [
+              "Southport",
+              "Belmont (Red/Brown/Purple)",
+              "Wellington (Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 5.4,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780350602762,
+          "onset_ts": 1780349642762,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnb2xxat2b2l",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.2-mi stretch (3 stations affected) in the last 16 min — scheduled every 5 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
     {
       "id": "3mnb2qtfpdj23",
       "kind": "train",
