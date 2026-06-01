@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780277045669,
+  "generated_at": 1780278545752,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "red"
       ],
       "first_seen_ts": 1780276082810,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780276923471,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -32,13 +32,13 @@
           "evidence": null,
           "ts": 1780276082810,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780276923471,
+          "duration_ms": 840661,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn6wagstot2e",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mn6xn63tiv2l",
           "bot_description": "Red Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Red Line service appears to be back to normal.",
           "bot_evidence_bullets": [
             "One gap between trains is 2.7x the scheduled wait",
             "4 of 9 trains missing this past hour"
