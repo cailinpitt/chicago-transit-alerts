@@ -135,6 +135,23 @@ export function formatTime(ts) {
   });
 }
 
+// Compact "how long ago" label for a past timestamp, relative to `now`.
+// Coarse buckets — "just now" (<60s), "Nm ago", "Nh ago", "Nd ago" — since
+// this is for at-a-glance freshness, not precise durations. Clamps a slightly
+// future ts (clock skew between the data server and the visitor) to "just now"
+// rather than rendering a negative age. Returns null for a missing ts.
+export function formatRelativeTime(ts, now = Date.now()) {
+  if (ts == null) return null;
+  const deltaMs = now - ts;
+  if (deltaMs < 60_000) return 'just now';
+  const minutes = Math.floor(deltaMs / 60_000);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 // Render CTA's posted EventEnd ("estimated end") relative to `now`.
 // Returns null when the estimate is already past or within 2 minutes of now —
 // at that point a "CTA expects to end at …" label is misleading rather than

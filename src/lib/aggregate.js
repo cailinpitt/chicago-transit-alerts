@@ -414,6 +414,83 @@ export function buildHourOfWeek(alerts, observations) {
   return { grid, maxCount, total };
 }
 
+// Day-part buckets for the plain-language heatmap insight. Hour ranges are
+// inclusive on both ends (Chicago local hours, matching buildHourOfWeek), so
+// `hi` is the last hour included and the human range runs to hi+1 o'clock.
+// Tuned to transit-meaningful windows rather than even 6-hour blocks.
+export const PART_OF_DAY = [
+  { key: 'overnight', lo: 0, hi: 4, label: 'overnight', range: '12–5 AM' },
+  { key: 'morning', lo: 5, hi: 9, label: 'mornings', range: '5–10 AM' },
+  { key: 'midday', lo: 10, hi: 14, label: 'midday', range: '10 AM–3 PM' },
+  { key: 'afternoon', lo: 15, hi: 19, label: 'afternoons', range: '3–8 PM' },
+  { key: 'night', lo: 20, hi: 23, label: 'evenings', range: '8 PM–12 AM' },
+];
+
+// Plain-language description of *when* incidents concentrate, derived from the
+// same 7×24 grid the heatmap renders so the sentence and the picture always
+// agree. Two-step so adjacent windows don't split a real peak:
+//   1. Pick the dominant day-type — weekday (Mon–Fri) vs weekend (Sat/Sun) —
+//      by total starts (ties go to weekday).
+//   2. Within that day-type, find the busiest part-of-day.
+// Only narrates when there's a genuine concentration:
+//   - at least `minTotal` starts overall (enough signal to generalize),
+//   - the top part holds at least `minShare` of that day-type's starts
+//     (5 parts, so uniform ≈ 20% — the default 30% is a clear lead), AND
+//   - it leads the runner-up part by at least `leadRatio` (so a three-way
+//     tie across weekday daytime, say, isn't spun as a single pattern).
+// Returns null otherwise — the caller renders nothing rather than a forced
+// "evenly spread" claim. Purely descriptive: it restates the grid, no verdict.
+/**
+ * @param {number[][]} grid  7×24 [weekday][hour] start counts (see buildHourOfWeek)
+ * @param {number} total     total starts in the grid
+ * @param {object} [options]
+ * @param {number} [options.minTotal]
+ * @param {number} [options.minShare]
+ * @param {number} [options.leadRatio]
+ * @returns {{ dayType: 'weekday'|'weekend', label: string, range: string, count: number, share: number } | null}
+ */
+export function describePeakWindow(
+  grid,
+  total,
+  { minTotal = 12, minShare = 0.3, leadRatio = 1.25 } = {},
+) {
+  if (!grid || !total || total < minTotal) return null;
+
+  const sumDays = (days, lo, hi) => {
+    let c = 0;
+    for (const w of days) {
+      for (let h = lo; h <= hi; h++) c += grid[w]?.[h] ?? 0;
+    }
+    return c;
+  };
+
+  const weekdayDays = [1, 2, 3, 4, 5];
+  const weekendDays = [0, 6];
+  const weekdayTotal = sumDays(weekdayDays, 0, 23);
+  const weekendTotal = sumDays(weekendDays, 0, 23);
+  const dayType = weekendTotal > weekdayTotal ? 'weekend' : 'weekday';
+  const days = dayType === 'weekend' ? weekendDays : weekdayDays;
+  const dayTypeTotal = dayType === 'weekend' ? weekendTotal : weekdayTotal;
+  if (dayTypeTotal === 0) return null;
+
+  const parts = PART_OF_DAY.map((part) => ({ part, count: sumDays(days, part.lo, part.hi) })).sort(
+    (a, b) => b.count - a.count,
+  );
+  const top = parts[0];
+  if (!top || top.count === 0) return null;
+  if (top.count / dayTypeTotal < minShare) return null;
+  const second = parts[1];
+  if (second && top.count < second.count * leadRatio) return null;
+
+  return {
+    dayType,
+    label: top.part.label,
+    range: top.part.range,
+    count: top.count,
+    share: top.count / total,
+  };
+}
+
 // Short-window incident burst detection. Counts merged-incident starts in
 // the last `windowHours` and the matching baseline rate over `baselineDays`.
 // Returns `{ recentCount, baselineCount, ratio }` so callers can decide

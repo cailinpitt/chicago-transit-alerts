@@ -11,9 +11,10 @@ import {
   computeSummaryStats,
   computeTypicalDurations,
   computeYearOverYear,
+  describePeakWindow,
   typicalDurationKey,
 } from '../lib/aggregate.js';
-import { formatDuration, formatGap } from '../lib/format.js';
+import { formatDuration, formatGap, formatRelativeTime } from '../lib/format.js';
 import {
   buildSearchMatchers,
   filterIncidents,
@@ -696,6 +697,57 @@ describe('buildHourOfWeek', () => {
 });
 
 // ---------------------------------------------------------------------------
+// describePeakWindow
+// ---------------------------------------------------------------------------
+describe('describePeakWindow', () => {
+  // 7×24 [weekday 0=Sun..6=Sat][hour] grid builder. `cells` is a list of
+  // [weekday, hour, count] tuples; everything else is zero.
+  const makeGrid = (cells) => {
+    const grid = Array.from({ length: 7 }, () => new Array(24).fill(0));
+    let total = 0;
+    for (const [w, h, c] of cells) {
+      grid[w][h] = c;
+      total += c;
+    }
+    return { grid, total };
+  };
+
+  it('returns null below the minimum total', () => {
+    const { grid, total } = makeGrid([[1, 16, 8]]); // Mon 4pm, only 8 starts
+    expect(describePeakWindow(grid, total)).toBeNull();
+  });
+
+  it('names a clear weekday-afternoon concentration', () => {
+    const { grid, total } = makeGrid([
+      [1, 16, 20], // Mon 4pm (afternoon)
+      [2, 7, 5], // Tue 7am (morning)
+      [6, 16, 3], // Sat 4pm (weekend)
+    ]);
+    const r = describePeakWindow(grid, total);
+    expect(r).toMatchObject({ dayType: 'weekday', label: 'afternoons', range: '3–8 PM' });
+  });
+
+  it('detects a weekend concentration', () => {
+    const { grid, total } = makeGrid([
+      [6, 21, 15], // Sat 9pm (evening)
+      [1, 16, 4], // Mon 4pm
+    ]);
+    const r = describePeakWindow(grid, total);
+    expect(r).toMatchObject({ dayType: 'weekend', label: 'evenings' });
+  });
+
+  it('stays silent when no window clearly leads', () => {
+    const { grid, total } = makeGrid([
+      [1, 7, 5], // morning
+      [2, 12, 5], // midday
+      [3, 16, 5], // afternoon
+      [4, 21, 5], // evening
+    ]);
+    expect(describePeakWindow(grid, total)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // buildSignalsByLine
 // ---------------------------------------------------------------------------
 describe('buildSignalsByLine', () => {
@@ -853,6 +905,27 @@ describe('formatGap', () => {
     expect(formatGap(48)).toBe('2d');
     expect(formatGap(49)).toBe('2d 1h');
     expect(formatGap(73)).toBe('3d 1h');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatRelativeTime
+// ---------------------------------------------------------------------------
+describe('formatRelativeTime', () => {
+  it('returns null for a missing timestamp', () => {
+    expect(formatRelativeTime(null, NOW)).toBeNull();
+  });
+
+  it('clamps sub-minute and clock-skew-future timestamps to "just now"', () => {
+    expect(formatRelativeTime(NOW - 30_000, NOW)).toBe('just now');
+    expect(formatRelativeTime(NOW + 5_000, NOW)).toBe('just now');
+  });
+
+  it('formats minutes, hours, and days', () => {
+    expect(formatRelativeTime(NOW - 5 * 60_000, NOW)).toBe('5m ago');
+    expect(formatRelativeTime(NOW - 59 * 60_000, NOW)).toBe('59m ago');
+    expect(formatRelativeTime(NOW - 2 * 60 * 60_000, NOW)).toBe('2h ago');
+    expect(formatRelativeTime(NOW - 3 * 24 * 60 * 60_000, NOW)).toBe('3d ago');
   });
 });
 

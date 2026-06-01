@@ -1,5 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
-import { buildHourOfWeek } from '../lib/aggregate.js';
+import { buildHourOfWeek, describePeakWindow } from '../lib/aggregate.js';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
@@ -74,6 +74,13 @@ export default function HourOfWeekHeatmap({
     [alerts, observations],
   );
   const zStats = useMemo(() => computeZStats(grid), [grid]);
+  // Plain-language "when do they cluster" caption, derived from the same grid
+  // so it never contradicts the cells. Null when there's no clear concentration
+  // — and suppressed entirely in compact mode (title === null, e.g. /compare).
+  const peak = useMemo(
+    () => (title == null ? null : describePeakWindow(grid, total)),
+    [grid, total, title],
+  );
 
   if (total === 0) return null;
 
@@ -120,6 +127,15 @@ export default function HourOfWeekHeatmap({
             </button>
           </div>
         </div>
+      )}
+      {peak && (
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 -mt-1">
+          Most incidents start on{' '}
+          <span className="font-semibold text-slate-700 dark:text-slate-200">
+            {peak.dayType} {peak.label}
+          </span>{' '}
+          ({peak.range}).
+        </p>
       )}
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4">
         <div className="grid gap-1" style={{ gridTemplateColumns: GRID_TEMPLATE }}>

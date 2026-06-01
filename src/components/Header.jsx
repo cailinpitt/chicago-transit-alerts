@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNow } from '../hooks/useNow.js';
+import { formatRelativeTime } from '../lib/format.js';
 import BrowseMenu from './BrowseMenu.jsx';
 
 const FRESHNESS_NOTE =
@@ -67,7 +69,10 @@ export default function Header({
   alerts,
   observations,
 }) {
-  const updatedStr = generatedAt
+  // Tick once a minute so the relative "Nm ago" label stays honest on a tab
+  // left open. The absolute Chicago time rides along as the hover tooltip.
+  const now = useNow();
+  const updatedAbs = generatedAt
     ? new Date(generatedAt).toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -76,6 +81,7 @@ export default function Header({
         timeZone: 'America/Chicago',
       }) + ' CT'
     : null;
+  const updatedRel = generatedAt ? formatRelativeTime(generatedAt, now) : null;
 
   return (
     <header className="bg-white dark:bg-gh-surface border-b border-slate-200 dark:border-gh-border">
@@ -107,9 +113,9 @@ export default function Header({
             </button>
             {/* Last updated — beside the toggle on sm+; folded into the meta
                 row below on mobile to keep this row short. */}
-            {updatedStr && (
+            {updatedRel && (
               <div className="hidden sm:flex items-center text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                <span>Last data change: {updatedStr}</span>
+                <span title={updatedAbs ?? undefined}>Last data change: {updatedRel}</span>
                 <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
               </div>
             )}
@@ -138,9 +144,9 @@ export default function Header({
               </a>
             ))}
           </div>
-          {updatedStr && (
+          {updatedRel && (
             <div className="sm:hidden flex items-center text-xs text-slate-500 dark:text-slate-400">
-              <span>Last data change: {updatedStr}</span>
+              <span title={updatedAbs ?? undefined}>Last data change: {updatedRel}</span>
               <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
             </div>
           )}
