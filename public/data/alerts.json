@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780320306815,
+  "generated_at": 1780320545039,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -34,6 +34,50 @@
         "cta_event_end_is_date_only": false
       },
       "observations": []
+    },
+    {
+      "id": "3mna6qt4fk42b",
+      "kind": "train",
+      "routes": [
+        "red"
+      ],
+      "first_seen_ts": 1780319223367,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 237,
+          "kind": "train",
+          "line": "red",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "ghost"
+          ],
+          "evidence": null,
+          "ts": 1780319223367,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mna6qt4fk42b",
+          "resolved_post_url": null,
+          "bot_description": "Red Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between trains is 3.0x the scheduled wait",
+            "4 of 13 trains missing this past hour"
+          ]
+        }
+      ]
     },
     {
       "id": "3mna34qfocf2n",
