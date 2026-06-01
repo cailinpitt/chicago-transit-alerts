@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780321745348,
+  "generated_at": 1780322106150,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -10,8 +10,8 @@
         "orange"
       ],
       "first_seen_ts": 1780319342673,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780321864637,
+      "active": false,
       "sources": [
         "cta",
         "bot"
@@ -21,10 +21,10 @@
         "headline": "Orange and Green Line Service Delayed near Roosevelt",
         "short_description": "Orange and Green Line trains are standing near the area of Roosevelt due to fire department activity. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mna6jpiems2v",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnaa7eenkr25",
         "first_seen_ts": 1780320302470,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780321864637,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
