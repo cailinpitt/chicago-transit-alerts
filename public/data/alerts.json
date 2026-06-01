@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780316650011,
+  "generated_at": 1780317608630,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "purple"
       ],
       "first_seen_ts": 1780316401824,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780317332222,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -48,13 +48,13 @@
           },
           "ts": 1780316401824,
           "onset_ts": 1780315441824,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780317332222,
+          "duration_ms": 1890398,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mna34qfocf2n",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mna3zcccpg2c",
           "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Trains observed again on the Purple Line, service appears to be back to normal.",
           "bot_evidence_bullets": [
             "No trains moved through this 3-mi stretch (6 stations affected) in the last 16 min (5 trains still moving elsewhere on the line)."
           ],
