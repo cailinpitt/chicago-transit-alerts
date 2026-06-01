@@ -31,12 +31,18 @@ import {
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { computeStatsLeaderboards } from '../src/lib/aggregate.js';
-import { breadcrumbJsonLd, dayTrail, topLevelTrail } from '../src/lib/breadcrumbs.js';
+import { buildWeekSummary, computeStatsLeaderboards, listWeeks } from '../src/lib/aggregate.js';
+import { breadcrumbJsonLd, dayTrail, topLevelTrail, weekTrail } from '../src/lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES } from '../src/lib/busRoutes.js';
 import { buildCalendarMonths, maxCountAcrossMonths } from '../src/lib/calendar.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
-import { chicagoDayUTC, formatChicagoDay, formatDuration } from '../src/lib/format.js';
+import {
+  chicagoDayIsoUTC,
+  chicagoDayUTC,
+  formatChicagoDay,
+  formatDuration,
+  formatWeekRange,
+} from '../src/lib/format.js';
 import {
   flattenIncidents,
   formatRoutesLabel,
@@ -56,6 +62,7 @@ const CALENDAR_TPL = resolve(__dirname, 'og-calendar-template.html');
 const STATS_TPL = resolve(__dirname, 'og-stats-template.html');
 const COMPARE_TPL = resolve(__dirname, 'og-compare-template.html');
 const DAY_TPL = resolve(__dirname, 'og-day-template.html');
+const WEEK_TPL = resolve(__dirname, 'og-week-template.html');
 const SYSTEM_TPL = resolve(__dirname, 'og-system-template.html');
 const CACHE = resolve(ROOT, '.og-cache-pages');
 const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY ?? 6);
@@ -479,6 +486,69 @@ function planPages(payload, dailyPayload) {
     });
   }
 
+  // Week pages — the /week archive. One card per Sun–Sat week since data
+  // start, plus a /week landing card for the current week. Content comes from
+  // buildWeekSummary so the card and the live page agree.
+  const weeks = listWeeks({ dataStartTs: payload.data_start_ts ?? null, now });
+  function weekPillsHtml(summary) {
+    return summary.mostAffected
+      .slice(0, 8)
+      .map((m) => {
+        if (m.kind === 'train') {
+          const info = TRAIN_LINES[m.id];
+          if (!info) return null;
+          return `<span class="line-pill" style="background:${info.color};color:${info.textColor}">${escHtml(info.label)}</span>`;
+        }
+        return `<span class="line-pill" style="background:#475569;color:#fff">#${escHtml(m.id)}</span>`;
+      })
+      .filter(Boolean)
+      .join('');
+  }
+  for (const weekStartUtc of weeks) {
+    const iso = chicagoDayIsoUTC(weekStartUtc);
+    const range = formatWeekRange(weekStartUtc, { year: true });
+    const summary = buildWeekSummary(
+      payload.alerts ?? [],
+      payload.observations ?? [],
+      weekStartUtc,
+      now,
+    );
+    const subtitle =
+      summary.total === 0
+        ? 'No incidents started this week'
+        : `${summary.total} incident${summary.total === 1 ? '' : 's'} · ${summary.trainCount} train, ${summary.busCount} bus`;
+    const desc =
+      summary.total === 0
+        ? `Service alerts and bot-detected disruptions on the CTA for the week of ${range} (Sunday–Saturday) — archived on chicagotransitalerts.app.`
+        : `${summary.total} CTA incident${summary.total === 1 ? '' : 's'} during the week of ${range} (Sunday–Saturday) — ${summary.trainCount} train, ${summary.busCount} bus. Archived on chicagotransitalerts.app.`;
+    const common = {
+      kind: 'week',
+      weekStartUtc,
+      title: `Week of ${range}`,
+      subtitle,
+      pillHtml: weekPillsHtml(summary),
+      ogTitle: `Week of ${range} · Chicago Transit Alerts`,
+      desc,
+    };
+    pages.push({
+      ...common,
+      slug: `week-${iso}`,
+      outDir: resolve(DIST, 'week', iso),
+      url: `${SITE}/week/${iso}`,
+      path: `/week/${iso}`,
+    });
+    // The most recent week also backs the /week landing page.
+    if (weekStartUtc === weeks[0]) {
+      pages.push({
+        ...common,
+        slug: 'week-current',
+        outDir: resolve(DIST, 'week'),
+        url: `${SITE}/week`,
+        path: '/week',
+      });
+    }
+  }
+
   // Stations from the index (already filtered to >=1 incident in 90d).
   const stationIndex = buildStationIndex(payload.alerts, payload.observations, {
     now,
@@ -516,6 +586,8 @@ function trailFor(page) {
   switch (page.kind) {
     case 'day':
       return dayTrail(page.dayUtc);
+    case 'week':
+      return weekTrail(page.weekStartUtc);
     case 'station':
       return topLevelTrail(page.stationName);
     case 'system':
@@ -538,7 +610,7 @@ function trailFor(page) {
 // the page itself (#11) plus a BreadcrumbList trail (#12). Pages that collect
 // incidents (line/route/station/day) are CollectionPage; the rest are WebPage.
 function structuredDataTags(page, ogTitle, desc) {
-  const collection = ['line', 'route', 'station', 'day'].includes(page.kind);
+  const collection = ['line', 'route', 'station', 'day', 'week'].includes(page.kind);
   const blocks = [
     {
       '@context': 'https://schema.org',
@@ -681,6 +753,15 @@ function fillDayTemplate(tpl, page) {
     .replaceAll('__PATH__', escHtml(page.path));
 }
 
+// Week card shares the day card's TITLE/SUBTITLE/PILLS/PATH slots.
+function fillWeekTemplate(tpl, page) {
+  return tpl
+    .replaceAll('__TITLE__', escHtml(page.title))
+    .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
+    .replaceAll('__PILLS__', page.pillHtml)
+    .replaceAll('__PATH__', escHtml(page.path));
+}
+
 function signatureFor(page, templateHash) {
   const h = createHash('sha256');
   // Hash the fields that actually affect the rendered PNG; keep the URL out
@@ -705,6 +786,8 @@ function signatureFor(page, templateHash) {
     payload = { kind: 'compare' };
   } else if (page.kind === 'day') {
     payload = { kind: 'day', title: page.title, sub: page.subtitle, pills: page.pillHtml };
+  } else if (page.kind === 'week') {
+    payload = { kind: 'week', title: page.title, sub: page.subtitle, pills: page.pillHtml };
   } else if (page.kind === 'system') {
     payload = {
       kind: 'system',
@@ -769,6 +852,7 @@ async function main() {
   const compareTpl = existsSync(COMPARE_TPL) ? readFileSync(COMPARE_TPL, 'utf8') : null;
   // DAY_TPL is required (ships in the repo). Treat like LINE_TPL/STATION_TPL.
   const dayTpl = readFileSync(DAY_TPL, 'utf8');
+  const weekTpl = readFileSync(WEEK_TPL, 'utf8');
   const systemTpl = readFileSync(SYSTEM_TPL, 'utf8');
   const lineHash = createHash('sha256').update(lineTpl).digest('hex').slice(0, 16);
   const stationHash = createHash('sha256').update(stationTpl).digest('hex').slice(0, 16);
@@ -782,6 +866,7 @@ async function main() {
     ? createHash('sha256').update(compareTpl).digest('hex').slice(0, 16)
     : '';
   const dayHash = createHash('sha256').update(dayTpl).digest('hex').slice(0, 16);
+  const weekHash = createHash('sha256').update(weekTpl).digest('hex').slice(0, 16);
   const systemHash = createHash('sha256').update(systemTpl).digest('hex').slice(0, 16);
 
   const pages = planPages(payload, dailyPayload);
@@ -802,6 +887,7 @@ async function main() {
     else if (page.kind === 'stats') tplHash = statsHash;
     else if (page.kind === 'compare') tplHash = compareHash;
     else if (page.kind === 'day') tplHash = dayHash;
+    else if (page.kind === 'week') tplHash = weekHash;
     else if (page.kind === 'system') tplHash = systemHash;
     else tplHash = lineHash;
     const sig = signatureFor(page, tplHash);
@@ -826,6 +912,7 @@ async function main() {
     else if (page.kind === 'stats') html = fillStatsTemplate(statsTpl, page);
     else if (page.kind === 'compare') html = fillCompareTemplate(compareTpl);
     else if (page.kind === 'day') html = fillDayTemplate(dayTpl, page);
+    else if (page.kind === 'week') html = fillWeekTemplate(weekTpl, page);
     else if (page.kind === 'system') html = fillSystemTemplate(systemTpl, page);
     else html = fillLineTemplate(lineTpl, page);
     renders.push({ page, html, cacheDir, cachedPng, cachedSig, sig });

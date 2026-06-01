@@ -27,6 +27,7 @@ const StationPage = lazy(() => import('./components/StationPage.jsx'));
 const StatsPage = lazy(() => import('./components/StatsPage.jsx'));
 const SubscribePage = lazy(() => import('./components/SubscribePage.jsx'));
 const SystemHealthPage = lazy(() => import('./components/SystemHealthPage.jsx'));
+const WeekPage = lazy(() => import('./components/WeekPage.jsx'));
 
 // Client-side routing. GitHub Pages serves `404.html` (a copy of `index.html`)
 // for any unknown path, so the SPA boots and we dispatch to the right page
@@ -41,6 +42,9 @@ const SystemHealthPage = lazy(() => import('./components/SystemHealthPage.jsx'))
 //   /route/:id     → bus route page  (e.g. /route/66, /route/X9)
 //   /station/:slug → train station page (e.g. /station/clark-division)
 //   /day/:date     → single Chicago calendar day (YYYY-MM-DD)
+//   /week          → recap of the current Sun–Sat week
+//   /week/:date    → recap of the week containing :date (YYYY-MM-DD); the
+//                    canonical permalink uses that week's Sunday
 //   /calendar      → 12-month calendar heatmap of daily incident counts
 //   /stats         → leaderboard of worst day/hour/station/longest incident
 //   /compare       → side-by-side comparison of up to 3 train lines or bus routes
@@ -52,6 +56,7 @@ const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
 const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
 const stationMatch = /^\/station\/([^/?#]+)\/?$/.exec(path);
 const dayMatch = /^\/day\/([^/?#]+)\/?$/.exec(path);
+const weekMatch = /^\/week(?:\/([^/?#]+))?\/?$/.exec(path);
 const calendarMatch = /^\/calendar\/?$/.exec(path);
 const statsMatch = /^\/stats\/?$/.exec(path);
 const compareMatch = /^\/compare\/?$/.exec(path);
@@ -71,6 +76,8 @@ if (eventMatch) {
   page = <StationPage slug={stationMatch[1]} />;
 } else if (dayMatch) {
   page = <DayPage dateStr={dayMatch[1]} />;
+} else if (weekMatch) {
+  page = <WeekPage weekParam={weekMatch[1] ?? null} />;
 } else if (calendarMatch) {
   page = <CalendarPage />;
 } else if (statsMatch) {

@@ -8,8 +8,9 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { listWeeks } from '../src/lib/aggregate.js';
 import { TRAIN_LINE_ORDER } from '../src/lib/ctaLines.js';
-import { chicagoDayUTC } from '../src/lib/format.js';
+import { chicagoDayIsoUTC, chicagoDayUTC } from '../src/lib/format.js';
 import { flattenIncidents, mergeMatchingIncidents, postUrlRkey } from '../src/lib/incidents.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 
@@ -123,6 +124,27 @@ function main() {
     const d = new Date(dayUtc);
     const iso = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
     entries.push(urlEntry(`${SITE}/day/${iso}`, generatedIso, 'weekly', 0.5));
+  }
+
+  // Week archive — /week (current-week landing) plus a dated permalink per
+  // Sun–Sat week since data_start. Same set prerender-weeks.js emits. Past
+  // weeks are stable (lastmod = the following Sunday, after the week closed);
+  // the current week ticks with the data.
+  const weeks = listWeeks({ dataStartTs: payload.data_start_ts ?? null, now: generatedAt });
+  if (weeks.length > 0) {
+    entries.push(urlEntry(`${SITE}/week`, generatedIso, 'daily', 0.6));
+    for (const weekStartUtc of weeks) {
+      const isCurrent = weekStartUtc === weeks[0];
+      const lastmod = isCurrent ? generatedIso : isoDate(weekStartUtc + 7 * DAY_MS);
+      entries.push(
+        urlEntry(
+          `${SITE}/week/${chicagoDayIsoUTC(weekStartUtc)}`,
+          lastmod,
+          isCurrent ? 'daily' : 'weekly',
+          isCurrent ? 0.6 : 0.4,
+        ),
+      );
+    }
   }
 
   // Per-event pages. lastmod uses resolved_ts when available, else the

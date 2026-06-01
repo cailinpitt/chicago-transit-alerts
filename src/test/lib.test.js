@@ -5,6 +5,7 @@ import {
   buildIncidentsByDay,
   buildSignalsByLine,
   buildTodaySummary,
+  buildWeekSummary,
   computeDurationHistogram,
   computeLineReliability,
   computeStatsLeaderboards,
@@ -12,9 +13,11 @@ import {
   computeTypicalDurations,
   computeYearOverYear,
   describePeakWindow,
+  listWeeks,
   typicalDurationKey,
+  weekStartUTC,
 } from '../lib/aggregate.js';
-import { formatDuration, formatGap, formatRelativeTime } from '../lib/format.js';
+import { formatDuration, formatGap, formatRelativeTime, formatWeekRange } from '../lib/format.js';
 import {
   buildSearchMatchers,
   filterIncidents,
@@ -744,6 +747,92 @@ describe('describePeakWindow', () => {
       [4, 21, 5], // evening
     ]);
     expect(describePeakWindow(grid, total)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// weekStartUTC / listWeeks / buildWeekSummary / formatWeekRange
+// ---------------------------------------------------------------------------
+describe('weekStartUTC', () => {
+  it('snaps any day to its Sunday', () => {
+    // 2026-05-17 is a Sunday; 05-20 is the Wednesday of that week.
+    expect(weekStartUTC(Date.UTC(2026, 4, 20))).toBe(Date.UTC(2026, 4, 17));
+    expect(weekStartUTC(Date.UTC(2026, 4, 23))).toBe(Date.UTC(2026, 4, 17)); // Sat
+  });
+  it('is a no-op for a Sunday', () => {
+    expect(weekStartUTC(Date.UTC(2026, 4, 17))).toBe(Date.UTC(2026, 4, 17));
+  });
+});
+
+describe('formatWeekRange', () => {
+  it('collapses the month within a single-month week', () => {
+    expect(formatWeekRange(Date.UTC(2026, 4, 17))).toBe('May 17–23');
+    expect(formatWeekRange(Date.UTC(2026, 4, 17), { year: true })).toBe('May 17–23, 2026');
+  });
+  it('spells both months when the week straddles a boundary', () => {
+    // 2026-04-26 (Sun) → 2026-05-02 (Sat).
+    expect(formatWeekRange(Date.UTC(2026, 3, 26))).toBe('Apr 26 – May 2');
+  });
+});
+
+describe('listWeeks', () => {
+  it('returns Sundays most-recent-first across the data span', () => {
+    const weeks = listWeeks({
+      dataStartTs: Date.UTC(2026, 3, 28, 18), // Tue Apr 28 → week of Apr 26
+      now: Date.UTC(2026, 4, 20, 18), // Wed May 20 → week of May 17
+    });
+    expect(weeks).toEqual([
+      Date.UTC(2026, 4, 17),
+      Date.UTC(2026, 4, 10),
+      Date.UTC(2026, 4, 3),
+      Date.UTC(2026, 3, 26),
+    ]);
+  });
+  it('returns [] without a data start', () => {
+    expect(listWeeks({ dataStartTs: null, now: NOW })).toEqual([]);
+  });
+});
+
+describe('buildWeekSummary', () => {
+  const WK = Date.UTC(2026, 4, 17); // Sun May 17 2026
+  // 18:00 UTC ≈ 1pm CDT — safely the same Chicago calendar day as the date.
+  const at = (y, m, d, h = 18) => Date.UTC(y, m, d, h);
+
+  it('counts start-in-week incidents, busiest day, affected lines, and WoW', () => {
+    const obs = [
+      makeObs({ line: 'red', ts: at(2026, 4, 18), resolved_ts: at(2026, 4, 18) + 30 * 60_000 }),
+      makeObs({
+        line: 'red',
+        ts: at(2026, 4, 18, 19),
+        resolved_ts: at(2026, 4, 18, 19) + 30 * 60_000,
+      }),
+      makeObs({
+        kind: 'bus',
+        line: '66',
+        ts: at(2026, 4, 20),
+        resolved_ts: at(2026, 4, 20) + 2 * 60 * 60_000, // 2h — longest
+      }),
+      // Prior week (Tue May 12) — counts only toward priorTotal.
+      makeObs({ line: 'blue', ts: at(2026, 4, 12), resolved_ts: at(2026, 4, 12) + 30 * 60_000 }),
+    ];
+    const s = buildWeekSummary([], obs, WK, at(2026, 4, 23, 23));
+    expect(s.total).toBe(3);
+    expect(s.trainCount).toBe(2);
+    expect(s.busCount).toBe(1);
+    expect(s.lineCount).toBe(2);
+    expect(s.priorTotal).toBe(1);
+    expect(s.busiestDay).toMatchObject({ dayUtc: Date.UTC(2026, 4, 18), count: 2 });
+    expect(s.perDay[1].count).toBe(2); // Monday
+    expect(s.mostAffected[0]).toMatchObject({ kind: 'train', id: 'red', count: 2 });
+    expect(s.longest).toMatchObject({ kind: 'bus', durationMs: 2 * 60 * 60_000 });
+  });
+
+  it('reports an empty week without crashing', () => {
+    const s = buildWeekSummary([], [], WK, at(2026, 4, 23, 23));
+    expect(s.total).toBe(0);
+    expect(s.busiestDay).toBeNull();
+    expect(s.longest).toBeNull();
+    expect(s.mostAffected).toEqual([]);
   });
 });
 

@@ -127,6 +127,38 @@ export function chicagoDayIsoUTC(dayUtc) {
   return `${d.getUTCFullYear()}-${m}-${day}`;
 }
 
+const MONTHS_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+// Human label for a Sun–Sat week given its Sunday `weekStartUtc` (a
+// chicagoDayUTC value). Collapses the month when start and end share one
+// ("May 17–23") and spells both out when they straddle a boundary
+// ("Apr 26 – May 2"). Read in UTC for the same reason as formatChicagoDay:
+// the value encodes the Chicago Y/M/D at UTC midnight.
+export function formatWeekRange(weekStartUtc, { year = false } = {}) {
+  const s = new Date(weekStartUtc);
+  const e = new Date(weekStartUtc + 6 * 24 * 60 * 60 * 1000);
+  const sM = MONTHS_SHORT[s.getUTCMonth()];
+  const eM = MONTHS_SHORT[e.getUTCMonth()];
+  const core =
+    s.getUTCMonth() === e.getUTCMonth()
+      ? `${sM} ${s.getUTCDate()}–${e.getUTCDate()}`
+      : `${sM} ${s.getUTCDate()} – ${eM} ${e.getUTCDate()}`;
+  return year ? `${core}, ${e.getUTCFullYear()}` : core;
+}
+
 export function formatTime(ts) {
   return new Date(ts).toLocaleTimeString('en-US', {
     hour: 'numeric',

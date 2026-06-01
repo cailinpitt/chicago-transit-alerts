@@ -124,6 +124,7 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 | `/calendar`             | 12-month calendar heatmap of daily incident counts. Click a day to drill into it.       |
 | `/stats`                | Worst-day / worst-hour / worst-station / longest-incident leaderboards plus year-over-year. |
 | `/compare`              | Side-by-side reliability, signal mix, and resolution-time comparison for up to 3 train lines or bus routes. State round-trips through `?trains=red,blue,green` or `?buses=66,X9,77`. |
+| `/week`, `/week/:date`  | Sunday–Saturday recap of one week — counts, per-day breakdown, most-affected lines, longest incident, and a week-over-week delta. `/week` is the current week; `/week/<YYYY-MM-DD>` is the archived week containing that date (the canonical permalink uses the week's Sunday). |
 
 ## How it works
 

@@ -15,6 +15,7 @@ Each incident pairs an official CTA alert with bot observations (gap, bunching, 
 ## Pages
 - [Homepage](https://chicagotransitalerts.app/): Active alerts, line/route filters, daily summary, and the incident feed.
 - [Calendar](https://chicagotransitalerts.app/calendar): 12-month daily incident heatmap.
+- [This week](https://chicagotransitalerts.app/week): Recap of the current Sun–Sat week — counts, per-day breakdown, most-affected lines, and the longest incident. Archived weeks live at `https://chicagotransitalerts.app/week/<YYYY-MM-DD>` (the week's Sunday).
 - [Stats](https://chicagotransitalerts.app/stats): Worst day, worst hour, most-affected station, longest incident, plus year-over-year.
 - [Compare](https://chicagotransitalerts.app/compare): Side-by-side reliability for up to 3 lines or routes (`?trains=red,blue` / `?buses=66,X9`).
 - [Train system health](https://chicagotransitalerts.app/system/trains) and [Bus system health](https://chicagotransitalerts.app/system/buses): Mode-wide dashboards.

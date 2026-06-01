@@ -1197,6 +1197,163 @@ export function buildTodaySummary(alerts, observations, now = Date.now()) {
   return { text: head, lastWeek };
 }
 
+const WEEK_MS = 7 * DAY_MS;
+
+// Sunday (as a chicagoDayUTC value) of the week containing `dayUtc`. Input is
+// itself a chicagoDayUTC value; since those are UTC-midnight stamps spaced
+// exactly a day apart, getUTCDay() reads the Chicago weekday and the
+// subtraction is DST-safe.
+export function weekStartUTC(dayUtc) {
+  return dayUtc - new Date(dayUtc).getUTCDay() * DAY_MS;
+}
+
+// Sun-start weeks (each the Sunday's chicagoDayUTC value) from the week
+// containing `dataStartTs` through the week containing `now`, most-recent
+// first. Returns [] when dataStartTs is missing. Drives the /week archive
+// navigation, prerender list, and sitemap.
+export function listWeeks({ dataStartTs, now = Date.now() } = {}) {
+  if (dataStartTs == null) return [];
+  const first = weekStartUTC(chicagoDayUTC(dataStartTs));
+  const current = weekStartUTC(chicagoDayUTC(now));
+  const weeks = [];
+  for (let w = current; w >= first; w -= WEEK_MS) weeks.push(w);
+  return weeks;
+}
+
+// Factual recap of one Sun–Sat week for the /week archive. `weekStartUtc` is
+// the Sunday (a chicagoDayUTC value). Buckets incidents by their START day —
+// all comparisons in chicagoDayUTC space, never raw epochs — so the total
+// matches the per-day bars and the "started this week" framing. Uses merged
+// incidents so an alert + matching observation count once. Purely descriptive:
+// counts, busiest day, most-affected lines, the single longest incident, and a
+// prior-week total for an unspun week-over-week delta. No scoring.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {number} weekStartUtc  Sunday of the week (a chicagoDayUTC value)
+ * @param {number} [now]
+ */
+export function buildWeekSummary(alerts, observations, weekStartUtc, now = Date.now()) {
+  const weekEndExclusive = weekStartUtc + WEEK_MS; // next Sunday (day space)
+  const priorStart = weekStartUtc - WEEK_MS;
+  const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
+
+  const incidents = [
+    ...merged.map((m) => ({
+      ts: m.first_seen_ts,
+      kind: m.kind,
+      lines: m.routes ?? [],
+      active: m.active,
+      resolved_ts: m.resolved_ts,
+      duration_ms: m.duration_ms,
+      headline: m.headline ?? null,
+      post_url: m.post_url ?? m.obs_post_url ?? null,
+    })),
+    ...standaloneAlerts.map((a) => ({
+      ts: a.first_seen_ts,
+      kind: a.kind,
+      lines: a.routes ?? [],
+      active: a.active,
+      resolved_ts: a.resolved_ts,
+      duration_ms: a.duration_ms,
+      headline: a.headline ?? null,
+      post_url: a.post_url ?? null,
+    })),
+    ...standaloneObs.map((o) => ({
+      ts: o.first_seen_ts ?? o.ts,
+      kind: o.kind,
+      lines: o.line != null ? [o.line] : [],
+      active: o.active,
+      resolved_ts: o.resolved_ts,
+      duration_ms: o.duration_ms,
+      headline: o.headline ?? null,
+      post_url: o.post_url ?? null,
+    })),
+  ];
+
+  const perDay = Array.from({ length: 7 }, (_, i) => ({
+    dayUtc: weekStartUtc + i * DAY_MS,
+    count: 0,
+  }));
+  const lineSet = new Set();
+  const affected = new Map(); // `${kind}:${id}` -> { kind, id, count }
+  let total = 0;
+  let activeCount = 0;
+  let trainCount = 0;
+  let busCount = 0;
+  let priorTotal = 0;
+  let longest = null;
+
+  for (const inc of incidents) {
+    if (inc.ts == null) continue;
+    const incDay = chicagoDayUTC(inc.ts);
+    if (incDay >= priorStart && incDay < weekStartUtc) {
+      priorTotal += 1;
+      continue;
+    }
+    if (incDay < weekStartUtc || incDay >= weekEndExclusive) continue;
+
+    total += 1;
+    if (inc.active) activeCount += 1;
+    if (inc.kind === 'train') trainCount += 1;
+    else if (inc.kind === 'bus') busCount += 1;
+
+    const dayIdx = Math.round((incDay - weekStartUtc) / DAY_MS);
+    if (dayIdx >= 0 && dayIdx < 7) perDay[dayIdx].count += 1;
+
+    for (const l of inc.lines) {
+      const id = String(l);
+      const key = `${inc.kind}:${id}`;
+      lineSet.add(key);
+      const cur = affected.get(key) || { kind: inc.kind, id, count: 0 };
+      cur.count += 1;
+      affected.set(key, cur);
+    }
+
+    // Longest incident of the week — real durations (resolved span, or
+    // elapsed-so-far for one still active). duration_ms is preferred where the
+    // exporter provides it (absence-style observations bake in a pre-post tail).
+    const end = inc.resolved_ts ?? now;
+    const durationMs = inc.duration_ms ?? end - inc.ts;
+    if (durationMs > 0 && (!longest || durationMs > longest.durationMs)) {
+      longest = {
+        kind: inc.kind,
+        routes: inc.lines.map(String),
+        headline: inc.headline,
+        durationMs,
+        active: !!inc.active,
+        startTs: inc.ts,
+        id: postUrlRkey(inc.post_url),
+      };
+    }
+  }
+
+  let busiestDay = null;
+  for (const d of perDay) {
+    if (d.count > 0 && (!busiestDay || d.count > busiestDay.count)) busiestDay = d;
+  }
+
+  const mostAffected = [...affected.values()].sort(
+    (a, b) => b.count - a.count || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+  );
+
+  return {
+    weekStartUtc,
+    weekEndUtc: weekStartUtc + 6 * DAY_MS,
+    isCurrent: weekStartUtc === weekStartUTC(chicagoDayUTC(now)),
+    total,
+    activeCount,
+    trainCount,
+    busCount,
+    lineCount: lineSet.size,
+    perDay,
+    busiestDay,
+    mostAffected,
+    longest,
+    priorTotal,
+  };
+}
+
 // Leaderboard-style stats for the /stats page. Computed against the full
 // dataset (no filtering) so each "worst" answer reflects the project's
 // recorded history end-to-end. Returns null fields when there's nothing
