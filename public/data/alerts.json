@@ -1,7 +1,67 @@
 {
-  "generated_at": 1780304705127,
+  "generated_at": 1780316650011,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mna34qfocf2n",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1780316401824,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 506,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Linden",
+          "from_station": "Noyes",
+          "to_station": "South Boulevard",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 3,
+            "minutesSinceLastTrain": 16,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 5,
+            "coldStations": 6,
+            "coldStationNames": [
+              "Noyes",
+              "Foster",
+              "Davis",
+              "Dempster",
+              "Main",
+              "South Boulevard"
+            ],
+            "expectedTrains": null,
+            "headwayMin": null,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780316401824,
+          "onset_ts": 1780315441824,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mna34qfocf2n",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 3-mi stretch (6 stations affected) in the last 16 min (5 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
     {
       "id": "3mn6wagstot2e",
       "kind": "train",
