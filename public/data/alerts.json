@@ -1,7 +1,65 @@
 {
-  "generated_at": 1780410254578,
+  "generated_at": 1780411571302,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mnctjm6tzl2b",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1780411322248,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 530,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-1-inbound",
+          "direction_label": "toward Howard",
+          "from_station": "Diversey (Brown/Purple)",
+          "to_station": "Sedgwick (Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 2.2,
+            "minutesSinceLastTrain": 15,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 6,
+            "coldStations": 4,
+            "coldStationNames": [
+              "Diversey (Brown/Purple)",
+              "Fullerton",
+              "Armitage (Brown/Purple)",
+              "Sedgwick (Brown/Purple)"
+            ],
+            "expectedTrains": null,
+            "headwayMin": null,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780411322248,
+          "onset_ts": 1780410422248,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnctjm6tzl2b",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 2.2-mi stretch (4 stations affected) in the last 15 min (6 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
     {
       "id": "3mncsc7jwon2j",
       "kind": "train",
