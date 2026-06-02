@@ -1,7 +1,53 @@
 {
-  "generated_at": 1780361649448,
+  "generated_at": 1780362544920,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mnbfujhlzv2h",
+      "kind": "train",
+      "routes": [
+        "blue"
+      ],
+      "first_seen_ts": 1780361404760,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 245,
+          "kind": "train",
+          "line": "blue",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap",
+            "pulse-cold"
+          ],
+          "evidence": null,
+          "ts": 1780361404760,
+          "onset_ts": 1780360264760,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnbfujhlzv2h",
+          "resolved_post_url": null,
+          "bot_description": "Blue Line service appears degraded — fewer trains than scheduled, longer-than-scheduled headways between trains, and a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 12 trains missing this past hour",
+            "One gap between trains is 3.1x the scheduled wait",
+            "Possible service gap forming Chicago (Blue) → Grand (Blue)"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mnbe5aprkp2x",
       "kind": "train",
