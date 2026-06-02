@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780435445421,
+  "generated_at": 1780436944963,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -9,8 +9,8 @@
         "blue"
       ],
       "first_seen_ts": 1780434428154,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780436223750,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -32,13 +32,13 @@
           "evidence": null,
           "ts": 1780434428154,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780436223750,
+          "duration_ms": 1795596,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mndjr44blz2j",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mndl5swdqh2m",
           "bot_description": "Blue Line service appears degraded — longer-than-scheduled headways between trains and fewer trains than scheduled.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Blue Line service appears to be back to normal.",
           "bot_evidence_bullets": [
             "One gap between trains is 4.5x the scheduled wait",
             "2 of 13 trains missing this past hour"
