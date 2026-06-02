@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780438145285,
+  "generated_at": 1780439345862,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -53,8 +53,8 @@
         "X49"
       ],
       "first_seen_ts": 1780436765820,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780438023635,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -76,13 +76,13 @@
           "evidence": null,
           "ts": 1780436765820,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780438023635,
+          "duration_ms": 1257815,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mndmbmgosd2m",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mndnfekyp62m",
           "bot_description": "Route X49 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Route X49 service appears to be back to normal.",
           "bot_evidence_bullets": [
             "3 of 9 buses missing this past hour",
             "One gap between buses is 3.5x the scheduled wait"
