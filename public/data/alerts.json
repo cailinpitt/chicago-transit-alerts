@@ -1,7 +1,51 @@
 {
-  "generated_at": 1780407252178,
+  "generated_at": 1780409363281,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mncrhougmv2m",
+      "kind": "bus",
+      "routes": [
+        "26"
+      ],
+      "first_seen_ts": 1780407968982,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 246,
+          "kind": "bus",
+          "line": "26",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap"
+          ],
+          "evidence": null,
+          "ts": 1780407968982,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mncrhougmv2m",
+          "resolved_post_url": null,
+          "bot_description": "Route 26 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "2 of 8 buses missing this past hour",
+            "One gap between buses is 4.1x the scheduled wait"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mncneupkcl2a",
       "kind": "train",
