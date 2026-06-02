@@ -1,7 +1,95 @@
 {
-  "generated_at": 1780436944963,
+  "generated_at": 1780438145285,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mndmbkvyjl2d",
+      "kind": "bus",
+      "routes": [
+        "22"
+      ],
+      "first_seen_ts": 1780437666739,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 250,
+          "kind": "bus",
+          "line": "22",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1780437666739,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mndmbkvyjl2d",
+          "resolved_post_url": null,
+          "bot_description": "Route 22 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between buses is 4.9x the scheduled wait",
+            "4 buses recently bunched together"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3mndmbmgosd2m",
+      "kind": "bus",
+      "routes": [
+        "X49"
+      ],
+      "first_seen_ts": 1780436765820,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 251,
+          "kind": "bus",
+          "line": "X49",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "ghost",
+            "gap"
+          ],
+          "evidence": null,
+          "ts": 1780436765820,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mndmbmgosd2m",
+          "resolved_post_url": null,
+          "bot_description": "Route X49 service appears degraded — fewer buses than scheduled and longer-than-scheduled gaps between buses.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "3 of 9 buses missing this past hour",
+            "One gap between buses is 3.5x the scheduled wait"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mndjr44blz2j",
       "kind": "train",
