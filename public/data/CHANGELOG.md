@@ -6,6 +6,31 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-03 — Full impacted-station fill: `stations` / `affected_stations` (additive)
+
+Disruptions that span a stretch of track ("Rockwell → Montrose") now publish
+**every station on that stretch**, including the inner stops between the two
+named endpoints — not just the endpoints themselves. Previously only the two
+endpoint names were carried, so a station page for an inner stop (Western,
+Damen) wouldn't surface an event that clearly ran through it.
+
+- **Bot observations** — new field `incidents[].observations[].stations`: the
+  ordered list of roster station names along the observed segment, from the
+  `from_station` end to the `to_station` end, endpoints included. Omitted when
+  the segment can't be enumerated (e.g. multi-signal roundups with no single
+  stretch); consumers then fall back to `from_station` / `to_station`.
+- **CTA alerts** — new field `incidents[].cta.affected_stations`: the same
+  endpoint-inclusive fill for a "between X and Y" alert's affected segment,
+  unioned across the alert's lines. Empty `[]` when there's no resolvable
+  segment (single-station mentions still live in `mentioned_stations`).
+
+The enumeration is geometry-derived from the already-published endpoints + line
+data, so it is **backfilled across all historical incidents** on the next
+export, not just new ones. `from_station` / `to_station` /
+`affected_from_station` / `affected_to_station` / `mentioned_stations` are
+unchanged, and `alerts.csv` is unaffected (it keeps its flat endpoint columns).
+Consumers that ignore the new fields see no change.
+
 ## 2026-05-31 — `onset_description` + more accurate `onset_ts` (additive)
 
 Two related changes to absence-style bot observations (`detection_source`

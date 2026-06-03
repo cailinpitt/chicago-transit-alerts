@@ -130,4 +130,39 @@ describe('buildStationIndex', () => {
     const r = buildStationIndex([a], [], { now: NOW });
     expect(r.get('howard').alerts).toHaveLength(1);
   });
+
+  it('ties an observation to inner stops via the enumerated stations fill', () => {
+    // Rockwell → Montrose on the Brown Line: the inner Western/Damen stops must
+    // tie to the incident, not just the two named endpoints.
+    const o = makeObs({
+      line: 'brn',
+      from_station: 'Rockwell',
+      to_station: 'Montrose (Brown)',
+      stations: ['Rockwell', 'Western (Brown)', 'Damen (Brown)', 'Montrose (Brown)'],
+    });
+    const r = buildStationIndex([], [o], { now: NOW });
+    expect(r.get('western-brown').observations).toContain(o);
+    expect(r.get('damen-brown').observations).toContain(o);
+    expect(r.get('rockwell').observations).toContain(o);
+    expect(r.get('montrose-brown').observations).toContain(o);
+  });
+
+  it('falls back to from/to when an observation has no stations fill', () => {
+    const o = makeObs({ from_station: 'Howard', to_station: 'Jarvis', stations: [] });
+    const r = buildStationIndex([], [o], { now: NOW });
+    expect(r.get('howard').observations).toContain(o);
+    expect(r.get('jarvis').observations).toContain(o);
+  });
+
+  it('ties an alert to inner stops via affected_stations', () => {
+    const a = makeAlert({
+      routes: ['brn'],
+      affected_from_station: 'Rockwell',
+      affected_to_station: 'Montrose (Brown)',
+      affected_stations: ['Rockwell', 'Western (Brown)', 'Damen (Brown)', 'Montrose (Brown)'],
+    });
+    const r = buildStationIndex([a], [], { now: NOW });
+    expect(r.get('western-brown').alerts).toContain(a);
+    expect(r.get('damen-brown').alerts).toContain(a);
+  });
 });

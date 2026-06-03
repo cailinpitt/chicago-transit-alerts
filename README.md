@@ -175,6 +175,8 @@ The top-level array is `incidents` — **one object per real-world disruption**.
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],       // canonical station names parsed from the alert text
+        "affected_stations": [],        // full segment fill (endpoints + inner stops) for a
+                                        // "between X and Y" alert; [] when no segment resolves
         "cta_event_start_ts": null,     // CTA's claimed event window (date-only flags alongside)
         "cta_event_end_ts": null
         // "versions": [...]            // present only when CTA edited the alert text over time
@@ -186,6 +188,8 @@ The top-level array is `incidents` — **one object per real-world disruption**.
           "signals": ["gap", "bunching"],   // populated for roundups
           "from_station": "Howard",
           "to_station": "Loyola",
+          "stations": ["Howard", "Jarvis", "Morse", "Loyola"], // full stretch (endpoints + inner
+                                        // stops), from_station → to_station; omitted when not enumerable
           "direction_label": "toward the Loop", // pre-rendered "toward <terminus>"; null when unavailable
           "ts": 1715199000000,          // when the bot posted; matches post_url
           "onset_ts": 1715197860000,    // disruption start, back-dated to the last observed train

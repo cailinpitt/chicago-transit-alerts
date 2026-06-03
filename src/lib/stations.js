@@ -194,7 +194,11 @@ export function buildStationIndex(
   for (const o of observations || []) {
     if (o.kind !== 'train') continue;
     if (o.ts < cutoff) continue;
-    for (const name of [o.from_station, o.to_station]) {
+    // `stations` is the full segment fill (endpoints + inner stops) enumerated
+    // upstream — tie the incident to every stop on the stretch, not just the
+    // two endpoints. Older payloads without it fall back to from/to.
+    const names = o.stations?.length ? o.stations : [o.from_station, o.to_station];
+    for (const name of names) {
       const rec = bucket(name, o.line);
       if (rec && !rec.observations.includes(o)) rec.observations.push(o);
     }
@@ -203,11 +207,15 @@ export function buildStationIndex(
   for (const a of alerts || []) {
     if (a.kind !== 'train') continue;
     if (a.first_seen_ts < cutoff) continue;
-    // affected_from/to_station carry the segment endpoints upstream extracts
-    // for "between X and Y" alerts. mentioned_stations carries everything
-    // else — single-station impact mentions ("delays at Monroe") plus the
-    // segment endpoints again. The Set on the bucket dedupes overlap.
-    const names = [a.affected_from_station, a.affected_to_station, ...(a.mentioned_stations || [])];
+    // affected_stations is the full segment fill (endpoints + inner stops)
+    // enumerated upstream for "between X and Y" alerts; it supersedes the bare
+    // affected_from/to_station endpoints (older payloads without it fall back).
+    // mentioned_stations carries everything else — single-station impact
+    // mentions ("delays at Monroe"). The Set on the bucket dedupes overlap.
+    const segment = a.affected_stations?.length
+      ? a.affected_stations
+      : [a.affected_from_station, a.affected_to_station];
+    const names = [...segment, ...(a.mentioned_stations || [])];
     for (const name of names) {
       for (const line of a.routes || []) {
         const rec = bucket(name, line);

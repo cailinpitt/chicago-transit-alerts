@@ -58,6 +58,10 @@ function flattenIncidentAlert(inc) {
     affected_to_station: c.affected_to_station ?? null,
     affected_direction: c.affected_direction ?? null,
     mentioned_stations: c.mentioned_stations ?? [],
+    // Full station fill of the affected segment (endpoints + inner stops),
+    // enumerated upstream. Lets buildStationIndex tie the inner stations to
+    // the incident, not just the two named endpoints.
+    affected_stations: c.affected_stations ?? [],
     cta_event_start_ts: c.cta_event_start_ts ?? null,
     cta_event_end_ts: c.cta_event_end_ts ?? null,
     cta_event_start_is_date_only: c.cta_event_start_is_date_only ?? false,
@@ -119,6 +123,7 @@ function flattenIncidentAlert(inc) {
  * @property {string | null} [affected_to_station]
  * @property {string | null} [affected_direction]
  * @property {string[]} [mentioned_stations]
+ * @property {string[]} [affected_stations]  Full station fill of the affected segment (endpoints + inner stops), enumerated upstream per route. Empty when no segment resolves; falls back to affected_from/to_station.
  * @property {number | null} [cta_event_start_ts]
  * @property {number | null} [cta_event_end_ts]
  * @property {boolean} [cta_event_start_is_date_only]
@@ -149,6 +154,7 @@ function flattenIncidentAlert(inc) {
  * @property {string | null} [affected_to_station]
  * @property {string | null} [affected_direction]
  * @property {string[]} [mentioned_stations]  Canonical station names extracted from the alert text (line-scoped). Empty/missing when nothing resolved.
+ * @property {string[]} [affected_stations]  Full station fill of the affected segment (endpoints + inner stops), enumerated from the line geometry. Empty when no segment resolves.
  * @property {number | null} [cta_event_start_ts]  CTA's own claimed event start (from EventStart).
  * @property {number | null} [cta_event_end_ts]    CTA's own claimed event end (from EventEnd).
  * @property {boolean} [cta_event_start_is_date_only]  CTA posted EventStart as a date with no time.
@@ -168,6 +174,7 @@ function flattenIncidentAlert(inc) {
  * @property {string | null} [direction_label] Pre-rendered 'toward <terminus>' string for the renderer (e.g. 'toward Kimball', 'toward the Loop', 'toward 95th/Dan Ryan'). Null when `direction` carries no usable terminus info (single-branch lines, buses, unrecognized keys).
  * @property {string | null} [from_station]
  * @property {string | null} [to_station]
+ * @property {string[]} [stations]          Full station fill of the observed stretch (endpoints + inner stops), ordered from_station → to_station. Omitted when the segment can't be enumerated (e.g. roundups); fall back to from_station/to_station.
  * @property {'roundup' | string} [detection_source]  'roundup' = multi-signal correlation.
  * @property {string[]} [signals]           Signal sources for roundups: 'gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-held'.
  * @property {number} ts                    When the bot first posted; matches post_url. Used as the start when onset_ts is absent.
