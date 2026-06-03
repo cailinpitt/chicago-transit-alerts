@@ -1,7 +1,63 @@
 {
-  "generated_at": 1780481291023,
+  "generated_at": 1780485490515,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mneyel76ek2r",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1780485242990,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 538,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Linden",
+          "from_station": "Wilson",
+          "to_station": "Belmont (Red/Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 5.9,
+            "minutesSinceLastTrain": null,
+            "lookbackMin": 43,
+            "coldThresholdMin": 38,
+            "trainsOutsideRun": 5,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Wilson",
+              "Belmont (Red/Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 15,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780485242990,
+          "onset_ts": 1780482962990,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mneyel76ek2r",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 5.9-mi stretch (2 stations affected) in the last 43 min — scheduled every 15 min, ~2 trains missed (5 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "No trains through this stretch for at least 38 min when this was flagged — the gap likely began here or earlier."
+        }
+      ]
+    },
     {
       "id": "3mnebtsoe7n2d",
       "kind": "train",
