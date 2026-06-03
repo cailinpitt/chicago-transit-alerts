@@ -50,6 +50,16 @@ html {
   content-visibility: auto;
   contain-intrinsic-size: auto 96px;
 }
+/* `content-visibility: auto` also applies paint containment, which clips
+   anything that overflows the row box and traps descendant z-index inside it.
+   A row's Sources popover is positioned `absolute` and intentionally overflows
+   below the row — under containment it gets cut off and paints behind the next
+   row instead of floating above it. Drop containment while the row's
+   disclosure is open (the row is on-screen and being interacted with anyway,
+   so the offscreen-skipping optimization isn't needed here). */
+.cv-auto-row:has(details[open]) {
+  content-visibility: visible;
+}
 html.dark {
   background-color: #0d1117;
 } /* gh-canvas */

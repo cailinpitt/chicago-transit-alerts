@@ -14,6 +14,7 @@
 //   - /stats (singleton, always rendered)
 //   - /compare (singleton, always rendered)
 //   - /system/trains and /system/buses (singletons, always rendered)
+//   - /stations and /routes (A–Z directory indexes, singletons)
 //
 // Anything outside the scope falls back to the generic homepage OG card,
 // which the SPA shell at the unknown route serves by default.
@@ -49,6 +50,7 @@ import {
   mergeMatchingIncidents,
 } from '../src/lib/incidents.js';
 import { buildStationIndex } from '../src/lib/stations.js';
+import trainStations from '../src/lib/trainStations.json' with { type: 'json' };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -64,6 +66,7 @@ const COMPARE_TPL = resolve(__dirname, 'og-compare-template.html');
 const DAY_TPL = resolve(__dirname, 'og-day-template.html');
 const WEEK_TPL = resolve(__dirname, 'og-week-template.html');
 const SYSTEM_TPL = resolve(__dirname, 'og-system-template.html');
+const INDEX_TPL = resolve(__dirname, 'og-index-template.html');
 const CACHE = resolve(ROOT, '.og-cache-pages');
 const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY ?? 6);
 
@@ -360,6 +363,49 @@ function planPages(payload, dailyPayload) {
     statsHtml,
   });
 
+  // Directory index pages (/stations, /routes) — singletons backed by the
+  // static roster, so they always render. They're the canonical A–Z entry
+  // points into every station/line/route page, hence their own share cards
+  // rather than the generic homepage one. Pills wash the L palette so the card
+  // reads as "the whole system".
+  const indexTrainPills = TRAIN_LINE_ORDER.map((lineId) => {
+    const info = TRAIN_LINES[lineId];
+    if (!info) return '';
+    return `<span class="pill" style="background:${info.color};color:${info.textColor}">${escHtml(info.label)}</span>`;
+  }).join('');
+  const busRouteCount = Object.keys(BUS_ROUTE_NAMES).length;
+  pages.push({
+    kind: 'index',
+    slug: 'stations-index',
+    outDir: resolve(DIST, 'stations'),
+    url: `${SITE}/stations`,
+    path: '/stations',
+    title: 'All stations',
+    ogTitle: 'All stations · Chicago Transit Alerts',
+    desc: `A–Z index of all ${trainStations.length} CTA 'L' stations, each linking to its service-alert and disruption history — archived on chicagotransitalerts.app.`,
+    subtitle: `Every CTA 'L' station, A–Z — ${trainStations.length} stops across the eight lines, each with its full alert history.`,
+    pillHtml: indexTrainPills,
+  });
+  pages.push({
+    kind: 'index',
+    slug: 'routes-index',
+    outDir: resolve(DIST, 'routes'),
+    url: `${SITE}/routes`,
+    path: '/routes',
+    title: 'All routes',
+    ogTitle: 'All routes · Chicago Transit Alerts',
+    desc: `Index of every CTA train line and bus route, each linking to its service-alert and disruption history — archived on chicagotransitalerts.app.`,
+    subtitle: `Every CTA line and route in one place — 8 train lines and ${busRouteCount} bus routes, each with its full alert history.`,
+    pillHtml:
+      indexTrainPills +
+      ['Local', 'Express', 'Limited', 'Owl service']
+        .map(
+          (label) =>
+            `<span class="pill" style="background:#475569;color:#fff">${escHtml(label)}</span>`,
+        )
+        .join(''),
+  });
+
   // Train lines: always all of them — small stable set, deserves full coverage.
   for (const lineId of TRAIN_LINE_ORDER) {
     const info = TRAIN_LINES[lineId];
@@ -598,6 +644,8 @@ function trailFor(page) {
       return topLevelTrail('Compare');
     case 'stats':
       return topLevelTrail('Stats');
+    case 'index':
+      return topLevelTrail(page.title);
     case 'line':
     case 'route':
       return topLevelTrail(page.label);
@@ -610,7 +658,7 @@ function trailFor(page) {
 // the page itself (#11) plus a BreadcrumbList trail (#12). Pages that collect
 // incidents (line/route/station/day) are CollectionPage; the rest are WebPage.
 function structuredDataTags(page, ogTitle, desc) {
-  const collection = ['line', 'route', 'station', 'day', 'week'].includes(page.kind);
+  const collection = ['line', 'route', 'station', 'day', 'week', 'index'].includes(page.kind);
   const blocks = [
     {
       '@context': 'https://schema.org',
@@ -745,6 +793,16 @@ function fillSystemTemplate(tpl, page) {
     .replaceAll('__PATH__', escHtml(page.path));
 }
 
+// Directory-index card shares the system card's TITLE/SUBTITLE/PILLS/PATH
+// slots; the gradient and accent bar are baked into the template.
+function fillIndexTemplate(tpl, page) {
+  return tpl
+    .replaceAll('__TITLE__', escHtml(page.title))
+    .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
+    .replaceAll('__PILLS__', page.pillHtml)
+    .replaceAll('__PATH__', escHtml(page.path));
+}
+
 function fillDayTemplate(tpl, page) {
   return tpl
     .replaceAll('__TITLE__', escHtml(page.title))
@@ -784,6 +842,8 @@ function signatureFor(page, templateHash) {
     // Static template — content is fully baked in. The template hash
     // (mixed in below) is the only thing that can change the PNG.
     payload = { kind: 'compare' };
+  } else if (page.kind === 'index') {
+    payload = { kind: 'index', title: page.title, sub: page.subtitle, pills: page.pillHtml };
   } else if (page.kind === 'day') {
     payload = { kind: 'day', title: page.title, sub: page.subtitle, pills: page.pillHtml };
   } else if (page.kind === 'week') {
@@ -854,6 +914,7 @@ async function main() {
   const dayTpl = readFileSync(DAY_TPL, 'utf8');
   const weekTpl = readFileSync(WEEK_TPL, 'utf8');
   const systemTpl = readFileSync(SYSTEM_TPL, 'utf8');
+  const indexTpl = readFileSync(INDEX_TPL, 'utf8');
   const lineHash = createHash('sha256').update(lineTpl).digest('hex').slice(0, 16);
   const stationHash = createHash('sha256').update(stationTpl).digest('hex').slice(0, 16);
   const calendarHash = calendarTpl
@@ -868,6 +929,7 @@ async function main() {
   const dayHash = createHash('sha256').update(dayTpl).digest('hex').slice(0, 16);
   const weekHash = createHash('sha256').update(weekTpl).digest('hex').slice(0, 16);
   const systemHash = createHash('sha256').update(systemTpl).digest('hex').slice(0, 16);
+  const indexHash = createHash('sha256').update(indexTpl).digest('hex').slice(0, 16);
 
   const pages = planPages(payload, dailyPayload);
   if (pages.length === 0) {
@@ -889,6 +951,7 @@ async function main() {
     else if (page.kind === 'day') tplHash = dayHash;
     else if (page.kind === 'week') tplHash = weekHash;
     else if (page.kind === 'system') tplHash = systemHash;
+    else if (page.kind === 'index') tplHash = indexHash;
     else tplHash = lineHash;
     const sig = signatureFor(page, tplHash);
 
@@ -914,6 +977,7 @@ async function main() {
     else if (page.kind === 'day') html = fillDayTemplate(dayTpl, page);
     else if (page.kind === 'week') html = fillWeekTemplate(weekTpl, page);
     else if (page.kind === 'system') html = fillSystemTemplate(systemTpl, page);
+    else if (page.kind === 'index') html = fillIndexTemplate(indexTpl, page);
     else html = fillLineTemplate(lineTpl, page);
     renders.push({ page, html, cacheDir, cachedPng, cachedSig, sig });
   }

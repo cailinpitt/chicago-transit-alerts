@@ -361,8 +361,8 @@ export default function App() {
         dark={dark}
         onToggleDark={toggleDark}
         onResetFilters={resetFilters}
-        alerts={data?.alerts}
-        observations={data?.observations}
+        alerts={flat?.alerts}
+        observations={flat?.observations}
       />
       <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full">
         {!data && (

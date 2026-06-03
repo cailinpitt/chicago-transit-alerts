@@ -22,6 +22,8 @@ Each incident pairs an official CTA alert with bot observations (gap, bunching, 
 - Line pages: `https://chicagotransitalerts.app/line/<line>` (e.g. `/line/red`).
 - Route pages: `https://chicagotransitalerts.app/route/<routeId>` (e.g. `/route/66`).
 - Station pages: `https://chicagotransitalerts.app/station/<slug>` (kebab-case, e.g. `/station/howard`).
+- [All stations](https://chicagotransitalerts.app/stations): A–Z directory of every 'L' station, each linking to its station page.
+- [All routes](https://chicagotransitalerts.app/routes): Directory of every train line and bus route, each linking to its line/route page.
 - Day pages: `https://chicagotransitalerts.app/day/<YYYY-MM-DD>`.
 - Event pages: `https://chicagotransitalerts.app/event/<id>` (id = Bluesky post rkey; the incident permalink).
 

@@ -4,7 +4,7 @@ import { useNow } from '../hooks/useNow.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { buildCalendarWeeks } from '../lib/calendar.js';
 import { formatChicagoDay } from '../lib/format.js';
-import { SOURCE_TYPES } from '../lib/incidents.js';
+import { flattenIncidents, SOURCE_TYPES } from '../lib/incidents.js';
 import { buildSearch, parseUrlState } from '../lib/urlState.js';
 import Breadcrumb from './Breadcrumb.jsx';
 import Filters from './Filters.jsx';
@@ -120,13 +120,17 @@ export default function CalendarPage() {
 
   // Also load alerts.json so the Header's Browse menu works on this page,
   // matching the pattern used by LinePage / StationPage. Cheaper than
-  // refactoring Header to make data optional everywhere.
+  // refactoring Header to make data optional everywhere. The payload is the
+  // unified `{ incidents }` shape, so flatten it to the `{ alerts, observations }`
+  // the Browse menu expects.
   const [browseData, setBrowseData] = useState(null);
   useEffect(() => {
     const url = `${import.meta.env.BASE_URL}data/alerts.json`;
     fetch(url, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
-      .then(setBrowseData)
+      .then((payload) =>
+        setBrowseData(payload?.incidents ? flattenIncidents(payload.incidents) : null),
+      )
       .catch(() => {});
   }, []);
 

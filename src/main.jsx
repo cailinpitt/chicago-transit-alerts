@@ -23,7 +23,9 @@ const EventPage = lazy(() => import('./components/EventPage.jsx'));
 const LinePage = lazy(() => import('./components/LinePage.jsx'));
 const NotFoundPage = lazy(() => import('./components/NotFoundPage.jsx'));
 const PrivacyPage = lazy(() => import('./components/PrivacyPage.jsx'));
+const RoutesIndexPage = lazy(() => import('./components/RoutesIndexPage.jsx'));
 const StationPage = lazy(() => import('./components/StationPage.jsx'));
+const StationsIndexPage = lazy(() => import('./components/StationsIndexPage.jsx'));
 const StatsPage = lazy(() => import('./components/StatsPage.jsx'));
 const SubscribePage = lazy(() => import('./components/SubscribePage.jsx'));
 const SystemHealthPage = lazy(() => import('./components/SystemHealthPage.jsx'));
@@ -41,6 +43,8 @@ const WeekPage = lazy(() => import('./components/WeekPage.jsx'));
 //   /line/:id      → train line page (e.g. /line/red, /line/blue)
 //   /route/:id     → bus route page  (e.g. /route/66, /route/X9)
 //   /station/:slug → train station page (e.g. /station/clark-division)
+//   /stations      → A–Z index of every 'L' station
+//   /routes        → index of every train line + bus route
 //   /day/:date     → single Chicago calendar day (YYYY-MM-DD)
 //   /week          → recap of the current Sun–Sat week
 //   /week/:date    → recap of the week containing :date (YYYY-MM-DD); the
@@ -54,6 +58,8 @@ const path = window.location.pathname;
 const eventMatch = /^\/event\/([^/?#]+)(?:\/resolved)?\/?$/.exec(path);
 const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
 const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
+const stationsIndexMatch = /^\/stations\/?$/.exec(path);
+const routesIndexMatch = /^\/routes\/?$/.exec(path);
 const stationMatch = /^\/station\/([^/?#]+)\/?$/.exec(path);
 const dayMatch = /^\/day\/([^/?#]+)\/?$/.exec(path);
 const weekMatch = /^\/week(?:\/([^/?#]+))?\/?$/.exec(path);
@@ -72,6 +78,10 @@ if (eventMatch) {
   page = <LinePage kind="train" lineId={lineMatch[1]} />;
 } else if (routeMatch) {
   page = <LinePage kind="bus" lineId={routeMatch[1]} />;
+} else if (stationsIndexMatch) {
+  page = <StationsIndexPage />;
+} else if (routesIndexMatch) {
+  page = <RoutesIndexPage />;
 } else if (stationMatch) {
   page = <StationPage slug={stationMatch[1]} />;
 } else if (dayMatch) {

@@ -121,6 +121,8 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 | `/line/:line`           | Train line page — `/line/red`, `/line/blue`, `/line/orange`, etc. CTA short codes (`org`, `p`, `g`, `brn`, `y`) also resolve correctly. |
 | `/route/:routeId`       | Bus route page — `/route/66`, `/route/X9`, `/route/J14`, etc.                          |
 | `/station/:slug`        | Train station page — `/station/clark-division`, `/station/howard`, etc. Slugs are kebab-case derived from station names. Names with line qualifiers slug accordingly: `Central (Green)` → `/station/central-green`. |
+| `/stations`             | A–Z directory of every 'L' station, each linking to its station page.                  |
+| `/routes`               | Directory of every train line and bus route, each linking to its line/route page.       |
 | `/calendar`             | 12-month calendar heatmap of daily incident counts. Click a day to drill into it.       |
 | `/stats`                | Worst-day / worst-hour / worst-station / longest-incident leaderboards plus year-over-year. |
 | `/compare`              | Side-by-side reliability, signal mix, and resolution-time comparison for up to 3 train lines or bus routes. State round-trips through `?trains=red,blue,green` or `?buses=66,X9,77`. |

@@ -66,6 +66,12 @@ function main() {
   entries.push(urlEntry(`${SITE}/system/trains`, generatedIso, 'daily', 0.7));
   entries.push(urlEntry(`${SITE}/system/buses`, generatedIso, 'daily', 0.7));
 
+  // A–Z directory index pages — full station/route rosters. Static content
+  // (the roster rarely changes), but they're the canonical entry points into
+  // every line/route/station page, so give them a notch above the utility pages.
+  entries.push(urlEntry(`${SITE}/stations`, generatedIso, 'monthly', 0.6));
+  entries.push(urlEntry(`${SITE}/routes`, generatedIso, 'monthly', 0.6));
+
   // Static utility pages — prerendered by prerender-static.js so they return
   // 200 with self-referential canonicals. Low priority, rarely change.
   entries.push(urlEntry(`${SITE}/about`, generatedIso, 'monthly', 0.3));
