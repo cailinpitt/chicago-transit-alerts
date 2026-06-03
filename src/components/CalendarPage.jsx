@@ -8,6 +8,7 @@ import { flattenIncidents, SOURCE_TYPES } from '../lib/incidents.js';
 import { buildSearch, parseUrlState } from '../lib/urlState.js';
 import Breadcrumb from './Breadcrumb.jsx';
 import Filters from './Filters.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 
 // Days × weeks layout — rows are weekdays (Sun..Sat), columns are weeks
@@ -287,6 +288,7 @@ export default function CalendarPage() {
 
         {grid && <CalendarGrid grid={grid} />}
       </main>
+      <Footer />
     </div>
   );
 }

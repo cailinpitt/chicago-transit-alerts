@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 
 const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
@@ -112,6 +113,7 @@ export default function PrivacyPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

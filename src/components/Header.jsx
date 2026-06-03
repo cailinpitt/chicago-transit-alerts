@@ -122,10 +122,7 @@ export default function Header({
           </div>
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-          Major CTA alerts and service observations &middot;{' '}
-          <span className="text-xs">
-            Unofficial, not affiliated with the Chicago Transit Authority
-          </span>
+          Major CTA alerts and service observations
         </p>
         {/* Meta row: bot links, plus the last-updated note on mobile. */}
         <div className="relative flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">

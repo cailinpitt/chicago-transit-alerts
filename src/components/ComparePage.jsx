@@ -19,6 +19,7 @@ import {
   SIGNAL_TYPES,
 } from '../lib/incidents.js';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 
@@ -667,6 +668,7 @@ export default function ComparePage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

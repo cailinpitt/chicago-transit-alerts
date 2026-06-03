@@ -16,6 +16,7 @@ import { flattenIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc } from '../lib/urlState.js';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import IncidentList from './IncidentList.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
@@ -371,6 +372,7 @@ export default function WeekPage({ weekParam }) {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

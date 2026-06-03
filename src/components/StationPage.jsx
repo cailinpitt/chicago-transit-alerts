@@ -8,6 +8,7 @@ import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex, displayStationName, rosterStationBySlug } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
@@ -187,6 +188,7 @@ export default function StationPage({ slug }) {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

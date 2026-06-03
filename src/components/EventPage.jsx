@@ -9,6 +9,7 @@ import { EventDetail } from './event/EventDetail.jsx';
 import EventNav from './event/EventNav.jsx';
 import { describeText, incidentRoutes } from './event/incidentText.jsx';
 import { CrossLineContext, RelatedIncidents } from './event/RelatedIncidents.jsx';
+import Footer from './Footer.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
 
 export default function EventPage({ eventId }) {
@@ -145,6 +146,7 @@ export default function EventPage({ eventId }) {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

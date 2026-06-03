@@ -8,6 +8,7 @@ import { filterIncidents, flattenIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc, parseUrlState } from '../lib/urlState.js';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import IncidentList from './IncidentList.jsx';
 import LinePill from './LinePill.jsx';
@@ -272,6 +273,7 @@ export default function DayPage({ dateStr }) {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

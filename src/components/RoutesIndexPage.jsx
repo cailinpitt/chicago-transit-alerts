@@ -5,6 +5,7 @@ import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 
 // Bus roster, sorted the same way the rest of the site orders routes (numeric
@@ -160,6 +161,7 @@ export default function RoutesIndexPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

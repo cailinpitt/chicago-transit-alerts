@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .-→';
@@ -148,6 +149,7 @@ export default function NotFoundPage() {
           We apologize for any inconvenience.
         </p>
       </main>
+      <Footer />
     </div>
   );
 }

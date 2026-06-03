@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import SubscribeContent from './SubscribeContent.jsx';
 
@@ -36,6 +37,7 @@ export default function SubscribePage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

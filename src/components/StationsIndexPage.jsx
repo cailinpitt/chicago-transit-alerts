@@ -6,6 +6,7 @@ import { normalizeTrainLine, TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLin
 import { slugifyStation } from '../lib/stations.js';
 import trainStations from '../lib/trainStations.json';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 
 const TRAIN_LINE_SET = new Set(TRAIN_LINE_ORDER);
@@ -257,6 +258,7 @@ export default function StationsIndexPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

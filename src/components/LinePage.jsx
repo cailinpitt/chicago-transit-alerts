@@ -21,6 +21,7 @@ import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
@@ -605,6 +606,7 @@ export default function LinePage({ kind, lineId }) {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay, formatDate, formatDuration, formatTime } from '../lib/format.js';
 import { flattenIncidents, formatRoutesLabel } from '../lib/incidents.js';
 import Breadcrumb from './Breadcrumb.jsx';
+import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -362,6 +363,7 @@ export default function StatsPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
