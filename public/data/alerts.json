@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780520051085,
+  "generated_at": 1780520645818,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -70,8 +70,8 @@
         "49"
       ],
       "first_seen_ts": 1780518065236,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780519567558,
+      "active": false,
       "sources": [
         "bot"
       ],
@@ -93,13 +93,13 @@
           "evidence": null,
           "ts": 1780518065236,
           "onset_ts": null,
-          "resolved_ts": null,
-          "duration_ms": null,
-          "active": true,
+          "resolved_ts": 1780519567558,
+          "duration_ms": 1502322,
+          "active": false,
           "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnfybgqnjm25",
-          "resolved_post_url": null,
+          "resolved_post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnfz4clq6z2m",
           "bot_description": "Route 49 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
-          "bot_resolved_description": null,
+          "bot_resolved_description": "Route 49 service appears to be back to normal.",
           "bot_evidence_bullets": [
             "One gap between buses is 3.6x the scheduled wait, between Western & 61st Street and Western & Jackson",
             "4 buses recently bunched together"
