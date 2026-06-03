@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780519450240,
+  "generated_at": 1780519745743,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -60,6 +60,50 @@
             "No trains moved through this 3.2-mi stretch (7 stations affected) in the last 19 min (7 trains still moving elsewhere on the line)."
           ],
           "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
+    {
+      "id": "3mnfybgqnjm25",
+      "kind": "bus",
+      "routes": [
+        "49"
+      ],
+      "first_seen_ts": 1780518065236,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 257,
+          "kind": "bus",
+          "line": "49",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "bunching"
+          ],
+          "evidence": null,
+          "ts": 1780518065236,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnfybgqnjm25",
+          "resolved_post_url": null,
+          "bot_description": "Route 49 service appears degraded — longer-than-scheduled gaps between buses and buses running bunched together.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between buses is 3.6x the scheduled wait, between Western & 61st Street and Western & Jackson",
+            "4 buses recently bunched together"
+          ]
         }
       ]
     },
