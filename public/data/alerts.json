@@ -1,7 +1,63 @@
 {
-  "generated_at": 1780498933786,
+  "generated_at": 1780499649444,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mnffkk6odo2d",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1780499402096,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 548,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-1-inbound",
+          "direction_label": "toward Howard",
+          "from_station": "Howard",
+          "to_station": "Wilson",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 5.7,
+            "minutesSinceLastTrain": 25,
+            "lookbackMin": 30,
+            "coldThresholdMin": 25,
+            "trainsOutsideRun": 7,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Howard",
+              "Wilson"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 10,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780499402096,
+          "onset_ts": 1780497902096,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnffkk6odo2d",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 5.7-mi stretch (2 stations affected) in the last 25 min — scheduled every 10 min, ~2 trains missed (7 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
     {
       "id": "3mnfcuqc7yy23",
       "kind": "train",
