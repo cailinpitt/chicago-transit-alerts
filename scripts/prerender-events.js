@@ -571,7 +571,17 @@ async function main() {
   );
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Render helpers are exported so debugging/render-og.js can produce a single
+// sample card through the exact production path (same accent, summary, template
+// fill, and screenshot) instead of a drifting re-implementation. `main()` only
+// runs when this file is invoked directly (the postbuild step), not on import.
+export { accentFor, fillTemplate, formatCardDate, pickIncidents, renderPng, summarize, TEMPLATE };
+
+const invokedDirectly =
+  process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

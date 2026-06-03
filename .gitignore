@@ -8,3 +8,4 @@ cron/*.log
 .claude/
 plan.md
 research.md
+tmp/
