@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { formatDate, formatTime } from '../../lib/format.js';
 import {
+  botSummaryText,
   findContemporaneousOnOtherLines,
   findRelatedIncidents,
   formatRoutesLabel,
-  SIGNAL_LABELS,
   splitObservations,
 } from '../../lib/incidents.js';
 import LinePill from '../LinePill.jsx';
@@ -27,11 +27,7 @@ function relatedDescription(incident, stationIndex) {
       </>
     );
   }
-  if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
-    return `Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
-  }
-  if (primary?.detection_source === 'roundup') return 'Multiple simultaneous disruptions';
-  return 'Service disruption detected';
+  return botSummaryText(incident);
 }
 
 // Contemporaneous activity on OTHER lines/routes within ±1h of this event.

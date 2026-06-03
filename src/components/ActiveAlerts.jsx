@@ -1,7 +1,7 @@
 import { typicalDurationKey } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../lib/format.js';
-import { formatEvidenceChip, SIGNAL_LABELS, splitObservations } from '../lib/incidents.js';
+import { botSummaryText, formatEvidenceChip, splitObservations } from '../lib/incidents.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 import LongRunningBanner from './LongRunningBanner.jsx';
@@ -107,10 +107,6 @@ function describeIncident(incident, stationIndex) {
   }
   const { primary } = splitObservations(incident);
   const hasStations = !!(primary?.from_station && primary?.to_station);
-  const signalsText =
-    primary?.signals?.length > 0
-      ? primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')
-      : null;
 
   if (hasStations) {
     return {
@@ -130,22 +126,8 @@ function describeIncident(incident, stationIndex) {
       descriptionText: displayStationName(name),
     };
   }
-  if (primary?.detection_source === 'roundup' && signalsText) {
-    const t = `Multiple signals: ${signalsText}`;
-    return { description: t, descriptionText: t };
-  }
-  if (primary?.detection_source === 'roundup') {
-    const t = 'Multiple simultaneous disruptions detected';
-    return { description: t, descriptionText: t };
-  }
-  if (signalsText) {
-    const t = `Service disruption detected: ${signalsText}`;
-    return { description: t, descriptionText: t };
-  }
-  return {
-    description: 'Service disruption detected',
-    descriptionText: 'Service disruption detected',
-  };
+  const t = botSummaryText(incident);
+  return { description: t, descriptionText: t };
 }
 
 function elapsed(now, startTs) {

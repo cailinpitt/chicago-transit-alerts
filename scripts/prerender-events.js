@@ -27,6 +27,8 @@ import {
   flattenIncidents,
   formatRoutesLabel,
   mergeMatchingIncidents,
+  observationSignals,
+  summarizeSignals,
 } from '../src/lib/incidents.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -119,26 +121,11 @@ function stripSoft({ color, text }) {
 }
 
 function describeObservation(obs) {
-  const signals = obs.signals?.length
-    ? obs.signals
-    : obs.detection_source
-      ? [obs.detection_source]
-      : [];
-  if (!signals.length) return 'Service disruption detected by bot.';
-  const labels = {
-    gap: 'gap',
-    bunching: 'bunching',
-    ghost: 'missing vehicles',
-    'pulse-cold': 'service blackout',
-    'pulse-held': 'vehicles stuck',
-    roundup: 'multiple signals',
-  };
-  const phrases = signals.map((s) => labels[s] ?? s);
-  const list =
-    phrases.length === 1
-      ? phrases[0]
-      : `${phrases.slice(0, -1).join(', ')} and ${phrases[phrases.length - 1]}`;
-  return `Bot detected ${list} on this route.`;
+  // Rider-facing impact phrase ("fewer trains and long gaps"), matching the
+  // app's incident titles, rather than a detector-name list.
+  const summary = summarizeSignals(observationSignals(obs), obs.kind);
+  if (!summary) return 'Service disruption detected by bot.';
+  return `Bot detected ${summary[0].toLowerCase()}${summary.slice(1)} on this route.`;
 }
 
 // When the incident first occurred, for the OG card — matches the event

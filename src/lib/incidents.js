@@ -243,6 +243,45 @@ export const SIGNAL_LABELS = {
   'thin-gap': 'low-frequency route silent',
 };
 
+// Rider-facing impact phrase for each signal kind — the plain-language outcome a
+// rider feels, not the detector's name. `vehicles` is 'trains' or 'buses' so the
+// phrase reads right for either mode. Used to build scannable incident titles
+// (see summarizeSignals); SIGNAL_LABELS stays the detector-noun form for chips.
+const SIGNAL_IMPACT = {
+  gap: () => 'long gaps',
+  bunching: (v) => `bunched ${v}`,
+  ghost: (v) => `fewer ${v}`,
+  'pulse-cold': (v) => `stretch without ${v}`,
+  'pulse-held': (v) => `${v} held in place`,
+  'thin-gap': () => 'route not running',
+};
+
+// Turn a detection's signal mix into a single plain-language title, e.g.
+// "Fewer trains and long gaps". Joined as a natural list ("X and Y", "X, Y, and
+// Z") rather than a jargon list ("Multiple signals: missing vehicles, headway
+// gaps, …") — and rather than truncating to "+N more", which hid what was
+// happening. A roundup carries at most ~3 distinct signals in practice, so the
+// full list stays short. Returns null when there are no signals. `kind` is
+// 'bus' | 'train' (defaults to train).
+/**
+ * @param {string[]} signals
+ * @param {string} [kind]
+ * @returns {string | null}
+ */
+export function summarizeSignals(signals, kind) {
+  const uniq = [...new Set(signals || [])];
+  if (uniq.length === 0) return null;
+  const v = kind === 'bus' ? 'buses' : 'trains';
+  const phrases = uniq.map((s) =>
+    SIGNAL_IMPACT[s] ? SIGNAL_IMPACT[s](v) : (SIGNAL_LABELS[s] ?? s),
+  );
+  let text;
+  if (phrases.length === 1) text = phrases[0];
+  else if (phrases.length === 2) text = `${phrases[0]} and ${phrases[1]}`;
+  else text = `${phrases.slice(0, -1).join(', ')}, and ${phrases[phrases.length - 1]}`;
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 // Compact human-readable summary of the bot's evidence for this observation
 // — surfaced as a small chip on incident rows so a reader can see *why* the
 // bot fired without reading the full Bluesky post. Returns null when there's
@@ -315,6 +354,22 @@ export function observationSignals(obs) {
   if (!obs) return [];
   if (obs.detection_source === 'roundup') return obs.signals || [];
   return obs.detection_source ? [obs.detection_source] : [];
+}
+
+// Plain-text title for a bot incident that has no single affected stretch (the
+// station-pair case is handled by the callers, which may render it as links).
+// Summarizes the signal mix as rider-facing impact ("Fewer trains and long
+// gaps"); falls back to a generic line only when there are no signals at all.
+/**
+ * @param {Incident} incident
+ * @returns {string}
+ */
+export function botSummaryText(incident) {
+  const { primary } = splitObservations(incident);
+  const summary = summarizeSignals(observationSignals(primary), incident?.kind);
+  if (summary) return summary;
+  if (primary?.detection_source === 'roundup') return 'Multiple simultaneous disruptions detected';
+  return 'Service disruption detected';
 }
 
 // The per-line affected stretches for an incident, as `{ line, from, to }`

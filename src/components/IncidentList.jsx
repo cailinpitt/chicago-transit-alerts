@@ -10,9 +10,9 @@ import {
 } from '../lib/format.js';
 import {
   affectedLineSegments,
+  botSummaryText,
   flattenIncidents,
   formatEvidenceChip,
-  SIGNAL_LABELS,
   splitObservations,
 } from '../lib/incidents.js';
 import HighlightedText from './HighlightedText.jsx';
@@ -130,17 +130,8 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
         )}
       </>
     );
-  } else if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
-    description = (
-      <HighlightedText
-        text={`Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`}
-        query={searchQuery}
-      />
-    );
-  } else if (primary?.detection_source === 'roundup') {
-    description = 'Multiple simultaneous disruptions detected';
   } else {
-    description = 'Service disruption detected';
+    description = <HighlightedText text={botSummaryText(incident)} query={searchQuery} />;
   }
 
   return (

@@ -1,4 +1,4 @@
-import { SIGNAL_LABELS, splitObservations } from '../../lib/incidents.js';
+import { botSummaryText, splitObservations } from '../../lib/incidents.js';
 import { displayStationName } from '../../lib/stations.js';
 import StationName from '../StationName.jsx';
 
@@ -19,11 +19,7 @@ export function describeText(incident) {
     const seg = `${displayStationName(primary.from_station)} → ${displayStationName(primary.to_station)}`;
     return primary.direction_label ? `${seg} (${primary.direction_label})` : seg;
   }
-  if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
-    return `Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
-  }
-  if (primary?.detection_source === 'roundup') return 'Multiple simultaneous disruptions detected';
-  return 'Service disruption detected';
+  return botSummaryText(incident);
 }
 
 export function describe(incident, stationIndex) {
@@ -42,11 +38,5 @@ export function describe(incident, stationIndex) {
       </>
     );
   }
-  if (primary?.detection_source === 'roundup' && primary.signals?.length > 0) {
-    return `Multiple signals: ${primary.signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ')}`;
-  }
-  if (primary?.detection_source === 'roundup') {
-    return 'Multiple simultaneous disruptions detected';
-  }
-  return 'Service disruption detected';
+  return botSummaryText(incident);
 }

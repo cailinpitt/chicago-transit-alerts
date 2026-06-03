@@ -19,6 +19,7 @@ import {
   observationSignals,
   postUrlRkey,
   SIGNAL_LABELS,
+  summarizeSignals,
 } from '../src/lib/incidents.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -97,13 +98,13 @@ function blueskyPostUrl(incident) {
 
 function describeObservation(obs) {
   const stations = [obs.from_station, obs.to_station].filter(Boolean).join(' → ');
-  const signals = observationSignals(obs);
-  const signalsText = signals.length ? signals.map((s) => SIGNAL_LABELS[s] ?? s).join(', ') : null;
-  if (stations && signalsText) return `${stations} — ${signalsText}`;
+  // Rider-facing impact phrase ("fewer trains and long gaps") rather than a
+  // detector-name list, matching the app's incident titles.
+  const summary = summarizeSignals(observationSignals(obs), obs.kind);
+  if (stations && summary) return `${stations} — ${summary[0].toLowerCase()}${summary.slice(1)}`;
   if (stations) return stations;
-  if (obs.detection_source === 'roundup' && signalsText) return `Multiple signals: ${signalsText}`;
+  if (summary) return summary;
   if (obs.detection_source === 'roundup') return 'Multiple simultaneous disruptions detected';
-  if (signalsText) return `Service disruption detected: ${signalsText}`;
   return 'Service disruption detected';
 }
 
