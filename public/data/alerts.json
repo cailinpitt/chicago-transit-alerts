@@ -1,7 +1,51 @@
 {
-  "generated_at": 1780528690011,
+  "generated_at": 1780529345775,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mngb7kkowo2m",
+      "kind": "bus",
+      "routes": [
+        "9"
+      ],
+      "first_seen_ts": 1780527965883,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 258,
+          "kind": "bus",
+          "line": "9",
+          "direction": null,
+          "direction_label": null,
+          "from_station": null,
+          "to_station": null,
+          "detection_source": "roundup",
+          "signals": [
+            "gap",
+            "ghost"
+          ],
+          "evidence": null,
+          "ts": 1780527965883,
+          "onset_ts": null,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mngb7kkowo2m",
+          "resolved_post_url": null,
+          "bot_description": "Route 9 service appears degraded — longer-than-scheduled gaps between buses and fewer buses than scheduled.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "One gap between buses is 3.7x the scheduled wait, between Ashland & 48th Street and Ashland & Chicago",
+            "2 of 13 buses missing this past hour"
+          ]
+        }
+      ]
+    },
     {
       "id": "3mng7wkgbwc2t",
       "kind": "train",
