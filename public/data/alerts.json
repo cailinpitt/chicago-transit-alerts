@@ -1,7 +1,65 @@
 {
-  "generated_at": 1780490650333,
+  "generated_at": 1780491370151,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mnf5tshm2w24",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1780491122052,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 542,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Linden",
+          "from_station": "Central (Purple)",
+          "to_station": "Davis",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.7,
+            "minutesSinceLastTrain": 15,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 7,
+            "coldStations": 4,
+            "coldStationNames": [
+              "Central (Purple)",
+              "Noyes",
+              "Foster",
+              "Davis"
+            ],
+            "expectedTrains": null,
+            "headwayMin": null,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780491122052,
+          "onset_ts": 1780490222052,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnf5tshm2w24",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.7-mi stretch (4 stations affected) in the last 15 min (7 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
     {
       "id": "3mnf4mgynnm2b",
       "kind": "train",
