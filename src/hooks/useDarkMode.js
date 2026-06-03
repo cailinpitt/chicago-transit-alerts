@@ -9,6 +9,10 @@ export function useDarkMode() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
+    // Keep `color-scheme` in sync with the in-app choice so native UI (form
+    // controls, scrollbars, the overscroll background) re-themes on toggle —
+    // not just the OS-driven default the inline boot script seeds at load.
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
     localStorage.setItem('darkMode', String(dark));
     // Keep the browser chrome (theme-color) in sync with the in-app toggle,
     // which can diverge from the OS preference the media-scoped metas track.

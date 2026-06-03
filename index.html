@@ -7,6 +7,28 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)" />
+    <!-- Apply the saved/preferred color scheme synchronously, before first
+         paint, so full-page navigations don't flash a light frame before the
+         app's JS mounts and toggles the class (dark-mode FOUC). Mirrors the
+         initial-state logic in src/hooks/useDarkMode.js; that hook still owns
+         the class once React mounts. -->
+    <script>
+      (() => {
+        try {
+          const stored = localStorage.getItem('darkMode');
+          const dark =
+            stored === null
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+              : stored === 'true';
+          if (dark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          }
+        } catch {
+          /* localStorage blocked (private mode) — fall back to light. */
+        }
+      })();
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
