@@ -1,7 +1,67 @@
 {
-  "generated_at": 1780529345775,
+  "generated_at": 1780530130859,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mngbwxbsvw2y",
+      "kind": "train",
+      "routes": [
+        "purple"
+      ],
+      "first_seen_ts": 1780529762117,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 560,
+          "kind": "train",
+          "line": "purple",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Linden",
+          "from_station": "Fullerton",
+          "to_station": "Armitage (Brown/Purple)",
+          "stations": [
+            "Fullerton",
+            "Armitage (Brown/Purple)"
+          ],
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.7,
+            "minutesSinceLastTrain": 15,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 6,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Fullerton",
+              "Armitage (Brown/Purple)"
+            ],
+            "expectedTrains": null,
+            "headwayMin": null,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780529762117,
+          "onset_ts": 1780528862117,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mngbwxbsvw2y",
+          "resolved_post_url": null,
+          "bot_description": "Purple Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.7-mi stretch (2 stations affected) in the last 15 min (6 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
     {
       "id": "3mngb7kkowo2m",
       "kind": "bus",
