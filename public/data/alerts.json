@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780463678322,
+  "generated_at": 1780465502511,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -18,7 +18,7 @@
       "cta": {
         "alert_id": "115290",
         "headline": "Orange Line Service Running with Delays",
-        "short_description": "Orange Line trains trains are running with residual delays due to earlier fire department activity near the area of Ashland.",
+        "short_description": "Orange Line trains trains are running with significant delays due to earlier fire department activity near the area of Ashland.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnebtsoe7n2d",
         "resolved_reply_url": null,
         "first_seen_ts": 1780461303316,
@@ -45,6 +45,14 @@
             "ts": 1780463463090,
             "headline": "Orange Line Service Running with Delays",
             "short_description": "Orange Line trains trains are running with residual delays due to earlier fire department activity near the area of Ashland.",
+            "affected_from_station": null,
+            "affected_to_station": null,
+            "affected_direction": null
+          },
+          {
+            "ts": 1780464783583,
+            "headline": "Orange Line Service Running with Delays",
+            "short_description": "Orange Line trains trains are running with significant delays due to earlier fire department activity near the area of Ashland.",
             "affected_from_station": null,
             "affected_to_station": null,
             "affected_direction": null
