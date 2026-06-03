@@ -125,7 +125,13 @@ function describeObservation(obs) {
   // app's incident titles, rather than a detector-name list.
   const summary = summarizeSignals(observationSignals(obs), obs.kind);
   if (!summary) return 'Service disruption detected by bot.';
-  return `Bot detected ${summary[0].toLowerCase()}${summary.slice(1)} on this route.`;
+  const impact = `${summary[0].toLowerCase()}${summary.slice(1)}`;
+  // Trains run on a "line", buses on a "route". Skip the suffix entirely when
+  // the phrase already names the route (thin-gap → "route not running"), so it
+  // doesn't read "route not running on this route".
+  const where = obs.kind === 'train' ? ' on this line' : ' on this route';
+  const tail = /\broute\b/.test(impact) ? '' : where;
+  return `Bot detected ${impact}${tail}.`;
 }
 
 // When the incident first occurred, for the OG card — matches the event
@@ -139,6 +145,12 @@ function formatCardDate(incident) {
   return `${formatDate(ts)} · ${formatTime(ts)}`;
 }
 
+// Headline for a bot-detected incident. On the card it pairs with the line as
+// `${BOT_IMPACT} · ${label}` (the line is also a chip); in the link/meta title
+// it leads with the line as `${label} · ${BOT_IMPACT}` so the line isn't
+// repeated. Kept as one const so the two orderings can't drift apart.
+const BOT_IMPACT = 'Disruption detected';
+
 function summarize(incident) {
   if (incident.headline) {
     return {
@@ -148,7 +160,7 @@ function summarize(incident) {
   }
   const accent = accentFor(incident);
   return {
-    title: `Possible disruption · ${accent.label}`,
+    title: `${BOT_IMPACT} · ${accent.label}`,
     subtitle: describeObservation(incident),
   };
 }
@@ -231,7 +243,14 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant =
   // path is fine here. Use the variant's directory so /event/:id/resolved/og.png
   // (the variant's own image) ships with the variant stub.
   const image = `${url}/og.png`;
-  const ogTitle = `${accent.label} · ${title}`.slice(0, 200);
+  // Link/unfurl title leads with the line/route. For bot events the card title
+  // ends with the line (it's also a chip), so build the meta title from the bare
+  // impact to avoid repeating it ("Red Line · Disruption detected"). CTA titles
+  // keep the label prefix — a bare headline like "Temporary Reroute" otherwise
+  // names no route.
+  const ogTitle = (
+    incident.headline ? `${accent.label} · ${title}` : `${accent.label} · ${BOT_IMPACT}`
+  ).slice(0, 200);
   const desc = subtitle.slice(0, 280);
   // Inject JSON-LD just before </head>. `<` inside the JSON has to be escaped
   // because </script> in a string literal would otherwise close the tag.
@@ -318,16 +337,16 @@ function fillTemplate(tpl, fields) {
         `<div class="badge line" style="background: ${c.color}; color: ${c.text};">${escHtml(c.label)}</div>`,
     )
     .join('\n        ');
-  // Date pill — omitted entirely when the incident carries no usable
-  // timestamp, so the badge row just collapses rather than showing an empty
-  // chip.
-  const dateBadgeHtml = fields.date ? `<div class="badge date">${escHtml(fields.date)}</div>` : '';
+  // Date — pinned top-right (see .date-corner). Omitted entirely when the
+  // incident carries no usable timestamp, so nothing renders rather than an
+  // empty element.
+  const dateHtml = fields.date ? `<div class="date-corner">${escHtml(fields.date)}</div>` : '';
   return tpl
     .replaceAll('__ACCENT__', fields.accent.color)
     .replaceAll('__ACCENT_SOFT__', fields.accent.soft)
     .replaceAll('__ACCENT_TEXT__', fields.accent.text)
     .replaceAll('__LINE_CHIPS__', chipsHtml)
-    .replaceAll('__DATE_BADGE__', dateBadgeHtml)
+    .replaceAll('__DATE__', dateHtml)
     .replaceAll('__BADGE__', fields.badge)
     .replaceAll('__TITLE__', escHtml(fields.title))
     .replaceAll('__SUBTITLE__', escHtml(fields.subtitle))
