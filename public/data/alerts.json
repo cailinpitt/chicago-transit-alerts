@@ -1,7 +1,63 @@
 {
-  "generated_at": 1780500969547,
+  "generated_at": 1780512250552,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mnfrc2bd4a25",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1780512002011,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 550,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Kimball",
+          "from_station": "Montrose (Brown)",
+          "to_station": "Irving Park (Brown)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 1.2,
+            "minutesSinceLastTrain": 18,
+            "lookbackMin": 23,
+            "coldThresholdMin": 18,
+            "trainsOutsideRun": 8,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Montrose (Brown)",
+              "Irving Park (Brown)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 7.15,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780512002011,
+          "onset_ts": 1780510922011,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnfrc2bd4a25",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 1.2-mi stretch (2 stations affected) in the last 18 min — scheduled every 7 min, ~2 trains missed (8 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
     {
       "id": "3mnffkk6odo2d",
       "kind": "train",
