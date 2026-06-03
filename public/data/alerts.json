@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780520645818,
+  "generated_at": 1780520795781,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -24,6 +24,15 @@
           "direction_label": "toward Linden",
           "from_station": "Central (Purple)",
           "to_station": "South Boulevard",
+          "stations": [
+            "Central (Purple)",
+            "Noyes",
+            "Foster",
+            "Davis",
+            "Dempster",
+            "Main",
+            "South Boulevard"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -173,6 +182,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Montrose (Brown)",
           "to_station": "Irving Park (Brown)",
+          "stations": [
+            "Montrose (Brown)",
+            "Irving Park (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -229,6 +242,10 @@
           "direction_label": "toward Howard",
           "from_station": "Howard",
           "to_station": "Wilson",
+          "stations": [
+            "Howard",
+            "Wilson"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -285,6 +302,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Armitage (Brown/Purple)",
           "to_station": "Sedgwick (Brown/Purple)",
+          "stations": [
+            "Armitage (Brown/Purple)",
+            "Sedgwick (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -341,6 +362,12 @@
           "direction_label": "toward Linden",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Fullerton",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -399,6 +426,12 @@
           "direction_label": "toward Linden",
           "from_station": "Central (Purple)",
           "to_station": "Davis",
+          "stations": [
+            "Central (Purple)",
+            "Noyes",
+            "Foster",
+            "Davis"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -457,6 +490,11 @@
           "direction_label": "toward Linden",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Diversey (Brown/Purple)",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -514,6 +552,10 @@
           "direction_label": "toward Linden",
           "from_station": "Wilson",
           "to_station": "Belmont (Red/Brown/Purple)",
+          "stations": [
+            "Wilson",
+            "Belmont (Red/Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -574,6 +616,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1780461180000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -614,6 +657,10 @@
           "direction_label": "toward the Loop",
           "from_station": "35th/Archer",
           "to_station": "Ashland (Orange)",
+          "stations": [
+            "35th/Archer",
+            "Ashland (Orange)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -804,6 +851,16 @@
           "direction_label": "toward Linden",
           "from_station": "Chicago (Brown/Purple)",
           "to_station": "Washington/Wells",
+          "stations": [
+            "Chicago (Brown/Purple)",
+            "Clark/Lake",
+            "Washington/Wabash",
+            "Adams/Wabash",
+            "Harold Washington Library-State/Van Buren",
+            "LaSalle/Van Buren",
+            "Quincy",
+            "Washington/Wells"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1042,6 +1099,11 @@
           "direction_label": "toward Linden",
           "from_station": "South Boulevard",
           "to_station": "Wilson",
+          "stations": [
+            "South Boulevard",
+            "Howard",
+            "Wilson"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1099,6 +1161,12 @@
           "direction_label": "toward Howard",
           "from_station": "Diversey (Brown/Purple)",
           "to_station": "Sedgwick (Brown/Purple)",
+          "stations": [
+            "Diversey (Brown/Purple)",
+            "Fullerton",
+            "Armitage (Brown/Purple)",
+            "Sedgwick (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1291,6 +1359,12 @@
           "direction_label": "toward Linden",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Fullerton",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1395,6 +1469,16 @@
           "direction_label": "toward Linden",
           "from_station": "Chicago (Brown/Purple)",
           "to_station": "Washington/Wells",
+          "stations": [
+            "Chicago (Brown/Purple)",
+            "Clark/Lake",
+            "Washington/Wabash",
+            "Adams/Wabash",
+            "Harold Washington Library-State/Van Buren",
+            "LaSalle/Van Buren",
+            "Quincy",
+            "Washington/Wells"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1457,6 +1541,13 @@
           "direction_label": "toward Linden",
           "from_station": "Noyes",
           "to_station": "Main",
+          "stations": [
+            "Noyes",
+            "Foster",
+            "Davis",
+            "Dempster",
+            "Main"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1516,6 +1607,11 @@
           "direction_label": "toward Howard",
           "from_station": "Main",
           "to_station": "Howard",
+          "stations": [
+            "Main",
+            "South Boulevard",
+            "Howard"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1617,6 +1713,11 @@
           "direction_label": "toward Howard",
           "from_station": "Fullerton",
           "to_station": "Sedgwick (Brown/Purple)",
+          "stations": [
+            "Fullerton",
+            "Armitage (Brown/Purple)",
+            "Sedgwick (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1674,6 +1775,10 @@
           "direction_label": "toward Howard",
           "from_station": "Main",
           "to_station": "South Boulevard",
+          "stations": [
+            "Main",
+            "South Boulevard"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1774,6 +1879,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Southport",
           "to_station": "Wellington (Brown/Purple)",
+          "stations": [
+            "Southport",
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1875,6 +1985,13 @@
           "direction_label": "toward the Loop",
           "from_station": "Kostner",
           "to_station": "California (Pink)",
+          "stations": [
+            "Kostner",
+            "Pulaski (Pink)",
+            "Central Park",
+            "Kedzie (Pink)",
+            "California (Pink)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -1934,6 +2051,14 @@
           "direction_label": "toward Linden",
           "from_station": "Wellington (Brown/Purple)",
           "to_station": "Chicago (Brown/Purple)",
+          "stations": [
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton",
+            "Armitage (Brown/Purple)",
+            "Sedgwick (Brown/Purple)",
+            "Chicago (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -2084,6 +2209,10 @@
           "direction_label": "toward Linden",
           "from_station": "Howard",
           "to_station": "Wilson",
+          "stations": [
+            "Howard",
+            "Wilson"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -2233,6 +2362,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1780320120000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -2265,6 +2395,12 @@
           "direction_label": "toward Midway",
           "from_station": "Western (Orange)",
           "to_station": "Halsted (Orange)",
+          "stations": [
+            "Western (Orange)",
+            "35th/Archer",
+            "Ashland (Orange)",
+            "Halsted (Orange)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -2367,6 +2503,14 @@
           "direction_label": "toward Linden",
           "from_station": "Noyes",
           "to_station": "South Boulevard",
+          "stations": [
+            "Noyes",
+            "Foster",
+            "Davis",
+            "Dempster",
+            "Main",
+            "South Boulevard"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -2476,6 +2620,7 @@
         "mentioned_stations": [
           "Chicago (Blue)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1780267500000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -2600,6 +2745,7 @@
         "mentioned_stations": [
           "Monroe (Blue)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1780246080000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -2636,6 +2782,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1780237740000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -2665,6 +2812,11 @@
           "direction_label": "toward the Loop",
           "from_station": "Wellington (Brown/Purple)",
           "to_station": "Fullerton",
+          "stations": [
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -2727,6 +2879,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1780234380000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -2805,6 +2958,7 @@
         "mentioned_stations": [
           "Bryn Mawr"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1780225440000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -2834,6 +2988,10 @@
           "direction_label": "toward Cottage Grove",
           "from_station": "Roosevelt",
           "to_station": "Cermak-McCormick Place",
+          "stations": [
+            "Roosevelt",
+            "Cermak-McCormick Place"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -2895,6 +3053,7 @@
         "mentioned_stations": [
           "Chicago (Brown/Purple)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1780205580000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -3058,6 +3217,13 @@
           "direction_label": null,
           "from_station": "Morse",
           "to_station": "Bryn Mawr",
+          "stations": [
+            "Morse",
+            "Loyola",
+            "Granville",
+            "Thorndale",
+            "Bryn Mawr"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -3117,6 +3283,12 @@
           "direction_label": "toward the Loop",
           "from_station": "Irving Park (Brown)",
           "to_station": "Southport",
+          "stations": [
+            "Irving Park (Brown)",
+            "Addison (Brown)",
+            "Paulina",
+            "Southport"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -3175,6 +3347,10 @@
           "direction_label": "toward the Loop",
           "from_station": "Polk",
           "to_station": "Ashland (Green/Pink)",
+          "stations": [
+            "Polk",
+            "Ashland (Green/Pink)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -3451,6 +3627,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Armitage (Brown/Purple)",
           "to_station": "Chicago (Brown/Purple)",
+          "stations": [
+            "Armitage (Brown/Purple)",
+            "Sedgwick (Brown/Purple)",
+            "Chicago (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -3601,6 +3782,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1780178400000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -3837,6 +4019,11 @@
           "direction_label": "toward Midway",
           "from_station": "35th/Archer",
           "to_station": "Halsted (Orange)",
+          "stations": [
+            "35th/Archer",
+            "Ashland (Orange)",
+            "Halsted (Orange)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -3894,6 +4081,11 @@
           "direction_label": null,
           "from_station": "Clark/Division",
           "to_station": "Grand (Red)",
+          "stations": [
+            "Clark/Division",
+            "Chicago (Red)",
+            "Grand (Red)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -3954,6 +4146,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1780153800000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -3987,6 +4180,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1780151280000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -4020,6 +4214,19 @@
         "affected_direction": null,
         "mentioned_stations": [
           "Cermak-Chinatown",
+          "Fullerton"
+        ],
+        "affected_stations": [
+          "Cermak-Chinatown",
+          "Roosevelt",
+          "Harrison",
+          "Jackson (Red)",
+          "Monroe (Red)",
+          "Lake (Subway)",
+          "Grand (Red)",
+          "Chicago (Red)",
+          "Clark/Division",
+          "North/Clybourn",
           "Fullerton"
         ],
         "cta_event_start_ts": 1780110000000,
@@ -4125,6 +4332,12 @@
         "affected_direction": null,
         "mentioned_stations": [
           "Pulaski (Pink)",
+          "54th/Cermak"
+        ],
+        "affected_stations": [
+          "Pulaski (Pink)",
+          "Kostner",
+          "Cicero (Pink)",
           "54th/Cermak"
         ],
         "cta_event_start_ts": 1780110000000,
@@ -4262,6 +4475,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Wellington (Brown/Purple)",
           "to_station": "Fullerton",
+          "stations": [
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -4451,6 +4669,12 @@
           "direction_label": "toward Linden",
           "from_station": "Wilson",
           "to_station": "Diversey (Brown/Purple)",
+          "stations": [
+            "Wilson",
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -4597,6 +4821,10 @@
           "direction_label": "toward Linden",
           "from_station": "Main",
           "to_station": "South Boulevard",
+          "stations": [
+            "Main",
+            "South Boulevard"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -4653,6 +4881,13 @@
           "direction_label": "toward 54th/Cermak",
           "from_station": "Kedzie (Pink)",
           "to_station": "18th",
+          "stations": [
+            "Kedzie (Pink)",
+            "California (Pink)",
+            "Western (Pink)",
+            "Damen (Pink)",
+            "18th"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -4761,6 +4996,7 @@
         "mentioned_stations": [
           "Cumberland"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1780072140000,
         "cta_event_end_ts": 1780074900000,
         "cta_event_start_is_date_only": false,
@@ -4808,6 +5044,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Southport",
           "to_station": "Belmont (Red/Brown/Purple)",
+          "stations": [
+            "Southport",
+            "Belmont (Red/Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -4869,6 +5109,7 @@
         "mentioned_stations": [
           "Cumberland"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1780068960000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -5120,6 +5361,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Montrose (Brown)",
           "to_station": "Irving Park (Brown)",
+          "stations": [
+            "Montrose (Brown)",
+            "Irving Park (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -5176,6 +5421,11 @@
           "direction_label": "toward Linden",
           "from_station": "Davis",
           "to_station": "Main",
+          "stations": [
+            "Davis",
+            "Dempster",
+            "Main"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -5233,6 +5483,10 @@
           "direction_label": "toward Linden",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Wellington (Brown/Purple)",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -5335,6 +5589,10 @@
           "direction_label": "toward Midway",
           "from_station": "35th/Archer",
           "to_station": "Ashland (Orange)",
+          "stations": [
+            "35th/Archer",
+            "Ashland (Orange)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -5391,6 +5649,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Damen (Brown)",
           "to_station": "Montrose (Brown)",
+          "stations": [
+            "Damen (Brown)",
+            "Montrose (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -5713,6 +5975,12 @@
           "direction_label": "toward Linden",
           "from_station": "Noyes",
           "to_station": "Dempster",
+          "stations": [
+            "Noyes",
+            "Foster",
+            "Davis",
+            "Dempster"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -5776,6 +6044,7 @@
         "mentioned_stations": [
           "Rosemont"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1780004040000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -5895,6 +6164,12 @@
           "direction_label": "toward Linden",
           "from_station": "Wilson",
           "to_station": "Diversey (Brown/Purple)",
+          "stations": [
+            "Wilson",
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -5997,6 +6272,11 @@
           "direction_label": "toward Howard",
           "from_station": "South Boulevard",
           "to_station": "Wilson",
+          "stations": [
+            "South Boulevard",
+            "Howard",
+            "Wilson"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -6186,6 +6466,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Damen (Brown)",
           "to_station": "Irving Park (Brown)",
+          "stations": [
+            "Damen (Brown)",
+            "Montrose (Brown)",
+            "Irving Park (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -6333,6 +6618,12 @@
           "direction_label": "toward the Loop",
           "from_station": "Rockwell",
           "to_station": "Montrose (Brown)",
+          "stations": [
+            "Rockwell",
+            "Western (Brown)",
+            "Damen (Brown)",
+            "Montrose (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -6391,6 +6682,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Sedgwick (Brown/Purple)",
           "to_station": "Chicago (Brown/Purple)",
+          "stations": [
+            "Sedgwick (Brown/Purple)",
+            "Chicago (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -6493,6 +6788,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Paulina",
           "to_station": "Southport",
+          "stations": [
+            "Paulina",
+            "Southport"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -6599,6 +6898,7 @@
         "mentioned_stations": [
           "Ashland (Orange)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779972180000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -6613,6 +6913,11 @@
           "direction_label": "toward Midway",
           "from_station": "Western (Orange)",
           "to_station": "Ashland (Orange)",
+          "stations": [
+            "Western (Orange)",
+            "35th/Archer",
+            "Ashland (Orange)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -6675,6 +6980,7 @@
         "mentioned_stations": [
           "51st"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779949620000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -6797,6 +7103,7 @@
         "mentioned_stations": [
           "Garfield (Red)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779927660000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -7002,6 +7309,11 @@
           "direction_label": "toward Linden",
           "from_station": "Noyes",
           "to_station": "Davis",
+          "stations": [
+            "Noyes",
+            "Foster",
+            "Davis"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7059,6 +7371,11 @@
           "direction_label": "toward Linden",
           "from_station": "Central (Purple)",
           "to_station": "Foster",
+          "stations": [
+            "Central (Purple)",
+            "Noyes",
+            "Foster"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7164,6 +7481,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779909360000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -7178,6 +7496,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Wellington (Brown/Purple)",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7239,6 +7561,7 @@
         "mentioned_stations": [
           "Garfield (Green)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779902820000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -7268,6 +7591,12 @@
           "direction_label": "toward the Loop",
           "from_station": "Ashland (Green/Pink)",
           "to_station": "Clark/Lake",
+          "stations": [
+            "Ashland (Green/Pink)",
+            "Morgan (Green/Pink)",
+            "Clinton (Green/Pink)",
+            "Clark/Lake"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7326,6 +7655,11 @@
           "direction_label": "toward 54th/Cermak",
           "from_station": "Ashland (Green/Pink)",
           "to_station": "Clinton (Green/Pink)",
+          "stations": [
+            "Ashland (Green/Pink)",
+            "Morgan (Green/Pink)",
+            "Clinton (Green/Pink)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7427,6 +7761,12 @@
           "direction_label": "toward Linden",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Fullerton",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7531,6 +7871,11 @@
           "direction_label": "toward Linden",
           "from_station": "Wilson",
           "to_station": "Wellington (Brown/Purple)",
+          "stations": [
+            "Wilson",
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7593,6 +7938,7 @@
         "mentioned_stations": [
           "Chicago (Brown/Purple)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779865620000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -7627,6 +7973,7 @@
         "mentioned_stations": [
           "Chicago (Brown/Purple)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779865620000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -7656,6 +8003,13 @@
           "direction_label": null,
           "from_station": "Bryn Mawr",
           "to_station": "Wilson",
+          "stations": [
+            "Bryn Mawr",
+            "Berwyn",
+            "Argyle",
+            "Lawrence",
+            "Wilson"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7759,6 +8113,18 @@
           "direction_label": "toward the Loop",
           "from_station": "Western (Brown)",
           "to_station": "Diversey (Brown/Purple)",
+          "stations": [
+            "Western (Brown)",
+            "Damen (Brown)",
+            "Montrose (Brown)",
+            "Irving Park (Brown)",
+            "Addison (Brown)",
+            "Paulina",
+            "Southport",
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7867,6 +8233,10 @@
           "direction_label": null,
           "from_station": "Addison (Red)",
           "to_station": "Belmont (Red/Brown/Purple)",
+          "stations": [
+            "Addison (Red)",
+            "Belmont (Red/Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -7923,6 +8293,10 @@
           "direction_label": "toward Linden",
           "from_station": "Wilson",
           "to_station": "Belmont (Red/Brown/Purple)",
+          "stations": [
+            "Wilson",
+            "Belmont (Red/Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -8031,6 +8405,7 @@
         "mentioned_stations": [
           "Belmont (Red/Brown/Purple)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779840660000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -8095,6 +8470,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Wellington (Brown/Purple)",
           "to_station": "Fullerton",
+          "stations": [
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -8136,6 +8516,13 @@
           "direction_label": "toward the Loop",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Armitage (Brown/Purple)",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton",
+            "Armitage (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -8179,6 +8566,13 @@
           "direction_label": "toward Kimball",
           "from_station": "Montrose (Brown)",
           "to_station": "Southport",
+          "stations": [
+            "Montrose (Brown)",
+            "Irving Park (Brown)",
+            "Addison (Brown)",
+            "Paulina",
+            "Southport"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -8222,6 +8616,12 @@
           "direction_label": "toward the Loop",
           "from_station": "Damen (Brown)",
           "to_station": "Addison (Brown)",
+          "stations": [
+            "Damen (Brown)",
+            "Montrose (Brown)",
+            "Irving Park (Brown)",
+            "Addison (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -8417,6 +8817,7 @@
         "mentioned_stations": [
           "UIC-Halsted"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779826500000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -8446,6 +8847,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Diversey (Brown/Purple)",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -8510,6 +8916,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779805920000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -8721,6 +9128,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779680520000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -8773,6 +9181,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779668640000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -8829,6 +9238,14 @@
           "direction_label": "toward the Loop",
           "from_station": "Ashland (Green/Pink)",
           "to_station": "Adams/Wabash",
+          "stations": [
+            "Ashland (Green/Pink)",
+            "Morgan (Green/Pink)",
+            "Clinton (Green/Pink)",
+            "Clark/Lake",
+            "Washington/Wabash",
+            "Adams/Wabash"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -9025,6 +9442,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779650040000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -9366,6 +9784,10 @@
           "direction_label": "toward the Loop",
           "from_station": "Western (Brown)",
           "to_station": "Damen (Brown)",
+          "stations": [
+            "Western (Brown)",
+            "Damen (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -10090,6 +10512,7 @@
         "mentioned_stations": [
           "47th (Red)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779551520000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -10414,6 +10837,11 @@
           "direction_label": "toward Midway",
           "from_station": "35th/Archer",
           "to_station": "Halsted (Orange)",
+          "stations": [
+            "35th/Archer",
+            "Ashland (Orange)",
+            "Halsted (Orange)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -10564,6 +10992,7 @@
         "mentioned_stations": [
           "Kedzie (Orange)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779489240000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -10593,6 +11022,13 @@
           "direction_label": "toward Kimball",
           "from_station": "Western (Brown)",
           "to_station": "Addison (Brown)",
+          "stations": [
+            "Western (Brown)",
+            "Damen (Brown)",
+            "Montrose (Brown)",
+            "Irving Park (Brown)",
+            "Addison (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -10706,6 +11142,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779481380000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -10738,6 +11175,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Armitage (Brown/Purple)",
           "to_station": "Chicago (Brown/Purple)",
+          "stations": [
+            "Armitage (Brown/Purple)",
+            "Sedgwick (Brown/Purple)",
+            "Chicago (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -10779,6 +11221,13 @@
           "direction_label": "toward the Loop",
           "from_station": "Ashland (Green/Pink)",
           "to_station": "Washington/Wabash",
+          "stations": [
+            "Ashland (Green/Pink)",
+            "Morgan (Green/Pink)",
+            "Clinton (Green/Pink)",
+            "Clark/Lake",
+            "Washington/Wabash"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -10822,6 +11271,11 @@
           "direction_label": "toward Midway",
           "from_station": "35th/Archer",
           "to_station": "Halsted (Orange)",
+          "stations": [
+            "35th/Archer",
+            "Ashland (Orange)",
+            "Halsted (Orange)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -10863,6 +11317,15 @@
           "direction_label": "toward Linden",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Chicago (Brown/Purple)",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton",
+            "Armitage (Brown/Purple)",
+            "Sedgwick (Brown/Purple)",
+            "Chicago (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -10908,6 +11371,14 @@
           "direction_label": "toward 54th/Cermak",
           "from_station": "Central Park",
           "to_station": "18th",
+          "stations": [
+            "Central Park",
+            "Kedzie (Pink)",
+            "California (Pink)",
+            "Western (Pink)",
+            "Damen (Pink)",
+            "18th"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -11100,6 +11571,12 @@
           "direction_label": "toward the Loop",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Fullerton",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -11253,6 +11730,7 @@
         "mentioned_stations": [
           "LaSalle"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779424260000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -11376,6 +11854,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779408000000,
         "cta_event_end_ts": 1779771540000,
         "cta_event_start_is_date_only": false,
@@ -11493,6 +11972,13 @@
           "direction_label": "toward Linden",
           "from_station": "Noyes",
           "to_station": "Main",
+          "stations": [
+            "Noyes",
+            "Foster",
+            "Davis",
+            "Dempster",
+            "Main"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -11552,6 +12038,12 @@
           "direction_label": "toward Kimball",
           "from_station": "Western (Brown)",
           "to_station": "Irving Park (Brown)",
+          "stations": [
+            "Western (Brown)",
+            "Damen (Brown)",
+            "Montrose (Brown)",
+            "Irving Park (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -11610,6 +12102,13 @@
           "direction_label": "toward Kimball",
           "from_station": "Rockwell",
           "to_station": "Irving Park (Brown)",
+          "stations": [
+            "Rockwell",
+            "Western (Brown)",
+            "Damen (Brown)",
+            "Montrose (Brown)",
+            "Irving Park (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -11713,6 +12212,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Armitage (Brown/Purple)",
           "to_station": "Sedgwick (Brown/Purple)",
+          "stations": [
+            "Armitage (Brown/Purple)",
+            "Sedgwick (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -11862,6 +12365,7 @@
         "mentioned_stations": [
           "Harlem (Blue - Forest Park Branch)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779368880000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -11937,6 +12441,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Diversey (Brown/Purple)",
           "to_station": "Armitage (Brown/Purple)",
+          "stations": [
+            "Diversey (Brown/Purple)",
+            "Fullerton",
+            "Armitage (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -12002,6 +12511,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779361200000,
         "cta_event_end_ts": 1779771540000,
         "cta_event_start_is_date_only": false,
@@ -12036,6 +12546,7 @@
         "mentioned_stations": [
           "Indiana"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779348300000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -12529,6 +13040,10 @@
           "direction_label": "toward Linden",
           "from_station": "Wilson",
           "to_station": "Belmont (Red/Brown/Purple)",
+          "stations": [
+            "Wilson",
+            "Belmont (Red/Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -12588,6 +13103,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779297660000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -12621,6 +13137,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779294840000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -12650,6 +13167,12 @@
           "direction_label": "toward Howard",
           "from_station": "Wilson",
           "to_station": "Diversey (Brown/Purple)",
+          "stations": [
+            "Wilson",
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -12829,6 +13352,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Diversey (Brown/Purple)",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -12926,6 +13454,10 @@
           "direction_label": "toward Linden",
           "from_station": "Wilson",
           "to_station": "Belmont (Red/Brown/Purple)",
+          "stations": [
+            "Wilson",
+            "Belmont (Red/Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -13071,6 +13603,7 @@
         "affected_to_station": null,
         "affected_direction": "north",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779226200000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -13158,6 +13691,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Wellington (Brown/Purple)",
           "to_station": "Diversey (Brown/Purple)",
+          "stations": [
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -13214,6 +13751,10 @@
           "direction_label": "toward Linden",
           "from_station": "Howard",
           "to_station": "Wilson",
+          "stations": [
+            "Howard",
+            "Wilson"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -13310,6 +13851,12 @@
           "direction_label": "toward Linden",
           "from_station": "Noyes",
           "to_station": "Dempster",
+          "stations": [
+            "Noyes",
+            "Foster",
+            "Davis",
+            "Dempster"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -13408,6 +13955,10 @@
           "direction_label": "toward Linden",
           "from_station": "Belmont (Red/Brown/Purple)",
           "to_station": "Wellington (Brown/Purple)",
+          "stations": [
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -13469,6 +14020,7 @@
         "mentioned_stations": [
           "Western (Blue - Forest Park Branch)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779192120000,
         "cta_event_end_ts": 1779202920000,
         "cta_event_start_is_date_only": false,
@@ -13882,6 +14434,14 @@
           "direction_label": "toward Howard",
           "from_station": "South Boulevard",
           "to_station": "Diversey (Brown/Purple)",
+          "stations": [
+            "South Boulevard",
+            "Howard",
+            "Wilson",
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -13945,6 +14505,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779114540000,
         "cta_event_end_ts": 1779115800000,
         "cta_event_start_is_date_only": false,
@@ -13992,6 +14553,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Armitage (Brown/Purple)",
           "to_station": "Chicago (Brown/Purple)",
+          "stations": [
+            "Armitage (Brown/Purple)",
+            "Sedgwick (Brown/Purple)",
+            "Chicago (Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -14177,6 +14743,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779106560000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -14191,6 +14758,11 @@
           "direction_label": "toward Midway",
           "from_station": "35th/Archer",
           "to_station": "Halsted (Orange)",
+          "stations": [
+            "35th/Archer",
+            "Ashland (Orange)",
+            "Halsted (Orange)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -14291,6 +14863,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1779081840000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -14365,6 +14938,7 @@
         "mentioned_stations": [
           "Linden"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779077820000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -14417,6 +14991,19 @@
         "affected_direction": null,
         "mentioned_stations": [
           "54th/Cermak",
+          "Polk"
+        ],
+        "affected_stations": [
+          "54th/Cermak",
+          "Cicero (Pink)",
+          "Kostner",
+          "Pulaski (Pink)",
+          "Central Park",
+          "Kedzie (Pink)",
+          "California (Pink)",
+          "Western (Pink)",
+          "Damen (Pink)",
+          "18th",
           "Polk"
         ],
         "cta_event_start_ts": 1779075360000,
@@ -14653,6 +15240,7 @@
         "mentioned_stations": [
           "Addison (Blue)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1779050520000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -14851,6 +15439,7 @@
         "mentioned_stations": [
           "Division"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778993700000,
         "cta_event_end_ts": 1779252900000,
         "cta_event_start_is_date_only": false,
@@ -15165,6 +15754,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778959080000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -15179,6 +15769,11 @@
           "direction_label": "toward 54th/Cermak",
           "from_station": "Morgan (Green/Pink)",
           "to_station": "Clark/Lake",
+          "stations": [
+            "Morgan (Green/Pink)",
+            "Clinton (Green/Pink)",
+            "Clark/Lake"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -15220,6 +15815,12 @@
           "direction_label": "toward Cottage Grove",
           "from_station": "Indiana",
           "to_station": "51st",
+          "stations": [
+            "Indiana",
+            "43rd",
+            "47th (Green)",
+            "51st"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -15283,6 +15884,7 @@
         "mentioned_stations": [
           "Garfield (Green)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778955420000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -15435,6 +16037,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778943900000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -15549,6 +16152,7 @@
         "mentioned_stations": [
           "Dempster-Skokie"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778937540000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -15586,6 +16190,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778936400000,
         "cta_event_end_ts": 1778947200000,
         "cta_event_start_is_date_only": false,
@@ -15644,6 +16249,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778936400000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -15677,6 +16283,13 @@
         "affected_direction": null,
         "mentioned_stations": [
           "Garfield (Green)",
+          "Ashland/63rd"
+        ],
+        "affected_stations": [
+          "Garfield (Green)",
+          "Cottage Grove",
+          "King Drive",
+          "Halsted (Green)",
           "Ashland/63rd"
         ],
         "cta_event_start_ts": 1778900400000,
@@ -15909,6 +16522,11 @@
           "direction_label": "toward Linden",
           "from_station": "Wellington (Brown/Purple)",
           "to_station": "Fullerton",
+          "stations": [
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -15971,6 +16589,7 @@
         "mentioned_stations": [
           "Adams/Wabash"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778880540000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -16046,6 +16665,7 @@
         "mentioned_stations": [
           "Western (Blue - Forest Park Branch)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778879820000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -16101,6 +16721,10 @@
           "direction_label": "toward Linden",
           "from_station": "Wilson",
           "to_station": "Belmont (Red/Brown/Purple)",
+          "stations": [
+            "Wilson",
+            "Belmont (Red/Brown/Purple)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -16202,6 +16826,7 @@
         "mentioned_stations": [
           "UIC-Halsted"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778864760000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -16236,6 +16861,7 @@
         "mentioned_stations": [
           "Monroe (Red)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778864640000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -16715,6 +17341,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778796000000,
         "cta_event_end_ts": 1778814000000,
         "cta_event_start_is_date_only": false,
@@ -16749,6 +17376,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778796000000,
         "cta_event_end_ts": 1778814000000,
         "cta_event_start_is_date_only": false,
@@ -16784,6 +17412,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778796000000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -16979,6 +17608,7 @@
         "mentioned_stations": [
           "Sox-35th"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778727480000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17129,6 +17759,12 @@
           "direction_label": "toward Kimball",
           "from_station": "Francisco",
           "to_station": "Damen (Brown)",
+          "stations": [
+            "Francisco",
+            "Rockwell",
+            "Western (Brown)",
+            "Damen (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -17191,6 +17827,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778686620000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17346,6 +17983,7 @@
         "mentioned_stations": [
           "Grand (Blue)"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778631360000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17360,6 +17998,11 @@
           "direction_label": null,
           "from_station": "Chicago (Blue)",
           "to_station": "Clark/Lake",
+          "stations": [
+            "Chicago (Blue)",
+            "Grand (Blue)",
+            "Clark/Lake"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -17441,6 +18084,10 @@
           "direction_label": "toward Linden",
           "from_station": "Central (Purple)",
           "to_station": "Noyes",
+          "stations": [
+            "Central (Purple)",
+            "Noyes"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -17501,6 +18148,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778606040000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17530,6 +18178,11 @@
           "direction_label": "toward Dempster-Skokie",
           "from_station": "Howard",
           "to_station": "Dempster-Skokie",
+          "stations": [
+            "Howard",
+            "Oakton-Skokie",
+            "Dempster-Skokie"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -17590,6 +18243,7 @@
         "affected_to_station": null,
         "affected_direction": "south",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778597220000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17662,6 +18316,7 @@
         "affected_to_station": null,
         "affected_direction": "north",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778595420000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17694,6 +18349,7 @@
         "affected_to_station": null,
         "affected_direction": "south",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778577780000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17726,6 +18382,7 @@
         "affected_to_station": null,
         "affected_direction": "south",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778577600000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17760,6 +18417,7 @@
         "affected_to_station": null,
         "affected_direction": "south",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778566380000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17794,6 +18452,7 @@
         "mentioned_stations": [
           "Midway"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": 1778559000000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -17986,6 +18645,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778524020000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18018,6 +18678,7 @@
         "affected_to_station": null,
         "affected_direction": "south",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778518500000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18047,6 +18708,15 @@
           "direction_label": "toward Linden",
           "from_station": "Chicago (Brown/Purple)",
           "to_station": "Quincy",
+          "stations": [
+            "Chicago (Brown/Purple)",
+            "Clark/Lake",
+            "Washington/Wabash",
+            "Adams/Wabash",
+            "Harold Washington Library-State/Van Buren",
+            "LaSalle/Van Buren",
+            "Quincy"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -18148,6 +18818,13 @@
           "direction_label": "toward Kimball",
           "from_station": "Southport",
           "to_station": "Fullerton",
+          "stations": [
+            "Southport",
+            "Belmont (Red/Brown/Purple)",
+            "Wellington (Brown/Purple)",
+            "Diversey (Brown/Purple)",
+            "Fullerton"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -18290,6 +18967,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778420400000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18322,6 +19000,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778411700000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18351,6 +19030,13 @@
           "direction_label": "toward Kimball",
           "from_station": "Francisco",
           "to_station": "Montrose (Brown)",
+          "stations": [
+            "Francisco",
+            "Rockwell",
+            "Western (Brown)",
+            "Damen (Brown)",
+            "Montrose (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -18410,6 +19096,10 @@
           "direction_label": "toward 54th/Cermak",
           "from_station": "Cicero (Pink)",
           "to_station": "Kostner",
+          "stations": [
+            "Cicero (Pink)",
+            "Kostner"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -18469,6 +19159,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778390100000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18541,6 +19232,7 @@
         "affected_to_station": null,
         "affected_direction": "north",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778372040000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18573,6 +19265,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778363880000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18606,6 +19299,7 @@
         "affected_to_station": null,
         "affected_direction": "south",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778361900000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18635,6 +19329,15 @@
           "direction_label": "toward the Loop",
           "from_station": "Western (Brown)",
           "to_station": "Southport",
+          "stations": [
+            "Western (Brown)",
+            "Damen (Brown)",
+            "Montrose (Brown)",
+            "Irving Park (Brown)",
+            "Addison (Brown)",
+            "Paulina",
+            "Southport"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -18699,6 +19402,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778349660000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18731,6 +19435,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18764,6 +19469,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778337900000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18796,6 +19502,7 @@
         "affected_to_station": null,
         "affected_direction": "west",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778324400000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18828,6 +19535,7 @@
         "affected_to_station": null,
         "affected_direction": "south",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18860,6 +19568,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778321700000,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -18889,6 +19598,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Francisco",
           "to_station": "Rockwell",
+          "stations": [
+            "Francisco",
+            "Rockwell"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -18948,6 +19661,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -19060,6 +19774,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -19169,6 +19884,11 @@
           "direction_label": "toward Kimball",
           "from_station": "Francisco",
           "to_station": "Western (Brown)",
+          "stations": [
+            "Francisco",
+            "Rockwell",
+            "Western (Brown)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": {
@@ -19269,6 +19989,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -19301,6 +20022,7 @@
         "affected_to_station": null,
         "affected_direction": "west",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -19333,6 +20055,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -19376,6 +20099,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1778248800000,
         "cta_event_end_ts": 1778450400000,
         "cta_event_start_is_date_only": false,
@@ -19410,6 +20134,7 @@
         "affected_to_station": "Foster/Sheridan",
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -19444,6 +20169,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1777899600000,
         "cta_event_end_ts": 1778533200000,
         "cta_event_start_is_date_only": false,
@@ -19483,6 +20209,7 @@
         "affected_to_station": "Randolph",
         "affected_direction": "south",
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": 1776088800000,
         "cta_event_end_ts": 1782881999000,
         "cta_event_start_is_date_only": false,
@@ -20107,6 +20834,14 @@
           "direction_label": "toward Linden",
           "from_station": "Central (Purple)",
           "to_station": "Main",
+          "stations": [
+            "Central (Purple)",
+            "Noyes",
+            "Foster",
+            "Davis",
+            "Dempster",
+            "Main"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": null,
@@ -20230,6 +20965,7 @@
         "mentioned_stations": [
           "Ridgeland"
         ],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -20244,6 +20980,11 @@
           "direction_label": "toward Cottage Grove",
           "from_station": "Ridgeland",
           "to_station": "Central (Green)",
+          "stations": [
+            "Ridgeland",
+            "Austin (Green)",
+            "Central (Green)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": null,
@@ -20442,6 +21183,10 @@
           "direction_label": "toward Kimball",
           "from_station": "Francisco",
           "to_station": "Rockwell",
+          "stations": [
+            "Francisco",
+            "Rockwell"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": null,
@@ -20479,6 +21224,10 @@
           "direction_label": "toward the Loop",
           "from_station": "Polk",
           "to_station": "Ashland (Green/Pink)",
+          "stations": [
+            "Polk",
+            "Ashland (Green/Pink)"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": null,
@@ -20553,6 +21302,15 @@
           "direction_label": null,
           "from_station": "Clark/Division",
           "to_station": "Harrison",
+          "stations": [
+            "Clark/Division",
+            "Chicago (Red)",
+            "Grand (Red)",
+            "Lake (Subway)",
+            "Monroe (Red)",
+            "Jackson (Red)",
+            "Harrison"
+          ],
           "detection_source": "pulse-cold",
           "signals": null,
           "evidence": null,
@@ -20593,6 +21351,7 @@
         "affected_to_station": null,
         "affected_direction": null,
         "mentioned_stations": [],
+        "affected_stations": [],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -20628,6 +21387,14 @@
           "LaSalle",
           "Grand (Blue)"
         ],
+        "affected_stations": [
+          "LaSalle",
+          "Jackson (Blue)",
+          "Monroe (Blue)",
+          "Washington",
+          "Clark/Lake",
+          "Grand (Blue)"
+        ],
         "cta_event_start_ts": null,
         "cta_event_end_ts": null,
         "cta_event_start_is_date_only": false,
@@ -20661,6 +21428,11 @@
         "affected_direction": null,
         "mentioned_stations": [
           "Dempster-Skokie",
+          "Howard"
+        ],
+        "affected_stations": [
+          "Dempster-Skokie",
+          "Oakton-Skokie",
           "Howard"
         ],
         "cta_event_start_ts": null,
