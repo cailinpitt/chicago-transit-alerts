@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780465502511,
+  "generated_at": 1780467065990,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -20,10 +20,10 @@
         "headline": "Orange Line Service Running with Delays",
         "short_description": "Orange Line trains trains are running with significant delays due to earlier fire department activity near the area of Ashland.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnebtsoe7n2d",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mneh7ipvy424",
         "first_seen_ts": 1780461303316,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780466822834,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
