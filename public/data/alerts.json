@@ -1,7 +1,63 @@
 {
-  "generated_at": 1780496291449,
+  "generated_at": 1780496772729,
   "data_start_ts": 1777234323058,
   "incidents": [
+    {
+      "id": "3mnfcuqc7yy23",
+      "kind": "train",
+      "routes": [
+        "brown"
+      ],
+      "first_seen_ts": 1780496522649,
+      "resolved_ts": null,
+      "active": true,
+      "sources": [
+        "bot"
+      ],
+      "cta": null,
+      "observations": [
+        {
+          "id": 545,
+          "kind": "train",
+          "line": "brown",
+          "direction": "branch-0-outbound",
+          "direction_label": "toward Kimball",
+          "from_station": "Armitage (Brown/Purple)",
+          "to_station": "Sedgwick (Brown/Purple)",
+          "detection_source": "pulse-cold",
+          "signals": null,
+          "evidence": {
+            "runLengthMi": 2.2,
+            "minutesSinceLastTrain": 15,
+            "lookbackMin": 20,
+            "coldThresholdMin": 15,
+            "trainsOutsideRun": 9,
+            "coldStations": 2,
+            "coldStationNames": [
+              "Armitage (Brown/Purple)",
+              "Sedgwick (Brown/Purple)"
+            ],
+            "expectedTrains": 2,
+            "headwayMin": 5.933333333333333,
+            "synthetic": false,
+            "held": null
+          },
+          "ts": 1780496522649,
+          "onset_ts": 1780495622649,
+          "resolved_ts": null,
+          "duration_ms": null,
+          "active": true,
+          "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mnfcuqc7yy23",
+          "resolved_post_url": null,
+          "bot_description": "Brown Line service appears degraded — a stretch of the line without trains.",
+          "bot_resolved_description": null,
+          "bot_evidence_bullets": [
+            "No trains moved through this 2.2-mi stretch (2 stations affected) in the last 15 min — scheduled every 6 min, ~2 trains missed (9 trains still moving elsewhere on the line)."
+          ],
+          "onset_description": "Last train observed through this stretch around here — the service gap began about now."
+        }
+      ]
+    },
     {
       "id": "3mnfcgh6waz2t",
       "kind": "train",
