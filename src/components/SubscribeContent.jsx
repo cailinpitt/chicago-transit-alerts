@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
+import { dataUrl } from '../lib/dataSource.js';
 
 const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
 const SITE = 'https://chicagotransitalerts.app';
 const FEED_URL = `${SITE}/feed.xml`;
 const CSV_URL = 'https://chicagotransitalerts.app/data/alerts.csv';
-const JSON_URL = `${import.meta.env.VITE_DATA_BASE_URL ?? `${SITE}/data`}/alerts.json`;
+const JSON_URL = dataUrl('alerts.json');
 const CHANGELOG_URL = 'https://chicagotransitalerts.app/data/CHANGELOG.md';
 
 const CURL_CMD = `curl -s ${JSON_URL} | jq '.incidents | length'`;

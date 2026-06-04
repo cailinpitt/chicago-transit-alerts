@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { dataUrl } from '../lib/dataSource.js';
 import { flattenIncidents } from '../lib/incidents.js';
 
 // Load alerts.json purely to populate the Header's Browse menu on pages whose
@@ -10,10 +11,7 @@ export function useBrowseData() {
   const [data, setData] = useState(null);
   useEffect(() => {
     let alive = true;
-    fetch(
-      `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`,
-      { cache: 'no-store' },
-    )
+    fetch(dataUrl('alerts.json'), { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((payload) => {
         if (alive) setData(payload?.incidents ? flattenIncidents(payload.incidents) : null);

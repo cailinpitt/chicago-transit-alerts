@@ -87,11 +87,10 @@ jobs:
 
       # `prebuild` (scripts/fetch-data.js) pulls alerts.json + daily-counts.json
       # from R2 into public/data/ first, so the snapshot + postbuild steps have
-      # current data. VITE_DATA_BASE_URL points the *client* at R2 at runtime so
-      # the live app is always fresh, independent of when the site was built.
+      # current data. The *client* always fetches those files live from R2 at
+      # runtime (default origin baked into src/lib/dataSource.js), so the live
+      # app is always fresh, independent of when the site was built.
       - run: npm run build
-        env:
-          VITE_DATA_BASE_URL: https://data.chicagotransitalerts.app
 
       - uses: actions/upload-pages-artifact@v5
         with:

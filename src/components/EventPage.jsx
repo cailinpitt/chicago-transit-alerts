@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { eventTrail } from '../lib/breadcrumbs.js';
+import { dataUrl } from '../lib/dataSource.js';
 import { findIncidentById, flattenIncidents, formatRoutesLabel } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -23,7 +24,7 @@ export default function EventPage({ eventId }) {
   // surfaces a hard error — silent failures after that keep the existing
   // data visible rather than yanking the page out from under the reader.
   useEffect(() => {
-    const url = `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`;
+    const url = dataUrl('alerts.json');
 
     function fetchData() {
       fetch(url, { cache: 'no-store' })

@@ -4,6 +4,7 @@ import { useNow } from '../hooks/useNow.js';
 import { computeTypicalDurations } from '../lib/aggregate.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
+import { dataUrl } from '../lib/dataSource.js';
 import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex, displayStationName, rosterStationBySlug } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
@@ -29,7 +30,7 @@ export default function StationPage({ slug }) {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    const url = `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`;
+    const url = dataUrl('alerts.json');
     fetch(url, { cache: 'no-store' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

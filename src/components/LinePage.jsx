@@ -16,6 +16,7 @@ import {
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
+import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
 import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -157,7 +158,7 @@ export default function LinePage({ kind, lineId }) {
   const effectiveLineId = isTrain ? normalizedLineId : lineId;
 
   useEffect(() => {
-    const url = `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`;
+    const url = dataUrl('alerts.json');
     fetch(url, { cache: 'no-store' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

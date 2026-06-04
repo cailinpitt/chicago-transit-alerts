@@ -20,6 +20,7 @@ import {
   computeTypicalDurations,
 } from './lib/aggregate.js';
 import { compareBusRoutes } from './lib/busRoutes.js';
+import { dataUrl } from './lib/dataSource.js';
 import {
   filterIncidents,
   flattenIncidents,
@@ -146,7 +147,7 @@ export default function App() {
   }, [selectedLines, showBus, selectedBusRoutes, selectedSignals, selectedSources]);
 
   useEffect(() => {
-    const url = `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`;
+    const url = dataUrl('alerts.json');
 
     function fetchData() {
       fetch(url, { cache: 'no-store' })

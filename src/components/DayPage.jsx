@@ -3,6 +3,7 @@ import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import { dayTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
+import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
 import { filterIncidents, flattenIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -55,7 +56,7 @@ export default function DayPage({ dateStr }) {
 
   useEffect(() => {
     if (dayUtc == null) return;
-    const url = `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`;
+    const url = dataUrl('alerts.json');
     fetch(url, { cache: 'no-store' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

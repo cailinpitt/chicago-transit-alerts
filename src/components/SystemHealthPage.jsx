@@ -11,6 +11,7 @@ import {
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
+import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay, formatMinutesAsHours } from '../lib/format.js';
 import { filterIncidents, flattenIncidents, mergeMatchingIncidents } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -365,7 +366,7 @@ export default function SystemHealthPage({ kind }) {
   const modeLabel = isTrain ? 'Trains' : 'Buses';
 
   useEffect(() => {
-    const url = `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`;
+    const url = dataUrl('alerts.json');
     fetch(url, { cache: 'no-store' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
