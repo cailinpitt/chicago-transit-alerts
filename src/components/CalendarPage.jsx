@@ -109,7 +109,7 @@ export default function CalendarPage() {
   const [selectedSources, setSelectedSources] = useState(initial.selectedSources);
 
   useEffect(() => {
-    const url = `${import.meta.env.BASE_URL}data/daily-counts.json`;
+    const url = `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/daily-counts.json`;
     fetch(url, { cache: 'no-store' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -126,7 +126,7 @@ export default function CalendarPage() {
   // the Browse menu expects.
   const [browseData, setBrowseData] = useState(null);
   useEffect(() => {
-    const url = `${import.meta.env.BASE_URL}data/alerts.json`;
+    const url = `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`;
     fetch(url, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((payload) =>

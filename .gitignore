@@ -9,3 +9,5 @@ cron/*.log
 plan.md
 research.md
 tmp/
+public/data/alerts.json
+public/data/daily-counts.json

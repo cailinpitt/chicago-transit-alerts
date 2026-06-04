@@ -55,7 +55,7 @@ export default function DayPage({ dateStr }) {
 
   useEffect(() => {
     if (dayUtc == null) return;
-    const url = `${import.meta.env.BASE_URL}data/alerts.json`;
+    const url = `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`;
     fetch(url, { cache: 'no-store' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

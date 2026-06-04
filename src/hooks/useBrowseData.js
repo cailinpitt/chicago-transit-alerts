@@ -10,7 +10,10 @@ export function useBrowseData() {
   const [data, setData] = useState(null);
   useEffect(() => {
     let alive = true;
-    fetch(`${import.meta.env.BASE_URL}data/alerts.json`, { cache: 'no-store' })
+    fetch(
+      `${import.meta.env.VITE_DATA_BASE_URL ?? import.meta.env.BASE_URL + 'data'}/alerts.json`,
+      { cache: 'no-store' },
+    )
       .then((r) => (r.ok ? r.json() : null))
       .then((payload) => {
         if (alive) setData(payload?.incidents ? flattenIncidents(payload.incidents) : null);

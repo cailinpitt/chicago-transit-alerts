@@ -6,7 +6,7 @@ const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
 const SITE = 'https://chicagotransitalerts.app';
 const FEED_URL = `${SITE}/feed.xml`;
 const CSV_URL = 'https://chicagotransitalerts.app/data/alerts.csv';
-const JSON_URL = 'https://chicagotransitalerts.app/data/alerts.json';
+const JSON_URL = `${import.meta.env.VITE_DATA_BASE_URL ?? `${SITE}/data`}/alerts.json`;
 const CHANGELOG_URL = 'https://chicagotransitalerts.app/data/CHANGELOG.md';
 
 const CURL_CMD = `curl -s ${JSON_URL} | jq '.incidents | length'`;
