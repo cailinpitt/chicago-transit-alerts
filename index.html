@@ -107,6 +107,18 @@
     <a href="#main" class="skip-link">Skip to main content</a>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!-- Cloudflare Web Analytics — cookieless, privacy-first page-view counts.
+         Loaded as a manual beacon (not Cloudflare's automatic injection)
+         because the site is served by GitHub Pages and its DNS records are
+         DNS-only / grey-cloud, so traffic isn't proxied through Cloudflare.
+         The token is public by design (it ships in page source on every CF
+         Analytics site). Disclosed on /privacy. Replace the placeholder with
+         the token from Cloudflare dashboard → Web Analytics → add a site. -->
+    <script
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon='{"token": "19c543b1fee842128be4be2916903e6c"}'
+    ></script>
     <!-- Speculation Rules: pages use full-page navigation (no client router),
          so prefetching same-origin links on hover makes clicks much faster,
          and prerendering the hub pages makes them feel instant. /data/* (the

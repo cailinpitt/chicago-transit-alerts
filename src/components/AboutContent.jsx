@@ -74,8 +74,9 @@ export default function AboutContent() {
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">Privacy</h3>
       <p>
-        No accounts, no cookies, no analytics, and no third-party trackers — the site doesn't
-        collect personal data. Your dark-mode and filter preferences are saved locally in your
+        No accounts, no cookies, and no advertising — the site doesn't collect personal data. It
+        uses cookieless Cloudflare Web Analytics for rough, aggregate page-view counts, which don't
+        identify or profile you. Your dark-mode and filter preferences are saved locally in your
         browser and never leave your device. Full details on the{' '}
         <a className={LINK} href="/privacy">
           privacy page

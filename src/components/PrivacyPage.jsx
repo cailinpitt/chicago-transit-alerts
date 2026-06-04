@@ -42,9 +42,28 @@ export default function PrivacyPage() {
 
             <h2 className={H2}>What we collect</h2>
             <p>
-              Nothing. There are no sign-ups, no forms that send anything anywhere, no cookies, no
-              analytics or tracking scripts, and no advertising. The site never asks for your name,
-              email, or location.
+              Almost nothing. There are no sign-ups, no forms that send anything anywhere, no
+              cookies, and no advertising. The site never asks for your name, email, or location.
+              The one exception is privacy-preserving, cookieless analytics, described below.
+            </p>
+
+            <h2 className={H2}>Analytics</h2>
+            <p>
+              To get a rough sense of how many people use the site and which pages they visit, we
+              use{' '}
+              <a
+                className={LINK}
+                href="https://www.cloudflare.com/web-analytics/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Cloudflare Web Analytics
+              </a>
+              . It's privacy-first: it sets no cookies, uses no client-side storage or
+              fingerprinting, and doesn't track you across sites or over time. It records aggregate
+              page-view data — things like the URL visited, the referring page, browser type, and
+              country — but it doesn't build a profile of you or store anything that identifies you
+              personally.
             </p>
 
             <h2 className={H2}>Stored in your browser</h2>
@@ -58,9 +77,10 @@ export default function PrivacyPage() {
 
             <h2 className={H2}>Third parties</h2>
             <p>
-              No third-party scripts, trackers, fonts, or embeds run on this site, so no outside
-              company observes your visit here. Links out to Bluesky, GitHub, or the CTA only load
-              when you choose to click them, and those sites have their own privacy policies.
+              The only third-party script on the site is the Cloudflare Web Analytics beacon
+              described above, and it's cookieless and doesn't profile you. Aside from that, no
+              trackers, fonts, or embeds run here. Links out to Bluesky, GitHub, or the CTA only
+              load when you choose to click them, and those sites have their own privacy policies.
             </p>
 
             <h2 className={H2}>Hosting and server logs</h2>
@@ -108,7 +128,7 @@ export default function PrivacyPage() {
             </p>
 
             <p className="pt-2 text-xs text-slate-500 dark:text-slate-400">
-              Last updated May 31, 2026.
+              Last updated June 3, 2026.
             </p>
           </div>
         </div>

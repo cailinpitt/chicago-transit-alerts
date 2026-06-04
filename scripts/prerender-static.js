@@ -37,7 +37,7 @@ const PAGES = [
   {
     path: '/privacy',
     title: 'Privacy',
-    desc: 'Privacy policy for Chicago Transit Alerts: no accounts, no cookies, no analytics, and no third-party trackers.',
+    desc: 'Privacy policy for Chicago Transit Alerts: no accounts, no cookies, no advertising, and only cookieless Cloudflare Web Analytics for aggregate page-view counts.',
   },
 ];
 
