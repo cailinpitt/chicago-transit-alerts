@@ -1,5 +1,5 @@
 {
-  "generated_at": 1780534097192,
+  "generated_at": 1780534148879,
   "data_start_ts": 1777234323058,
   "incidents": [
     {
@@ -81,8 +81,8 @@
         "blue"
       ],
       "first_seen_ts": 1780533665160,
-      "resolved_ts": null,
-      "active": true,
+      "resolved_ts": 1780533903687,
+      "active": false,
       "sources": [
         "cta"
       ],
@@ -91,10 +91,10 @@
         "headline": "O'Hare-bound Blue Line Service Delayed near Clinton",
         "short_description": "O'Hare-bound Blue Line trains are standing due to police activity at Clinton. Crews working to restore service.",
         "post_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mngfaedfpy2d",
-        "resolved_reply_url": null,
+        "resolved_reply_url": "https://bsky.app/profile/did:plc:jgg4dtdflzzemyvnybucnzdw/post/3mngfoomzln2y",
         "first_seen_ts": 1780533665160,
-        "resolved_ts": null,
-        "active": true,
+        "resolved_ts": 1780533903687,
+        "active": false,
         "affected_from_station": null,
         "affected_to_station": null,
         "affected_direction": null,
