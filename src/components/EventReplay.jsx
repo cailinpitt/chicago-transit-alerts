@@ -39,7 +39,7 @@ function fmtClock(ms) {
 //   - mild dimming while a position is interpolated across a bridged gap,
 //   - a fading "ghost" parked at the last/next known spot on either side of an
 //     un-bridgeable gap, with nothing drawn through the unknown middle.
-function vehicleSample(v, t) {
+function vehicleSample(v, t, reducedMotion = false) {
   const s = v.s;
   if (!s || s.length === 0) return null;
   const first = s[0][0];
@@ -57,7 +57,9 @@ function vehicleSample(v, t) {
   let opacity;
   if (gap > MAX_GAP_SEC) {
     // Too long to bridge: park a ghost at the near endpoint for one fade, then
-    // draw nothing until it fades back in approaching the far endpoint.
+    // draw nothing until it fades back in approaching the far endpoint. Under
+    // reduced motion there's no ghost fade — the dot is simply absent.
+    if (reducedMotion) return null;
     const sinceA = t - a[0];
     const untilB = b[0] - t;
     if (sinceA <= EDGE_FADE_SEC) {
@@ -77,7 +79,7 @@ function vehicleSample(v, t) {
     lon = a[2] + (b[2] - a[2]) * f;
     const stale = Math.min(t - a[0], b[0] - t);
     opacity =
-      stale <= STALE_FULL_SEC
+      reducedMotion || stale <= STALE_FULL_SEC
         ? 1
         : Math.max(
             BRIDGE_MIN_OPACITY,
@@ -87,11 +89,14 @@ function vehicleSample(v, t) {
           );
   }
 
-  // Ease in/out at the train's own appearance and disappearance.
+  // Ease in/out at the train's own appearance and disappearance (skipped under
+  // reduced motion).
   const edge = Math.min(t - first, last - t);
-  if (edge < EDGE_FADE_SEC) opacity *= edge / EDGE_FADE_SEC;
+  if (!reducedMotion && edge < EDGE_FADE_SEC) opacity *= edge / EDGE_FADE_SEC;
 
-  return { lat, lon, opacity };
+  // Bracket endpoints (lat/lon) so the renderer can derive a heading — the
+  // direction a → b is the train's travel direction along this segment.
+  return { lat, lon, opacity, fromLL: [a[1], a[2]], toLL: [b[1], b[2]] };
 }
 
 // CTA Loop center — the aim point for "toward the Loop"/"downtown" labels,
@@ -135,6 +140,125 @@ function arrowPath(x, y, ang, len = 34, head = 11) {
   return `M${tailX.toFixed(1)},${tailY.toFixed(1)}L${tipX.toFixed(1)},${tipY.toFixed(1)}M${wing(0.5)}L${tipX.toFixed(1)},${tipY.toFixed(1)}L${wing(-0.5)}`;
 }
 
+// Snap a projected point onto the nearest point of the line's track polylines.
+// A train's position comes from projecting its lat/lon (and linearly
+// interpolating between samples), so on a bend the dot would chord across the
+// corner; snapping pins it back onto the rendered track. O(track vertices) per
+// dot — the polylines are short, so this is cheap each frame.
+function snapToTracks(px, py, tracks) {
+  let bx = px;
+  let by = py;
+  let best = Number.POSITIVE_INFINITY;
+  for (const seg of tracks) {
+    for (let i = 0; i < seg.length - 1; i++) {
+      const a = seg[i];
+      const b = seg[i + 1];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const len2 = dx * dx + dy * dy;
+      const u =
+        len2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / len2));
+      const cx = a.x + u * dx;
+      const cy = a.y + u * dy;
+      const d = (px - cx) ** 2 + (py - cy) ** 2;
+      if (d < best) {
+        best = d;
+        bx = cx;
+        by = cy;
+      }
+    }
+  }
+  return { x: bx, y: by };
+}
+
+// Triangular train marker pointing along heading `ang`, centered at (x,y) — so
+// at a glance the two opposing streams of trains point opposite ways.
+function triMarker(x, y, ang, size = 7.5) {
+  const pt = (a, r) => `${(x + Math.cos(a) * r).toFixed(1)},${(y + Math.sin(a) * r).toFixed(1)}`;
+  const back = ang + Math.PI;
+  return `M${pt(ang, size)}L${pt(back + 0.6, size)}L${pt(back - 0.6, size)}Z`;
+}
+
+// Per-polyline cumulative arc-length, so a projected point can be expressed as a
+// scalar distance along the rail.
+function withCumLengths(tracks) {
+  return tracks
+    .filter((seg) => seg.length >= 2)
+    .map((seg) => {
+      const cum = [0];
+      for (let i = 1; i < seg.length; i++) {
+        cum[i] = cum[i - 1] + Math.hypot(seg[i].x - seg[i - 1].x, seg[i].y - seg[i - 1].y);
+      }
+      return { pts: seg, cum };
+    });
+}
+
+// Arc-length of the nearest point on one polyline to (px,py), plus its squared
+// distance (for picking the nearest polyline).
+function arcLenOnPoly(px, py, poly) {
+  let bestD = Number.POSITIVE_INFINITY;
+  let bestS = 0;
+  for (let i = 0; i < poly.pts.length - 1; i++) {
+    const a = poly.pts[i];
+    const b = poly.pts[i + 1];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    const u = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / len2));
+    const cx = a.x + u * dx;
+    const cy = a.y + u * dy;
+    const d = (px - cx) ** 2 + (py - cy) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      bestS = poly.cum[i] + u * Math.sqrt(len2);
+    }
+  }
+  return { s: bestS, d2: bestD };
+}
+
+// CTA train positions jitter — a train can report a position slightly *behind*
+// its last one, which the renderer would draw as a stutter backward. Drop those
+// regressions: express each sample as arc-length along the train's dominant
+// polyline and keep only samples that advance (within a small tolerance) in the
+// train's net travel direction. Endpoints are always kept.
+const ARCLEN_TOL = 4; // px of arc-length — ignore sub-pixel/GPS wobble
+function deJitterVehicle(samples, polys, project) {
+  if (samples.length < 4 || polys.length === 0) return samples;
+  const info = samples.map(([, lat, lon]) => {
+    const p = project(lat, lon);
+    let best = Number.POSITIVE_INFINITY;
+    let poly = 0;
+    let s = 0;
+    for (let k = 0; k < polys.length; k++) {
+      const r = arcLenOnPoly(p.x, p.y, polys[k]);
+      if (r.d2 < best) {
+        best = r.d2;
+        poly = k;
+        s = r.s;
+      }
+    }
+    return { px: p.x, py: p.y, poly, s };
+  });
+  // Dominant polyline (most samples nearest it); re-measure s there for all.
+  const counts = {};
+  for (const r of info) counts[r.poly] = (counts[r.poly] ?? 0) + 1;
+  const dom = Number(Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]);
+  for (const r of info) if (r.poly !== dom) r.s = arcLenOnPoly(r.px, r.py, polys[dom]).s;
+
+  const dir = Math.sign(info[info.length - 1].s - info[0].s);
+  if (dir === 0) return samples; // not really moving along the line
+  const kept = [samples[0]];
+  let highS = info[0].s;
+  for (let i = 1; i < info.length - 1; i++) {
+    if ((info[i].s - highS) * dir >= -ARCLEN_TOL) {
+      kept.push(samples[i]);
+      if ((info[i].s - highS) * dir > 0) highS = info[i].s;
+    }
+  }
+  kept.push(samples[samples.length - 1]);
+  return kept;
+}
+
 export default function EventReplay({ eventId, lineKey, fromStation, toStation, directionLabel }) {
   const [track, setTrack] = useState(null);
   const [status, setStatus] = useState('loading'); // loading | ready | none
@@ -165,6 +289,10 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
   // On a phone, render the line in portrait (long axis vertical) so it fills
   // the screen's height instead of squishing into a wide sliver.
   const isMobile = useMediaQuery('(max-width: 640px)');
+  // Honor reduced-motion like the rest of the app (index.css kills looping
+  // animations): drop the dot fade tweening and never auto-run. Playback itself
+  // stays available — it's user-initiated.
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const map = useMemo(
     () =>
       lineKey
@@ -178,6 +306,14 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
         : null,
     [lineKey, isMobile],
   );
+
+  // De-jittered vehicles — drop backward GPS regressions so trains don't stutter
+  // backward. Memoized: depends only on the loaded track + the map projection.
+  const vehicles = useMemo(() => {
+    if (!track || !map) return [];
+    const polys = withCumLengths(map.tracks);
+    return track.vehicles.map((v) => ({ ...v, s: deJitterVehicle(v.s, polys, map.project) }));
+  }, [track, map]);
 
   // rAF playback loop. Advances the playhead by wall-clock delta × speed.
   useEffect(() => {
@@ -216,11 +352,19 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
   const clockMs = track.t0 + t * 1000;
 
   const dots = [];
-  for (const v of track.vehicles) {
-    const pos = vehicleSample(v, t);
+  for (const v of vehicles) {
+    const pos = vehicleSample(v, t, reducedMotion);
     if (!pos) continue;
     const p = map.project(pos.lat, pos.lon);
-    dots.push({ id: v.id, dir: v.dir, x: p.x, y: p.y, opacity: pos.opacity });
+    const snapped = snapToTracks(p.x, p.y, map.tracks);
+    // Heading from the projected bracket direction (a → b). Below a tiny
+    // threshold the train is effectively still → no arrow, just a dot.
+    const pf = map.project(pos.fromLL[0], pos.fromLL[1]);
+    const pt = map.project(pos.toLL[0], pos.toLL[1]);
+    const hdx = pt.x - pf.x;
+    const hdy = pt.y - pf.y;
+    const ang = hdx * hdx + hdy * hdy > 1 ? Math.atan2(hdy, hdx) : null;
+    dots.push({ id: v.id, dir: v.dir, x: snapped.x, y: snapped.y, opacity: pos.opacity, ang });
   }
 
   // Drive the "no service" highlight off whether a train is *physically* in the
@@ -244,6 +388,21 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
         (affectedDir == null || d.dir === affectedDir) && dotInBox(d, affected[0], affected[1]),
     );
   const coldActive = inWindow && affected.length === 2 && !segOccupied;
+
+  // Disruption span as % of the clip, to band the scrubber so you can see where
+  // the trouble sits and scrub straight to it. Active incident → runs to the end.
+  const onsetSec = Math.max(0, Math.min(track.durSec, (track.onset - track.t0) / 1000));
+  const resolvedSec =
+    track.resolved != null
+      ? Math.max(0, Math.min(track.durSec, (track.resolved - track.t0) / 1000))
+      : track.durSec;
+  const band =
+    track.durSec > 0
+      ? {
+          left: (onsetSec / track.durSec) * 100,
+          width: (Math.max(0, resolvedSec - onsetSec) / track.durSec) * 100,
+        }
+      : null;
 
   // Arrow marking the affected direction of travel, pointing toward the named
   // terminus. Best-effort: only drawn when the direction label resolves to a
@@ -363,23 +522,58 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
                 <path d={directionArrow} stroke={coldActive ? '#ef4444' : accent} strokeWidth={3} />
               </g>
             )}
-            {/* Live train dots — projected each frame onto the same schematic.
-              Opacity drops as a dot's position is bridged across a feed gap. */}
+            {/* Live train dots. Moving trains render as an arrowhead pointing
+                the way they're headed (so opposing streams separate at a
+                glance); stationary ones stay a plain dot. Opacity drops as a
+                dot's position is bridged across a feed gap. */}
             {dots.map((d) => (
               <g key={d.id} opacity={d.opacity}>
                 <circle cx={d.x} cy={d.y} r={9} fill={hexToRgba(accent, 0.25)} />
-                <circle
-                  cx={d.x}
-                  cy={d.y}
-                  r={5.5}
-                  fill={accent}
-                  stroke="white"
-                  strokeWidth={2}
-                  className="dark:[stroke:#0d1117]"
-                >
-                  <title>{`Run ${d.id}`}</title>
-                </circle>
+                {d.ang != null ? (
+                  <path
+                    d={triMarker(d.x, d.y, d.ang)}
+                    fill={accent}
+                    stroke="white"
+                    strokeWidth={1.5}
+                    strokeLinejoin="round"
+                    className="dark:[stroke:#0d1117]"
+                  >
+                    <title>{`Run ${d.id}`}</title>
+                  </path>
+                ) : (
+                  <circle
+                    cx={d.x}
+                    cy={d.y}
+                    r={5.5}
+                    fill={accent}
+                    stroke="white"
+                    strokeWidth={2}
+                    className="dark:[stroke:#0d1117]"
+                  >
+                    <title>{`Run ${d.id}`}</title>
+                  </circle>
+                )}
               </g>
+            ))}
+            {/* Affected-station labels — drawn last (with a halo) so you can read
+                which stations frame the gap without hovering. Nudged below when
+                the dot sits near the top edge so the text doesn't clip. */}
+            {affected.map((s) => (
+              <text
+                key={`lbl-${s.name}`}
+                x={s.x}
+                y={s.y + (s.y < map.height * 0.14 ? 15 : -9)}
+                textAnchor="middle"
+                fontSize={9.5}
+                fontWeight={600}
+                fill={accent}
+                stroke="white"
+                strokeWidth={2.75}
+                className="dark:[stroke:#0d1117]"
+                style={{ paintOrder: 'stroke' }}
+              >
+                {displayStationName(s.name)}
+              </text>
             ))}
           </svg>
         </div>
@@ -396,19 +590,34 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
           >
             {playing ? '❚❚ Pause' : '▶ Play'}
           </button>
-          <input
-            type="range"
-            min={0}
-            max={track.durSec}
-            step={1}
-            value={Math.round(t)}
-            onChange={(e) => {
-              setPlaying(false);
-              setT(Number(e.target.value));
-            }}
-            className="flex-1 min-w-[160px] accent-slate-700 dark:accent-slate-300"
-            aria-label="Scrub replay"
-          />
+          <div className="flex-1 min-w-[160px]">
+            {/* Disruption band: the red span marks onset → recovery so you can
+                see where the trouble is on the timeline and scrub right to it. */}
+            {band && band.width > 0 && (
+              <div
+                className="relative h-1.5 mb-1 rounded bg-slate-200 dark:bg-gh-border"
+                title={`no service${directionLabel ? ` · ${directionLabel}` : ''}`}
+              >
+                <div
+                  className="absolute inset-y-0 rounded bg-red-400/80 dark:bg-red-500/70"
+                  style={{ left: `${band.left}%`, width: `${band.width}%` }}
+                />
+              </div>
+            )}
+            <input
+              type="range"
+              min={0}
+              max={track.durSec}
+              step={1}
+              value={Math.round(t)}
+              onChange={(e) => {
+                setPlaying(false);
+                setT(Number(e.target.value));
+              }}
+              className="w-full accent-slate-700 dark:accent-slate-300"
+              aria-label="Scrub replay"
+            />
+          </div>
           <div className="flex items-center gap-1">
             {SPEEDS.map((sp) => (
               <button
