@@ -272,7 +272,7 @@ function projectInto(rawStations, segments, opts) {
 export function buildLineMap(
   lineKey,
   stationIndex = null,
-  { maxWidth = 720, maxHeight = 540, margin = 24 } = {},
+  { maxWidth = 720, maxHeight = 540, margin = 24, preferPortrait = false } = {},
 ) {
   if (!TRAIN_LINE_ORDER.includes(lineKey)) return null;
   const short = shortCodeFor(lineKey);
@@ -297,10 +297,11 @@ export function buildLineMap(
     };
   });
 
-  // Detect a "very vertical" line and rotate it 90° CCW so the SVG stays
-  // landscape. Threshold is in distance-corrected aspect (effective lonRange
-  // / latRange). Below 0.5 the line is more than 2x taller than wide; render
-  // sideways instead.
+  // Orientation. Default (desktop): rotate only a "very vertical" line 90° CCW
+  // so a tall N-S line doesn't waste a wide content column — below 0.5 aspect
+  // it's >2x taller than wide, render sideways. preferPortrait (mobile): orient
+  // so the line's LONG axis runs vertically — keep tall lines tall, rotate
+  // naturally-wide lines upright — to use a portrait screen's height.
   let minLat = Number.POSITIVE_INFINITY;
   let maxLat = Number.NEGATIVE_INFINITY;
   let minLon = Number.POSITIVE_INFINITY;
@@ -315,11 +316,13 @@ export function buildLineMap(
   const cosCorrection = Math.cos((meanLat * Math.PI) / 180);
   const naturalAspect =
     (Math.max(maxLon - minLon, 1e-6) * cosCorrection) / Math.max(maxLat - minLat, 1e-6);
-  const rotate = naturalAspect < 0.5;
+  const rotate = preferPortrait ? naturalAspect > 1 : naturalAspect < 0.5;
 
   const main = projectInto(enriched, segments, {
     maxWidth,
-    maxHeight: rotate ? 240 : maxHeight,
+    // Desktop rotation implies landscape, so cap the height. In portrait mode a
+    // rotation is to stand the line UP, so let it use the full height instead.
+    maxHeight: rotate && !preferPortrait ? 240 : maxHeight,
     margin,
     rotate,
   });
@@ -400,6 +403,10 @@ export function buildLineMap(
     height: main.height,
     tracks: main.tracks,
     stations: main.stations,
+    // Same lat/lon → SVG transform the tracks/stations were projected through,
+    // exposed so callers can drop arbitrary points (e.g. live vehicle positions
+    // for event replay) onto the schematic in the same coordinate space.
+    project: main.project,
     maxCount,
     downtown,
   };

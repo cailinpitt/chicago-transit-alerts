@@ -24,6 +24,7 @@ import {
 } from '../../lib/incidents.js';
 import { stationsServingLines } from '../../lib/stations.js';
 import EventMap from '../EventMap.jsx';
+import EventReplay from '../EventReplay.jsx';
 import LinePill from '../LinePill.jsx';
 import MultiLineEventMap from '../MultiLineEventMap.jsx';
 import ShareLink from '../ShareLink.jsx';
@@ -977,6 +978,23 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             active={!!incident.active}
           />
         ))}
+
+      {/* Replay — animates the actual vehicle positions from this incident's
+          window across the schematic. Renders only when a track file exists
+          for this event on the R2 origin (train incidents archived before the
+          7-day raw-observation rolloff); otherwise EventReplay returns null. */}
+      {incident.kind === 'train' && (
+        <EventReplay
+          eventId={incident.id}
+          // Prefer the affected observation's own line so a multi-route incident
+          // (e.g. a shared Orange/Green stretch) projects onto the line the
+          // segment is actually on, not whichever route sorts first.
+          lineKey={primary?.line ?? (Array.isArray(incident.routes) ? incident.routes[0] : null)}
+          fromStation={primary?.from_station ?? cta?.affected_from_station ?? null}
+          toStation={primary?.to_station ?? cta?.affected_to_station ?? null}
+          directionLabel={primary?.direction_label ?? cta?.affected_direction ?? null}
+        />
+      )}
 
       {/* Context insights — place recurrence ("is this a chronic trouble
           spot?") and time-of-day ("a busy hour for this line?"). Both are
