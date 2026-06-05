@@ -315,6 +315,49 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
     return track.vehicles.map((v) => ({ ...v, s: deJitterVehicle(v.s, polys, map.project) }));
   }, [track, map]);
 
+  // The actual "no service" intervals, scanned across the clip with the exact
+  // same presence logic the map uses (segment empty of affected-direction trains
+  // within the incident window). The scrubber bands these so it agrees with when
+  // the map segment is red — rather than the detector's onset, which leads the
+  // trains you can see. Memoized: runs once per loaded track.
+  const coldBands = useMemo(() => {
+    if (!track || !map || track.durSec <= 0) return [];
+    const wanted = new Set([fromStation, toStation].filter(Boolean).map((n) => slugifyStation(n)));
+    const aff = map.stations.filter((s) => wanted.has(slugifyStation(s.name)));
+    if (aff.length !== 2) return [];
+    const dir = track.affectedDir ?? null;
+    const resMs = track.resolved ?? Number.POSITIVE_INFINITY;
+    const step = Math.max(2, track.durSec / 250);
+    const intervals = [];
+    let start = null;
+    for (let ts = 0; ts <= track.durSec; ts += step) {
+      const clock = track.t0 + ts * 1000;
+      const inWin = clock >= track.onset - COLD_PAD_MS && clock <= resMs + COLD_PAD_MS;
+      let occupied = false;
+      if (inWin) {
+        for (const v of vehicles) {
+          if (dir != null && v.dir !== dir) continue;
+          const pos = vehicleSample(v, ts, false);
+          if (!pos) continue;
+          const p = map.project(pos.lat, pos.lon);
+          const sn = snapToTracks(p.x, p.y, map.tracks);
+          if (dotInBox({ x: sn.x, y: sn.y }, aff[0], aff[1])) {
+            occupied = true;
+            break;
+          }
+        }
+      }
+      const cold = inWin && !occupied;
+      if (cold && start == null) start = ts;
+      else if (!cold && start != null) {
+        intervals.push([start, ts]);
+        start = null;
+      }
+    }
+    if (start != null) intervals.push([start, track.durSec]);
+    return intervals;
+  }, [track, map, vehicles, fromStation, toStation]);
+
   // rAF playback loop. Advances the playhead by wall-clock delta × speed.
   useEffect(() => {
     if (!playing || !track) return undefined;
@@ -389,20 +432,21 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
     );
   const coldActive = inWindow && affected.length === 2 && !segOccupied;
 
-  // Disruption span as % of the clip, to band the scrubber so you can see where
-  // the trouble sits and scrub straight to it. Active incident → runs to the end.
+  // Band the scrubber with the actual "no service" intervals (coldBands), so it
+  // agrees with when the map segment is red. Fall back to the detector's
+  // onset→resolved window only if presence never resolved a cold stretch.
   const onsetSec = Math.max(0, Math.min(track.durSec, (track.onset - track.t0) / 1000));
   const resolvedSec =
     track.resolved != null
       ? Math.max(0, Math.min(track.durSec, (track.resolved - track.t0) / 1000))
       : track.durSec;
-  const band =
+  const bandSegs =
     track.durSec > 0
-      ? {
-          left: (onsetSec / track.durSec) * 100,
-          width: (Math.max(0, resolvedSec - onsetSec) / track.durSec) * 100,
-        }
-      : null;
+      ? (coldBands.length > 0 ? coldBands : [[onsetSec, resolvedSec]]).map(([a, c]) => ({
+          left: (a / track.durSec) * 100,
+          width: (Math.max(0, c - a) / track.durSec) * 100,
+        }))
+      : [];
 
   // Arrow marking the affected direction of travel, pointing toward the named
   // terminus. Best-effort: only drawn when the direction label resolves to a
@@ -591,17 +635,20 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
             {playing ? '❚❚ Pause' : '▶ Play'}
           </button>
           <div className="flex-1 min-w-[160px]">
-            {/* Disruption band: the red span marks onset → recovery so you can
-                see where the trouble is on the timeline and scrub right to it. */}
-            {band && band.width > 0 && (
+            {/* Disruption band: red spans mark when the segment is actually out
+                of service (matches the map), so you can scrub right to it. */}
+            {bandSegs.length > 0 && (
               <div
                 className="relative h-1.5 mb-1 rounded bg-slate-200 dark:bg-gh-border"
                 title={`no service${directionLabel ? ` · ${directionLabel}` : ''}`}
               >
-                <div
-                  className="absolute inset-y-0 rounded bg-red-400/80 dark:bg-red-500/70"
-                  style={{ left: `${band.left}%`, width: `${band.width}%` }}
-                />
+                {bandSegs.map((b) => (
+                  <div
+                    key={`${b.left.toFixed(2)}-${b.width.toFixed(2)}`}
+                    className="absolute inset-y-0 rounded bg-red-400/80 dark:bg-red-500/70"
+                    style={{ left: `${b.left}%`, width: `${b.width}%` }}
+                  />
+                ))}
               </div>
             )}
             <input
