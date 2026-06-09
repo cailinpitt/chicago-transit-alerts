@@ -3,7 +3,7 @@ import { useMediaQuery } from '../hooks/useMediaQuery.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { fetchEventTrack } from '../lib/eventTracks.js';
 import { hexToRgba } from '../lib/format.js';
-import { buildLineMap, sliceTrackBetween } from '../lib/lineMap.js';
+import { buildLineMap, sliceTrackBetween, terminalPointsFor } from '../lib/lineMap.js';
 import { displayStationName, slugifyStation } from '../lib/stations.js';
 
 // Trains drop out of the CTA feed for short stretches constantly (layovers at
@@ -102,6 +102,17 @@ function vehicleSample(v, t, reducedMotion = false) {
 // CTA Loop center — the aim point for "toward the Loop"/"downtown" labels,
 // which name a destination area rather than a single terminus station.
 const LOOP_CENTER = [41.8807, -87.6298];
+
+// A train whose last sample lands within this many px of a terminus (or the
+// Loop, for round-trip lines) ran off the end of its line — a clean exit, not a
+// data dropout. Beyond it, a stream that ends mid-route before the incident
+// resolves is the feed losing the train; we mark that distinctly so it doesn't
+// read as a train that simply left.
+const TERMINUS_NEAR_PX = 20;
+const LOOP_NEAR_PX = 40;
+// How long (playback seconds) a "signal lost" ghost lingers, fading, at the last
+// known spot after a mid-route disappearance.
+const LOST_SIGNAL_HOLD_SEC = 90;
 
 // Grace on each side of the detected window. The actual red/clear timing is
 // driven by train presence; this just scopes "this is the incident" so the
@@ -315,6 +326,37 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
     return track.vehicles.map((v) => ({ ...v, s: deJitterVehicle(v.s, polys, map.project) }));
   }, [track, map]);
 
+  // Projected terminus stations of the line — anchors for telling a clean exit
+  // (train ran off the end of its line) from a mid-route feed dropout.
+  const terminalPts = useMemo(() => (map ? terminalPointsFor(map, lineKey) : []), [map, lineKey]);
+
+  // Trains whose track simply *ends* mid-route, before the clip does and away
+  // from any terminus or the Loop — i.e. the CTA feed lost them, they didn't
+  // leave service. We mark these with a brief fading "signal lost" ring at their
+  // last spot (below), so a data dropout reads differently from a train that
+  // cleanly reached the end of its run. Memoized per loaded track.
+  const lostSignalVehicles = useMemo(() => {
+    if (!track || !map || track.durSec <= 0) return [];
+    const loopPt = map.project(LOOP_CENTER[0], LOOP_CENTER[1]);
+    const out = [];
+    for (const v of vehicles) {
+      if (!v.s?.length) continue;
+      const lastS = v.s[v.s.length - 1];
+      const lastSec = lastS[0];
+      // Must end clearly before the clip's end (else it's just the clip ending).
+      if (lastSec >= track.durSec - 30) continue;
+      const p = map.project(lastS[1], lastS[2]);
+      const sn = snapToTracks(p.x, p.y, map.tracks);
+      const nearTerminus = terminalPts.some(
+        (tp) => Math.hypot(tp.x - sn.x, tp.y - sn.y) <= TERMINUS_NEAR_PX,
+      );
+      const nearLoop = Math.hypot(loopPt.x - sn.x, loopPt.y - sn.y) <= LOOP_NEAR_PX;
+      if (nearTerminus || nearLoop) continue; // clean exit — not a dropout
+      out.push({ id: v.id, dir: v.dir, lastSec, x: sn.x, y: sn.y });
+    }
+    return out;
+  }, [track, map, vehicles, terminalPts]);
+
   // The actual "no service" intervals, scanned across the clip with the exact
   // same presence logic the map uses (segment empty of affected-direction trains
   // within the incident window). The scrubber bands these so it agrees with when
@@ -409,6 +451,20 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
     const ang = hdx * hdx + hdy * hdy > 1 ? Math.atan2(hdy, hdx) : null;
     dots.push({ id: v.id, dir: v.dir, x: snapped.x, y: snapped.y, opacity: pos.opacity, ang });
   }
+
+  // "Signal lost" rings: a train whose feed went dark mid-route lingers as a
+  // fading hollow ring at its last spot for a short window, so the dropout is
+  // legible as a data gap rather than a silent disappearance. Skipped under
+  // reduced motion (no fade), matching how the dot ghosts are suppressed there.
+  const lostGhosts = reducedMotion
+    ? []
+    : lostSignalVehicles
+        .map((v) => {
+          const age = t - v.lastSec;
+          if (age < 0 || age > LOST_SIGNAL_HOLD_SEC) return null;
+          return { ...v, opacity: 0.55 * (1 - age / LOST_SIGNAL_HOLD_SEC) };
+        })
+        .filter(Boolean);
 
   // Drive the "no service" highlight off whether a train is *physically* in the
   // segment right now (gated to the incident window), not the detector's
@@ -566,6 +622,24 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
                 <path d={directionArrow} stroke={coldActive ? '#ef4444' : accent} strokeWidth={3} />
               </g>
             )}
+            {/* "Signal lost" rings — a hollow dashed circle where a train's feed
+                went dark mid-route, fading over a few seconds. Distinct from a
+                train that cleanly ran off at a terminus (which just exits). */}
+            {lostGhosts.map((g) => (
+              <circle
+                key={`lost-${g.id}`}
+                cx={g.x}
+                cy={g.y}
+                r={7}
+                fill="none"
+                stroke={accent}
+                strokeWidth={2}
+                strokeDasharray="2 3"
+                opacity={g.opacity}
+              >
+                <title>{`Run ${g.id} · signal lost`}</title>
+              </circle>
+            ))}
             {/* Live train dots. Moving trains render as an arrowhead pointing
                 the way they're headed (so opposing streams separate at a
                 glance); stationary ones stay a plain dot. Opacity drops as a

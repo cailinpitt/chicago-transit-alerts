@@ -55,6 +55,17 @@ export function shortCodeFor(lineKey) {
   return FULL_TO_SHORT[lineKey] ?? lineKey;
 }
 
+// The projected terminus stations of a line (from LINE_TERMINALS). EventReplay
+// uses these to tell a train that cleanly ran off at the end of its line from
+// one the feed simply lost mid-route. Round-trip lines (Brown/Orange/Pink/
+// Purple) only list their outer terminal — the Loop end is a turnaround, handled
+// separately by the caller (a disappearance near downtown isn't "lost").
+export function terminalPointsFor(map, lineKey) {
+  if (!map?.stations) return [];
+  const names = new Set((LINE_TERMINALS[lineKey] ?? []).map((n) => slugifyStation(n)));
+  return map.stations.filter((s) => names.has(slugifyStation(s.name)));
+}
+
 function inBox(lat, lon, bbox) {
   return lat >= bbox.latLo && lat <= bbox.latHi && lon >= bbox.lonLo && lon <= bbox.lonHi;
 }
