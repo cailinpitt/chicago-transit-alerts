@@ -137,6 +137,58 @@ function terminusSlug(directionLabel) {
   return m ? slugifyStation(m[1].trim()) : null;
 }
 
+// Placement {dx, dy, anchor} for each affected-station label, keyed by station
+// name. A lone station — or a well-separated pair — rides centered above its
+// dot, dropping below only to dodge the top edge so the text doesn't clip. Two
+// stations that sit close together would otherwise collide, so:
+//   • a vertical stack (e.g. Damen / Irving Park where the Brown Line bends)
+//     sets its labels *beside* the dots, like a real transit map — on the side
+//     opposite the direction arrow so the two don't collide — instead of
+//     stacked on top of the track;
+//   • a side-by-side pair fans apart vertically (upper label up, lower down).
+function affectedLabelOffsets(affected, width, height, arrowSide = 0) {
+  const centered = (s) => ({ dx: 0, dy: s.y < height * 0.14 ? 15 : -9, anchor: 'middle' });
+  const out = {};
+  if (affected.length === 2) {
+    const [a, b] = affected;
+    const dx = Math.abs(a.x - b.x);
+    const dy = Math.abs(a.y - b.y);
+    const close = dx < 50 && dy < 80;
+    if (close && dy >= dx) {
+      // Vertical stack: labels beside the dots, fanned outward (upper label up,
+      // lower label down) so each clears a horizontal track arm at its own dot's
+      // level — e.g. Damen sits at the Brown Line's bend, so a label level with
+      // it would land on the westbound arm. Sit on the side opposite the arrow
+      // if there is one; otherwise the side toward the map's center (the more
+      // open margin). Anchor so the text grows into open canvas, clear of the
+      // ~6px dot ring.
+      const side = arrowSide !== 0 ? -arrowSide : (a.x + b.x) / 2 > width / 2 ? -1 : 1;
+      const anchor = side < 0 ? 'end' : 'start';
+      const upper = a.y <= b.y ? a : b;
+      const lower = a.y <= b.y ? b : a;
+      out[upper.name] = { dx: side * 12, dy: -10, anchor };
+      out[lower.name] = { dx: side * 12, dy: 15, anchor };
+      return out;
+    }
+    if (close) {
+      // Side-by-side pair: fan the labels apart vertically. Drop the lower one
+      // below the pair; if that'd clip the bottom edge, lift the upper one.
+      const upper = a.y <= b.y ? a : b;
+      const lower = a.y <= b.y ? b : a;
+      if (lower.y < height - 16) {
+        out[upper.name] = centered(upper);
+        out[lower.name] = { dx: 0, dy: 15, anchor: 'middle' };
+      } else {
+        out[upper.name] = { dx: 0, dy: -9, anchor: 'middle' };
+        out[lower.name] = centered(lower);
+      }
+      return out;
+    }
+  }
+  for (const s of affected) out[s.name] = centered(s);
+  return out;
+}
+
 // SVG path for a full arrow (shaft + V head, like "→") centered at (x,y) and
 // pointing along `ang`. Stroked, not filled.
 function arrowPath(x, y, ang, len = 34, head = 11) {
@@ -516,6 +568,7 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
     targetPt = map.project(LOOP_CENTER[0], LOOP_CENTER[1]);
   }
   let directionArrow = null;
+  let arrowSide = 0; // horizontal side the arrow took: -1 left, +1 right, 0 none
   if (highlightPath && targetPt && affected.length === 2) {
     const d0 = Math.hypot(affected[0].x - targetPt.x, affected[0].y - targetPt.y);
     const d1 = Math.hypot(affected[1].x - targetPt.x, affected[1].y - targetPt.y);
@@ -534,7 +587,12 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
       .map((pa) => ({ x: midX + Math.cos(pa) * 30, y: midY + Math.sin(pa) * 30 }))
       .sort((p, q) => Math.hypot(q.x - cx, q.y - cy) - Math.hypot(p.x - cx, p.y - cy));
     directionArrow = arrowPath(base.x, base.y, ang);
+    arrowSide = Math.sign(base.x - midX);
   }
+
+  // Labels for a vertical stack go to the side opposite the arrow, so the two
+  // don't fight over the same margin (arrowSide drives that choice).
+  const labelPos = affectedLabelOffsets(affected, map.width, map.height, arrowSide);
 
   const segLabel =
     fromStation && toStation
@@ -673,15 +731,16 @@ export default function EventReplay({ eventId, lineKey, fromStation, toStation, 
                 )}
               </g>
             ))}
-            {/* Affected-station labels — drawn last (with a halo) so you can read
-                which stations frame the gap without hovering. Nudged below when
-                the dot sits near the top edge so the text doesn't clip. */}
+            {/* Affected-station labels — drawn last (with a halo) so you can
+                read which stations frame the gap without hovering. Placement
+                (above/below the dot, or beside it for tight stacks) is resolved
+                up front by affectedLabelOffsets so close pairs don't collide. */}
             {affected.map((s) => (
               <text
                 key={`lbl-${s.name}`}
-                x={s.x}
-                y={s.y + (s.y < map.height * 0.14 ? 15 : -9)}
-                textAnchor="middle"
+                x={s.x + labelPos[s.name].dx}
+                y={s.y + labelPos[s.name].dy}
+                textAnchor={labelPos[s.name].anchor}
                 fontSize={9.5}
                 fontWeight={600}
                 fill={accent}
