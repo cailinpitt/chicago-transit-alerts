@@ -20,6 +20,7 @@ import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
 import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
 import { metraLineInfo, normalizeMetraLine } from '../lib/metraLines.js';
+import { buildMetraStationIndex } from '../lib/metraStations.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -349,8 +350,10 @@ export default function LinePage({ kind, lineId }) {
   // not be gated on whether this particular line meets the threshold.
   const stationIndex = useMemo(() => {
     if (!flat) return null;
-    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
-  }, [flat, now]);
+    return isMetra
+      ? buildMetraStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 })
+      : buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+  }, [flat, now, isMetra]);
 
   // Search-only narrowing for the IncidentList. The line is already locked
   // by the pre-filter above; only free-text search remains. Reuse the same
@@ -402,18 +405,16 @@ export default function LinePage({ kind, lineId }) {
             {!isRail && busName && (
               <span className="text-sm text-slate-500 dark:text-slate-400">{busName}</span>
             )}
-            {/* Per-line/route Atom feed — subscribe to just this line/route.
-                The feed exists for every CTA line and roster route. Metra feeds
-                aren't generated yet (gated pre-launch), so the link is omitted. */}
-            {!isMetra && (
-              <a
-                href={`/feed/${isTrain ? 'line' : 'route'}/${effectiveLineId}.xml`}
-                className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-400 hover:underline"
-                title={`Subscribe to ${heading} alerts via RSS/Atom`}
-              >
-                🔔 Subscribe (RSS)
-              </a>
-            )}
+            {/* Per-line/route Atom feed — subscribe to just this line/route. A
+                feed exists for every CTA line, roster bus route, and Metra line.
+                Metra feeds live under the /feed/metra/line/ namespace. */}
+            <a
+              href={`/feed/${isTrain ? 'line' : isMetra ? 'metra/line' : 'route'}/${effectiveLineId}.xml`}
+              className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-400 hover:underline"
+              title={`Subscribe to ${heading} alerts via RSS/Atom`}
+            >
+              🔔 Subscribe (RSS)
+            </a>
           </div>
         </div>
 
@@ -548,9 +549,15 @@ export default function LinePage({ kind, lineId }) {
                 </div>
               )}
 
-            {/* Geographic station heatmap — train-only, since the data
-                files cover the L. Hidden on bus pages. */}
-            {isTrain && <LineMap lineKey={effectiveLineId} stationIndex={stationIndex} />}
+            {/* Geographic station heatmap — rail only (CTA L + Metra), which
+                have line/station geometry. Hidden on bus pages. */}
+            {isRail && (
+              <LineMap
+                kind={isMetra ? 'metra' : 'train'}
+                lineKey={effectiveLineId}
+                stationIndex={stationIndex}
+              />
+            )}
 
             {segments.length > 0 && (
               <section>

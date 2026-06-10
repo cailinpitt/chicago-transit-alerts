@@ -26,9 +26,10 @@ function main() {
     return;
   }
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
-  // Pre-launch: drop kind='metra' incidents (gateIncidents is CTA-only in Node)
-  // so no Metra event pages, feed entries, sitemap urls, or CSV rows are published.
-  raw.incidents = gateIncidents(raw.incidents || []);
+  // The CSV mirror is Metra-aware (one flat row per record; the `kind` column
+  // already distinguishes Metra rows), so opt in explicitly. The Node-default
+  // gate stays CTA-only for the not-yet-Metra build outputs (OG-prerendered pages).
+  raw.incidents = gateIncidents(raw.incidents || [], true);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const csv = buildCsv(payload.alerts ?? [], payload.observations ?? []);
   writeFileSync(OUT, csv);

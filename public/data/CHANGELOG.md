@@ -6,6 +6,28 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-10 — Metra in the CSV + syndication feeds (additive)
+
+Metra incidents (`kind: "metra"`, shipped 2026-06-09) now also flow through the
+flat CSV and the Atom/JSON feeds — they are no longer `alerts.json`-only.
+
+- **CSV** (`alerts.csv`) — Metra rows are emitted with `kind` `"metra"`,
+  lowercase Metra line keys in `routes`, and the `"cancellation"` /
+  `"cancellation-inferred"` / `"delay"` `detection_source` values. The column
+  layout is unchanged.
+- **Global feed** (`feed.xml` / `feed.json`) — Metra incidents now appear in the
+  combined feed, tagged with a `metra` category and a `metra-line-<key>` category
+  per line.
+- **New per-line Metra feeds** — `/feed/metra/line/:line.xml` (+ `.json` twin) for
+  every Metra line, mirroring the CTA `/feed/line/` and `/feed/route/` feeds. The
+  Metra path prefix keeps them in a separate namespace from the CTA line feeds.
+- **Postless entries** — Metra cancellation/delay feed entries carry no
+  `external_url`/`post_url` (website-data-first) and link to the on-site event
+  page (`/event/<incident-id>`) rather than a Bluesky post.
+
+Still CTA-only: prerendered OG card **images** (the `og.png` thumbnails). The
+on-site Metra line/event maps render client-side and aren't part of this data API.
+
 ## 2026-06-09 — Metra commuter rail incidents: `kind: "metra"` (additive)
 
 `alerts.json` now includes Metra (Chicago commuter rail) incidents alongside the

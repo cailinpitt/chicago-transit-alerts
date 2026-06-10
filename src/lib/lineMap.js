@@ -223,8 +223,9 @@ export function sliceTrackBetween(tracks, a, b) {
 
 // Project a set of stations + track segments into a target SVG box. Thin
 // wrapper over makeProjection that also maps the station + track geometry
-// through the resulting projection.
-function projectInto(rawStations, segments, opts) {
+// through the resulting projection. Exported so the parallel Metra builder
+// (metraLineMap.js) shares the exact same projection math.
+export function projectInto(rawStations, segments, opts) {
   if (rawStations.length === 0) return null;
   const points = [];
   for (const s of rawStations) points.push([s.lat, s.lon]);

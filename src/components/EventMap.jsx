@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { hexToRgba } from '../lib/format.js';
 import { buildLineMap, sliceTrackBetween } from '../lib/lineMap.js';
+import { buildMetraLineMap } from '../lib/metraLineMap.js';
+import { METRA_LINES } from '../lib/metraLines.js';
 import { displayStationName } from '../lib/stations.js';
 
 // Light-touch event-scoped map: full line track in muted color, with the
@@ -17,10 +19,21 @@ import { displayStationName } from '../lib/stations.js';
 // `from` / `to` station names come from either an observation (from_station/
 // to_station) or an alert (affected_from_station/affected_to_station); the
 // caller normalizes which fields to pass.
-export default function EventMap({ lineKey, fromStation, toStation, active = false }) {
+export default function EventMap({
+  lineKey,
+  fromStation,
+  toStation,
+  active = false,
+  kind = 'train',
+}) {
+  const isMetra = kind === 'metra';
   const map = useMemo(
-    () => buildLineMap(lineKey, null, { maxWidth: 720, maxHeight: 320 }),
-    [lineKey],
+    () =>
+      (isMetra ? buildMetraLineMap : buildLineMap)(lineKey, null, {
+        maxWidth: 720,
+        maxHeight: 320,
+      }),
+    [lineKey, isMetra],
   );
 
   if (!map) return null;
@@ -40,8 +53,11 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
   // the map's minWidth (480px) exceeds the viewport.
   const affectedCenterX = affected.reduce((sum, s) => sum + s.x, 0) / affected.length;
 
-  const info = TRAIN_LINES[lineKey];
+  const info = isMetra ? METRA_LINES[lineKey] : TRAIN_LINES[lineKey];
   const accent = info?.color ?? '#475569';
+  // CTA reads "Red Line"; Metra lines are named outright ("Rock Island").
+  const mapLabel = isMetra ? (info?.label ?? lineKey) : `${info?.label ?? lineKey} Line`;
+  const stationHrefBase = isMetra ? '/metra/station' : '/station';
   const trackPaths = map.tracks
     .filter((t) => t.length >= 2)
     .map((t) => `M${t.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`);
@@ -70,10 +86,10 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
               viewBox={`0 0 ${map.width} ${map.height}`}
               preserveAspectRatio="xMidYMid meet"
               role="img"
-              aria-label={`Affected stretch on the ${info?.label ?? lineKey} Line`}
+              aria-label={`Affected stretch on the ${mapLabel}`}
               className="block w-full h-auto"
             >
-              <title>{`Affected stretch on the ${info?.label ?? lineKey} Line`}</title>
+              <title>{`Affected stretch on the ${mapLabel}`}</title>
               {/* Track — dimmed compared to LinePage's map so the affected
                   segment chord pops as the foreground element. */}
               {trackPaths.map((d) => (
@@ -117,7 +133,7 @@ export default function EventMap({ lineKey, fromStation, toStation, active = fal
                 ))}
               {/* Affected stations — bold, brand color, larger radius. */}
               {affected.map((s) => {
-                const href = s.slug ? `/station/${s.slug}` : null;
+                const href = s.slug ? `${stationHrefBase}/${s.slug}` : null;
                 const dot = (
                   <circle
                     cx={s.x}
@@ -283,7 +299,13 @@ export function MapScroller({ mapWidth, affectedCenterX, affectedKey, children }
     el.scrollLeft = Math.max(0, Math.min(max, desired));
   }, [affectedKey, affectedCenterX, mapWidth]);
   return (
-    <div ref={ref} className="relative overflow-x-auto">
+    // py-6 reserves vertical room inside the scroll box so a station label that
+    // sits at the top or bottom edge of the SVG (e.g. a Metra terminal like
+    // Chicago OTC near the top of a diagonal line) overflows into the padding
+    // instead of being clipped — `overflow-x: auto` coerces the y-axis to clip
+    // too, so without this cushion the label's top gets cut off. Same fix the
+    // LinePage LineMap uses for its terminal labels.
+    <div ref={ref} className="relative overflow-x-auto py-6">
       {children}
     </div>
   );

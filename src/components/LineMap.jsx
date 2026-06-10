@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { hexToRgba } from '../lib/format.js';
 import { buildLineMap } from '../lib/lineMap.js';
+import { buildMetraLineMap } from '../lib/metraLineMap.js';
+import { METRA_LINES } from '../lib/metraLines.js';
 import { displayStationName } from '../lib/stations.js';
 
 // Five intensity stops keyed off the line's max station count so the
@@ -24,14 +26,14 @@ function pathFor(track) {
   return `M${track.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}`;
 }
 
-function StationDot({ station, maxCount, accent, radius = 5 }) {
+function StationDot({ station, maxCount, accent, radius = 5, hrefBase = '/station' }) {
   const fill = stationFill(station.count, maxCount, accent);
   const display = displayStationName(station.name);
   const label =
     station.count === 0
       ? `${display}: no incidents (last 90 days)`
       : `${display}: ${station.count} incident${station.count === 1 ? '' : 's'} (last 90 days)`;
-  const href = station.slug ? `/station/${station.slug}` : null;
+  const href = station.slug ? `${hrefBase}/${station.slug}` : null;
   const circle = (
     <circle
       cx={station.x}
@@ -120,10 +122,15 @@ function TerminalLabel({ station, mapWidth, mapHeight, radius }) {
 // When ≥4 stations cluster downtown (true for every line except Yellow),
 // a zoom inset is rendered in the lower-right corner so the dense Loop
 // stations are individually clickable rather than overlapping dots.
-export default function LineMap({ lineKey, stationIndex }) {
+export default function LineMap({ lineKey, stationIndex, kind = 'train' }) {
+  const isMetra = kind === 'metra';
   const map = useMemo(
-    () => buildLineMap(lineKey, stationIndex, { maxWidth: 720, maxHeight: 540 }),
-    [lineKey, stationIndex],
+    () =>
+      (isMetra ? buildMetraLineMap : buildLineMap)(lineKey, stationIndex, {
+        maxWidth: 720,
+        maxHeight: 540,
+      }),
+    [lineKey, stationIndex, isMetra],
   );
   // Track whether the map's horizontal scroll has more content to the right.
   // The fade overlay is `position: absolute; right: 0` inside the scroll
@@ -151,8 +158,13 @@ export default function LineMap({ lineKey, stationIndex }) {
     };
   }, []);
   if (!map) return null;
-  const info = TRAIN_LINES[lineKey];
+  const info = isMetra ? METRA_LINES[lineKey] : TRAIN_LINES[lineKey];
   const accent = info?.color ?? '#475569';
+  // CTA lines read "Red Line"; Metra lines are named outright ("Union Pacific
+  // North"), so only the train side gets the " Line" suffix.
+  const lineName = info?.label ?? lineKey;
+  const mapLabel = isMetra ? lineName : `${lineName} Line`;
+  const hrefBase = isMetra ? '/metra/station' : '/station';
 
   const trackPaths = map.tracks.filter((t) => t.length >= 2).map(pathFor);
   const inset = map.downtown;
@@ -192,10 +204,10 @@ export default function LineMap({ lineKey, stationIndex }) {
                 viewBox={`0 0 ${map.width} ${map.height}`}
                 preserveAspectRatio="xMidYMid meet"
                 role="img"
-                aria-label={`${info?.label ?? lineKey} Line stations heatmap`}
+                aria-label={`${mapLabel} stations heatmap`}
                 className="block w-full h-auto"
               >
-                <title>{`${info?.label ?? lineKey} Line stations`}</title>
+                <title>{`${mapLabel} stations`}</title>
                 {trackPaths.map((d) => (
                   <path
                     key={d}
@@ -214,6 +226,7 @@ export default function LineMap({ lineKey, stationIndex }) {
                     maxCount={map.maxCount}
                     accent={accent}
                     radius={6}
+                    hrefBase={hrefBase}
                   />
                 ))}
                 {/* Marker rectangle on the main map showing where the

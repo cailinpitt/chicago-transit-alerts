@@ -1013,6 +1013,18 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           />
         ))}
 
+      {/* Metra incidents are single-line (one route key), so they always use
+          the single-line EventMap — never the multi-line Loop variant. */}
+      {incident.kind === 'metra' && (
+        <EventMap
+          kind="metra"
+          lineKey={Array.isArray(incident.routes) ? incident.routes[0] : null}
+          fromStation={primary?.from_station ?? cta?.affected_from_station ?? null}
+          toStation={primary?.to_station ?? cta?.affected_to_station ?? null}
+          active={!!incident.active}
+        />
+      )}
+
       {/* Replay — animates the actual vehicle positions from this incident's
           window across the schematic. Renders only when a track file exists
           for this event on the R2 origin (train incidents archived before the

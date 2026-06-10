@@ -483,7 +483,7 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
       outDir: resolve(DIST, 'metra', 'line', lineId),
       url: `${SITE}/metra/line/${lineId}`,
       path: `/metra/line/${lineId}`,
-      // No feedPath — Metra per-line feeds aren't generated yet.
+      feedPath: `/feed/metra/line/${lineId}.xml`,
       label: lineId.toUpperCase(),
       crumbLabel: `${info.label} (Metra)`,
       title: info.label,

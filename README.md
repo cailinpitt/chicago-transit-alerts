@@ -19,7 +19,7 @@ A public archive of Chicago Transit Authority (CTA) and Metra service alerts and
 - **When do incidents happen?** — a 7×24 hour-of-week heatmap so you can see whether things really are worse at PM rush or on Sunday mornings.
 - **Signal mix by line** — stacked bars showing the proportion of bot detection types per line: gap, bunching, ghost, cold stretch, and trains-held for CTA; cancellations and delays for Metra (its own section). Bus and line pages also show a single-row variant scoped to that route.
 - **Incident history** — chronological day-grouped list of every captured alert and observation. Filterable by CTA line, bus route, Metra line, agency, time window (7d / 30d / 90d / all), single pinned day, signal type, and free-text search across headlines, station names, route numbers, and route names ("Howard", "Aurora", "Red Line", "UP-N", "headway gaps", etc). Search matches are highlighted in the list as you type.
-- **Per-line page** — `/line/:line` (CTA), `/metra/line/:line` (Metra), and `/route/:routeId` (bus) show reliability stats, year-over-year delta (when ≥1y of data exists), resolution-time histogram, and a per-station heatmap on a stylized line map (CTA trains).
+- **Per-line page** — `/line/:line` (CTA), `/metra/line/:line` (Metra), and `/route/:routeId` (bus) show reliability stats, year-over-year delta (when ≥1y of data exists), resolution-time histogram, and a per-station heatmap on a geographic line map (CTA trains + Metra lines).
 - **Compare** — `/compare` puts up to three CTA train lines, bus routes, or Metra lines side-by-side with a stat table, overlaid duration histograms, signal-mix rows, and a row of mini hour-of-week heatmaps. State round-trips through the URL (`?trains=red,blue,green` / `?buses=66,X9,77` / `?metra=up-n,bnsf`).
 - **Per-event detail page** — every captured incident gets a permalink at `/event/:id`. Alongside the timeline of CTA/bot updates it surfaces severity badges ("longest Blue Line incident in 30 days", "top 10% by duration"), a recurring-stretch callout ("this stretch has had N disruptions in 90 days"), a busy/quiet hour-of-day note, a live-ticking "ongoing for…" counter on active incidents, surrounding-24h context on the same line, ±1h cross-line context, a 14-day mini timeline whose day cells deep-link to that day (filtered to the line), prev/next navigation (same line and system-wide), and a "copy summary" button.
 
@@ -45,7 +45,7 @@ Every captured incident gets its own permalink with surrounding context, a 14-da
   <img src="docs/images/website-event.png" alt="Event detail page with geographic map and surrounding context" width="820">
 </p>
 
-CTA train lines, bus routes, Metra lines, and individual stations each have a dedicated page with reliability stats, signal mix, and a per-station heatmap (CTA trains get a stylized line map):
+CTA train lines, bus routes, Metra lines, and individual stations each have a dedicated page with reliability stats, signal mix, and a per-station heatmap (CTA trains and Metra lines get a geographic line map):
 
 <table align="center">
   <tr>
@@ -92,8 +92,9 @@ Each entry carries `<media:thumbnail>`, `<media:content>`, and a small HTML `<co
 
 - Train line — `/feed/line/:line.xml` (e.g. [`/feed/line/red.xml`](https://chicagotransitalerts.app/feed/line/red.xml))
 - Bus route — `/feed/route/:route.xml` (e.g. [`/feed/route/66.xml`](https://chicagotransitalerts.app/feed/route/66.xml))
+- Metra line — `/feed/metra/line/:line.xml` (e.g. [`/feed/metra/line/up-n.xml`](https://chicagotransitalerts.app/feed/metra/line/up-n.xml)) — lowercase GTFS line code
 
-A feed exists for every train line and **every** bus route in the CTA roster up front — not just ones with a prior incident — so you can subscribe to your route today and it simply stays quiet until something happens. Each line and route page links its feed (the “🔔 Subscribe (RSS)” control), and prerendered pages advertise it via `<link rel="alternate" type="application/atom+xml">` for reader autodiscovery. Every feed also has a JSON Feed twin at the same path with a `.json` extension. (The feeds are CTA-only for now — Metra incidents are available in `alerts.json`.)
+A feed exists for every train line, **every** bus route, and **every** Metra line in the roster up front — not just ones with a prior incident — so you can subscribe to your route today and it simply stays quiet until something happens. Each line and route page links its feed (the “🔔 Subscribe (RSS)” control), and prerendered pages advertise it via `<link rel="alternate" type="application/atom+xml">` for reader autodiscovery. Every feed also has a JSON Feed twin at the same path with a `.json` extension.
 
 The feeds are regenerated as a postbuild step from the same `alerts.json` the SPA reads, so they update whenever the underlying data does.
 
@@ -229,7 +230,7 @@ The top-level array is `incidents` — **one object per real-world disruption**.
 }
 ```
 
-Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/incidents.js). An [Atom feed](https://chicagotransitalerts.app/feed.xml) is also published if you want notifications without polling — globally, or [per line/route](#subscribe) (e.g. `/feed/line/red.xml`, `/feed/route/66.xml`), each with a JSON Feed twin.
+Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/incidents.js). An [Atom feed](https://chicagotransitalerts.app/feed.xml) is also published if you want notifications without polling — globally, or [per line/route](#subscribe) (e.g. `/feed/line/red.xml`, `/feed/route/66.xml`, `/feed/metra/line/up-n.xml`), each with a JSON Feed twin.
 
 A flat CSV mirror is also published for spreadsheet and pandas users — the incidents are flattened back to **one row per alert or observation**, with an explicit `type` column:
 
@@ -239,7 +240,7 @@ https://chicagotransitalerts.app/data/alerts.csv
 
 Columns: `type, id, kind, routes, headline, detection_source, signals, from_station, to_station, direction, direction_label, first_seen_ts, onset_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` (full line names) and `signals` are semicolon-separated when multi-valued. `onset_ts` is the disruption start for absence-style observations (back-dated from `first_seen_ts` to the last observed train) and is blank when not back-dated; `duration_minutes` is measured from `onset_ts` when present, else `first_seen_ts`. Regenerated alongside `alerts.json`.
 
-> **Metra coverage note.** Metra incidents (`kind: "metra"`) are present in `alerts.json` and rendered across the site. The flat **CSV** and the per-line **feeds** are currently CTA-only — Metra rows/feeds are not emitted yet.
+> **Metra coverage note.** Metra incidents (`kind: "metra"`) are present in `alerts.json`, the flat **CSV**, the global **feed**, and their own **per-line Metra feeds** (`/feed/metra/line/:line.xml`), and are rendered across the site. Metra cancellations/delays are website-data-first (no individual Bluesky post), so their feed entries link to the on-site event page and carry no `post_url`. Metra line pages and event pages now render a geographic line map (line shape + station heatmap, and per-event from→to segment highlighting). Prerendered OG **card images** are still CTA-only.
 
 Please be a courteous client — cache responses, don't poll faster than every few minutes, and credit the project if you build something public.
 

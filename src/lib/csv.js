@@ -10,10 +10,10 @@ import { observationSignals } from './incidents.js';
 export const CSV_COLUMNS = [
   'type', // 'alert' | 'observation'
   'id', // alert_id (alerts) or `obs-N` (observations)
-  'kind', // 'train' | 'bus'
-  'routes', // semicolon-separated train line keys or bus route ids
+  'kind', // 'train' | 'bus' | 'metra'
+  'routes', // semicolon-separated train line keys, bus route ids, or Metra line keys
   'headline', // alerts only
-  'detection_source', // observations only ('gap', 'pulse-cold', etc.)
+  'detection_source', // observations only ('gap', 'pulse-cold', 'cancellation', 'cancellation-inferred', 'delay', etc.)
   'signals', // observations only, semicolon-separated
   'from_station',
   'to_station',

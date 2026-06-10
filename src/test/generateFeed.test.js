@@ -204,3 +204,46 @@ describe('emitAtom', () => {
     expect((xml.match(/<entry>/g) || []).length).toBe(0);
   });
 });
+
+// A Metra cancellation/delay: website-data-first, so NO Bluesky post, and a
+// zero-duration point event (resolved_ts == first_seen_ts).
+const metraInc = (over = {}) => ({
+  kind: 'metra',
+  id: 'metra-678',
+  routes: ['md-n'],
+  detection_source: 'delay',
+  from_station: 'Fox Lake',
+  to_station: 'Chicago Union Station',
+  first_seen_ts: NOW,
+  ts: NOW,
+  resolved_ts: NOW,
+  active: false,
+  ...over,
+});
+
+describe('Metra incidents in the feed', () => {
+  it('links a postless Metra record to its SPA event page by id', () => {
+    const rec = buildEntryRecord(metraInc());
+    expect(rec.link).toBe('https://chicagotransitalerts.app/event/metra-678');
+    expect(rec.id).toBe('tag:chicagotransitalerts.app,2026:obs-metra-678');
+    expect(rec.thumb).toBe(null); // no OG card for postless Metra
+  });
+
+  it('is never treated as a detector blip despite zero duration', () => {
+    expect(isLikelyDetectorBlip(metraInc())).toBe(false);
+  });
+
+  it('tags a Metra entry with the Metra mode + line category', () => {
+    const rec = buildEntryRecord(metraInc());
+    const terms = rec.categories.map((c) => c.term);
+    expect(terms).toContain('metra');
+    expect(terms).toContain('metra-line-md-n');
+  });
+
+  it('scopes per-line Metra feeds by the lowercase line key', () => {
+    const pool = [metraInc(), metraInc({ id: 'metra-9', routes: ['up-n'] })];
+    expect(scopedRecords(pool, 'metra', 'md-n')).toHaveLength(1);
+    expect(scopedRecords(pool, 'metra', 'up-n')).toHaveLength(1);
+    expect(scopedRecords(pool, 'metra', 'bnsf')).toHaveLength(0);
+  });
+});

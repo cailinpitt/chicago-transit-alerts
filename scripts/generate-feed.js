@@ -22,6 +22,7 @@ import {
   summarizeSignals,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../src/lib/metraLines.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -73,14 +74,19 @@ function routesFor(incident) {
 
 export function entryId(incident) {
   const rkey = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url);
-  if (rkey) return `tag:chicagotransitalerts.app,2026:event/${rkey}`;
-  // Fallback for records without a Bluesky post (shouldn't happen in practice).
-  return `tag:chicagotransitalerts.app,2026:${incident.alert_id ?? `obs-${incident.id}`}`;
+  if (rkey) return `${TAG_AUTHORITY}:event/${rkey}`;
+  // Postless records — Metra cancellations/delays are website-data-first (no
+  // individual Bluesky post), so they reach this path normally. Their stable
+  // identity is the incident id, which the SPA routes by (`/event/:id`).
+  return `${TAG_AUTHORITY}:${incident.alert_id ?? `obs-${incident.id}`}`;
 }
 
 function entryLink(incident) {
   const rkey = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url);
-  return rkey ? `${SITE}/event/${rkey}` : SITE;
+  if (rkey) return `${SITE}/event/${rkey}`;
+  // No post → link to the SPA event page keyed by incident id (findIncidentById
+  // matches inc.id), so postless Metra records still get a real detail page.
+  return incident.id ? `${SITE}/event/${encodeURIComponent(incident.id)}` : SITE;
 }
 
 // Cache-bust the OG image per-state. Readers and CDNs cache by URL, so without
@@ -238,6 +244,8 @@ function entryCategories(incident) {
   const kind = incident.kind;
   if (kind === 'bus' || kind === 'train') {
     cats.push({ term: kind, label: kind === 'bus' ? 'Bus' : 'Train' });
+  } else if (kind === 'metra') {
+    cats.push({ term: 'metra', label: 'Metra' });
   }
   const routes = routesFor(incident);
   if (kind === 'train') {
@@ -247,6 +255,11 @@ function entryCategories(incident) {
     }
   } else if (kind === 'bus') {
     for (const r of routes) cats.push({ term: `route-${r}`, label: `#${r}` });
+  } else if (kind === 'metra') {
+    for (const r of routes) {
+      const label = METRA_LINES[r]?.label;
+      cats.push({ term: `metra-line-${r}`, label: label ?? r });
+    }
   }
   cats.push(
     incident.resolved_ts
@@ -284,6 +297,10 @@ function toIso(ms) {
 // (merged or standalone alert) passes regardless of duration.
 export function isLikelyDetectorBlip(incident) {
   if (incident.alert_id || incident.headline) return false; // alert-backed
+  // Metra cancellations/delays are point-in-time records (resolved_ts ==
+  // first_seen_ts), not detector flicker — the zero "duration" is by design, so
+  // the duration-based blip filter must not drop them.
+  if (incident.kind === 'metra') return false;
   if (!incident.resolved_ts) return false;
   const start = startTs(incident);
   if (!start) return false;
@@ -424,9 +441,10 @@ export function scopedRecords(pool, kind, route) {
 
 function main() {
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
-  // Pre-launch: drop kind='metra' incidents (gateIncidents is CTA-only in Node)
-  // so no Metra event pages, feed entries, sitemap urls, or CSV rows are published.
-  raw.incidents = gateIncidents(raw.incidents || []);
+  // Feeds (global + per-line) and the CSV are Metra-aware, so opt in explicitly
+  // (showMetra=true) — the Node-default gate stays CTA-only for the not-yet-Metra
+  // build outputs (OG-prerendered event/sitemap pages).
+  raw.incidents = gateIncidents(raw.incidents || [], true);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
     payload.alerts || [],
@@ -516,10 +534,33 @@ function main() {
     routeFeeds++;
   }
 
+  // One feed per Metra line, under /feed/metra/line/{key} so it never collides
+  // with the CTA /feed/line/{key} namespace (a CTA key and a Metra key could
+  // otherwise coincide). Same proactive-coverage rationale as the CTA feeds.
+  let metraFeeds = 0;
+  for (const line of METRA_LINE_ORDER) {
+    const records = scopedRecords(pool, 'metra', line);
+    const label = METRA_LINES[line]?.label ?? line;
+    writeFeed(
+      records,
+      feedMeta({
+        idPath: `feed/metra/line/${line}`,
+        title: `Chicago Transit Alerts · Metra ${label}`,
+        subtitle: `Metra service alerts and bot-detected cancellations/delays on the ${label} line.`,
+        homePath: `/metra/line/${line}`,
+        selfBase: `/feed/metra/line/${line}`,
+      }),
+      isoUpdated(records),
+      resolve(ROOT, 'dist', 'feed', 'metra', 'line', `${line}.xml`),
+      resolve(ROOT, 'dist', 'feed', 'metra', 'line', `${line}.json`),
+    );
+    metraFeeds++;
+  }
+
   const droppedNote = dropped > 0 ? ` (${dropped} short-lived obs skipped)` : '';
   console.log(
     `generate-feed: wrote ${globalRecords.length} entries to feed.xml + feed.json, ` +
-      `plus ${lineFeeds} line + ${routeFeeds} route feeds${droppedNote}`,
+      `plus ${lineFeeds} line + ${routeFeeds} route + ${metraFeeds} metra feeds${droppedNote}`,
   );
 }
 
