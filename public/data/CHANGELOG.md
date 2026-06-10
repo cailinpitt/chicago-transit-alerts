@@ -6,6 +6,30 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-09 — Metra commuter rail incidents: `kind: "metra"` (additive)
+
+`alerts.json` now includes Metra (Chicago commuter rail) incidents alongside the
+existing CTA train + bus incidents. This is **additive** — consumers that filter
+to `kind` `"train"` / `"bus"` are unaffected.
+
+- **New `kind` value** — `incidents[].kind` can now be `"metra"` (in addition to
+  `"train"` and `"bus"`).
+- **Routes** — `incidents[].routes` for a Metra incident are lowercase Metra line
+  keys: `bnsf`, `hc`, `md-n`, `md-w`, `me`, `ncs`, `ri`, `sws`, `up-n`, `up-nw`,
+  `up-w` (the GTFS route_ids lowercased).
+- **New `detection_source` values** on Metra bot observations:
+  `"cancellation"` (Metra-flagged cancelled train), `"cancellation-inferred"` (a
+  scheduled train the bot never saw run, not flagged by Metra — hedged), and
+  `"delay"` (a train that ran 15+ min late). Cancellations are the Metra analog of
+  a CTA "ghost"; delays are the analog of a "gap".
+- **Lifecycle** — Metra cancellation/delay observations are point-in-time events
+  (`active: false`, `resolved_ts == ts`); `onset_ts` is back-dated to the train's
+  scheduled departure. They carry no individual `post_url` (the bot summarizes
+  them in an hourly per-line rollup rather than posting each one).
+
+The CSV (`alerts.csv`) and syndication feeds (`feed.xml`, `/feed/`) remain
+**CTA-only** for now; Metra appears in `alerts.json` only.
+
 ## 2026-06-03 — Full impacted-station fill: `stations` / `affected_stations` (additive)
 
 Disruptions that span a stretch of track ("Rockwell → Montrose") now publish
