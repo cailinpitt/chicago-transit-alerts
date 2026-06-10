@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../lib/format.js';
 import { splitObservations } from '../lib/incidents.js';
+import { METRA_LINES } from '../lib/metraLines.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 
@@ -35,7 +36,8 @@ const HEADER_PILL_LIMIT = 4;
 // a multi-route stretch still fits on the one quiet header line. The
 // expanded Day-N rows carry the full LinePill labels.
 function SummaryPill({ kind, routeKey }) {
-  const info = kind === 'train' ? TRAIN_LINES[routeKey] : null;
+  const info =
+    kind === 'train' ? TRAIN_LINES[routeKey] : kind === 'metra' ? METRA_LINES[routeKey] : null;
   if (info) {
     return (
       <span

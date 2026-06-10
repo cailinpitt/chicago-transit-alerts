@@ -4,17 +4,18 @@ export default function AboutContent() {
   return (
     <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
       <p>
-        A public archive of Chicago Transit Authority service disruptions — one place to check how
-        the CTA is doing right now, this week, or over the past few months.
+        A public archive of Chicago Transit Authority and Metra service disruptions — one place to
+        check how Chicago transit is doing right now, this week, or over the past few months.
       </p>
       <p className="text-xs italic text-slate-500 dark:text-slate-400">
-        Unofficial. Not affiliated with, endorsed by, or sponsored by the Chicago Transit Authority.
+        Unofficial. Not affiliated with, endorsed by, or sponsored by the Chicago Transit Authority
+        or Metra.
       </p>
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">
         Where the data comes from
       </h3>
-      <p>Three Bluesky bots feed this archive:</p>
+      <p>Five Bluesky bots feed this archive — three for the CTA, two for Metra:</p>
       <ul className="list-disc list-outside ml-5 space-y-2">
         <li>
           <a
@@ -53,10 +54,48 @@ export default function AboutContent() {
           </a>{' '}
           — the same kinds of disruptions, for bus routes.
         </li>
+        <li>
+          <a
+            className={LINK}
+            href="https://bsky.app/profile/metraalertinsights.bsky.social"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <strong>@metraalertinsights</strong>
+          </a>{' '}
+          — Metra disruptions: cancelled trains, trains running well behind schedule, and
+          republished Metra service alerts.
+        </li>
+        <li>
+          <a
+            className={LINK}
+            href="https://bsky.app/profile/metrainsights.bsky.social"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <strong>@metrainsights</strong>
+          </a>{' '}
+          — speed maps and periodic performance recaps across the Metra rail lines.
+        </li>
       </ul>
       <p>
-        When an official CTA alert and a bot observation describe the same incident on the same line
-        within a couple of hours, they're merged into a single entry rather than counted twice.
+        When an official alert and a bot observation describe the same incident on the same line
+        within a couple of hours, they're merged into a single entry rather than counted twice. This
+        happens for both CTA and Metra; an alert and an observation never merge across agencies.
+      </p>
+
+      <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">
+        How Metra detection works
+      </h3>
+      <p>
+        Metra runs on a published timetable, so its detectors look different from the CTA's. A{' '}
+        <strong>cancelled train</strong> is either Metra-confirmed (the agency's own feed flags the
+        trip as cancelled) or bot-inferred — a scheduled train that never appears in the real-time
+        feed long after its departure, with no covering alert. Inferred cancellations are held back
+        whenever the whole feed goes quiet, so a data outage isn't mistaken for mass cancellations.
+        A <strong>delayed train</strong> is one running materially behind its scheduled arrival
+        (currently 15+ minutes). The Bluesky bot posts an hourly per-line digest of these; this
+        website keeps the full record.
       </p>
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">Updates</h3>
@@ -68,8 +107,9 @@ export default function AboutContent() {
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">How far back</h3>
       <p>
-        The archive starts on April 26, 2026 — anything earlier than that predates the bots. Stats,
-        calendar, and leaderboard views all draw from this window.
+        The CTA archive starts on April 26, 2026 — anything earlier than that predates the bots.
+        Metra coverage began June 9, 2026. Stats, calendar, and leaderboard views all draw from this
+        window.
       </p>
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">Privacy</h3>

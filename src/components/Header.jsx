@@ -59,6 +59,16 @@ const BOTS = [
     emoji: '🚌',
     href: 'https://bsky.app/profile/ctabusinsights.bsky.social',
   },
+  {
+    label: 'Metra Alert Insights',
+    emoji: '🚆',
+    href: 'https://bsky.app/profile/metraalertinsights.bsky.social',
+  },
+  {
+    label: 'Metra Insights',
+    emoji: '🛤️',
+    href: 'https://bsky.app/profile/metrainsights.bsky.social',
+  },
 ];
 
 export default function Header({
@@ -122,7 +132,7 @@ export default function Header({
           </div>
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-          Major CTA alerts and service observations
+          Major CTA &amp; Metra alerts and service observations
         </p>
         {/* Meta row: bot links, plus the last-updated note on mobile. */}
         <div className="relative flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">

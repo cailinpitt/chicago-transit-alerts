@@ -1,16 +1,18 @@
 import { useMemo } from 'react';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatRoutesLabel, splitObservations } from '../lib/incidents.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 const WINDOW_MS = 24 * HOUR_MS;
 const BUS_COLOR = '#64748b';
 const BUS_ROW_KEY = '__bus__';
 
-// 24-hour incident strip. One fixed row per CTA train line plus a Bus row,
-// drawn against a shared time axis (now - 24h → now). A multi-line incident
-// renders a bar on every affected line's row, so you can read "Green's day"
-// at a glance even when Green shared an incident with Red earlier.
+// 24-hour incident strip. One fixed row per CTA train line and per Metra line,
+// plus a Bus row, drawn against a shared time axis (now - 24h → now). A
+// multi-line incident renders a bar on every affected line's row, so you can
+// read "Green's day" at a glance even when Green shared an incident with Red
+// earlier. Train and Metra line keys don't collide, so they share one row map.
 //
 // Hidden when the last 24 hours had fewer than 3 incidents — a quiet day's
 // strip of mostly-empty tracks is just noise.
@@ -50,10 +52,11 @@ export default function RecentActivityGantt({ incidents, now }) {
     // they have no row to land on. Bus incidents go on a single Bus row.
     const rows = new Map();
     for (const key of TRAIN_LINE_ORDER) rows.set(key, []);
+    for (const key of METRA_LINE_ORDER) rows.set(key, []);
     rows.set(BUS_ROW_KEY, []);
 
     for (const i of relevant) {
-      if (i.kind === 'train') {
+      if (i.kind === 'train' || i.kind === 'metra') {
         const routes = (i.routes ?? []).filter((r) => rows.has(r));
         for (const r of routes) rows.get(r).push(i);
       } else {
@@ -72,6 +75,13 @@ export default function RecentActivityGantt({ incidents, now }) {
       key,
       label: TRAIN_LINES[key].label,
       color: TRAIN_LINES[key].color,
+    })),
+    // Metra's full labels ("Union Pacific Northwest") won't fit the narrow row
+    // gutter, so use the uppercased route code (UP-NW, BNSF, ME) as the label.
+    ...METRA_LINE_ORDER.map((key) => ({
+      key,
+      label: key.toUpperCase(),
+      color: METRA_LINES[key].color,
     })),
     { key: BUS_ROW_KEY, label: 'Bus', color: BUS_COLOR },
   ].filter(({ key }) => (data.rows.get(key) ?? []).length > 0);

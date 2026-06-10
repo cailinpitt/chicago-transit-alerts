@@ -27,7 +27,7 @@ import {
   observationSignals,
   SOURCE_TYPES,
 } from './lib/incidents.js';
-import { gateIncidents, metraEnabled, metraParamPresent } from './lib/metraGate.js';
+import { gateIncidents } from './lib/metraGate.js';
 import { buildStationIndex } from './lib/stations.js';
 import {
   buildSearch,
@@ -66,6 +66,7 @@ export default function App() {
   const [selectedLines, setSelectedLines] = useState(initial.selectedLines); // null = all lines; [] = no lines
   const [showBus, setShowBus] = useState(initial.showBus);
   const [selectedBusRoutes, setSelectedBusRoutes] = useState(initial.selectedBusRoutes);
+  const [selectedMetraLines, setSelectedMetraLines] = useState(initial.selectedMetraLines ?? []);
   const [dateRange, setDateRange] = useState(initial.dateRange); // days; null = all time
   // selectedDay is a Chicago-day UTC midnight epoch, or null. When set it
   // overrides dateRange for the incident list — the user is drilled into a
@@ -74,15 +75,14 @@ export default function App() {
   const [selectedSignals, setSelectedSignals] = useState(initial.selectedSignals);
   const [selectedSources, setSelectedSources] = useState(initial.selectedSources);
   const [search, setSearch] = useState(initial.search);
-  // Agency scope for the ?metra=1 preview: 'all' | 'cta' | 'metra'. Only shown
-  // when Metra is enabled; default 'all'.
-  const metraOn = useMemo(() => metraEnabled(), []);
+  // Agency scope for the All/CTA/Metra control: 'all' | 'cta' | 'metra'.
   const [selectedAgency, setSelectedAgency] = useState('all');
 
   function resetFilters() {
     setSelectedLines(null);
     setShowBus(true);
     setSelectedBusRoutes([]);
+    setSelectedMetraLines([]);
     setDateRange(7);
     setSelectedDay(null);
     setSelectedSignals([]);
@@ -117,23 +117,14 @@ export default function App() {
       selectedLines,
       showBus,
       selectedBusRoutes,
+      selectedMetraLines,
       dateRange,
       selectedDay,
       selectedSignals,
       selectedSources,
       search,
     });
-    // Preserve the Metra preview param across filter changes — buildSearch only
-    // emits known filter keys, so without this ?metra=1 would be dropped on the
-    // first interaction (on prod). Keyed on the param actually being present, not
-    // metraEnabled(), so local dev (always-on, no param) doesn't add it to the URL.
-    let withMetra = queryString;
-    if (metraParamPresent()) {
-      const sp = new URLSearchParams(queryString.replace(/^\?/, ''));
-      sp.set('metra', '1');
-      withMetra = `?${sp.toString()}`;
-    }
-    const next = `${window.location.pathname}${withMetra}${window.location.hash}`;
+    const next = `${window.location.pathname}${queryString}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.replaceState(null, '', next);
     }
@@ -141,6 +132,7 @@ export default function App() {
     selectedLines,
     showBus,
     selectedBusRoutes,
+    selectedMetraLines,
     dateRange,
     selectedDay,
     selectedSignals,
@@ -157,10 +149,18 @@ export default function App() {
       selectedLines,
       showBus,
       selectedBusRoutes,
+      selectedMetraLines,
       selectedSignals,
       selectedSources,
     });
-  }, [selectedLines, showBus, selectedBusRoutes, selectedSignals, selectedSources]);
+  }, [
+    selectedLines,
+    showBus,
+    selectedBusRoutes,
+    selectedMetraLines,
+    selectedSignals,
+    selectedSources,
+  ]);
 
   useEffect(() => {
     const url = dataUrl('alerts.json');
@@ -172,9 +172,9 @@ export default function App() {
           return r.json();
         })
         .then((fresh) => {
-          // Gate Metra out of the payload at the single load boundary, so no
-          // downstream view sees kind='metra' unless ?metra=1 is set. Default
-          // (CTA-only) keeps the live site unchanged while Metra ships in the data.
+          // In the browser gateIncidents is a pass-through (Metra is launched);
+          // it only strips Metra in the Node build scripts. Kept here as the
+          // single load boundary so the split lives in exactly one place.
           const gated = { ...fresh, incidents: gateIncidents(fresh.incidents) };
           setData((prev) => {
             // Only update if generated_at changed (or on first load).
@@ -346,6 +346,7 @@ export default function App() {
       startTs,
       showBus,
       busRoutes: selectedBusRoutes.length > 0 ? selectedBusRoutes : null,
+      metraLines: selectedMetraLines.length > 0 ? selectedMetraLines : null,
       selectedDay,
       signals: selectedSignals.length > 0 ? selectedSignals : null,
       // Only narrow when the user picked a subset; default (all three) ⇒
@@ -360,6 +361,7 @@ export default function App() {
     selectedLines,
     showBus,
     selectedBusRoutes,
+    selectedMetraLines,
     selectedAgency,
     dateRange,
     selectedDay,
@@ -423,7 +425,7 @@ export default function App() {
                     All clear
                   </p>
                   <p className="text-xs text-green-700/80 dark:text-green-400/80">
-                    No active CTA disruptions right now.
+                    No active CTA or Metra disruptions right now.
                   </p>
                 </div>
               </section>
@@ -477,29 +479,27 @@ export default function App() {
                 past the main element's px-4 gutters. */}
             <section className="space-y-3">
               <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-slate-50/95 dark:bg-gh-canvas/95 backdrop-blur-sm">
-                {metraOn && (
-                  <div className="mb-2 inline-flex rounded-lg border border-slate-300 dark:border-gh-border overflow-hidden text-xs font-semibold">
-                    {[
-                      ['all', 'All'],
-                      ['cta', 'CTA'],
-                      ['metra', 'Metra'],
-                    ].map(([value, label]) => (
-                      <button
-                        type="button"
-                        key={value}
-                        onClick={() => setSelectedAgency(value)}
-                        className={`px-3 py-1 transition-colors ${
-                          selectedAgency === value
-                            ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
-                            : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gh-border/40'
-                        }`}
-                        aria-pressed={selectedAgency === value}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div className="mb-2 inline-flex rounded-lg border border-slate-300 dark:border-gh-border overflow-hidden text-xs font-semibold">
+                  {[
+                    ['all', 'All'],
+                    ['cta', 'CTA'],
+                    ['metra', 'Metra'],
+                  ].map(([value, label]) => (
+                    <button
+                      type="button"
+                      key={value}
+                      onClick={() => setSelectedAgency(value)}
+                      className={`px-3 py-1 transition-colors ${
+                        selectedAgency === value
+                          ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
+                          : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gh-border/40'
+                      }`}
+                      aria-pressed={selectedAgency === value}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
                 <HomeFilters
                   selectedLines={selectedLines}
                   onLinesChange={handleLinesChange}
@@ -511,6 +511,8 @@ export default function App() {
                   availableBusRoutes={availableBusRoutes}
                   selectedBusRoutes={selectedBusRoutes}
                   onBusRoutesChange={setSelectedBusRoutes}
+                  selectedMetraLines={selectedMetraLines}
+                  onMetraLinesChange={setSelectedMetraLines}
                   dateRange={dateRange}
                   onDateRangeChange={handleDateRangeChange}
                   selectedDay={selectedDay}
@@ -532,6 +534,7 @@ export default function App() {
                   selectedLines !== null ||
                   !showBus ||
                   selectedBusRoutes.length > 0 ||
+                  selectedMetraLines.length > 0 ||
                   dateRange !== 7 ||
                   selectedDay !== null ||
                   selectedSignals.length > 0 ||

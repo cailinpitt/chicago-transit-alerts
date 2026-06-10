@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay } from '../lib/format.js';
 import { SOURCE_TYPES } from '../lib/incidents.js';
+import { METRA_LINES } from '../lib/metraLines.js';
 import Filters from './Filters.jsx';
 
 // Default date range — mirrors App's resetFilters(). A range other than this
@@ -18,6 +19,7 @@ function buildChips({
   selectedLines,
   showBus,
   selectedBusRoutes,
+  selectedMetraLines = [],
   dateRange,
   selectedDay,
   selectedSignals,
@@ -47,6 +49,16 @@ function buildChips({
   }
   if (selectedBusRoutes.length > 0) {
     chips.push({ key: 'routes', label: `Routes (${selectedBusRoutes.length})` });
+  }
+  for (const line of selectedMetraLines) {
+    const info = METRA_LINES[line];
+    // Short route code (UP-NW) keeps the chip compact; the popover carries the
+    // full name. Matches the colored-code pills shown in the Metra picker.
+    chips.push({
+      key: `metra-${line}`,
+      label: line.toUpperCase(),
+      style: info ? { backgroundColor: info.color, color: info.textColor } : undefined,
+    });
   }
   if (selectedDay != null) {
     chips.push({ key: 'day', label: formatChicagoDay(selectedDay) });

@@ -3,6 +3,7 @@ import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatChicagoDay } from '../lib/format.js';
 import { SIGNAL_LABELS, SIGNAL_TYPES, SOURCE_LABELS, SOURCE_TYPES } from '../lib/incidents.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 
 const DATE_OPTIONS = [
   { label: '7d', value: 7 },
@@ -77,6 +78,90 @@ function BusRoutePopover({ availableBusRoutes, selectedBusRoutes, onBusRoutesCha
                   }`}
                 >
                   #{route}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Metra line filter — a popover of brand-colored line pills, mirroring the bus
+// routes popover. Empty selection means "all Metra lines" (no narrowing); a
+// non-empty selection restricts Metra incidents to those lines. A popover (vs
+// the inline train pills) keeps the 11 lines from overflowing the filter row.
+function MetraLinesPopover({ selectedMetraLines, onMetraLinesChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggle = (line) => {
+    onMetraLinesChange((prev) =>
+      prev.includes(line) ? prev.filter((l) => l !== line) : [...prev, line],
+    );
+  };
+
+  const selectedCount = selectedMetraLines.length;
+  const label = selectedCount > 0 ? `Metra (${selectedCount})` : 'Metra';
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors flex items-center gap-1 ${
+          selectedCount > 0
+            ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+            : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
+        }`}
+      >
+        {label}
+        <span className="opacity-60">▾</span>
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1.5 z-20 bg-white dark:bg-gh-surface border border-slate-200 dark:border-gh-border rounded-lg shadow-lg p-3 min-w-[180px] max-w-[calc(100vw-1rem)]">
+          <div className="flex flex-wrap gap-1.5">
+            {selectedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => onMetraLinesChange([])}
+                className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 hover:opacity-80 transition-opacity"
+              >
+                All Metra
+              </button>
+            )}
+            {METRA_LINE_ORDER.map((line) => {
+              const info = METRA_LINES[line];
+              const active = selectedMetraLines.includes(line);
+              const dimmed = selectedCount > 0 && !active;
+              // Full Metra names ("Union Pacific Northwest") wrap and look ragged
+              // as pills, so show the short route code (UP-NW) and keep the full
+              // name as the hover/screen-reader label.
+              return (
+                <button
+                  type="button"
+                  key={line}
+                  onClick={() => toggle(line)}
+                  title={info?.label ?? line}
+                  aria-label={info?.label ?? line}
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all ${
+                    dimmed
+                      ? 'bg-slate-200 dark:bg-gh-subtle text-slate-500 dark:text-slate-400'
+                      : ''
+                  }`}
+                  style={dimmed ? {} : { backgroundColor: info.color, color: info.textColor }}
+                >
+                  {line.toUpperCase()}
                 </button>
               );
             })}
@@ -248,6 +333,8 @@ export default function Filters({
   availableBusRoutes,
   selectedBusRoutes,
   onBusRoutesChange,
+  selectedMetraLines = [],
+  onMetraLinesChange,
   dateRange,
   onDateRangeChange,
   selectedDay = null,
@@ -328,6 +415,18 @@ export default function Filters({
           />
         )}
       </div>
+
+      {/* Metra line filter — only rendered when the host wires it up (the
+          homepage), so CTA-scoped pages that reuse Filters stay unchanged. */}
+      {onMetraLinesChange && (
+        <>
+          <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
+          <MetraLinesPopover
+            selectedMetraLines={selectedMetraLines}
+            onMetraLinesChange={onMetraLinesChange}
+          />
+        </>
+      )}
 
       {!hideDateRange && (
         <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />

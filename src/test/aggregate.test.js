@@ -4,6 +4,7 @@ import {
   computeCohortDurationStats,
   computeDayOfWeekCounts,
   computeDisruptionMinutes,
+  computeMetraLeaderboards,
   computeRecentBurst,
   computeRestorationDeltas,
   computeSegmentRecurrence,
@@ -348,6 +349,62 @@ describe('computeRestorationDeltas', () => {
     });
     const out = computeRestorationDeltas([a], [o], { now: NOW, windowDays: 90 });
     expect(out.matchedCount).toBe(0);
+  });
+
+  it('excludes Metra incidents (CTA-only concept)', () => {
+    const { alert: a, obs: o } = pair({
+      alertResolved: NOW,
+      obsTs: NOW - 58 * MIN,
+      obsResolved: NOW - 20 * MIN,
+    });
+    a.kind = 'metra';
+    a.routes = ['up-n'];
+    o.kind = 'metra';
+    o.line = 'up-n';
+    const out = computeRestorationDeltas([a], [o], { now: NOW, windowDays: 90 });
+    expect(out.matchedCount).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeMetraLeaderboards
+// ---------------------------------------------------------------------------
+describe('computeMetraLeaderboards', () => {
+  const mObs = (over = {}) =>
+    obs({ kind: 'metra', line: 'up-n', detection_source: 'delay', ...over });
+
+  it('tallies cancellations and delays per line', () => {
+    const observations = [
+      mObs({ id: 1, line: 'up-n', detection_source: 'delay' }),
+      mObs({ id: 2, line: 'up-n', detection_source: 'delay' }),
+      mObs({ id: 3, line: 'up-n', detection_source: 'cancellation' }),
+      mObs({ id: 4, line: 'bnsf', detection_source: 'cancellation-inferred' }),
+      // Non-metra and unrelated sources are ignored.
+      obs({ id: 5, kind: 'train', line: 'red', detection_source: 'ghost' }),
+    ];
+    const out = computeMetraLeaderboards([], observations, { now: NOW, windowDays: 90 });
+    expect(out.delayTotal).toBe(2);
+    expect(out.cancellationTotal).toBe(2); // 1 confirmed + 1 inferred
+    expect(out.topDelayed).toEqual({ line: 'up-n', delays: 2, cancellations: 1, total: 3 });
+    // up-n and bnsf each have 1 cancellation → tie broken alphabetically (bnsf first).
+    expect(out.topCancelled.line).toBe('bnsf');
+    expect(out.hasData).toBe(true);
+  });
+
+  it('counts republished Metra alerts separately', () => {
+    const alerts = [alert({ kind: 'metra', routes: ['md-n'], first_seen_ts: NOW - HOUR })];
+    const out = computeMetraLeaderboards(alerts, [], { now: NOW, windowDays: 90 });
+    expect(out.alertsCount).toBe(1);
+    expect(out.byLine).toEqual([]);
+    expect(out.hasData).toBe(true);
+  });
+
+  it('reports no data when nothing Metra is in window', () => {
+    const stale = [mObs({ id: 1, ts: NOW - 120 * DAY, resolved_ts: NOW - 120 * DAY })];
+    const out = computeMetraLeaderboards([], stale, { now: NOW, windowDays: 90 });
+    expect(out.hasData).toBe(false);
+    expect(out.topCancelled).toBeNull();
+    expect(out.topDelayed).toBeNull();
   });
 });
 

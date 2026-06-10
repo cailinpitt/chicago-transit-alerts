@@ -9,8 +9,8 @@ export default function Footer() {
       }}
     >
       <div className="max-w-5xl mx-auto px-4 pt-6 sm:pt-4 text-xs text-slate-500 dark:text-slate-400">
-        Data provided by CTA. Unofficial — not affiliated with, endorsed by, or sponsored by the
-        Chicago Transit Authority.
+        Data provided by CTA and Metra. Unofficial — not affiliated with, endorsed by, or sponsored
+        by the Chicago Transit Authority or Metra.
       </div>
       <div className="max-w-5xl mx-auto px-4 py-6 sm:py-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
         <span>Built by Cailin</span>

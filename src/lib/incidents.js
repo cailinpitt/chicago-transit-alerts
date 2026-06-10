@@ -829,6 +829,7 @@ export function searchFilterIncidents(incidents, query) {
  * @param {number | null} [options.startTs]    Drop incidents older than this (active ones bypass).
  * @param {boolean} [options.showBus]
  * @param {string[] | null} [options.busRoutes] When non-empty, restrict bus incidents to these routes.
+ * @param {string[] | null} [options.metraLines] When non-empty, restrict Metra incidents to these lines.
  * @param {number | null} [options.selectedDay] Chicago-day UTC midnight; when set, only incidents
  *   whose [start, end] span overlaps this day pass. Overrides startTs.
  * @param {string[] | null} [options.signals]  When non-empty, keep only incidents with an
@@ -846,6 +847,7 @@ export function filterIncidents(
     startTs,
     showBus = true,
     busRoutes = null,
+    metraLines = null,
     selectedDay = null,
     signals = null,
     sources = null,
@@ -856,6 +858,7 @@ export function filterIncidents(
 ) {
   const hasLineFilter = lines !== null && lines !== undefined;
   const hasBusRouteFilter = busRoutes && busRoutes.length > 0;
+  const hasMetraLineFilter = metraLines && metraLines.length > 0;
   const hasSignalFilter = signals && signals.length > 0;
   const signalSet = hasSignalFilter ? new Set(signals) : null;
   const hasSourceFilter = sources && sources.length < SOURCE_TYPES.length;
@@ -881,7 +884,8 @@ export function filterIncidents(
     const agency = inc.kind === 'metra' ? 'metra' : 'cta';
     if (agencySet && !agencySet.has(agency)) return false;
     // The CTA line/bus filters apply only to CTA incidents — a Red Line selection
-    // shouldn't hide Metra (the agency filter governs Metra visibility instead).
+    // shouldn't hide Metra. Metra has its own line filter; the agency control
+    // governs cross-agency visibility.
     if (agency === 'cta') {
       if (inc.kind === 'bus') {
         if (!showBus) return false;
@@ -891,6 +895,9 @@ export function filterIncidents(
       } else if (hasLineFilter && !(inc.routes || []).some((r) => lines.includes(r))) {
         return false;
       }
+    } else if (hasMetraLineFilter && !(inc.routes || []).some((r) => metraLines.includes(r))) {
+      // agency === 'metra'
+      return false;
     }
     // Signal filter keeps an incident when any of its observations carries a
     // matching kind. CTA-only incidents have no observations, so they drop —

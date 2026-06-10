@@ -9,6 +9,7 @@ import {
   postUrlRkey,
   SIGNAL_TYPES,
 } from './incidents.js';
+import { METRA_LINE_ORDER } from './metraLines.js';
 import { buildStationIndex } from './stations.js';
 
 // Identity-based cache so the eight aggregators downstream of a single
@@ -104,6 +105,43 @@ export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Da
     addSpan(o.line, o.ts, o.resolved_ts);
   }
 
+  return result;
+}
+
+// Metra analog of buildIncidentsByDay: per-Metra-line incident counts keyed by
+// day index for the timeline grid. Returns { lineKey: { dayIdx: count } } for
+// the 11 Metra lines (keys absent until a line has activity). Same merge +
+// span-bucketing model as the train version.
+export function buildMetraIncidentsByDay(alerts, observations, numDays = 90, now = Date.now()) {
+  const result = {};
+  const todayUTC = chicagoDayUTC(now);
+
+  function addSpan(lineId, startTs, endTs) {
+    if (!METRA_LINE_ORDER.includes(lineId)) return;
+    if (!result[lineId]) result[lineId] = {};
+    const end = endTs || now;
+    const startDayIdx = Math.round((todayUTC - chicagoDayUTC(startTs)) / DAY_MS);
+    const endDayIdx = Math.round((todayUTC - chicagoDayUTC(end)) / DAY_MS);
+    const lo = Math.max(0, endDayIdx);
+    const hi = Math.min(numDays - 1, startDayIdx);
+    for (let d = lo; d <= hi; d++) {
+      result[lineId][d] = (result[lineId][d] || 0) + 1;
+    }
+  }
+
+  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+    alerts.filter((a) => a.kind === 'metra'),
+    observations.filter((o) => o.kind === 'metra'),
+  );
+  for (const m of merged) {
+    for (const route of m.routes) addSpan(route, m.first_seen_ts, m.resolved_ts);
+  }
+  for (const a of standaloneAlerts) {
+    for (const route of a.routes) addSpan(route, a.first_seen_ts, a.resolved_ts);
+  }
+  for (const o of standaloneObs) {
+    addSpan(o.line, o.ts, o.resolved_ts);
+  }
   return result;
 }
 
@@ -1281,6 +1319,7 @@ export function buildWeekSummary(alerts, observations, weekStartUtc, now = Date.
   let activeCount = 0;
   let trainCount = 0;
   let busCount = 0;
+  let metraCount = 0;
   let priorTotal = 0;
   let longest = null;
 
@@ -1297,6 +1336,7 @@ export function buildWeekSummary(alerts, observations, weekStartUtc, now = Date.
     if (inc.active) activeCount += 1;
     if (inc.kind === 'train') trainCount += 1;
     else if (inc.kind === 'bus') busCount += 1;
+    else if (inc.kind === 'metra') metraCount += 1;
 
     const dayIdx = Math.round((incDay - weekStartUtc) / DAY_MS);
     if (dayIdx >= 0 && dayIdx < 7) perDay[dayIdx].count += 1;
@@ -1345,6 +1385,7 @@ export function buildWeekSummary(alerts, observations, weekStartUtc, now = Date.
     activeCount,
     trainCount,
     busCount,
+    metraCount,
     lineCount: lineSet.size,
     perDay,
     busiestDay,
@@ -1480,6 +1521,85 @@ export function computeStatsLeaderboards(
   void cutoff;
 
   return { worstDay, worstHour, worstStation, longestIncident };
+}
+
+// Metra leaderboards for /stats. Metra's signature data isn't stations or
+// track segments (the CTA leaderboards above) — it's cancellations and delays,
+// which the timetabled commuter-rail detectors emit as point-event
+// observations (detection_source 'cancellation' / 'cancellation-inferred' /
+// 'delay'). This rolls them up per line so the page can show which line is
+// cancelling or running late most over the window. Republished Metra GTFS-rt
+// alerts (kind='metra' alerts, no detection_source) are counted separately as
+// `alertsCount` for context but don't feed the per-line cancel/delay tallies.
+/**
+ * @param {import('./incidents.js').Alert[]} alerts
+ * @param {import('./incidents.js').Observation[]} observations
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @returns {{
+ *   cancellationTotal: number,
+ *   delayTotal: number,
+ *   alertsCount: number,
+ *   byLine: Array<{ line: string, cancellations: number, delays: number, total: number }>,
+ *   topCancelled: { line: string, cancellations: number } | null,
+ *   topDelayed: { line: string, delays: number } | null,
+ *   hasData: boolean,
+ * }}
+ */
+export function computeMetraLeaderboards(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 90 } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+  const perLine = new Map(); // line -> { cancellations, delays }
+  const bump = (line, field) => {
+    if (!line) return;
+    const rec = perLine.get(line) ?? { cancellations: 0, delays: 0 };
+    rec[field] += 1;
+    perLine.set(line, rec);
+  };
+  let cancellationTotal = 0;
+  let delayTotal = 0;
+  for (const o of observations) {
+    if (o.kind !== 'metra') continue;
+    if (o.ts == null || o.ts < cutoff) continue;
+    const src = o.detection_source;
+    if (src === 'cancellation' || src === 'cancellation-inferred') {
+      bump(o.line, 'cancellations');
+      cancellationTotal += 1;
+    } else if (src === 'delay') {
+      bump(o.line, 'delays');
+      delayTotal += 1;
+    }
+  }
+  let alertsCount = 0;
+  for (const a of alerts) {
+    if (a.kind !== 'metra') continue;
+    if (a.first_seen_ts == null || a.first_seen_ts < cutoff) continue;
+    alertsCount += 1;
+  }
+  const byLine = [...perLine.entries()]
+    .map(([line, c]) => ({ line, ...c, total: c.cancellations + c.delays }))
+    .sort((a, b) => b.total - a.total || a.line.localeCompare(b.line));
+  const topCancelled =
+    byLine
+      .filter((r) => r.cancellations > 0)
+      .sort((a, b) => b.cancellations - a.cancellations || a.line.localeCompare(b.line))[0] ?? null;
+  const topDelayed =
+    byLine
+      .filter((r) => r.delays > 0)
+      .sort((a, b) => b.delays - a.delays || a.line.localeCompare(b.line))[0] ?? null;
+  return {
+    cancellationTotal,
+    delayTotal,
+    alertsCount,
+    byLine,
+    topCancelled,
+    topDelayed,
+    hasData: byLine.length > 0 || alertsCount > 0,
+  };
 }
 
 // Recurring segments: bucket train-only bot observations by (line,
@@ -1623,6 +1743,10 @@ export function computeRestorationDeltas(
   const { merged } = getMerge(alerts, observations);
   const rows = [];
   for (const m of merged) {
+    // CTA-only concept: the gap between CTA closing an alert and the bot seeing
+    // service recover. Metra has no equivalent "agency cleared the alert" event,
+    // so excluding it keeps the "CTA cleared early/late" framing accurate.
+    if (m.kind === 'metra') continue;
     if (m.resolved_ts == null || m.obs_resolved_ts == null) continue;
     if (m.first_seen_ts < cutoff) continue;
     // Overlap gate: the observation must describe roughly the same span as

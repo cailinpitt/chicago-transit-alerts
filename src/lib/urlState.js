@@ -1,5 +1,6 @@
 import { normalizeTrainLine, TRAIN_LINE_ORDER } from './ctaLines.js';
 import { SIGNAL_TYPES, SOURCE_TYPES } from './incidents.js';
+import { METRA_LINE_ORDER, normalizeMetraLine } from './metraLines.js';
 
 // Source filter uses "selected = shown" semantics: an empty URL/state means
 // "everything is shown", which we represent internally as all SOURCE_TYPES
@@ -10,6 +11,7 @@ const DEFAULT_SOURCES = [...SOURCE_TYPES];
 
 const VALID_RANGES = new Set([7, 30, 60, 90]);
 const TRAIN_LINE_SET = new Set(TRAIN_LINE_ORDER);
+const METRA_LINE_SET = new Set(METRA_LINE_ORDER);
 const SIGNAL_SET = new Set(SIGNAL_TYPES);
 const SOURCE_SET = new Set(SOURCE_TYPES);
 const DAY_PARAM_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -65,6 +67,7 @@ const STICKY_KEYS = [
   'selectedLines',
   'showBus',
   'selectedBusRoutes',
+  'selectedMetraLines',
   'selectedSignals',
   'selectedSources',
 ];
@@ -109,6 +112,7 @@ export function parseUrlState(search = window.location.search) {
     selectedLines: null,
     showBus: true,
     selectedBusRoutes: [],
+    selectedMetraLines: [],
     dateRange: 7,
     selectedDay: null,
     selectedSignals: [],
@@ -147,6 +151,17 @@ export function parseUrlState(search = window.location.search) {
       // still dropping garbage like "abc" or "none". Non-existent ids simply
       // match no incident downstream, so the filter is harmless either way.
       .filter((s) => /^[A-Za-z]*\d+[A-Za-z]*$/.test(s));
+  }
+
+  // Metra line selection: `?metra=up-n,bnsf`. Empty/invalid → no narrowing.
+  // (A legacy `?metra=1` from the old gate param normalizes to no valid lines,
+  // so it harmlessly leaves Metra unfiltered.)
+  const metraParam = params.get('metra');
+  if (metraParam) {
+    out.selectedMetraLines = metraParam
+      .split(',')
+      .map((s) => normalizeMetraLine(s.trim()))
+      .filter((s) => METRA_LINE_SET.has(s));
   }
 
   const rangeParam = params.get('range');
@@ -198,6 +213,7 @@ export function buildSearch({
   selectedLines,
   showBus,
   selectedBusRoutes,
+  selectedMetraLines,
   dateRange,
   selectedDay,
   selectedSignals,
@@ -216,6 +232,9 @@ export function buildSearch({
   }
   if (selectedBusRoutes && selectedBusRoutes.length > 0) {
     params.set('routes', selectedBusRoutes.join(','));
+  }
+  if (selectedMetraLines && selectedMetraLines.length > 0) {
+    params.set('metra', selectedMetraLines.join(','));
   }
   // Day-pin overrides the range filter visually, but we serialize both so the
   // chip can fall back to the prior range when cleared.

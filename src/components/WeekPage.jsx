@@ -14,6 +14,7 @@ import {
   formatWeekRange,
 } from '../lib/format.js';
 import { flattenIncidents } from '../lib/incidents.js';
+import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc } from '../lib/urlState.js';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -195,6 +196,7 @@ export default function WeekPage({ weekParam }) {
                 )}
                 {' · '}
                 {summary.trainCount} train · {summary.busCount} bus
+                {summary.metraCount > 0 && ` · ${summary.metraCount} Metra`}
                 {wow && (
                   <>
                     {' · '}
@@ -286,6 +288,24 @@ export default function WeekPage({ weekParam }) {
                             style={{ backgroundColor: info.color, color: info.textColor }}
                           >
                             {info.label}
+                            <span className="tabular-nums opacity-80">{m.count}</span>
+                          </a>
+                        );
+                      }
+                      if (m.kind === 'metra') {
+                        const info = METRA_LINES[m.id];
+                        return (
+                          <a
+                            key={`metra:${m.id}`}
+                            href={`/metra/line/${m.id}`}
+                            title={info?.label ?? m.id}
+                            className="inline-flex items-center gap-1.5 min-h-[24px] px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
+                            style={{
+                              backgroundColor: info?.color ?? '#64748b',
+                              color: info?.textColor ?? '#fff',
+                            }}
+                          >
+                            {String(m.id).toUpperCase()}
                             <span className="tabular-nums opacity-80">{m.count}</span>
                           </a>
                         );

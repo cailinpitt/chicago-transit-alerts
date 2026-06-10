@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef } from 'react';
 import {
   buildBusIncidentsByDay,
   buildIncidentsByDay,
+  buildMetraIncidentsByDay,
   computeLineReliability,
 } from '../lib/aggregate.js';
 import { busRouteName } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { chicagoDayUTC, hexToRgba } from '../lib/format.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 
 const CHICAGO_TZ = 'America/Chicago';
 const chicagoDayMonthFmt = new Intl.DateTimeFormat('en-US', {
@@ -133,6 +135,11 @@ export default function Timeline({
     [alerts, observations, numDays, now],
   );
 
+  const metraIncidentsByDay = useMemo(
+    () => buildMetraIncidentsByDay(alerts, observations, numDays, now),
+    [alerts, observations, numDays, now],
+  );
+
   // col 0 = oldest day, col numDays-1 = today (Chicago calendar)
   const days = useMemo(() => {
     const todayUTC = chicagoDayUTC(now);
@@ -181,8 +188,15 @@ export default function Timeline({
         ]
     : [];
 
+  // Metra rows: only lines that actually had activity in the window (avoids a
+  // wall of 11 mostly-empty rows). Order follows METRA_LINE_ORDER.
+  const metraRowsToShow = METRA_LINE_ORDER.filter(
+    (line) => Object.keys(metraIncidentsByDay[line] || {}).length > 0,
+  );
+
   const hasBusRows = busRowsToShow.length > 0;
   const hasTrainRows = linesToShow.length > 0;
+  const hasMetraRows = metraRowsToShow.length > 0;
 
   return (
     <section>
@@ -200,8 +214,8 @@ export default function Timeline({
         <div ref={scrollRef} className="overflow-x-auto pt-1 pb-4">
           <table className="border-collapse">
             <caption className="sr-only">
-              Incident timeline. Rows are train lines and bus routes; columns are days. Each cell
-              links to that day's incidents.
+              Incident timeline. Rows are train lines, bus routes, and Metra lines; columns are
+              days. Each cell links to that day's incidents.
             </caption>
             <thead>
               <tr>
@@ -327,6 +341,46 @@ export default function Timeline({
                         dayUTC={dayUTC}
                         incidents={incidents}
                         color={BUS_COLOR}
+                        dataStartTs={dataStartTs}
+                        inRange={selectedRangeDays == null || dayIdx < selectedRangeDays}
+                        isPinned={selectedDay === dayUTC}
+                        onClick={onDayClick}
+                      />
+                    ))}
+                  </tr>
+                );
+              })}
+
+              {/* Separator before the Metra block */}
+              {(hasTrainRows || hasBusRows) && hasMetraRows && (
+                <tr>
+                  <td colSpan={numDays + 1} className="py-1" />
+                </tr>
+              )}
+
+              {/* Metra rows — one per Metra line with activity in the window */}
+              {metraRowsToShow.map((lineKey) => {
+                const info = METRA_LINES[lineKey];
+                const incidents = metraIncidentsByDay[lineKey] || {};
+                return (
+                  <tr key={`metra-${lineKey}`}>
+                    <td className="sticky left-0 bg-white dark:bg-gh-surface z-10 pr-2 sm:pr-3 align-middle min-w-[3rem] sm:min-w-[4rem]">
+                      <a
+                        href={`/metra/line/${lineKey}`}
+                        title={`Open ${info.label} page`}
+                        className="text-xs font-semibold w-full text-right hover:opacity-70 transition-opacity inline-block leading-tight"
+                        style={{ color: info.color }}
+                      >
+                        {lineKey.toUpperCase()}
+                      </a>
+                    </td>
+                    {days.map(({ col, dayIdx, dayUTC }) => (
+                      <DayCell
+                        key={col}
+                        dayIdx={dayIdx}
+                        dayUTC={dayUTC}
+                        incidents={incidents}
+                        color={info.color}
                         dataStartTs={dataStartTs}
                         inRange={selectedRangeDays == null || dayIdx < selectedRangeDays}
                         isPinned={selectedDay === dayUTC}

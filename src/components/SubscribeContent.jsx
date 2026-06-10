@@ -87,6 +87,28 @@ export default function SubscribeContent() {
           </a>{' '}
           — same, for bus routes.
         </li>
+        <li>
+          <a
+            className={LINK}
+            href="https://bsky.app/profile/metraalertinsights.bsky.social"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @metraalertinsights
+          </a>{' '}
+          — Metra cancellations, late trains, and republished Metra alerts.
+        </li>
+        <li>
+          <a
+            className={LINK}
+            href="https://bsky.app/profile/metrainsights.bsky.social"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @metrainsights
+          </a>{' '}
+          — Metra speed maps and performance recaps.
+        </li>
       </ul>
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-3">RSS / Atom feed</h3>

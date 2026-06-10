@@ -79,8 +79,9 @@ export default function PrivacyPage() {
             <p>
               The only third-party script on the site is the Cloudflare Web Analytics beacon
               described above, and it's cookieless and doesn't profile you. Aside from that, no
-              trackers, fonts, or embeds run here. Links out to Bluesky, GitHub, or the CTA only
-              load when you choose to click them, and those sites have their own privacy policies.
+              trackers, fonts, or embeds run here. Links out to Bluesky, GitHub, the CTA, or Metra
+              only load when you choose to click them, and those sites have their own privacy
+              policies.
             </p>
 
             <h2 className={H2}>Hosting and server logs</h2>
@@ -109,8 +110,9 @@ export default function PrivacyPage() {
 
             <h2 className={H2}>The data shown on the site</h2>
             <p>
-              The incidents shown here are built from public CTA service alerts and public posts by
-              the project's Bluesky bots. None of it is personal information about site visitors.
+              The incidents shown here are built from public CTA and Metra service alerts and public
+              posts by the project's Bluesky bots. None of it is personal information about site
+              visitors.
             </p>
 
             <h2 className={H2}>Questions</h2>
@@ -128,7 +130,7 @@ export default function PrivacyPage() {
             </p>
 
             <p className="pt-2 text-xs text-slate-500 dark:text-slate-400">
-              Last updated June 3, 2026.
+              Last updated June 10, 2026.
             </p>
           </div>
         </div>

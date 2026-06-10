@@ -6,6 +6,7 @@ import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
 import { filterIncidents, flattenIncidents } from '../lib/incidents.js';
+import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc, parseUrlState } from '../lib/urlState.js';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -44,7 +45,18 @@ export default function DayPage({ dateStr }) {
   const scopedLines =
     scope.selectedLines && scope.selectedLines.length > 0 ? scope.selectedLines : null;
   const scopedBusRoutes = scope.selectedBusRoutes.length > 0 ? scope.selectedBusRoutes : null;
-  const isScoped = scopedLines != null || scopedBusRoutes != null;
+  const scopedMetraLines =
+    scope.selectedMetraLines && scope.selectedMetraLines.length > 0
+      ? scope.selectedMetraLines
+      : null;
+  const isScoped = scopedLines != null || scopedBusRoutes != null || scopedMetraLines != null;
+  // Keep a scoped day view within one agency: a Metra-scoped link shows only
+  // Metra; a CTA line/route-scoped link shows only CTA. Unscoped shows both.
+  const scopedAgencies = scopedMetraLines
+    ? ['metra']
+    : scopedLines || scopedBusRoutes
+      ? ['cta']
+      : null;
 
   // Future days never have data; show a friendly state rather than an empty
   // list. Past-but-out-of-window days fall through to the "no incidents"
@@ -83,12 +95,14 @@ export default function DayPage({ dateStr }) {
       startTs: null,
       showBus: scope.showBus,
       busRoutes: scopedBusRoutes,
+      metraLines: scopedMetraLines,
+      agencies: scopedAgencies,
       selectedDay: dayUtc,
       signals: null,
       search: '',
       now,
     });
-  }, [data, dayUtc, now, scope, scopedBusRoutes]);
+  }, [data, dayUtc, now, scope, scopedBusRoutes, scopedMetraLines, scopedAgencies]);
 
   const stationIndex = useMemo(() => {
     if (!flat) return null;
@@ -101,11 +115,13 @@ export default function DayPage({ dateStr }) {
   const breakdown = useMemo(() => {
     const trains = new Set();
     const buses = new Set();
+    const metra = new Set();
     for (const inc of filtered) {
       if (inc.kind === 'train') for (const r of inc.routes ?? []) trains.add(r);
       else if (inc.kind === 'bus') for (const r of inc.routes ?? []) buses.add(String(r));
+      else if (inc.kind === 'metra') for (const r of inc.routes ?? []) metra.add(String(r));
     }
-    return { trains: [...trains], buses: [...buses].sort() };
+    return { trains: [...trains], buses: [...buses].sort(), metra: [...metra].sort() };
   }, [filtered]);
 
   const totalCount = filtered.length;
@@ -201,33 +217,54 @@ export default function DayPage({ dateStr }) {
           )}
           {/* Line/route pills touched this day — suppressed under a scope
               filter, where the banner above already names the single line. */}
-          {!isScoped && data && (breakdown.trains.length > 0 || breakdown.buses.length > 0) && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {breakdown.trains.map((line) => {
-                const info = TRAIN_LINES[line];
-                if (!info) return null;
-                return (
+          {!isScoped &&
+            data &&
+            (breakdown.trains.length > 0 ||
+              breakdown.buses.length > 0 ||
+              breakdown.metra.length > 0) && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {breakdown.trains.map((line) => {
+                  const info = TRAIN_LINES[line];
+                  if (!info) return null;
+                  return (
+                    <a
+                      key={`train-${line}`}
+                      href={`/line/${line}`}
+                      className="inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
+                      style={{ backgroundColor: info.color, color: info.textColor }}
+                    >
+                      {info.label}
+                    </a>
+                  );
+                })}
+                {breakdown.metra.map((line) => {
+                  const info = METRA_LINES[line];
+                  return (
+                    <a
+                      key={`metra-${line}`}
+                      href={`/metra/line/${line}`}
+                      title={info?.label ?? line}
+                      className="inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
+                      style={{
+                        backgroundColor: info?.color ?? '#64748b',
+                        color: info?.textColor ?? '#fff',
+                      }}
+                    >
+                      {line.toUpperCase()}
+                    </a>
+                  );
+                })}
+                {breakdown.buses.map((route) => (
                   <a
-                    key={line}
-                    href={`/line/${line}`}
-                    className="inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-bold hover:opacity-80 transition-opacity"
-                    style={{ backgroundColor: info.color, color: info.textColor }}
+                    key={`bus-${route}`}
+                    href={`/route/${route}`}
+                    className="inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-bold bg-slate-500 text-white hover:opacity-80 transition-opacity"
                   >
-                    {info.label}
+                    #{route}
                   </a>
-                );
-              })}
-              {breakdown.buses.map((route) => (
-                <a
-                  key={route}
-                  href={`/route/${route}`}
-                  className="inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-bold bg-slate-500 text-white hover:opacity-80 transition-opacity"
-                >
-                  #{route}
-                </a>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
         </div>
 
         {!data && (

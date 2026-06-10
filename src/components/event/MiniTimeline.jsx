@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { TRAIN_LINES } from '../../lib/ctaLines.js';
 import { chicagoDayUTC, formatChicagoDay, hexToRgba } from '../../lib/format.js';
 import { formatRoutesLabel } from '../../lib/incidents.js';
+import { METRA_LINES } from '../../lib/metraLines.js';
 import { incidentRoutes } from './incidentText.jsx';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -54,11 +55,14 @@ function buildEventLineWindow(incident, incidents, numDays = 14, now = Date.now(
   return { dayUtcs, perRoute, routes, centerDayUtc };
 }
 
-// Color picker for a single route's cell. Train routes get their brand color;
-// bus routes share the slate tint Timeline uses for the bus row.
+// Color picker for a single route's cell. Train and Metra routes get their
+// brand color; bus routes share the slate tint Timeline uses for the bus row.
 function routeColor(kind, route) {
   if (kind === 'train') {
     const info = TRAIN_LINES[route];
+    if (info) return info.color;
+  } else if (kind === 'metra') {
+    const info = METRA_LINES[route];
     if (info) return info.color;
   }
   return BUS_COLOR;
@@ -68,18 +72,19 @@ function routeColor(kind, route) {
 // EventDetail card above already has linked LinePills for navigation; here
 // the pill is purely a legend so the reader can match row to color.
 export function RowLabel({ kind, route }) {
-  if (kind === 'train') {
-    const info = TRAIN_LINES[route];
-    if (info) {
-      return (
-        <span
-          className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
-          style={{ backgroundColor: info.color, color: info.textColor }}
-        >
-          {info.label}
-        </span>
-      );
-    }
+  // Train and Metra rows get a brand-colored pill. Metra shows the short route
+  // code (UP-N) so it fits the narrow gutter; its full name rides on `title`.
+  const info = kind === 'train' ? TRAIN_LINES[route] : kind === 'metra' ? METRA_LINES[route] : null;
+  if (info) {
+    return (
+      <span
+        className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
+        style={{ backgroundColor: info.color, color: info.textColor }}
+        title={kind === 'metra' ? info.label : undefined}
+      >
+        {kind === 'metra' ? route.toUpperCase() : info.label}
+      </span>
+    );
   }
   return (
     <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap bg-slate-700 text-white">
@@ -117,13 +122,16 @@ function cellTextColor(hex, opacity, dark) {
 
 // Day link, scoped to this row's line/route so the destination day page opens
 // filtered to the line in question rather than the whole system. Trains use
-// ?lines=<line>; buses set ?lines=none (drop trains) plus ?routes=<route>.
-// Mirrors the canonical query scheme parseUrlState/DayPage read.
+// ?lines=<line>; buses set ?lines=none (drop trains) plus ?routes=<route>;
+// Metra sets ?metra=<line>. Mirrors the canonical query scheme
+// parseUrlState/DayPage read.
 function scopedDayHref(dateStr, kind, route) {
   const query =
     kind === 'bus'
       ? `?lines=none&routes=${encodeURIComponent(route)}`
-      : `?lines=${encodeURIComponent(route)}`;
+      : kind === 'metra'
+        ? `?metra=${encodeURIComponent(route)}`
+        : `?lines=${encodeURIComponent(route)}`;
   return `/day/${dateStr}${query}`;
 }
 

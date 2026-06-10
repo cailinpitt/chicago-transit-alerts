@@ -2,6 +2,7 @@ import { typicalDurationKey } from '../lib/aggregate.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../lib/format.js';
 import { botSummaryText, formatEvidenceChip, splitObservations } from '../lib/incidents.js';
+import { METRA_LINES } from '../lib/metraLines.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 import LongRunningBanner from './LongRunningBanner.jsx';
@@ -10,17 +11,21 @@ import StationName from './StationName.jsx';
 
 const BUS_COLOR = '#64748b';
 
-// Per-incident colors for the gantt bar. Train incidents that touch multiple
-// lines (e.g. Red+Purple shared trackage) get one color per route so the bar
-// renders as alternating bands rather than collapsing to the first line's
-// color. Buses always slot into the shared slate tint — bus alerts can also
-// span multiple routes, but the routes don't have per-route brand colors.
+// Per-incident colors for the gantt bar. Train and Metra incidents that touch
+// multiple lines (e.g. Red+Purple shared trackage) get one color per route so
+// the bar renders as alternating bands rather than collapsing to the first
+// line's color. Buses always slot into the shared slate tint — bus alerts can
+// also span multiple routes, but the routes don't have per-route brand colors.
 function incidentColors(incident) {
-  if (incident.kind === 'train' && Array.isArray(incident.routes) && incident.routes.length > 0) {
-    return incident.routes.map((r) => TRAIN_LINES[r]?.color ?? BUS_COLOR);
+  // Brand-color palette by agency. Buses (and any unknown kind) have no
+  // per-route colors, so they fall back to the shared slate tint.
+  const palette =
+    incident.kind === 'train' ? TRAIN_LINES : incident.kind === 'metra' ? METRA_LINES : null;
+  if (palette && Array.isArray(incident.routes) && incident.routes.length > 0) {
+    return incident.routes.map((r) => palette[r]?.color ?? BUS_COLOR);
   }
   const fallback = (Array.isArray(incident.routes) && incident.routes[0]) || incident.line;
-  return [incident.kind === 'train' ? (TRAIN_LINES[fallback]?.color ?? BUS_COLOR) : BUS_COLOR];
+  return [palette?.[fallback]?.color ?? BUS_COLOR];
 }
 
 // Background style for an N-color bar. One color → solid fill. Two-or-more
@@ -362,11 +367,13 @@ function ActiveMiniGantt({ incidents, now }) {
           const widthPct = Math.max(naturalWidthPct, 1.5);
           const leftPct = 100 - widthPct;
           const eventId = incident.id;
-          const isTrain = incident.kind === 'train';
           const routesForLabel = Array.isArray(incident.routes) ? incident.routes : [];
-          const routesLabel = isTrain
-            ? routesForLabel.map((r) => TRAIN_LINES[r]?.label ?? r).join(' + ')
-            : routesForLabel.map((r) => `#${r}`).join(' + ');
+          const routesLabel =
+            incident.kind === 'train'
+              ? routesForLabel.map((r) => TRAIN_LINES[r]?.label ?? r).join(' + ')
+              : incident.kind === 'metra'
+                ? routesForLabel.map((r) => METRA_LINES[r]?.label ?? r).join(' + ')
+                : routesForLabel.map((r) => `#${r}`).join(' + ');
           const elapsedText = elapsed(now, start);
           const label = `${routesLabel}: ${elapsedText} ago`;
           // Only the colored bar is interactive — wrapping the whole track

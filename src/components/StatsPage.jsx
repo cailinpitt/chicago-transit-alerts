@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import {
+  computeMetraLeaderboards,
   computeRestorationDeltas,
   computeSegmentRecurrence,
   computeStatsLeaderboards,
@@ -12,6 +13,7 @@ import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatDate, formatDuration, formatTime } from '../lib/format.js';
 import { flattenIncidents, formatRoutesLabel } from '../lib/incidents.js';
+import { METRA_LINES } from '../lib/metraLines.js';
 import Breadcrumb from './Breadcrumb.jsx';
 import Footer from './Footer.jsx';
 import Header from './Header.jsx';
@@ -164,6 +166,11 @@ export default function StatsPage() {
       windowDays: 90,
       limit: 3,
     });
+  }, [flat, now]);
+
+  const metra = useMemo(() => {
+    if (!flat) return null;
+    return computeMetraLeaderboards(flat.alerts, flat.observations, { now, windowDays: 90 });
   }, [flat, now]);
 
   const longestRoutesLabel = useMemo(() => {
@@ -362,6 +369,78 @@ export default function StatsPage() {
               />
             )}
           </div>
+        )}
+
+        {metra?.hasData && (
+          <section className="space-y-3 pt-2">
+            <div className="px-1">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Metra (last 90 days)
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Cancellations and 15+ minute delays the bot detected, by line.
+                {metra.alertsCount > 0 &&
+                  ` Plus ${metra.alertsCount} republished Metra alert${
+                    metra.alertsCount === 1 ? '' : 's'
+                  }.`}
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {metra.topCancelled ? (
+                <StatCard
+                  eyebrow="Most-cancelled line"
+                  headline={`${METRA_LINES[metra.topCancelled.line]?.label ?? metra.topCancelled.line} — ${metra.topCancelled.cancellations} cancellation${metra.topCancelled.cancellations === 1 ? '' : 's'}`}
+                  sub="Metra-confirmed and bot-inferred cancellations."
+                  href={`/metra/line/${metra.topCancelled.line}`}
+                />
+              ) : (
+                <StatCard
+                  eyebrow="Most-cancelled line"
+                  headline="No cancellations in the window."
+                />
+              )}
+              {metra.topDelayed ? (
+                <StatCard
+                  eyebrow="Most-delayed line"
+                  headline={`${METRA_LINES[metra.topDelayed.line]?.label ?? metra.topDelayed.line} — ${metra.topDelayed.delays} late-train detection${metra.topDelayed.delays === 1 ? '' : 's'}`}
+                  sub="Trains running 15+ minutes behind schedule."
+                  href={`/metra/line/${metra.topDelayed.line}`}
+                />
+              ) : (
+                <StatCard eyebrow="Most-delayed line" headline="No major delays in the window." />
+              )}
+            </div>
+            {metra.byLine.length > 0 && (
+              <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border">
+                {metra.byLine.map((r) => {
+                  const info = METRA_LINES[r.line];
+                  return (
+                    <a
+                      key={r.line}
+                      href={`/metra/line/${r.line}`}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-gh-canvas transition-colors"
+                    >
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0"
+                        style={{
+                          backgroundColor: info?.color ?? '#64748b',
+                          color: info?.textColor ?? '#fff',
+                        }}
+                      >
+                        {info?.label ?? r.line}
+                      </span>
+                      <span className="flex-1 min-w-0 text-sm text-slate-600 dark:text-slate-300 truncate">
+                        {r.cancellations} cancelled · {r.delays} late
+                      </span>
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 tabular-nums flex-shrink-0">
+                        {r.total}
+                      </span>
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         )}
       </main>
       <Footer />

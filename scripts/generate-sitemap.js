@@ -13,6 +13,7 @@ import { TRAIN_LINE_ORDER } from '../src/lib/ctaLines.js';
 import { chicagoDayIsoUTC, chicagoDayUTC } from '../src/lib/format.js';
 import { flattenIncidents, mergeMatchingIncidents, postUrlRkey } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
+import { METRA_LINE_ORDER } from '../src/lib/metraLines.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -50,8 +51,10 @@ function main() {
     return;
   }
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
-  // Pre-launch: drop kind='metra' incidents (gateIncidents is CTA-only in Node)
-  // so no Metra event pages, feed entries, sitemap urls, or CSV rows are published.
+  // Metra incident-derived URLs (event/day pages) stay out of the sitemap until
+  // those pages get prerendered OG cards — gateIncidents is CTA-only in Node, so
+  // it strips kind='metra' here. The Metra *roster* pages (line pages + the
+  // system dashboard) are static and ARE listed below, via prerender-static.js.
   raw.incidents = gateIncidents(raw.incidents || []);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const generatedAt = payload.generated_at ?? Date.now();
@@ -69,6 +72,7 @@ function main() {
   entries.push(urlEntry(`${SITE}/compare`, generatedIso, 'monthly', 0.5));
   entries.push(urlEntry(`${SITE}/system/trains`, generatedIso, 'daily', 0.7));
   entries.push(urlEntry(`${SITE}/system/buses`, generatedIso, 'daily', 0.7));
+  entries.push(urlEntry(`${SITE}/system/metra`, generatedIso, 'daily', 0.7));
 
   // A–Z directory index pages — full station/route rosters. Static content
   // (the roster rarely changes), but they're the canonical entry points into
@@ -85,6 +89,11 @@ function main() {
   // Train lines — stable set of 8.
   for (const line of TRAIN_LINE_ORDER) {
     entries.push(urlEntry(`${SITE}/line/${line}`, generatedIso, 'daily', 0.7));
+  }
+
+  // Metra lines — stable set of 11 (roster pages, prerendered as static stubs).
+  for (const line of METRA_LINE_ORDER) {
+    entries.push(urlEntry(`${SITE}/metra/line/${line}`, generatedIso, 'daily', 0.7));
   }
 
   // Bus routes with at least one incident in the rolling window. Same scope

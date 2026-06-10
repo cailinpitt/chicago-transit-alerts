@@ -1,8 +1,8 @@
 # Chicago Transit Alerts
 
-> An unofficial public archive of Chicago Transit Authority (CTA) service alerts and bot-detected disruptions on trains and buses, with a rolling incident heatmap. Not affiliated with the CTA.
+> An unofficial public archive of Chicago Transit Authority (CTA) train and bus plus Metra commuter-rail service alerts and bot-detected disruptions, with a rolling incident heatmap. Not affiliated with the CTA or Metra.
 
-Each incident pairs an official CTA alert with bot observations (gap, bunching, ghost-train, cold-platform, and related detections) into a single object, merged server-side. The same data the site renders is published at stable URLs as JSON, CSV, and feeds, with no auth. Train routes use full line names (`red`, `blue`, `green`, `brown`, `orange`, `pink`, `purple`, `yellow`); bus routes use route numbers (`66`, `X9`). Timestamps are epoch milliseconds in JSON and ISO 8601 UTC in CSV.
+Each incident pairs an official alert with bot observations (gap, bunching, ghost-train, cold-platform, and related detections) into a single object, merged server-side. The same data the site renders is published at stable URLs as JSON, CSV, and feeds, with no auth. Every incident has a `kind` of `train`, `bus`, or `metra`. Train routes use full line names (`red`, `blue`, `green`, `brown`, `orange`, `pink`, `purple`, `yellow`); bus routes use route numbers (`66`, `X9`); Metra lines use lowercase route codes (`up-n`, `up-nw`, `md-w`, `bnsf`, `me`). Metra detections use the sources `cancellation`, `cancellation-inferred` (a scheduled train the bot never saw run), and `delay`. Timestamps are epoch milliseconds in JSON and ISO 8601 UTC in CSV. (Note: Metra incidents are present in the JSON archive; the CSV and per-line feeds are CTA-only for now.)
 
 ## Data API
 - [Incidents (JSON)](https://chicagotransitalerts.app/data/alerts.json): Full archive. Top-level `incidents[]`, one object per real-world disruption; `cta` block is the official alert (null for bot-only), `observations[]` are bot detections (empty for CTA-only), `sources` lists which contributed.
@@ -17,13 +17,14 @@ Each incident pairs an official CTA alert with bot observations (gap, bunching, 
 - [Calendar](https://chicagotransitalerts.app/calendar): 12-month daily incident heatmap.
 - [This week](https://chicagotransitalerts.app/week): Recap of the current Sun–Sat week — counts, per-day breakdown, most-affected lines, and the longest incident. Archived weeks live at `https://chicagotransitalerts.app/week/<YYYY-MM-DD>` (the week's Sunday).
 - [Stats](https://chicagotransitalerts.app/stats): Worst day, worst hour, most-affected station, longest incident, plus year-over-year.
-- [Compare](https://chicagotransitalerts.app/compare): Side-by-side reliability for up to 3 lines or routes (`?trains=red,blue` / `?buses=66,X9`).
-- [Train system health](https://chicagotransitalerts.app/system/trains) and [Bus system health](https://chicagotransitalerts.app/system/buses): Mode-wide dashboards.
+- [Compare](https://chicagotransitalerts.app/compare): Side-by-side reliability for up to 3 lines or routes (`?trains=red,blue` / `?buses=66,X9` / `?metra=up-n,bnsf`).
+- [Train system health](https://chicagotransitalerts.app/system/trains), [Bus system health](https://chicagotransitalerts.app/system/buses), and [Metra system health](https://chicagotransitalerts.app/system/metra): Mode-wide dashboards.
 - Line pages: `https://chicagotransitalerts.app/line/<line>` (e.g. `/line/red`).
+- Metra line pages: `https://chicagotransitalerts.app/metra/line/<line>` (e.g. `/metra/line/up-n`).
 - Route pages: `https://chicagotransitalerts.app/route/<routeId>` (e.g. `/route/66`).
 - Station pages: `https://chicagotransitalerts.app/station/<slug>` (kebab-case, e.g. `/station/howard`).
 - [All stations](https://chicagotransitalerts.app/stations): A–Z directory of every 'L' station, each linking to its station page.
-- [All routes](https://chicagotransitalerts.app/routes): Directory of every train line and bus route, each linking to its line/route page.
+- [All routes](https://chicagotransitalerts.app/routes): Directory of every train line, bus route, and Metra line, each linking to its line/route page.
 - Day pages: `https://chicagotransitalerts.app/day/<YYYY-MM-DD>`.
 - Event pages: `https://chicagotransitalerts.app/event/<id>` (id = Bluesky post rkey; the incident permalink).
 

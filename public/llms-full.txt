@@ -1,12 +1,12 @@
 # Chicago Transit Alerts — full reference
 
-> An unofficial public archive of Chicago Transit Authority (CTA) service alerts and bot-detected disruptions on trains and buses. Not affiliated with the CTA. This file expands on [/llms.txt](https://chicagotransitalerts.app/llms.txt) with the complete data schema an agent needs to consume the API.
+> An unofficial public archive of Chicago Transit Authority (CTA) train and bus plus Metra commuter-rail service alerts and bot-detected disruptions. Not affiliated with the CTA or Metra. This file expands on [/llms.txt](https://chicagotransitalerts.app/llms.txt) with the complete data schema an agent needs to consume the API.
 
 ## What this site is
 
-Official CTA alerts and independent bot detections are combined into unified "incidents." An official alert and the bot observation(s) describing the same disruption on the same line within a couple of hours are paired server-side into one incident — no client-side merging. The site is a static React app on GitHub Pages; the same JSON it renders is published for reuse (research, journalism, dashboards, training data).
+Official alerts and independent bot detections are combined into unified "incidents." An official alert and the bot observation(s) describing the same disruption on the same line within a couple of hours are paired server-side into one incident — no client-side merging. Pairing is within-agency: a CTA alert never merges with a Metra observation, or vice-versa. The site is a static React app on GitHub Pages; the same JSON it renders is published for reuse (research, journalism, dashboards, training data).
 
-Train routes use full line names: `red`, `blue`, `green`, `brown`, `orange`, `pink`, `purple`, `yellow`. Bus routes use route numbers/identifiers (`66`, `X9`, `J14`). JSON timestamps are epoch milliseconds; CSV timestamps are ISO 8601 (UTC).
+Every incident has a `kind` of `train`, `bus`, or `metra`. Train routes use full line names: `red`, `blue`, `green`, `brown`, `orange`, `pink`, `purple`, `yellow`. Bus routes use route numbers/identifiers (`66`, `X9`, `J14`). Metra lines use lowercase route codes: `bnsf`, `hc`, `md-n`, `md-w`, `me`, `ncs`, `ri`, `sws`, `up-n`, `up-nw`, `up-w`. JSON timestamps are epoch milliseconds; CSV timestamps are ISO 8601 (UTC). Metra incidents are present in alerts.json; the CSV and per-line feeds are CTA-only for now.
 
 ## Endpoints
 
@@ -31,8 +31,8 @@ The top-level array is `incidents` — one object per real-world disruption.
   "incidents": [
     {
       "id": "3k2j...",                  // stable permalink id (Bluesky post rkey); /event/:id
-      "kind": "train",                  // or "bus"
-      "routes": ["red"],                // full line names or bus route numbers
+      "kind": "train",                  // "train", "bus", or "metra"
+      "routes": ["red"],                // full line names, bus route numbers, or Metra codes (e.g. "up-n")
       "first_seen_ts": 1715199000000,
       "resolved_ts": null,              // null = still open
       "active": true,
@@ -104,6 +104,9 @@ Timestamps are ISO 8601 (UTC). `routes` (full line names) and `signals` are semi
 - `pulse-cold` — a platform/segment that went "cold" (no service observed).
 - `thin-gap` — a smaller gap flagged with back-dated onset.
 - `roundup` — multiple simultaneous signals summarized into one observation (`signals[]` populated).
+- `cancellation` — a Metra train Metra confirmed as cancelled (the timetabled analog of `ghost`).
+- `cancellation-inferred` — a scheduled Metra train the bot never saw run, with no covering alert (hedged; suppressed during fleet-wide feed outages).
+- `delay` — a Metra train running materially behind schedule (15+ min).
 
 ## Etiquette
 

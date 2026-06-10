@@ -68,7 +68,7 @@ const weekMatch = /^\/week(?:\/([^/?#]+))?\/?$/.exec(path);
 const calendarMatch = /^\/calendar\/?$/.exec(path);
 const statsMatch = /^\/stats\/?$/.exec(path);
 const compareMatch = /^\/compare\/?$/.exec(path);
-const systemMatch = /^\/system\/(trains|buses)\/?$/.exec(path);
+const systemMatch = /^\/system\/(trains|buses|metra)\/?$/.exec(path);
 const aboutMatch = /^\/about\/?$/.exec(path);
 const subscribeMatch = /^\/subscribe\/?$/.exec(path);
 const privacyMatch = /^\/privacy\/?$/.exec(path);
@@ -101,7 +101,11 @@ if (eventMatch) {
 } else if (compareMatch) {
   page = <ComparePage />;
 } else if (systemMatch) {
-  page = <SystemHealthPage kind={systemMatch[1] === 'trains' ? 'train' : 'bus'} />;
+  page = (
+    <SystemHealthPage
+      kind={systemMatch[1] === 'trains' ? 'train' : systemMatch[1] === 'metra' ? 'metra' : 'bus'}
+    />
+  );
 } else if (aboutMatch) {
   page = <AboutPage />;
 } else if (subscribeMatch) {

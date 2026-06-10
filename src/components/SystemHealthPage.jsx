@@ -14,6 +14,7 @@ import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay, formatMinutesAsHours } from '../lib/format.js';
 import { filterIncidents, flattenIncidents, mergeMatchingIncidents } from '../lib/incidents.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -32,13 +33,24 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const BUS_GRID_MIN_INCIDENTS_90D = 1;
 const LEADERBOARD_LIMIT = 5;
 
+// Train and Metra are "line-like": a fixed roster shown in canonical order and
+// labeled by line. Buses are an open route set filtered to recent activity.
+const isLineLike = (kind) => kind === 'train' || kind === 'metra';
+
+// Dedicated page for a route in this mode.
+function routeHref(kind, route) {
+  if (kind === 'bus') return `/route/${route}`;
+  if (kind === 'metra') return `/metra/line/${route}`;
+  return `/line/${route}`;
+}
+
 // Build the list of routes to render in the per-route grid, plus per-route
 // stats. For trains, always render all 8 lines in their canonical order so
 // the page reads like a system status board even when most lines are quiet.
 // For buses, only routes that appear in the data — there's no fixed set —
 // filtered to those with ≥1 incident in the 90d window.
 function buildRouteStats({ kind, alerts, observations, now }) {
-  const isTrain = kind === 'train';
+  const lineLike = isLineLike(kind);
   const weekAgo = now - 7 * DAY_MS;
   const monthAgo = now - 30 * DAY_MS;
   const ninetyAgo = now - 90 * DAY_MS;
@@ -65,8 +77,10 @@ function buildRouteStats({ kind, alerts, observations, now }) {
   }
 
   let routes;
-  if (isTrain) {
+  if (kind === 'train') {
     routes = [...TRAIN_LINE_ORDER];
+  } else if (kind === 'metra') {
+    routes = [...METRA_LINE_ORDER];
   } else {
     routes = [...buckets.keys()].sort(compareBusRoutes);
   }
@@ -124,7 +138,9 @@ function buildRouteStats({ kind, alerts, observations, now }) {
     };
   });
 
-  if (isTrain) return rows;
+  // Line-like modes (train/Metra) keep the full canonical roster; buses filter
+  // to routes with material recent activity.
+  if (lineLike) return rows;
   return rows.filter((r) => r.count90d >= BUS_GRID_MIN_INCIDENTS_90D);
 }
 
@@ -137,6 +153,24 @@ function RouteLabel({ kind, route }) {
         style={{ backgroundColor: info?.color ?? '#64748b', color: info?.textColor ?? '#fff' }}
       >
         {info?.label ?? route}
+      </span>
+    );
+  }
+  if (kind === 'metra') {
+    // Colored route-code pill + the full line name beside it (mirrors the bus
+    // "#route + name" layout), since Metra's full names are too long for a pill.
+    const info = METRA_LINES[route];
+    return (
+      <span className="inline-flex items-baseline gap-1.5 min-w-0">
+        <span
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0"
+          style={{ backgroundColor: info?.color ?? '#64748b', color: info?.textColor ?? '#fff' }}
+        >
+          {String(route).toUpperCase()}
+        </span>
+        {info?.label && (
+          <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{info.label}</span>
+        )}
       </span>
     );
   }
@@ -159,7 +193,6 @@ const SORT_OPTIONS = [
 ];
 
 function sortRows(rows, sortKey, kind) {
-  const isTrain = kind === 'train';
   const sorted = [...rows];
   switch (sortKey) {
     case 'weekly':
@@ -172,8 +205,8 @@ function sortRows(rows, sortKey, kind) {
       sorted.sort((a, b) => b.disruptionMinutes - a.disruptionMinutes);
       break;
     default:
-      if (isTrain) {
-        // Preserve canonical TRAIN_LINE_ORDER (already applied during build).
+      if (isLineLike(kind)) {
+        // Preserve canonical line order (already applied during build).
         return rows;
       }
       sorted.sort((a, b) => compareBusRoutes(a.route, b.route));
@@ -193,8 +226,8 @@ function RouteGrid({ kind, rows, sortKey, onSortChange }) {
       </div>
     );
   }
-  const isTrain = kind === 'train';
-  const hrefFor = (route) => (isTrain ? `/line/${route}` : `/route/${route}`);
+  const lineLike = isLineLike(kind);
+  const hrefFor = (route) => routeHref(kind, route);
 
   // Two layouts. Mobile drops the sparkline + trend-% column entirely
   // (180px is the bulk of the row width and was overflowing on phones —
@@ -238,7 +271,7 @@ function RouteGrid({ kind, rows, sortKey, onSortChange }) {
       <div
         className={`${ROW_GRID} py-2 border-b border-slate-100 dark:border-gh-border text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400`}
       >
-        <span>{isTrain ? 'Line' : 'Route'}</span>
+        <span>{lineLike ? 'Line' : 'Route'}</span>
         <span className="text-right">Active</span>
         <span className="text-right">7d</span>
         <span className="text-right">30d hrs</span>
@@ -307,7 +340,7 @@ function Leaderboard({ kind, title, rows, metric, formatValue, emptyLabel }) {
   const ranked = rows
     .filter((r) => (metric === 'monthly' ? r.monthlyCount > 0 : r.disruptionMinutes > 0))
     .slice(0, LEADERBOARD_LIMIT);
-  const hrefFor = (route) => (kind === 'train' ? `/line/${route}` : `/route/${route}`);
+  const hrefFor = (route) => routeHref(kind, route);
 
   if (ranked.length === 0) {
     return (
@@ -362,8 +395,8 @@ export default function SystemHealthPage({ kind }) {
   // '7d' (last 7 days, matching the homepage default).
   const [dateScope, setDateScope] = useState('all');
 
-  const isTrain = kind === 'train';
-  const modeLabel = isTrain ? 'Trains' : 'Buses';
+  const lineLike = isLineLike(kind);
+  const modeLabel = kind === 'train' ? 'Trains' : kind === 'metra' ? 'Metra' : 'Buses';
 
   useEffect(() => {
     const url = dataUrl('alerts.json');
@@ -501,10 +534,18 @@ export default function SystemHealthPage({ kind }) {
     );
   }
 
-  const headline = isTrain ? 'Train system health' : 'Bus system health';
-  const subhead = isTrain
-    ? 'All eight L lines at a glance — active disruptions, recent activity, and disruption time over the last 30 days.'
-    : 'Every bus route with recent incidents — active disruptions, recent activity, and disruption time over the last 30 days.';
+  const headline =
+    kind === 'train'
+      ? 'Train system health'
+      : kind === 'metra'
+        ? 'Metra system health'
+        : 'Bus system health';
+  const subhead =
+    kind === 'train'
+      ? 'All eight L lines at a glance — active disruptions, recent activity, and disruption time over the last 30 days.'
+      : kind === 'metra'
+        ? 'Every Metra line at a glance — active disruptions, cancellations, and delays over the last 30 days.'
+        : 'Every bus route with recent incidents — active disruptions, recent activity, and disruption time over the last 30 days.';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
@@ -627,7 +668,7 @@ export default function SystemHealthPage({ kind }) {
 
             <section>
               <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                {isTrain ? 'Every line' : 'Routes with recent activity'}
+                {lineLike ? 'Every line' : 'Routes with recent activity'}
               </h2>
               <RouteGrid
                 kind={kind}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -187,6 +188,13 @@ export default function BrowseMenu({ alerts, observations, align = 'right' }) {
                 >
                   🚌 Buses
                 </a>
+                <a
+                  href="/system/metra"
+                  role="menuitem"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
+                >
+                  🚆 Metra
+                </a>
               </div>
             </section>
 
@@ -201,6 +209,28 @@ export default function BrowseMenu({ alerts, observations, align = 'right' }) {
                     <a
                       key={line}
                       href={`/line/${line}`}
+                      role="menuitem"
+                      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold hover:opacity-80 transition-opacity"
+                      style={{ backgroundColor: info.color, color: info.textColor }}
+                    >
+                      {info.label}
+                    </a>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                Metra lines
+              </h3>
+              <div className="flex flex-wrap gap-1.5">
+                {METRA_LINE_ORDER.map((line) => {
+                  const info = METRA_LINES[line];
+                  return (
+                    <a
+                      key={line}
+                      href={`/metra/line/${line}`}
                       role="menuitem"
                       className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold hover:opacity-80 transition-opacity"
                       style={{ backgroundColor: info.color, color: info.textColor }}

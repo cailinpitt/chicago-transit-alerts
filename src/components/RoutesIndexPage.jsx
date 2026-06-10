@@ -4,6 +4,7 @@ import { useDarkMode } from '../hooks/useDarkMode.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 import Breadcrumb from './Breadcrumb.jsx';
 import Footer from './Footer.jsx';
 import Header from './Header.jsx';
@@ -40,9 +41,9 @@ export default function RoutesIndexPage() {
     if (next !== current) window.history.replaceState(null, '', next);
   }, [search]);
 
-  const { lines, routes } = useMemo(() => {
+  const { lines, routes, metra } = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return { lines: TRAIN_LINE_ORDER, routes: BUS_ROUTES };
+    if (!q) return { lines: TRAIN_LINE_ORDER, routes: BUS_ROUTES, metra: METRA_LINE_ORDER };
     return {
       lines: TRAIN_LINE_ORDER.filter((line) => {
         const info = TRAIN_LINES[line];
@@ -52,11 +53,15 @@ export default function RoutesIndexPage() {
         (id) =>
           id.toLowerCase().includes(q) || (BUS_ROUTE_NAMES[id] ?? '').toLowerCase().includes(q),
       ),
+      metra: METRA_LINE_ORDER.filter((line) => {
+        const info = METRA_LINES[line];
+        return line.includes(q) || (info?.label.toLowerCase().includes(q) ?? false);
+      }),
     };
   }, [search]);
 
   const searching = search.trim() !== '';
-  const nothingMatches = lines.length === 0 && routes.length === 0;
+  const nothingMatches = lines.length === 0 && routes.length === 0 && metra.length === 0;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
@@ -75,7 +80,8 @@ export default function RoutesIndexPage() {
           <Breadcrumb items={topLevelTrail('Routes')} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">All routes</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-4">
-            Every CTA train line and bus route. Pick one for its alert and disruption history.
+            Every CTA train line, bus route, and Metra line. Pick one for its alert and disruption
+            history.
           </p>
 
           {/* Search by route number or name — the fast path through 140+ bus
@@ -120,6 +126,29 @@ export default function RoutesIndexPage() {
                           <a
                             key={line}
                             href={`/line/${line}`}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold hover:opacity-80 transition-opacity"
+                            style={{ backgroundColor: info.color, color: info.textColor }}
+                          >
+                            {info.label}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+
+                {metra.length > 0 && (
+                  <section>
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+                      Metra lines
+                    </h2>
+                    <div className="flex flex-wrap gap-1.5">
+                      {metra.map((line) => {
+                        const info = METRA_LINES[line];
+                        return (
+                          <a
+                            key={line}
+                            href={`/metra/line/${line}`}
                             className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold hover:opacity-80 transition-opacity"
                             style={{ backgroundColor: info.color, color: info.textColor }}
                           >

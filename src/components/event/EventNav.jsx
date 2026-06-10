@@ -61,11 +61,15 @@ export default function EventNav({ incident, incidents }) {
   const routes = incidentRoutes(incident);
   const lineLabel = formatRoutesLabel(incident.kind, routes);
   const listHref =
-    incident.kind === 'train' && routes.length === 1
-      ? `/line/${routes[0]}`
-      : incident.kind === 'bus' && routes.length === 1
-        ? `/route/${routes[0]}`
-        : null;
+    routes.length === 1
+      ? incident.kind === 'train'
+        ? `/line/${routes[0]}`
+        : incident.kind === 'bus'
+          ? `/route/${routes[0]}`
+          : incident.kind === 'metra'
+            ? `/metra/line/${routes[0]}`
+            : null
+      : null;
 
   return (
     <nav className="mt-4 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4 space-y-3">
