@@ -33,14 +33,6 @@ export default function Footer() {
           Privacy
         </a>
         <a
-          href="https://bsky.app/profile/ticketmasterceo.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-        >
-          Bluesky
-        </a>
-        <a
           href="https://github.com/cailinpitt/chicago-transit-alerts"
           target="_blank"
           rel="noopener noreferrer"
