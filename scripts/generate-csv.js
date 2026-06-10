@@ -12,6 +12,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCsv } from '../src/lib/csv.js';
 import { flattenIncidents } from '../src/lib/incidents.js';
+import { gateIncidents } from '../src/lib/metraGate.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -25,6 +26,9 @@ function main() {
     return;
   }
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
+  // Pre-launch: drop kind='metra' incidents (gateIncidents is CTA-only in Node)
+  // so no Metra event pages, feed entries, sitemap urls, or CSV rows are published.
+  raw.incidents = gateIncidents(raw.incidents || []);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const csv = buildCsv(payload.alerts ?? [], payload.observations ?? []);
   writeFileSync(OUT, csv);

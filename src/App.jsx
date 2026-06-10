@@ -27,6 +27,7 @@ import {
   observationSignals,
   SOURCE_TYPES,
 } from './lib/incidents.js';
+import { gateIncidents, metraEnabled } from './lib/metraGate.js';
 import { buildStationIndex } from './lib/stations.js';
 import {
   buildSearch,
@@ -117,7 +118,16 @@ export default function App() {
       selectedSources,
       search,
     });
-    const next = `${window.location.pathname}${queryString}${window.location.hash}`;
+    // Preserve the Metra preview param across filter changes — buildSearch only
+    // emits known filter keys, so without this ?metra=1 would be dropped on the
+    // first interaction and Metra would vanish mid-session.
+    let withMetra = queryString;
+    if (metraEnabled()) {
+      const sp = new URLSearchParams(queryString.replace(/^\?/, ''));
+      sp.set('metra', '1');
+      withMetra = `?${sp.toString()}`;
+    }
+    const next = `${window.location.pathname}${withMetra}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.replaceState(null, '', next);
     }
@@ -156,9 +166,13 @@ export default function App() {
           return r.json();
         })
         .then((fresh) => {
+          // Gate Metra out of the payload at the single load boundary, so no
+          // downstream view sees kind='metra' unless ?metra=1 is set. Default
+          // (CTA-only) keeps the live site unchanged while Metra ships in the data.
+          const gated = { ...fresh, incidents: gateIncidents(fresh.incidents) };
           setData((prev) => {
             // Only update if generated_at changed (or on first load).
-            if (!prev || fresh.generated_at !== prev.generated_at) return fresh;
+            if (!prev || gated.generated_at !== prev.generated_at) return gated;
             return prev;
           });
         })

@@ -12,6 +12,7 @@ import { listWeeks } from '../src/lib/aggregate.js';
 import { TRAIN_LINE_ORDER } from '../src/lib/ctaLines.js';
 import { chicagoDayIsoUTC, chicagoDayUTC } from '../src/lib/format.js';
 import { flattenIncidents, mergeMatchingIncidents, postUrlRkey } from '../src/lib/incidents.js';
+import { gateIncidents } from '../src/lib/metraGate.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -49,6 +50,9 @@ function main() {
     return;
   }
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
+  // Pre-launch: drop kind='metra' incidents (gateIncidents is CTA-only in Node)
+  // so no Metra event pages, feed entries, sitemap urls, or CSV rows are published.
+  raw.incidents = gateIncidents(raw.incidents || []);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const generatedAt = payload.generated_at ?? Date.now();
   const generatedIso = isoDate(generatedAt);

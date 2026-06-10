@@ -30,6 +30,7 @@ import {
   observationSignals,
   summarizeSignals,
 } from '../src/lib/incidents.js';
+import { gateIncidents } from '../src/lib/metraGate.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -392,6 +393,9 @@ async function main() {
   // keys arrive already normalized to full names ('green') from the export, so
   // formatRoutesLabel can look them up in TRAIN_LINES directly.
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
+  // Pre-launch: drop kind='metra' incidents (gateIncidents is CTA-only in Node)
+  // so no Metra event pages, feed entries, sitemap urls, or CSV rows are published.
+  raw.incidents = gateIncidents(raw.incidents || []);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const shell = readFileSync(SHELL, 'utf8');
   const template = readFileSync(TEMPLATE, 'utf8');

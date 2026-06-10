@@ -49,6 +49,7 @@ import {
   formatRoutesLabel,
   mergeMatchingIncidents,
 } from '../src/lib/incidents.js';
+import { gateIncidents } from '../src/lib/metraGate.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 import trainStations from '../src/lib/trainStations.json' with { type: 'json' };
 
@@ -899,6 +900,9 @@ async function main() {
     return;
   }
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
+  // Pre-launch: drop kind='metra' incidents (gateIncidents is CTA-only in Node)
+  // so no Metra event pages, feed entries, sitemap urls, or CSV rows are published.
+  raw.incidents = gateIncidents(raw.incidents || []);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   // daily-counts.json is optional — if it's missing (e.g. during a build
   // before the cron has dropped one in), skip the calendar OG card rather
