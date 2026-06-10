@@ -62,6 +62,7 @@ const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
 const stationsIndexMatch = /^\/stations\/?$/.exec(path);
 const routesIndexMatch = /^\/routes\/?$/.exec(path);
 const stationMatch = /^\/station\/([^/?#]+)\/?$/.exec(path);
+const metraStationMatch = /^\/metra\/station\/([^/?#]+)\/?$/.exec(path);
 const dayMatch = /^\/day\/([^/?#]+)\/?$/.exec(path);
 const weekMatch = /^\/week(?:\/([^/?#]+))?\/?$/.exec(path);
 const calendarMatch = /^\/calendar\/?$/.exec(path);
@@ -87,6 +88,8 @@ if (eventMatch) {
   page = <RoutesIndexPage />;
 } else if (stationMatch) {
   page = <StationPage slug={stationMatch[1]} />;
+} else if (metraStationMatch) {
+  page = <StationPage slug={metraStationMatch[1]} kind="metra" />;
 } else if (dayMatch) {
   page = <DayPage dateStr={dayMatch[1]} />;
 } else if (weekMatch) {

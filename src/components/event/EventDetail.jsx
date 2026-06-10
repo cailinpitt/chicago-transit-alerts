@@ -772,8 +772,17 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                             generic ("Brown Line service appears degraded…"). */}
                         {e.obs.from_station && e.obs.to_station && (
                           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                            <StationName name={e.obs.from_station} stationIndex={stationIndex} /> →{' '}
-                            <StationName name={e.obs.to_station} stationIndex={stationIndex} />
+                            <StationName
+                              name={e.obs.from_station}
+                              kind={incident.kind}
+                              stationIndex={stationIndex}
+                            />{' '}
+                            →{' '}
+                            <StationName
+                              name={e.obs.to_station}
+                              kind={incident.kind}
+                              stationIndex={stationIndex}
+                            />
                           </p>
                         )}
                         {Array.isArray(e.obs.bot_evidence_bullets) &&

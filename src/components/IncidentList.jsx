@@ -125,8 +125,19 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   } else if (obsFrom && obsTo) {
     description = (
       <>
-        <StationName name={obsFrom} stationIndex={stationIndex} searchQuery={searchQuery} /> →{' '}
-        <StationName name={obsTo} stationIndex={stationIndex} searchQuery={searchQuery} />
+        <StationName
+          name={obsFrom}
+          kind={incident.kind}
+          stationIndex={stationIndex}
+          searchQuery={searchQuery}
+        />{' '}
+        →{' '}
+        <StationName
+          name={obsTo}
+          kind={incident.kind}
+          stationIndex={stationIndex}
+          searchQuery={searchQuery}
+        />
         {directionLabel && (
           <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-400 font-normal">
             ({directionLabel})
@@ -276,8 +287,19 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
           {/* Merged, single line: show the specific segment from the bot observation */}
           {!isMultiLineSegments && isMerged && obsFrom && obsTo && (
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              <StationName name={obsFrom} stationIndex={stationIndex} searchQuery={searchQuery} /> →{' '}
-              <StationName name={obsTo} stationIndex={stationIndex} searchQuery={searchQuery} />
+              <StationName
+                name={obsFrom}
+                kind={incident.kind}
+                stationIndex={stationIndex}
+                searchQuery={searchQuery}
+              />{' '}
+              →{' '}
+              <StationName
+                name={obsTo}
+                kind={incident.kind}
+                stationIndex={stationIndex}
+                searchQuery={searchQuery}
+              />
               {directionLabel && <span className="ml-1.5">({directionLabel})</span>}
             </p>
           )}
