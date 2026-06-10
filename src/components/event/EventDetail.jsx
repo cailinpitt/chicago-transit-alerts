@@ -433,7 +433,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           incidents on record. The cross-street info is already in the bus
           alert headline, so the chips row adds nothing useful. */}
       {cta &&
-        incident.kind !== 'bus' &&
+        incident.kind === 'train' &&
         (stationsByLine ? (
           <StationsByLine
             groups={stationsByLine}

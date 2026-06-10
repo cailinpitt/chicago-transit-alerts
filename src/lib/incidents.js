@@ -5,6 +5,7 @@
 import { BUS_ROUTE_NAMES } from './busRoutes.js';
 import { TRAIN_LINES } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
+import { metraLineInfo } from './metraLines.js';
 
 // Flatten the published `incidents[]` wire shape into the `{ alerts, observations }`
 // representation the analytics layer (aggregate.js, CSV/feed generators, the
@@ -444,18 +445,26 @@ export function postUrlRkey(postUrl) {
 // enough for headings and OG cards. 4+ routes wrap as `first two + N more`
 // or `N train lines`.
 /**
- * @param {'train'|'bus'} kind
+ * @param {'train'|'bus'|'metra'} kind
  * @param {string[]} routes
  * @returns {string}
  */
 export function formatRoutesLabel(kind, routes) {
-  if (!routes || routes.length === 0) return kind === 'train' ? 'this line' : 'this route';
+  if (!routes || routes.length === 0) return kind === 'bus' ? 'this route' : 'this line';
   if (kind === 'train') {
     const labels = routes.map((r) => TRAIN_LINES[r]?.label ?? r);
     if (labels.length === 1) return `${labels[0]} Line`;
     if (labels.length === 2) return `${labels[0]} and ${labels[1]} Lines`;
     if (labels.length === 3) return `${labels[0]}, ${labels[1]}, and ${labels[2]} Lines`;
     return `${labels.length} train lines`;
+  }
+  if (kind === 'metra') {
+    // Metra lines carry their own name ("BNSF", "Metra Electric") — no " Line".
+    const labels = routes.map((r) => metraLineInfo(r)?.label ?? r);
+    if (labels.length === 1) return labels[0];
+    if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+    if (labels.length === 3) return `${labels[0]}, ${labels[1]}, and ${labels[2]}`;
+    return `${labels.length} Metra lines`;
   }
   // bus
   if (routes.length === 1) {
