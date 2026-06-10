@@ -30,6 +30,17 @@ export default function LinePill({ kind, line, routes }) {
               </a>
             );
           }
+          // Agency-wide Metra alert with no resolvable line (routes: []) — render
+          // a neutral "Metra" pill rather than an empty chip.
+          return (
+            <span
+              key={key ?? 'metra'}
+              className={PILL_BASE.replace('cursor-pointer hover:opacity-80', '')}
+              style={{ backgroundColor: '#64748b', color: '#fff' }}
+            >
+              Metra
+            </span>
+          );
         }
         const info = kind === 'train' ? TRAIN_LINES[key] : null;
         if (info) {
