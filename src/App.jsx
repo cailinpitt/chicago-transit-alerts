@@ -477,11 +477,7 @@ export default function App() {
             <section className="space-y-3">
               <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-slate-50/95 dark:bg-gh-canvas/95 backdrop-blur-sm">
                 {metraOn && (
-                  <div
-                    className="mb-2 inline-flex rounded-lg border border-slate-300 dark:border-gh-border overflow-hidden text-xs font-semibold"
-                    role="group"
-                    aria-label="Agency"
-                  >
+                  <div className="mb-2 inline-flex rounded-lg border border-slate-300 dark:border-gh-border overflow-hidden text-xs font-semibold">
                     {[
                       ['all', 'All'],
                       ['cta', 'CTA'],
