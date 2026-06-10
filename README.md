@@ -1,8 +1,8 @@
 # Chicago Transit Alerts
 
-A public archive of Chicago Transit Authority service alerts and bot-detected disruptions, with a GitHub-style heatmap of incident frequency over the last 90 days.
+A public archive of Chicago Transit Authority (CTA) and Metra service alerts and bot-detected disruptions, with a GitHub-style heatmap of incident frequency over the last 90 days. CTA covers the 'L' trains and buses; Metra covers the region's commuter-rail lines.
 
-> **Unofficial project.** Not affiliated with, endorsed by, or sponsored by the Chicago Transit Authority.
+> **Unofficial project.** Not affiliated with, endorsed by, or sponsored by the Chicago Transit Authority or Metra.
 
 **Live site:** https://chicagotransitalerts.app
 
@@ -14,12 +14,13 @@ A public archive of Chicago Transit Authority service alerts and bot-detected di
 
 - **Active alerts** — anything currently disrupting service, surfaced at the top of the page. The two most recent show as full cards; additional ongoing incidents collapse to compact one-line rows so a system-wide bad afternoon doesn't push the rest of the page off the screen. New incidents picked up by the 5-minute poll briefly fade-in so returning visitors notice what's changed.
 - **At-a-glance summary** — three flowing groups: state + 7-day volume, a week-over-week trend phrase with an inline sparkline, and the most-affected line/route over 30 days plus the train line with the longest clean streak.
-- **90-day timeline** — a per-line contribution-style grid. Train rows + the top 5 most-affected bus routes + an aggregate "Other" row for the long tail. Click a day cell to drill into that single day; click a line name to open its dedicated page.
+- **Agency filter** — an All / CTA / Metra toggle scopes the incident list to one agency. CTA's line and bus filters narrow CTA only; Metra has its own line filter, so the two agencies never crowd each other out.
+- **90-day timeline** — a per-line contribution-style grid. CTA train rows + the top 5 most-affected bus routes + an aggregate "Other" row for the long tail, then a row per Metra line that had activity. Click a day cell to drill into that single day; click a line name to open its dedicated page.
 - **When do incidents happen?** — a 7×24 hour-of-week heatmap so you can see whether things really are worse at PM rush or on Sunday mornings.
-- **Signal mix by train line** — stacked bars showing the proportion of bot detection types (gap, bunching, ghost, cold stretch, trains held in place) per train line. Bus route pages also show a single-row variant scoped to that route.
-- **Incident history** — chronological day-grouped list of every captured alert and observation. Filterable by line, bus route, time window (7d / 30d / 90d / all), single pinned day, signal type, and free-text search across headlines, station names, route numbers, and route names ("Howard", "Chicago", "Red Line", "headway gaps", etc). Search matches are highlighted in the list as you type.
-- **Per-line page** — `/line/:line` and `/route/:routeId` show reliability stats, year-over-year delta (when ≥1y of data exists), resolution-time histogram, and a per-station heatmap on a stylized line map (trains).
-- **Compare** — `/compare` puts up to three train lines or bus routes side-by-side with a stat table, overlaid duration histograms, signal-mix rows, and a row of mini hour-of-week heatmaps. State round-trips through the URL (`?trains=red,blue,green` / `?buses=66,X9,77`).
+- **Signal mix by line** — stacked bars showing the proportion of bot detection types per line: gap, bunching, ghost, cold stretch, and trains-held for CTA; cancellations and delays for Metra (its own section). Bus and line pages also show a single-row variant scoped to that route.
+- **Incident history** — chronological day-grouped list of every captured alert and observation. Filterable by CTA line, bus route, Metra line, agency, time window (7d / 30d / 90d / all), single pinned day, signal type, and free-text search across headlines, station names, route numbers, and route names ("Howard", "Aurora", "Red Line", "UP-N", "headway gaps", etc). Search matches are highlighted in the list as you type.
+- **Per-line page** — `/line/:line` (CTA), `/metra/line/:line` (Metra), and `/route/:routeId` (bus) show reliability stats, year-over-year delta (when ≥1y of data exists), resolution-time histogram, and a per-station heatmap on a stylized line map (CTA trains).
+- **Compare** — `/compare` puts up to three CTA train lines, bus routes, or Metra lines side-by-side with a stat table, overlaid duration histograms, signal-mix rows, and a row of mini hour-of-week heatmaps. State round-trips through the URL (`?trains=red,blue,green` / `?buses=66,X9,77` / `?metra=up-n,bnsf`).
 - **Per-event detail page** — every captured incident gets a permalink at `/event/:id`. Alongside the timeline of CTA/bot updates it surfaces severity badges ("longest Blue Line incident in 30 days", "top 10% by duration"), a recurring-stretch callout ("this stretch has had N disruptions in 90 days"), a busy/quiet hour-of-day note, a live-ticking "ongoing for…" counter on active incidents, surrounding-24h context on the same line, ±1h cross-line context, a 14-day mini timeline whose day cells deep-link to that day (filtered to the line), prev/next navigation (same line and system-wide), and a "copy summary" button.
 
 Filter state, the pinned day, and the search query all round-trip through the URL — any view is a shareable link.
@@ -44,7 +45,7 @@ Every captured incident gets its own permalink with surrounding context, a 14-da
   <img src="docs/images/website-event.png" alt="Event detail page with geographic map and surrounding context" width="820">
 </p>
 
-Train lines, bus routes, and individual stations each have a dedicated page with reliability stats, signal mix, and a per-station heatmap (trains get a stylized line map):
+CTA train lines, bus routes, Metra lines, and individual stations each have a dedicated page with reliability stats, signal mix, and a per-station heatmap (CTA trains get a stylized line map):
 
 <table align="center">
   <tr>
@@ -59,6 +60,8 @@ Compare up to three lines or routes side-by-side:
 <p align="center">
   <img src="docs/images/website-compare.png" alt="Side-by-side comparison of three lines" width="820">
 </p>
+
+Metra commuter rail joins the timeline, stats, and compare views above, and has its own line pages (`/metra/line/up-n`), station pages (`/metra/station/aurora`), and a system-health dashboard (`/system/metra`) covering cancellations and delays.
 
 A 12-month calendar heatmap, a stats page with worst-day / worst-station leaderboards, and per-mode system-health snapshots:
 
@@ -90,13 +93,15 @@ Each entry carries `<media:thumbnail>`, `<media:content>`, and a small HTML `<co
 - Train line — `/feed/line/:line.xml` (e.g. [`/feed/line/red.xml`](https://chicagotransitalerts.app/feed/line/red.xml))
 - Bus route — `/feed/route/:route.xml` (e.g. [`/feed/route/66.xml`](https://chicagotransitalerts.app/feed/route/66.xml))
 
-A feed exists for every train line and **every** bus route in the CTA roster up front — not just ones with a prior incident — so you can subscribe to your route today and it simply stays quiet until something happens. Each line and route page links its feed (the “🔔 Subscribe (RSS)” control), and prerendered pages advertise it via `<link rel="alternate" type="application/atom+xml">` for reader autodiscovery. Every feed also has a JSON Feed twin at the same path with a `.json` extension.
+A feed exists for every train line and **every** bus route in the CTA roster up front — not just ones with a prior incident — so you can subscribe to your route today and it simply stays quiet until something happens. Each line and route page links its feed (the “🔔 Subscribe (RSS)” control), and prerendered pages advertise it via `<link rel="alternate" type="application/atom+xml">` for reader autodiscovery. Every feed also has a JSON Feed twin at the same path with a `.json` extension. (The feeds are CTA-only for now — Metra incidents are available in `alerts.json`.)
 
 The feeds are regenerated as a postbuild step from the same `alerts.json` the SPA reads, so they update whenever the underlying data does.
 
 ## What's tracked
 
-Two distinct sources, displayed together:
+Two agencies — CTA and Metra — each with official alerts and independent bot detections, displayed together.
+
+### CTA (trains & buses)
 
 - **Official CTA alerts** — significant service alerts published by the CTA, captured via the CTA Alerts API and republished by the [@ctaalertinsights.bsky.social](https://bsky.app/profile/ctaalertinsights.bsky.social) Bluesky bot.
 - **Bot-detected observations** — service disruptions inferred from live train and bus positions:
@@ -108,7 +113,17 @@ Two distinct sources, displayed together:
   - **Multi-signal roundup** — when several of the above fire on the same line at once.
   Posted by [@ctatraininsights](https://bsky.app/profile/ctatraininsights.bsky.social) and [@ctabusinsights](https://bsky.app/profile/ctabusinsights.bsky.social).
 
-When an official alert and a bot observation describe the same incident on the same line within a couple of hours, they're paired into a single incident rather than double-counted. That pairing happens once, server-side in the [cta-insights](https://github.com/cailinpitt/cta-insights) pipeline, so the published data and the site both treat it as one event (see [Data as an API](#data-as-an-api) for the shape). Each bot-detected observation also carries a small evidence payload ("3 trains held · 22 min stationary", "2 stations cold · 3 trains missed") shown as a chip on the incident — a one-line answer to "why does the bot think this happened?".
+### Metra (commuter rail)
+
+Metra runs on a published timetable, so its detectors look different from the CTA's frequency-based ones:
+
+- **Official Metra alerts** — GTFS-realtime service alerts published by Metra, republished by [@metraalertinsights.bsky.social](https://bsky.app/profile/metraalertinsights.bsky.social).
+- **Cancellations** — a train is either Metra-confirmed cancelled, or **bot-inferred**: a scheduled train that never appears in the real-time feed long after its departure, with no covering alert. Inferred cancellations are suppressed when the whole feed goes quiet, so a data outage isn't mistaken for mass cancellations.
+- **Delays** — a train running materially behind its scheduled arrival (currently 15+ minutes).
+
+  Cancellations, delays, and speed maps are posted by [@metraalertinsights](https://bsky.app/profile/metraalertinsights.bsky.social) and [@metrainsights](https://bsky.app/profile/metrainsights.bsky.social).
+
+When an official alert and a bot observation describe the same incident on the same line within a couple of hours, they're paired into a single incident rather than double-counted — within each agency (a CTA alert never pairs with a Metra observation). That pairing happens once, server-side in the [cta-insights](https://github.com/cailinpitt/cta-insights) pipeline, so the published data and the site both treat it as one event (see [Data as an API](#data-as-an-api) for the shape). Each bot-detected observation also carries a small evidence payload ("3 trains held · 22 min stationary", "the 6:30 PM Aurora train not seen running") shown as a chip on the incident — a one-line answer to "why does the bot think this happened?".
 
 ## Routes
 
@@ -118,14 +133,17 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 | ----------------------- | -------------------------------------------------------------------------------------- |
 | `/`                     | Homepage with all the cards, filterable.                                               |
 | `/event/:id`            | Single-incident detail page (id is the Bluesky post rkey).                             |
-| `/line/:line`           | Train line page — `/line/red`, `/line/blue`, `/line/orange`, etc. CTA short codes (`org`, `p`, `g`, `brn`, `y`) also resolve correctly. |
+| `/line/:line`           | CTA train line page — `/line/red`, `/line/blue`, `/line/orange`, etc. CTA short codes (`org`, `p`, `g`, `brn`, `y`) also resolve correctly. |
 | `/route/:routeId`       | Bus route page — `/route/66`, `/route/X9`, `/route/J14`, etc.                          |
-| `/station/:slug`        | Train station page — `/station/clark-division`, `/station/howard`, etc. Slugs are kebab-case derived from station names. Names with line qualifiers slug accordingly: `Central (Green)` → `/station/central-green`. |
-| `/stations`             | A–Z directory of every 'L' station, each linking to its station page.                  |
-| `/routes`               | Directory of every train line and bus route, each linking to its line/route page.       |
+| `/metra/line/:line`     | Metra line page — `/metra/line/up-n`, `/metra/line/bnsf`, etc. (lowercase GTFS route codes).      |
+| `/station/:slug`        | CTA train station page — `/station/clark-division`, `/station/howard`, etc. Slugs are kebab-case derived from station names. Names with line qualifiers slug accordingly: `Central (Green)` → `/station/central-green`. |
+| `/metra/station/:slug`  | Metra station page — `/metra/station/aurora`, `/metra/station/naperville`, etc. (kept in a separate namespace from CTA stations). |
+| `/stations`             | A–Z directory of every CTA 'L' station and Metra station, each linking to its station page. |
+| `/routes`               | Directory of every CTA train line, bus route, and Metra line, each linking to its page.  |
+| `/system/:mode`         | Mode-wide health dashboard — `/system/trains`, `/system/buses`, `/system/metra`.        |
 | `/calendar`             | 12-month calendar heatmap of daily incident counts. Click a day to drill into it.       |
-| `/stats`                | Worst-day / worst-hour / worst-station / longest-incident leaderboards plus year-over-year. |
-| `/compare`              | Side-by-side reliability, signal mix, and resolution-time comparison for up to 3 train lines or bus routes. State round-trips through `?trains=red,blue,green` or `?buses=66,X9,77`. |
+| `/stats`                | Worst-day / worst-hour / worst-station / longest-incident leaderboards, plus year-over-year and a Metra cancellations/delays section. |
+| `/compare`              | Side-by-side reliability, signal mix, and resolution-time comparison for up to 3 CTA train lines, bus routes, or Metra lines. State round-trips through `?trains=red,blue,green`, `?buses=66,X9,77`, or `?metra=up-n,bnsf`. |
 | `/week`, `/week/:date`  | Sunday–Saturday recap of one week — counts, per-day breakdown, most-affected lines, longest incident, and a week-over-week delta. `/week` is the current week; `/week/<YYYY-MM-DD>` is the archived week containing that date (the canonical permalink uses the week's Sunday). |
 
 ## How it works
@@ -133,7 +151,7 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 The site is a static React app — no backend, no database calls from the browser. All data lives in a single JSON file regenerated server-side and committed to this repo.
 
 1. A cron job on a home server runs [`push-web-data.sh`](https://github.com/cailinpitt/cta-insights/blob/main/bin/push-web-data.sh) every 7 minutes.
-2. The script exports the latest data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database — pairing official CTA alerts with matching bot observations into unified incidents — to `public/data/alerts.json`, and commits if anything changed.
+2. The script exports the latest data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database — pairing official CTA and Metra alerts with matching bot observations into unified incidents — to `public/data/alerts.json`, and commits if anything changed.
 3. GitHub Actions builds the Vite app and deploys it to GitHub Pages.
 4. The browser polls `alerts.json` every 5 minutes so the page stays current without a reload.
 
@@ -147,7 +165,7 @@ https://chicagotransitalerts.app/data/alerts.json
 
 It's regenerated whenever the underlying data changes (typically every 7 minutes when there's activity) and served from GitHub Pages with no auth. Use it however you like — research, journalism, hobby dashboards, training data. Breaking changes to this shape are recorded in the [data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md) ([source](public/data/CHANGELOG.md)) — check it before pinning to the format.
 
-The top-level array is `incidents` — **one object per real-world disruption**. An official CTA alert and the bot observation(s) describing the same incident are paired server-side into a single object (no client-side merging needed): the `cta` block carries the official alert (null for bot-only incidents), and `observations[]` carries the bot detections (empty for CTA-only incidents). `sources` tells you which contributed. A non-exhaustive sketch:
+The top-level array is `incidents` — **one object per real-world disruption**. An official alert (CTA or Metra) and the bot observation(s) describing the same incident are paired server-side into a single object (no client-side merging needed): the `cta` block carries the official alert (null for bot-only incidents), and `observations[]` carries the bot detections (empty for CTA-only incidents). `sources` tells you which contributed. A non-exhaustive sketch:
 
 ```jsonc
 {
@@ -156,8 +174,8 @@ The top-level array is `incidents` — **one object per real-world disruption**.
   "incidents": [
     {
       "id": "3k2j...",                  // stable permalink id (Bluesky post rkey); /event/:id
-      "kind": "train",                  // or "bus"
-      "routes": ["red"],                // full line names ('red','green','orange',…) or bus route numbers
+      "kind": "train",                  // "train", "bus", or "metra"
+      "routes": ["red"],                // CTA line names ('red',…), bus route numbers, or Metra codes ('up-n')
       "first_seen_ts": 1715199000000,
       "resolved_ts": null,              // null = still open
       "active": true,
@@ -184,7 +202,8 @@ The top-level array is `incidents` — **one object per real-world disruption**.
       "observations": [                 // [] for CTA-only incidents
         {
           "id": 12345,
-          "detection_source": "pulse-cold", // 'gap','bunching','ghost','pulse-held','thin-gap','roundup'
+          "detection_source": "pulse-cold", // CTA: 'gap','bunching','ghost','pulse-held','thin-gap','roundup'
+                                            // Metra: 'cancellation','cancellation-inferred','delay'
           "signals": ["gap", "bunching"],   // populated for roundups
           "from_station": "Howard",
           "to_station": "Loyola",
@@ -219,6 +238,8 @@ https://chicagotransitalerts.app/data/alerts.csv
 ```
 
 Columns: `type, id, kind, routes, headline, detection_source, signals, from_station, to_station, direction, direction_label, first_seen_ts, onset_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` (full line names) and `signals` are semicolon-separated when multi-valued. `onset_ts` is the disruption start for absence-style observations (back-dated from `first_seen_ts` to the last observed train) and is blank when not back-dated; `duration_minutes` is measured from `onset_ts` when present, else `first_seen_ts`. Regenerated alongside `alerts.json`.
+
+> **Metra coverage note.** Metra incidents (`kind: "metra"`) are present in `alerts.json` and rendered across the site. The flat **CSV** and the per-line **feeds** are currently CTA-only — Metra rows/feeds are not emitted yet.
 
 Please be a courteous client — cache responses, don't poll faster than every few minutes, and credit the project if you build something public.
 

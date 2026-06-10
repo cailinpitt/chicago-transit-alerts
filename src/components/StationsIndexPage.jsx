@@ -3,6 +3,8 @@ import { useBrowseData } from '../hooks/useBrowseData.js';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { normalizeTrainLine, TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
+import { METRA_LINES } from '../lib/metraLines.js';
+import { metraStationRoster } from '../lib/metraStations.js';
 import { slugifyStation } from '../lib/stations.js';
 import trainStations from '../lib/trainStations.json';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -17,6 +19,33 @@ const TRAIN_LINE_SET = new Set(TRAIN_LINE_ORDER);
 const ROSTER = [...trainStations]
   .map((s) => ({ ...s, normLines: [...new Set((s.lines || []).map(normalizeTrainLine))] }))
   .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }));
+
+// Metra station roster — same numeric-aware A–Z sort. `lines` are Metra web keys.
+const METRA_ROSTER = metraStationRoster().sort((a, b) =>
+  a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }),
+);
+
+// Group a flat roster into A–Z buckets ("#" first), filtered by a search string.
+function groupRoster(roster, search) {
+  const q = search.trim().toLowerCase();
+  const filtered = q ? roster.filter((s) => s.name.toLowerCase().includes(q)) : roster;
+  const byLetter = new Map();
+  for (const s of filtered) {
+    const key = groupKey(s.name);
+    let list = byLetter.get(key);
+    if (!list) {
+      list = [];
+      byLetter.set(key, list);
+    }
+    list.push(s);
+  }
+  const ordered = [...byLetter.entries()].sort(([a], [b]) => {
+    if (a === '#') return -1;
+    if (b === '#') return 1;
+    return a.localeCompare(b);
+  });
+  return { groups: ordered, total: filtered.length };
+}
 
 // First-character bucket for the A–Z grouping. Digits (e.g. "35th/Archer",
 // "18th") collapse into a single "#" group that sorts ahead of the letters,
@@ -61,6 +90,55 @@ function LineDots({ lines }) {
       })}
     </span>
   );
+}
+
+// Metra variant — colored squares for the Metra lines serving a station.
+function MetraLineDots({ lines }) {
+  if (!lines || lines.length === 0) return null;
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1">
+      {lines.map((key) => {
+        const info = METRA_LINES[key];
+        if (!info) return null;
+        return (
+          <span
+            key={key}
+            role="img"
+            title={info.label}
+            aria-label={info.label}
+            className="inline-block h-2.5 w-2.5 rounded-sm"
+            style={{ backgroundColor: info.color }}
+          />
+        );
+      })}
+    </span>
+  );
+}
+
+// A–Z station list rendered as grouped letter sections. Shared by the CTA and
+// Metra blocks; `hrefBase` is `/station` or `/metra/station` and `Dots` is the
+// agency's line-square component.
+function StationGroups({ groups, hrefBase, Dots }) {
+  return groups.map(([letter, stations]) => (
+    <section key={letter}>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+        {letter}
+      </h3>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-0.5">
+        {stations.map((s) => (
+          <li key={s.slug ?? s.name}>
+            <a
+              href={`${hrefBase}/${s.slug ?? slugifyStation(s.name)}`}
+              className="flex items-center justify-between gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
+            >
+              <span className="truncate">{s.name}</span>
+              <Dots lines={s.lines} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ));
 }
 
 export default function StationsIndexPage() {
@@ -110,30 +188,17 @@ export default function StationsIndexPage() {
 
   const { groups, total } = useMemo(() => {
     const sel = selectedLines && selectedLines.length > 0 ? new Set(selectedLines) : null;
-    const q = search.trim().toLowerCase();
-    let filtered = ROSTER;
-    if (sel) filtered = filtered.filter((s) => s.normLines.some((l) => sel.has(l)));
-    if (q) filtered = filtered.filter((s) => s.name.toLowerCase().includes(q));
-    const byLetter = new Map();
-    for (const s of filtered) {
-      const key = groupKey(s.name);
-      let list = byLetter.get(key);
-      if (!list) {
-        list = [];
-        byLetter.set(key, list);
-      }
-      list.push(s);
-    }
-    // "#" first, then A–Z.
-    const ordered = [...byLetter.entries()].sort(([a], [b]) => {
-      if (a === '#') return -1;
-      if (b === '#') return 1;
-      return a.localeCompare(b);
-    });
-    return { groups: ordered, total: filtered.length };
+    const base = sel ? ROSTER.filter((s) => s.normLines.some((l) => sel.has(l))) : ROSTER;
+    return groupRoster(base, search);
   }, [selectedLines, search]);
 
+  // Metra stations are scoped out when a CTA line filter is active (that filter
+  // is CTA-only); otherwise they're shown, narrowed by the shared name search.
+  const showMetra = selectedLines === null;
+  const metra = useMemo(() => groupRoster(METRA_ROSTER, search), [search]);
+
   const isFiltered = selectedLines !== null || search.trim() !== '';
+  const nothingMatches = total === 0 && (!showMetra || metra.total === 0);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
@@ -152,8 +217,9 @@ export default function StationsIndexPage() {
           <Breadcrumb items={topLevelTrail('Stations')} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">All stations</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-4">
-            Every CTA &lsquo;L&rsquo; station — {trainStations.length} stops across 8 lines. Pick
-            one for its alert and disruption history.
+            Every CTA &lsquo;L&rsquo; station ({trainStations.length} stops across 8 lines) and
+            Metra station ({METRA_ROSTER.length} stops across 11 lines). Pick one for its alert and
+            disruption history.
           </p>
 
           {/* Name search — composes with the line filter (line narrows the
@@ -184,7 +250,7 @@ export default function StationsIndexPage() {
               when another line is selected). */}
           <div className="flex flex-wrap items-center gap-1.5 mb-2">
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1">
-              Filter by line
+              Filter by CTA line
             </span>
             <button
               type="button"
@@ -221,41 +287,45 @@ export default function StationsIndexPage() {
             })}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-            {isFiltered
-              ? `${total} of ${ROSTER.length} station${total === 1 ? '' : 's'}`
-              : `${total} stations`}
+            {!isFiltered
+              ? `${ROSTER.length} CTA · ${METRA_ROSTER.length} Metra stations`
+              : showMetra
+                ? `${total} CTA · ${metra.total} Metra matching`
+                : `${total} of ${ROSTER.length} CTA station${total === 1 ? '' : 's'}`}
           </p>
 
-          <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4 sm:p-6 space-y-6">
-            {total === 0 ? (
+          {nothingMatches ? (
+            <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4 sm:p-6">
               <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
                 {search.trim()
                   ? `No stations match “${search.trim()}”${selectedLines === null ? '' : ' on the selected line'}.`
                   : 'No stations on the selected line.'}
               </p>
-            ) : (
-              groups.map(([letter, stations]) => (
-                <section key={letter}>
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
-                    {letter}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {total > 0 && (
+                <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4 sm:p-6 space-y-6">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    CTA &lsquo;L&rsquo; stations
                   </h2>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-0.5">
-                    {stations.map((s) => (
-                      <li key={s.name}>
-                        <a
-                          href={`/station/${slugifyStation(s.name)}`}
-                          className="flex items-center justify-between gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
-                        >
-                          <span className="truncate">{s.name}</span>
-                          <LineDots lines={s.lines} />
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ))
-            )}
-          </div>
+                  <StationGroups groups={groups} hrefBase="/station" Dots={LineDots} />
+                </div>
+              )}
+              {showMetra && metra.total > 0 && (
+                <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4 sm:p-6 space-y-6">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    Metra stations
+                  </h2>
+                  <StationGroups
+                    groups={metra.groups}
+                    hrefBase="/metra/station"
+                    Dots={MetraLineDots}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
       <Footer />

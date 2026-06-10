@@ -70,6 +70,9 @@ const STICKY_KEYS = [
   'selectedMetraLines',
   'selectedSignals',
   'selectedSources',
+  // Page-level agency scope ('all' | 'cta' | 'metra'). Persisted so a returning
+  // visitor stays scoped to the agency they care about. Not mirrored to the URL.
+  'selectedAgency',
 ];
 
 export function readStoredFilters() {
@@ -118,6 +121,7 @@ export function parseUrlState(search = window.location.search) {
     selectedSignals: [],
     selectedSources: [...DEFAULT_SOURCES],
     search: '',
+    selectedAgency: 'all',
   };
 
   const linesParam = params.get('lines');

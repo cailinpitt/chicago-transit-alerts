@@ -13,6 +13,7 @@ describe('parseUrlState', () => {
       selectedSignals: [],
       selectedSources: ['cta', 'bot', 'merged'],
       search: '',
+      selectedAgency: 'all',
     });
   });
 
@@ -194,6 +195,7 @@ describe('buildSearch', () => {
       selectedSignals: [],
       selectedSources: ['cta', 'bot', 'merged'],
       search: '',
+      selectedAgency: 'all',
     };
     expect(parseUrlState(buildSearch(state))).toEqual(state);
   });
@@ -210,6 +212,7 @@ describe('buildSearch', () => {
       selectedSignals: [],
       selectedSources: ['cta', 'bot', 'merged'],
       search: '',
+      selectedAgency: 'all',
     };
     const search = buildSearch(state);
     expect(search).toBe('?day=2026-05-06');

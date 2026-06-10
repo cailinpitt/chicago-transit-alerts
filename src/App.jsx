@@ -38,6 +38,16 @@ import {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Page-level agency scope options, in display order. The label is what the
+// segmented control shows; the value is matched against an incident's agency
+// (`metra` for kind='metra', else `cta`).
+const AGENCY_SCOPES = ['all', 'cta', 'metra'];
+const AGENCY_OPTIONS = [
+  ['all', 'All'],
+  ['cta', 'CTA'],
+  ['metra', 'Metra'],
+];
+
 export default function App() {
   const [dark, toggleDark] = useDarkMode();
   const now = useNow();
@@ -75,8 +85,14 @@ export default function App() {
   const [selectedSignals, setSelectedSignals] = useState(initial.selectedSignals);
   const [selectedSources, setSelectedSources] = useState(initial.selectedSources);
   const [search, setSearch] = useState(initial.search);
-  // Agency scope for the All/CTA/Metra control: 'all' | 'cta' | 'metra'.
-  const [selectedAgency, setSelectedAgency] = useState('all');
+  // Agency scope for the All/CTA/Metra control: 'all' | 'cta' | 'metra'. This is
+  // a page-level scope (not just a list filter) — it narrows the active-now
+  // banner, summary stats, timeline, and everything else, since a rider almost
+  // always cares about one agency at a time. Persisted to localStorage; a stale
+  // or garbage stored value falls back to 'all' rather than emptying the page.
+  const [selectedAgency, setSelectedAgency] = useState(() =>
+    AGENCY_SCOPES.includes(initial.selectedAgency) ? initial.selectedAgency : 'all',
+  );
 
   function resetFilters() {
     setSelectedLines(null);
@@ -152,6 +168,7 @@ export default function App() {
       selectedMetraLines,
       selectedSignals,
       selectedSources,
+      selectedAgency,
     });
   }, [
     selectedLines,
@@ -160,6 +177,7 @@ export default function App() {
     selectedMetraLines,
     selectedSignals,
     selectedSources,
+    selectedAgency,
   ]);
 
   useEffect(() => {
@@ -196,19 +214,33 @@ export default function App() {
     return () => clearInterval(id);
   }, []);
 
-  // Flat { alerts, observations } view of the payload — the analytics layer
-  // (summary stats, station index, timeline, ActiveAlerts/Gantt) still reads
-  // the flat shape. The incident list path reads the nested `data.incidents`.
-  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+  // The whole page is scoped to the selected agency. Everything downstream
+  // (flat view, active-now banner, summary stats, timeline, incident list)
+  // derives from this slice, so toggling CTA/Metra rescopes the page as a unit
+  // rather than just filtering the list at the bottom.
+  const agencyIncidents = useMemo(() => {
+    if (!data) return [];
+    if (selectedAgency === 'all') return data.incidents;
+    return data.incidents.filter(
+      (inc) => (inc.kind === 'metra' ? 'metra' : 'cta') === selectedAgency,
+    );
+  }, [data, selectedAgency]);
+
+  // Flat { alerts, observations } view of the (agency-scoped) payload — the
+  // analytics layer (summary stats, station index, timeline, ActiveAlerts/Gantt)
+  // reads the flat shape. The incident list path reads `agencyIncidents`.
+  const flat = useMemo(
+    () => (data ? flattenIncidents(agencyIncidents) : null),
+    [data, agencyIncidents],
+  );
 
   const activeIncidents = useMemo(() => {
-    if (!data) return [];
     // Each incident is already unified server-side, so the active set is just
     // the open incidents — no client-side merge needed.
-    return data.incidents
+    return agencyIncidents
       .filter((inc) => inc.active)
       .sort((a, b) => b.first_seen_ts - a.first_seen_ts);
-  }, [data]);
+  }, [agencyIncidents]);
 
   // Split active incidents on the 24h elapsed mark. Long-runners (planned
   // reroutes, multi-day construction) get their own quieter banner — left
@@ -339,9 +371,10 @@ export default function App() {
   }, [flat, now]);
 
   const filtered = useMemo(() => {
-    if (!data) return [];
     const startTs = dateRange ? now - dateRange * DAY_MS : null;
-    return filterIncidents(data.incidents, {
+    // `agencyIncidents` is already scoped to the selected agency, so the
+    // per-agency line/route filters below just refine within it.
+    return filterIncidents(agencyIncidents, {
       lines: selectedLines,
       startTs,
       showBus,
@@ -353,16 +386,14 @@ export default function App() {
       // pass null so the source filter is skipped.
       sources: selectedSources.length < SOURCE_TYPES.length ? selectedSources : null,
       search,
-      agencies: selectedAgency === 'all' ? null : [selectedAgency],
       now,
     });
   }, [
-    data,
+    agencyIncidents,
     selectedLines,
     showBus,
     selectedBusRoutes,
     selectedMetraLines,
-    selectedAgency,
     dateRange,
     selectedDay,
     selectedSignals,
@@ -400,6 +431,30 @@ export default function App() {
         )}
         {data && (
           <>
+            {/* Page-level agency scope. Sits above the status banner so it
+                governs the active-now count and every stat below — a rider
+                almost always cares about one agency at a time. */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 dark:text-slate-400">Showing</span>
+              <div className="inline-flex rounded-lg border border-slate-300 dark:border-gh-border overflow-hidden text-xs font-semibold">
+                {AGENCY_OPTIONS.map(([value, label]) => (
+                  <button
+                    type="button"
+                    key={value}
+                    onClick={() => setSelectedAgency(value)}
+                    className={`px-3 py-1 transition-colors ${
+                      selectedAgency === value
+                        ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
+                        : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gh-border/40'
+                    }`}
+                    aria-pressed={selectedAgency === value}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Status, top of page: live alerts when something's active, or a
                 friendly all-clear banner on a quiet day — so a first-time
                 visitor always lands on a clear answer to "is anything wrong
@@ -425,7 +480,13 @@ export default function App() {
                     All clear
                   </p>
                   <p className="text-xs text-green-700/80 dark:text-green-400/80">
-                    No active CTA or Metra disruptions right now.
+                    No active{' '}
+                    {selectedAgency === 'cta'
+                      ? 'CTA'
+                      : selectedAgency === 'metra'
+                        ? 'Metra'
+                        : 'CTA or Metra'}{' '}
+                    disruptions right now.
                   </p>
                 </div>
               </section>
@@ -479,28 +540,8 @@ export default function App() {
                 past the main element's px-4 gutters. */}
             <section className="space-y-3">
               <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-slate-50/95 dark:bg-gh-canvas/95 backdrop-blur-sm">
-                <div className="mb-2 inline-flex rounded-lg border border-slate-300 dark:border-gh-border overflow-hidden text-xs font-semibold">
-                  {[
-                    ['all', 'All'],
-                    ['cta', 'CTA'],
-                    ['metra', 'Metra'],
-                  ].map(([value, label]) => (
-                    <button
-                      type="button"
-                      key={value}
-                      onClick={() => setSelectedAgency(value)}
-                      className={`px-3 py-1 transition-colors ${
-                        selectedAgency === value
-                          ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
-                          : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gh-border/40'
-                      }`}
-                      aria-pressed={selectedAgency === value}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
                 <HomeFilters
+                  agency={selectedAgency}
                   selectedLines={selectedLines}
                   onLinesChange={handleLinesChange}
                   showBus={showBus}
@@ -531,10 +572,11 @@ export default function App() {
                 highlightedIds={highlightedIds}
                 stationIndex={stationIndex}
                 isFiltered={
-                  selectedLines !== null ||
-                  !showBus ||
-                  selectedBusRoutes.length > 0 ||
-                  selectedMetraLines.length > 0 ||
+                  // Out-of-scope agency selections are hidden and don't narrow
+                  // the list, so they don't count toward the "filtered" state.
+                  (selectedAgency !== 'metra' &&
+                    (selectedLines !== null || !showBus || selectedBusRoutes.length > 0)) ||
+                  (selectedAgency !== 'cta' && selectedMetraLines.length > 0) ||
                   dateRange !== 7 ||
                   selectedDay !== null ||
                   selectedSignals.length > 0 ||
@@ -552,7 +594,7 @@ export default function App() {
               subtitle="Last 24h · 90-day timeline · patterns"
               className="pt-4 mt-2 border-t border-slate-200 dark:border-gh-border"
             >
-              <RecentActivityGantt incidents={data.incidents} now={now} />
+              <RecentActivityGantt incidents={agencyIncidents} now={now} />
               <Timeline
                 alerts={vizAlerts}
                 observations={vizObservations}

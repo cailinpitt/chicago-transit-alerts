@@ -47,3 +47,71 @@ export function metraLinesServingStation(name) {
 export function metraStationsServingLine(lineKey) {
   return [...METRA_BY_SLUG.values()].filter((s) => s.lines.includes(lineKey));
 }
+
+/** Every Metra roster station `{ slug, name, lines }`, name-sorted. */
+export function metraStationRoster() {
+  return [...METRA_BY_SLUG.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * slug → { slug, name, lines, count } for Metra stations referenced by an
+ * incident in the rolling window. The Metra analog of `buildStationIndex`
+ * (stations.js): cancellation/delay observations carry from/to stations, and
+ * republished Metra alerts carry affected/mentioned stations.
+ * @param {Array} alerts
+ * @param {Array} observations
+ * @param {{ now?: number, windowDays?: number }} [opts]
+ */
+export function buildMetraStationIndex(
+  alerts,
+  observations,
+  { now = Date.now(), windowDays = 90 } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+  const index = new Map();
+  function bucket(name) {
+    const slug = slugifyStation(name);
+    if (!slug) return null;
+    if (!index.has(slug)) {
+      const roster = METRA_BY_SLUG.get(slug);
+      index.set(slug, {
+        slug,
+        name: roster?.name ?? name,
+        // Seed every line that physically serves the station, like the CTA index.
+        lines: new Set(SERVED_LINES.get(slug) || []),
+        alerts: [],
+        observations: [],
+      });
+    }
+    return index.get(slug);
+  }
+
+  for (const o of observations || []) {
+    if (o.kind !== 'metra' || o.ts < cutoff) continue;
+    for (const name of [o.from_station, o.to_station]) {
+      const rec = bucket(name);
+      if (rec && !rec.observations.includes(o)) rec.observations.push(o);
+    }
+  }
+  for (const a of alerts || []) {
+    if (a.kind !== 'metra' || a.first_seen_ts < cutoff) continue;
+    const names = [a.affected_from_station, a.affected_to_station, ...(a.mentioned_stations || [])];
+    for (const name of names) {
+      const rec = bucket(name);
+      if (rec && !rec.alerts.includes(a)) rec.alerts.push(a);
+    }
+  }
+
+  const out = new Map();
+  for (const [slug, rec] of index) {
+    out.set(slug, {
+      slug: rec.slug,
+      name: rec.name,
+      lines: [...rec.lines].sort(),
+      count: rec.alerts.length + rec.observations.length,
+    });
+  }
+  return out;
+}

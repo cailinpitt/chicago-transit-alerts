@@ -24,9 +24,14 @@ function buildChips({
   selectedDay,
   selectedSignals,
   selectedSources,
+  agency = 'all',
 }) {
   const chips = [];
-  if (Array.isArray(selectedLines)) {
+  // CTA line/bus chips are meaningless when the page is scoped to Metra (and
+  // vice-versa), so skip the out-of-scope agency's chips entirely.
+  const showCta = agency !== 'metra';
+  const showMetra = agency !== 'cta';
+  if (showCta && Array.isArray(selectedLines)) {
     if (selectedLines.length === 0) {
       chips.push({ key: 'no-trains', label: 'Trains hidden' });
     } else {
@@ -44,21 +49,23 @@ function buildChips({
   // selection (App auto-hides buses when a line subset is active). Otherwise
   // every "Red" pick would also sprout a redundant "Buses hidden" chip.
   const trainSubsetActive = Array.isArray(selectedLines) && selectedLines.length > 0;
-  if (!showBus && !trainSubsetActive) {
+  if (showCta && !showBus && !trainSubsetActive) {
     chips.push({ key: 'no-bus', label: 'Buses hidden' });
   }
-  if (selectedBusRoutes.length > 0) {
+  if (showCta && selectedBusRoutes.length > 0) {
     chips.push({ key: 'routes', label: `Routes (${selectedBusRoutes.length})` });
   }
-  for (const line of selectedMetraLines) {
-    const info = METRA_LINES[line];
-    // Short route code (UP-NW) keeps the chip compact; the popover carries the
-    // full name. Matches the colored-code pills shown in the Metra picker.
-    chips.push({
-      key: `metra-${line}`,
-      label: line.toUpperCase(),
-      style: info ? { backgroundColor: info.color, color: info.textColor } : undefined,
-    });
+  if (showMetra) {
+    for (const line of selectedMetraLines) {
+      const info = METRA_LINES[line];
+      // Short route code (UP-NW) keeps the chip compact; the popover carries the
+      // full name. Matches the colored-code pills shown in the Metra picker.
+      chips.push({
+        key: `metra-${line}`,
+        label: line.toUpperCase(),
+        style: info ? { backgroundColor: info.color, color: info.textColor } : undefined,
+      });
+    }
   }
   if (selectedDay != null) {
     chips.push({ key: 'day', label: formatChicagoDay(selectedDay) });

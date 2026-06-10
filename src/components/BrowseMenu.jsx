@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
+import { buildMetraStationIndex } from '../lib/metraStations.js';
 import { buildStationIndex } from '../lib/stations.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WINDOW_DAYS = 90;
 const BUS_ROUTE_LIMIT = 15;
 // Stations are trimmed to the busiest few so the menu doesn't end in a wall of
-// ~30 uniform rows; the long tail lives on /stats. Each shown row carries its
+// ~30 uniform rows; the long tail lives on /stations. Each shown row carries its
 // 90d incident count, so the list reads as "most affected" rather than a flat
 // directory.
 const STATION_LIMIT = 8;
@@ -43,10 +44,10 @@ function topBusRoutes(alerts, observations, now) {
     .map(([id, count]) => ({ id, count }));
 }
 
-// Busiest stations in the window, count-descending. Unlike bus routes (kept
+// Busiest CTA stations in the window, count-descending. Unlike bus routes (kept
 // alphabetical as a directory), this is an explicit "top N" cut, so the most-
 // affected order is the point — the count badge and the ranking reinforce each
-// other. The full list is on /stats.
+// other. The full list is on /stations.
 function topStations(alerts, observations, now) {
   if (!alerts || !observations) return [];
   const idx = buildStationIndex(alerts, observations, { now, windowDays: WINDOW_DAYS });
@@ -55,10 +56,62 @@ function topStations(alerts, observations, now) {
     .slice(0, STATION_LIMIT);
 }
 
-// Browse dropdown surfaced in the Header on every page. Train lines are
-// always shown (stable set of 8); bus routes and stations are scoped to
-// the rolling 90-day window so the menu reflects what's actually been
-// happening recently and matches the OG-card prerendering scope.
+// Busiest Metra stations in the window — the Metra analog of topStations.
+function topMetraStations(alerts, observations, now) {
+  if (!alerts || !observations) return [];
+  const idx = buildMetraStationIndex(alerts, observations, { now, windowDays: WINDOW_DAYS });
+  return [...idx.values()]
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+    .slice(0, STATION_LIMIT);
+}
+
+const ROW_LINK =
+  'flex items-center gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors';
+const SUB_LABEL =
+  'text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5';
+const AGENCY_LABEL =
+  'text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200';
+const PILL =
+  'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold hover:opacity-80 transition-opacity';
+const MORE_LINK =
+  'block px-2 py-1 mt-1.5 rounded text-xs text-blue-500 hover:text-blue-400 hover:underline';
+
+// Top-N station list (shared by the CTA and Metra groups). `hrefBase` is
+// `/station` or `/metra/station`; `moreHref`/`moreLabel` drive the "All →" link.
+function StationList({ stations, hrefBase, moreHref, moreLabel }) {
+  if (stations.length === 0) return null;
+  return (
+    <div className="mt-3">
+      <p className={SUB_LABEL}>Top stations (last 90d)</p>
+      <ul className="space-y-0.5">
+        {stations.map((s) => (
+          <li key={s.slug}>
+            <a
+              href={`${hrefBase}/${s.slug}`}
+              role="menuitem"
+              title={`${s.count} incident${s.count === 1 ? '' : 's'} in the last 90 days`}
+              className="flex items-center justify-between gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
+            >
+              <span className="truncate">{s.name}</span>
+              <span className="shrink-0 tabular-nums text-xs text-slate-400 dark:text-slate-500">
+                {s.count}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <a href={moreHref} role="menuitem" className={MORE_LINK}>
+        {moreLabel}
+      </a>
+    </div>
+  );
+}
+
+// Browse dropdown surfaced in the Header on every page. Organized by agency:
+// a cross-agency Views block, then a CTA group (train lines, bus routes,
+// stations) and a Metra group (lines, stations). Lines are the stable rosters;
+// bus routes and stations are scoped to the rolling 90-day window so the menu
+// reflects what's actually been happening recently.
 export default function BrowseMenu({ alerts, observations, align = 'right' }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -90,6 +143,10 @@ export default function BrowseMenu({ alerts, observations, align = 'right' }) {
   );
   const stations = useMemo(
     () => topStations(alerts, observations, now),
+    [alerts, observations, now],
+  );
+  const metraStations = useMemo(
+    () => topMetraStations(alerts, observations, now),
     [alerts, observations, now],
   );
 
@@ -124,55 +181,37 @@ export default function BrowseMenu({ alerts, observations, align = 'right' }) {
         >
           <div className="divide-y divide-slate-200 dark:divide-gh-border [&>section]:py-4 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
             <section>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                Views
-              </h3>
+              <h3 className={SUB_LABEL}>Views</h3>
               {/* Leading glyphs give each row a visual anchor so the block reads
                   as distinct destinations rather than a uniform gray list. The
                   fixed-width icon slot keeps the labels left-aligned. */}
-              <a
-                href="/week"
-                role="menuitem"
-                className="flex items-center gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
-              >
+              <a href="/week" role="menuitem" className={ROW_LINK}>
                 <span aria-hidden="true" className="w-5 shrink-0 text-center">
                   🗓️
                 </span>
                 This week
               </a>
-              <a
-                href="/calendar"
-                role="menuitem"
-                className="flex items-center gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
-              >
+              <a href="/calendar" role="menuitem" className={ROW_LINK}>
                 <span aria-hidden="true" className="w-5 shrink-0 text-center">
                   📅
                 </span>
                 Calendar
               </a>
-              <a
-                href="/stats"
-                role="menuitem"
-                className="flex items-center gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
-              >
+              <a href="/stats" role="menuitem" className={ROW_LINK}>
                 <span aria-hidden="true" className="w-5 shrink-0 text-center">
                   📊
                 </span>
                 Stats
               </a>
-              <a
-                href="/compare"
-                role="menuitem"
-                className="flex items-center gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
-              >
+              <a href="/compare" role="menuitem" className={ROW_LINK}>
                 <span aria-hidden="true" className="w-5 shrink-0 text-center">
                   ⚖️
                 </span>
-                Compare lines
+                Compare
               </a>
-              {/* One "System health" label with two compact links, instead of
-                  two rows that each repeat the noun. */}
-              <div className="flex items-center gap-1.5 mt-1 px-2 py-1">
+              {/* One "System health" label with three compact links, instead of
+                  three rows that each repeat the noun. */}
+              <div className="flex flex-wrap items-center gap-1.5 mt-1 px-2 py-1">
                 <span className="text-xs text-slate-500 dark:text-slate-400">System health</span>
                 <a
                   href="/system/trains"
@@ -198,110 +237,92 @@ export default function BrowseMenu({ alerts, observations, align = 'right' }) {
               </div>
             </section>
 
+            {/* CTA group — train lines, bus routes, and 'L' stations. */}
             <section>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                Train lines
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {TRAIN_LINE_ORDER.map((line) => {
-                  const info = TRAIN_LINES[line];
-                  return (
-                    <a
-                      key={line}
-                      href={`/line/${line}`}
-                      role="menuitem"
-                      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold hover:opacity-80 transition-opacity"
-                      style={{ backgroundColor: info.color, color: info.textColor }}
-                    >
-                      {info.label}
-                    </a>
-                  );
-                })}
-              </div>
-            </section>
+              <h3 className={AGENCY_LABEL}>CTA</h3>
 
-            <section>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                Metra lines
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {METRA_LINE_ORDER.map((line) => {
-                  const info = METRA_LINES[line];
-                  return (
-                    <a
-                      key={line}
-                      href={`/metra/line/${line}`}
-                      role="menuitem"
-                      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold hover:opacity-80 transition-opacity"
-                      style={{ backgroundColor: info.color, color: info.textColor }}
-                    >
-                      {info.label}
-                    </a>
-                  );
-                })}
-              </div>
-            </section>
-
-            {busRoutes.length > 0 && (
-              <section>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                  Bus routes (last 90d)
-                </h3>
+              <div className="mt-2.5">
+                <p className={SUB_LABEL}>Train lines</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {busRoutes.map((r) => (
-                    <a
-                      key={r.id}
-                      href={`/route/${r.id}`}
-                      role="menuitem"
-                      title={`${r.count} incident${r.count === 1 ? '' : 's'} in the last 90 days`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
-                    >
-                      #{r.id}
-                      <span className="font-normal tabular-nums opacity-60">{r.count}</span>
-                    </a>
-                  ))}
-                </div>
-                <a
-                  href="/routes"
-                  role="menuitem"
-                  className="block px-2 py-1 mt-1.5 rounded text-xs text-blue-500 hover:text-blue-400 hover:underline"
-                >
-                  All routes →
-                </a>
-              </section>
-            )}
-
-            {stations.length > 0 && (
-              <section>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                  Top stations (last 90d)
-                </h3>
-                <ul className="space-y-0.5">
-                  {stations.map((s) => (
-                    <li key={s.slug}>
+                  {TRAIN_LINE_ORDER.map((line) => {
+                    const info = TRAIN_LINES[line];
+                    return (
                       <a
-                        href={`/station/${s.slug}`}
+                        key={line}
+                        href={`/line/${line}`}
                         role="menuitem"
-                        title={`${s.count} incident${s.count === 1 ? '' : 's'} in the last 90 days`}
-                        className="flex items-center justify-between gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
+                        className={PILL}
+                        style={{ backgroundColor: info.color, color: info.textColor }}
                       >
-                        <span className="truncate">{s.name}</span>
-                        <span className="shrink-0 tabular-nums text-xs text-slate-400 dark:text-slate-500">
-                          {s.count}
-                        </span>
+                        {info.label}
                       </a>
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  href="/stations"
-                  role="menuitem"
-                  className="block px-2 py-1 mt-0.5 rounded text-xs text-blue-500 hover:text-blue-400 hover:underline"
-                >
-                  All stations →
-                </a>
-              </section>
-            )}
+                    );
+                  })}
+                </div>
+              </div>
+
+              {busRoutes.length > 0 && (
+                <div className="mt-3">
+                  <p className={SUB_LABEL}>Bus routes (last 90d)</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {busRoutes.map((r) => (
+                      <a
+                        key={r.id}
+                        href={`/route/${r.id}`}
+                        role="menuitem"
+                        title={`${r.count} incident${r.count === 1 ? '' : 's'} in the last 90 days`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
+                      >
+                        #{r.id}
+                        <span className="font-normal tabular-nums opacity-60">{r.count}</span>
+                      </a>
+                    ))}
+                  </div>
+                  <a href="/routes" role="menuitem" className={MORE_LINK}>
+                    All routes →
+                  </a>
+                </div>
+              )}
+
+              <StationList
+                stations={stations}
+                hrefBase="/station"
+                moreHref="/stations"
+                moreLabel="All stations →"
+              />
+            </section>
+
+            {/* Metra group — lines and stations. */}
+            <section>
+              <h3 className={AGENCY_LABEL}>Metra</h3>
+
+              <div className="mt-2.5">
+                <p className={SUB_LABEL}>Lines</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {METRA_LINE_ORDER.map((line) => {
+                    const info = METRA_LINES[line];
+                    return (
+                      <a
+                        key={line}
+                        href={`/metra/line/${line}`}
+                        role="menuitem"
+                        className={PILL}
+                        style={{ backgroundColor: info.color, color: info.textColor }}
+                      >
+                        {info.label}
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <StationList
+                stations={metraStations}
+                hrefBase="/metra/station"
+                moreHref="/stations"
+                moreLabel="All Metra stations →"
+              />
+            </section>
           </div>
         </div>
       )}

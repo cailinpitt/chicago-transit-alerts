@@ -13,6 +13,12 @@ const DATE_OPTIONS = [
   { label: 'All', value: null },
 ];
 
+// Thin vertical rule between control groups (sm+ only). Rendered between groups
+// rather than after each one, so a hidden group doesn't leave an orphan divider.
+function Divider() {
+  return <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />;
+}
+
 function BusRoutePopover({ availableBusRoutes, selectedBusRoutes, onBusRoutesChange }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -347,6 +353,10 @@ export default function Filters({
   // scope (calendar = 12 months) where a "7d / 30d / 60d / 90d / All" pill
   // group would be inert and confusing.
   hideDateRange = false,
+  // Page-level agency scope ('all' | 'cta' | 'metra'). Hides the controls that
+  // can't affect the current scope — CTA line/bus chips when scoped to Metra,
+  // the Metra line picker when scoped to CTA — so no inert filters are shown.
+  agency = 'all',
 }) {
   const toggleLine = (line) => {
     onLinesChange((prev) => {
@@ -355,72 +365,81 @@ export default function Filters({
     });
   };
 
+  const showCta = agency !== 'metra';
+  const showMetra = agency !== 'cta' && !!onMetraLinesChange;
+
   return (
     <div className="flex flex-wrap gap-3 items-center">
-      {/* Line filter */}
-      <div className="flex flex-wrap gap-1.5 items-center">
-        <button
-          type="button"
-          onClick={() =>
-            onLinesChange(selectedLines !== null && selectedLines.length === 0 ? null : [])
-          }
-          className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-            selectedLines === null || selectedLines.length > 0
-              ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-              : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
-          }`}
-        >
-          Trains
-        </button>
-        {TRAIN_LINE_ORDER.map((key) => {
-          const info = TRAIN_LINES[key];
-          const active = selectedLines?.includes(key);
-          const dimmed = selectedLines !== null && !active;
-          return (
+      {showCta && (
+        <>
+          {/* Line filter */}
+          <div className="flex flex-wrap gap-1.5 items-center">
             <button
               type="button"
-              key={key}
-              onClick={() => toggleLine(key)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                dimmed ? 'bg-slate-200 dark:bg-gh-subtle text-slate-500 dark:text-slate-400' : ''
+              onClick={() =>
+                onLinesChange(selectedLines !== null && selectedLines.length === 0 ? null : [])
+              }
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                selectedLines === null || selectedLines.length > 0
+                  ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                  : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
               }`}
-              style={dimmed ? {} : { backgroundColor: info.color, color: info.textColor }}
             >
-              {info.label}
+              Trains
             </button>
-          );
-        })}
-      </div>
+            {TRAIN_LINE_ORDER.map((key) => {
+              const info = TRAIN_LINES[key];
+              const active = selectedLines?.includes(key);
+              const dimmed = selectedLines !== null && !active;
+              return (
+                <button
+                  type="button"
+                  key={key}
+                  onClick={() => toggleLine(key)}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    dimmed
+                      ? 'bg-slate-200 dark:bg-gh-subtle text-slate-500 dark:text-slate-400'
+                      : ''
+                  }`}
+                  style={dimmed ? {} : { backgroundColor: info.color, color: info.textColor }}
+                >
+                  {info.label}
+                </button>
+              );
+            })}
+          </div>
 
-      <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
+          <Divider />
 
-      {/* Bus toggle + route popover */}
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => onShowBusChange(!showBus)}
-          className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-            showBus
-              ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-              : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
-          }`}
-        >
-          Buses
-        </button>
-        {showBus && availableBusRoutes.length > 0 && (
-          <BusRoutePopover
-            availableBusRoutes={availableBusRoutes}
-            selectedBusRoutes={selectedBusRoutes}
-            onBusRoutesChange={onBusRoutesChange}
-          />
-        )}
-      </div>
+          {/* Bus toggle + route popover */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onShowBusChange(!showBus)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                showBus
+                  ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                  : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
+              }`}
+            >
+              Buses
+            </button>
+            {showBus && availableBusRoutes.length > 0 && (
+              <BusRoutePopover
+                availableBusRoutes={availableBusRoutes}
+                selectedBusRoutes={selectedBusRoutes}
+                onBusRoutesChange={onBusRoutesChange}
+              />
+            )}
+          </div>
+        </>
+      )}
 
-      {/* Metra line filter — only rendered when the host wires it up (the
-          homepage), so CTA-scoped pages that reuse Filters stay unchanged. */}
-      {onMetraLinesChange && (
+      {/* Metra line filter — only when the host wires it up (the homepage) and
+          the scope isn't CTA-only. */}
+      {showMetra && (
         <>
-          <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
+          {showCta && <Divider />}
           <MetraLinesPopover
             selectedMetraLines={selectedMetraLines}
             onMetraLinesChange={onMetraLinesChange}
@@ -428,45 +447,44 @@ export default function Filters({
         </>
       )}
 
-      {!hideDateRange && (
-        <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
-      )}
-
       {/* Date range filter — replaced by a day chip when a single day is pinned. */}
       {!hideDateRange && (
-        <div className="flex gap-1">
-          {selectedDay != null ? (
-            <button
-              type="button"
-              onClick={onClearSelectedDay}
-              className="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 hover:opacity-80 transition-opacity"
-              aria-label={`Clear day filter: ${formatChicagoDay(selectedDay)}`}
-            >
-              <span>Showing {formatChicagoDay(selectedDay)}</span>
-              <span aria-hidden="true" className="opacity-70">
-                ×
-              </span>
-            </button>
-          ) : (
-            DATE_OPTIONS.map(({ label, value }) => (
+        <>
+          {(showCta || showMetra) && <Divider />}
+          <div className="flex gap-1">
+            {selectedDay != null ? (
               <button
                 type="button"
-                key={label}
-                onClick={() => onDateRangeChange(value)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                  dateRange === value
-                    ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-                    : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
-                }`}
+                onClick={onClearSelectedDay}
+                className="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 hover:opacity-80 transition-opacity"
+                aria-label={`Clear day filter: ${formatChicagoDay(selectedDay)}`}
               >
-                {label}
+                <span>Showing {formatChicagoDay(selectedDay)}</span>
+                <span aria-hidden="true" className="opacity-70">
+                  ×
+                </span>
               </button>
-            ))
-          )}
-        </div>
+            ) : (
+              DATE_OPTIONS.map(({ label, value }) => (
+                <button
+                  type="button"
+                  key={label}
+                  onClick={() => onDateRangeChange(value)}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                    dateRange === value
+                      ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                      : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))
+            )}
+          </div>
+        </>
       )}
 
-      <div className="hidden sm:block w-px h-4 bg-slate-200 dark:bg-slate-600" />
+      {(showCta || showMetra || !hideDateRange) && <Divider />}
 
       {/* Signal-type filter — collapses into a single popover chip at every
           breakpoint to keep the filter row from wrapping. Mirrors the
