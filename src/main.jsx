@@ -57,6 +57,7 @@ const WeekPage = lazy(() => import('./components/WeekPage.jsx'));
 const path = window.location.pathname;
 const eventMatch = /^\/event\/([^/?#]+)(?:\/resolved)?\/?$/.exec(path);
 const lineMatch = /^\/line\/([^/?#]+)\/?$/.exec(path);
+const metraLineMatch = /^\/metra\/line\/([^/?#]+)\/?$/.exec(path);
 const routeMatch = /^\/route\/([^/?#]+)\/?$/.exec(path);
 const stationsIndexMatch = /^\/stations\/?$/.exec(path);
 const routesIndexMatch = /^\/routes\/?$/.exec(path);
@@ -76,6 +77,8 @@ if (eventMatch) {
   page = <EventPage eventId={eventMatch[1]} />;
 } else if (lineMatch) {
   page = <LinePage kind="train" lineId={lineMatch[1]} />;
+} else if (metraLineMatch) {
+  page = <LinePage kind="metra" lineId={metraLineMatch[1]} />;
 } else if (routeMatch) {
   page = <LinePage kind="bus" lineId={routeMatch[1]} />;
 } else if (stationsIndexMatch) {

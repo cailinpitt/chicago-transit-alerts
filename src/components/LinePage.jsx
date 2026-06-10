@@ -19,6 +19,7 @@ import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
 import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
+import { metraLineInfo, normalizeMetraLine } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -149,13 +150,22 @@ export default function LinePage({ kind, lineId }) {
   // buses it must appear in BUS_ROUTE_NAMES (which is comprehensive). An
   // unknown id renders the not-found card without trying to fetch.
   const isTrain = kind === 'train';
-  const normalizedLineId = isTrain ? normalizeTrainLine(lineId) : lineId;
+  const isMetra = kind === 'metra';
+  const normalizedLineId = isTrain
+    ? normalizeTrainLine(lineId)
+    : isMetra
+      ? normalizeMetraLine(lineId)
+      : lineId;
   const trainInfo = isTrain ? TRAIN_LINES[normalizedLineId] : null;
-  const busName = !isTrain ? BUS_ROUTE_NAMES[lineId] : null;
-  const isKnown = isTrain ? !!trainInfo : !!busName;
-  // Use the normalized id for all internal lookups so a `/line/org` URL
-  // matches data tagged 'orange' (the export emits full-name line keys).
-  const effectiveLineId = isTrain ? normalizedLineId : lineId;
+  const metraInfo = isMetra ? metraLineInfo(lineId) : null;
+  const busName = !isTrain && !isMetra ? BUS_ROUTE_NAMES[lineId] : null;
+  const isKnown = isTrain ? !!trainInfo : isMetra ? !!metraInfo : !!busName;
+  // Use the normalized id for all internal lookups so a `/line/org` URL matches
+  // data tagged 'orange', and `/metra/line/up-w` matches data tagged 'up-w'.
+  const effectiveLineId = isTrain || isMetra ? normalizedLineId : lineId;
+  // Lines treated as rail for display copy ("this line" vs "this route") and for
+  // skipping the bus-route-style chrome.
+  const isRail = isTrain || isMetra;
 
   useEffect(() => {
     const url = dataUrl('alerts.json');
@@ -219,10 +229,14 @@ export default function LinePage({ kind, lineId }) {
   // chip uses the bare route number ("#147") so it stays compact and
   // parallel with the train pill ("Red Line"); the route name is rendered
   // separately to the right rather than crammed inside the pill.
-  const heading = isTrain ? `${trainInfo?.label ?? lineId} Line` : `#${lineId}`;
+  const heading = isTrain
+    ? `${trainInfo?.label ?? lineId} Line`
+    : isMetra
+      ? (metraInfo?.label ?? lineId)
+      : `#${lineId}`;
   // The tab title uses the longer formatBusRoute form so a pinned tab is
   // unambiguous in the OS tab strip ("#147 Outer DuSable Lake Shore Exp.").
-  const tabHeading = isTrain ? heading : busName ? formatBusRoute(lineId) : lineId;
+  const tabHeading = isRail ? heading : busName ? formatBusRoute(lineId) : lineId;
   useEffect(() => {
     const base = 'Chicago Transit Alerts';
     if (!isKnown) {
@@ -360,8 +374,8 @@ export default function LinePage({ kind, lineId }) {
 
   // Color used for the heading pill + accents. Trains use their CTA brand
   // color; buses fall back to slate to match the bus rows in the timeline.
-  const headingBg = isTrain ? trainInfo.color : '#64748b';
-  const headingText = isTrain ? trainInfo.textColor : '#fff';
+  const headingBg = isTrain ? trainInfo.color : isMetra ? metraInfo.color : '#64748b';
+  const headingText = isTrain ? trainInfo.textColor : isMetra ? metraInfo.textColor : '#fff';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
@@ -385,19 +399,21 @@ export default function LinePage({ kind, lineId }) {
             >
               {heading}
             </span>
-            {!isTrain && busName && (
+            {!isRail && busName && (
               <span className="text-sm text-slate-500 dark:text-slate-400">{busName}</span>
             )}
             {/* Per-line/route Atom feed — subscribe to just this line/route.
-                The feed exists for every line and every roster route, so this
-                link works even before the first incident is ever recorded. */}
-            <a
-              href={`/feed/${isTrain ? 'line' : 'route'}/${effectiveLineId}.xml`}
-              className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-400 hover:underline"
-              title={`Subscribe to ${heading} alerts via RSS/Atom`}
-            >
-              🔔 Subscribe (RSS)
-            </a>
+                The feed exists for every CTA line and roster route. Metra feeds
+                aren't generated yet (gated pre-launch), so the link is omitted. */}
+            {!isMetra && (
+              <a
+                href={`/feed/${isTrain ? 'line' : 'route'}/${effectiveLineId}.xml`}
+                className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-400 hover:underline"
+                title={`Subscribe to ${heading} alerts via RSS/Atom`}
+              >
+                🔔 Subscribe (RSS)
+              </a>
+            )}
           </div>
         </div>
 
@@ -428,7 +444,7 @@ export default function LinePage({ kind, lineId }) {
                 <strong>{burst.recentCount}</strong> incident
                 {burst.recentCount === 1 ? '' : 's'} in the last {burst.windowHours} hours —{' '}
                 <strong>{burst.ratio.toFixed(1)}×</strong> the typical rate for this{' '}
-                {isTrain ? 'line' : 'route'}.
+                {isRail ? 'line' : 'route'}.
               </div>
             )}
 
@@ -565,19 +581,23 @@ export default function LinePage({ kind, lineId }) {
 
             <DurationHistogram histogram={durationHistogram} />
 
-            <Timeline
-              alerts={lineAlerts}
-              observations={lineObservations}
-              selectedLines={isTrain ? [effectiveLineId] : []}
-              numDays={90}
-              selectedRangeDays={null}
-              dataStartTs={data.data_start_ts ?? null}
-              now={now}
-              onLineClick={() => {}}
-              showBus={!isTrain}
-              selectedBusRoutes={!isTrain ? [lineId] : []}
-              onBusRouteClick={() => {}}
-            />
+            {/* The 90-day per-line grid is the CTA timeline; it has no Metra
+                rows, so it's skipped on Metra line pages. */}
+            {!isMetra && (
+              <Timeline
+                alerts={lineAlerts}
+                observations={lineObservations}
+                selectedLines={isTrain ? [effectiveLineId] : []}
+                numDays={90}
+                selectedRangeDays={null}
+                dataStartTs={data.data_start_ts ?? null}
+                now={now}
+                onLineClick={() => {}}
+                showBus={!isTrain}
+                selectedBusRoutes={!isTrain ? [lineId] : []}
+                onBusRouteClick={() => {}}
+              />
+            )}
 
             <DayOfWeekBars data={dayOfWeek} />
 
@@ -586,7 +606,7 @@ export default function LinePage({ kind, lineId }) {
             {!isTrain && (
               <SignalBreakdownSingleRoute
                 observations={lineObservations}
-                label={`#${lineId}`}
+                label={isMetra ? (metraInfo?.label ?? lineId) : `#${lineId}`}
                 labelColor={headingBg}
               />
             )}
