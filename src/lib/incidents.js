@@ -248,6 +248,12 @@ export const SIGNAL_LABELS = {
   // covers the 47 routes outside the curated gap/ghost lists, which have no
   // other detector coverage.
   'thin-gap': 'low-frequency route silent',
+  // Metra (commuter rail) detection_source values. Cancellation is the Metra
+  // analog of a ghost; delay is the analog of a gap. 'cancellation-inferred' is a
+  // scheduled train the bot never saw run, that Metra didn't flag (hedged).
+  cancellation: 'cancelled trains',
+  'cancellation-inferred': 'trains not seen running',
+  delay: 'late trains',
 };
 
 // Rider-facing impact phrase for each signal kind — the plain-language outcome a
@@ -261,6 +267,9 @@ const SIGNAL_IMPACT = {
   'pulse-cold': (v) => `stretch without ${v}`,
   'pulse-held': (v) => `${v} held in place`,
   'thin-gap': () => 'route not running',
+  cancellation: () => 'cancelled trains',
+  'cancellation-inferred': (v) => `${v} not seen running`,
+  delay: () => 'late trains',
 };
 
 // Turn a detection's signal mix into a single plain-language title, e.g.

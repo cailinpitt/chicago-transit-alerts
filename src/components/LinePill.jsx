@@ -1,5 +1,6 @@
 import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
+import { metraLineInfo, normalizeMetraLine } from '../lib/metraLines.js';
 
 // Each pill is a link to the relevant /line/:id or /route/:id page. Brand
 // colors stay loud, so we lean on subtle hover affordance (cursor + slight
@@ -13,6 +14,24 @@ export default function LinePill({ kind, line, routes }) {
   return (
     <>
       {keys.map((key) => {
+        if (kind === 'metra') {
+          // Metra lines aren't called "X Line" (it's "BNSF", "Metra Electric"),
+          // so the brand-colored pill shows the label as-is.
+          const info = metraLineInfo(key);
+          const webKey = normalizeMetraLine(key);
+          if (info) {
+            return (
+              <a
+                key={key}
+                href={`/metra/line/${webKey}`}
+                className={PILL_BASE}
+                style={{ backgroundColor: info.color, color: info.textColor }}
+              >
+                {info.label}
+              </a>
+            );
+          }
+        }
         const info = kind === 'train' ? TRAIN_LINES[key] : null;
         if (info) {
           return (
