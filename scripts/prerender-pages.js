@@ -7,13 +7,13 @@
 //
 // Scope (intentionally bounded — generating 150+ bus routes when only a few
 // are ever shared would be wasteful):
-//   - All 8 train lines (stable set, always rendered)
+//   - All 8 train lines + all 11 Metra lines (stable sets, always rendered)
 //   - Bus routes that appear in alerts/observations within the 90-day window
 //   - Stations from buildStationIndex (already filtered to >=1 incident)
 //   - /calendar (singleton, always rendered)
 //   - /stats (singleton, always rendered)
 //   - /compare (singleton, always rendered)
-//   - /system/trains and /system/buses (singletons, always rendered)
+//   - /system/trains, /system/buses, and /system/metra (singletons, always rendered)
 //   - /stations and /routes (A–Z directory indexes, singletons)
 //
 // Anything outside the scope falls back to the generic homepage OG card,
@@ -50,6 +50,7 @@ import {
   mergeMatchingIncidents,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../src/lib/metraLines.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 import trainStations from '../src/lib/trainStations.json' with { type: 'json' };
 
@@ -224,11 +225,20 @@ function activeRoutesByKind(payload) {
 // Build the list of line/route/station "pages" to render. Each item carries
 // everything the renderer needs: a stable slug for the cache key and output
 // path, the raw input fields, and the kind so we pick the right template.
-function planPages(payload, dailyPayload) {
+function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations: [] }) {
   const now = Date.now();
   const cutoff = now - WINDOW_DAYS * DAY_MS;
   const pages = [];
   const { trains: activeTrains, buses: activeBuses } = activeRoutesByKind(payload);
+
+  // Active Metra lines (ungated) — drives the "Active disruption" card variant.
+  const activeMetra = new Set();
+  for (const a of metraFlat.alerts ?? []) {
+    if (a.active) for (const r of a.routes ?? []) activeMetra.add(r);
+  }
+  for (const o of metraFlat.observations ?? []) {
+    if (o.active && o.line) activeMetra.add(o.line);
+  }
 
   // Calendar — singleton page. Always rendered so a fresh deploy never
   // ships without its share card. The grid HTML is computed up front and
@@ -343,6 +353,33 @@ function planPages(payload, dailyPayload) {
         'linear-gradient(135deg, rgba(71, 85, 105, 0.18) 0%, rgba(100, 116, 139, 0.10) 45%, rgba(249, 115, 22, 0.10) 100%)',
       accentBar: 'linear-gradient(180deg, #334155 0%, #64748b 60%, #f97316 100%)',
     });
+
+    // Metra system card — the 11 lines as compact route-code pills (full names
+    // overflow). Palette washes a few Metra brand colors so the card reads as
+    // "Metra" at a glance.
+    const metraPills = METRA_LINE_ORDER.map((line) => {
+      const info = METRA_LINES[line];
+      if (!info) return '';
+      return `<span class="pill" style="background:${info.color};color:${info.textColor}">${escHtml(line.toUpperCase())}</span>`;
+    }).join('');
+    pages.push({
+      kind: 'system',
+      mode: 'metra',
+      slug: 'system-metra',
+      outDir: resolve(DIST, 'system', 'metra'),
+      url: `${SITE}/system/metra`,
+      path: '/system/metra',
+      ogTitle: 'Metra system health · Chicago Transit Alerts',
+      desc: 'System-wide health for Metra commuter rail: active disruptions, per-line cancellations and delays, and 30-day trends — archived on chicagotransitalerts.app.',
+      title: 'Metra system health',
+      subtitle:
+        'Every Metra line at a glance — active disruptions, cancellations, and delays over the last 30 days.',
+      pillHtml: metraPills,
+      bgGradient:
+        'linear-gradient(120deg, rgba(0, 128, 0, 0.12) 0%, rgba(235, 92, 0, 0.10) 30%, rgba(224, 36, 0, 0.10) 55%, rgba(0, 66, 168, 0.12) 80%, rgba(255, 230, 0, 0.10) 100%)',
+      accentBar:
+        'linear-gradient(180deg, #29C233 0%, #EB5C00 22%, #E02400 42%, #9785BC 60%, #0042A8 78%, #FFE600 100%)',
+    });
   }
 
   // Stats / leaderboards — also a singleton. Reuses the same leaderboard
@@ -428,6 +465,33 @@ function planPages(payload, dailyPayload) {
       subtitle: active
         ? 'Active disruption right now — see live status.'
         : 'Service alerts and bot-detected disruptions, archived.',
+      accent: { color: info.color, soft: softColor(info.color, 0.22), text: info.textColor },
+      active,
+    });
+  }
+
+  // Metra lines — stable set of 11, always rendered. The pill carries the short
+  // route code (UP-N) and the full line name goes in the headline slot, since
+  // Metra's full names ("Union Pacific Northwest") are too long for the pill.
+  for (const lineId of METRA_LINE_ORDER) {
+    const info = METRA_LINES[lineId];
+    if (!info) continue;
+    const active = activeMetra.has(lineId);
+    pages.push({
+      kind: 'line',
+      slug: `metra-line-${lineId}`,
+      outDir: resolve(DIST, 'metra', 'line', lineId),
+      url: `${SITE}/metra/line/${lineId}`,
+      path: `/metra/line/${lineId}`,
+      // No feedPath — Metra per-line feeds aren't generated yet.
+      label: lineId.toUpperCase(),
+      crumbLabel: `${info.label} (Metra)`,
+      title: info.label,
+      ogTitle: `${info.label} · Metra · Chicago Transit Alerts`,
+      desc: `Cancellations, delays, and service alerts on the Metra ${info.label} line — archived on chicagotransitalerts.app.`,
+      subtitle: active
+        ? 'Active disruption right now — see live status.'
+        : 'Cancellations, delays, and service alerts, archived.',
       accent: { color: info.color, soft: softColor(info.color, 0.22), text: info.textColor },
       active,
     });
@@ -649,7 +713,7 @@ function trailFor(page) {
       return topLevelTrail(page.title);
     case 'line':
     case 'route':
-      return topLevelTrail(page.label);
+      return topLevelTrail(page.crumbLabel ?? page.label);
     default:
       return null;
   }
@@ -745,8 +809,17 @@ function buildHtmlStub(shell, page) {
 const ACTIVE_RIBBON_HTML =
   '<div class="active-ribbon"><span class="dot"></span>Active disruption</div>';
 
+// Swap the static "…with the CTA" disclaimer to "…with Metra" on Metra cards,
+// keeping the shared templates otherwise untouched.
+function applyDisclaimer(html, page) {
+  if (page.path?.startsWith('/metra/') || page.mode === 'metra') {
+    return html.replace('Not affiliated with the CTA', 'Not affiliated with Metra');
+  }
+  return html;
+}
+
 function fillLineTemplate(tpl, page) {
-  return tpl
+  const html = tpl
     .replaceAll('__ACCENT__', page.accent.color)
     .replaceAll('__ACCENT_SOFT__', page.accent.soft)
     .replaceAll('__ACCENT_TEXT__', page.accent.text)
@@ -755,6 +828,7 @@ function fillLineTemplate(tpl, page) {
     .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
     .replaceAll('__PATH__', escHtml(page.path))
     .replaceAll('__ACTIVE_RIBBON__', page.active ? ACTIVE_RIBBON_HTML : '');
+  return applyDisclaimer(html, page);
 }
 
 function fillStationTemplate(tpl, page) {
@@ -785,13 +859,14 @@ function fillCompareTemplate(tpl) {
 }
 
 function fillSystemTemplate(tpl, page) {
-  return tpl
+  const html = tpl
     .replaceAll('__BG_GRADIENT__', page.bgGradient)
     .replaceAll('__ACCENT_BAR__', page.accentBar)
     .replaceAll('__TITLE__', escHtml(page.title))
     .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
     .replaceAll('__PILLS__', page.pillHtml)
     .replaceAll('__PATH__', escHtml(page.path));
+  return applyDisclaimer(html, page);
 }
 
 // Directory-index card shares the system card's TITLE/SUBTITLE/PILLS/PATH
@@ -869,6 +944,9 @@ function signatureFor(page, templateHash) {
       active: !!page.active,
     };
   }
+  // The Metra disclaimer swap (applyDisclaimer) changes the rendered PNG without
+  // touching any field above, so fold it into the signature to bust the cache.
+  if (page.path?.startsWith('/metra/') || page.mode === 'metra') payload.disc = 'metra';
   h.update(JSON.stringify({ ...payload, templateHash }));
   return h.digest('hex');
 }
@@ -900,9 +978,13 @@ async function main() {
     return;
   }
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
-  // Pre-launch: drop kind='metra' incidents (gateIncidents is CTA-only in Node)
-  // so no Metra event pages, feed entries, sitemap urls, or CSV rows are published.
-  raw.incidents = gateIncidents(raw.incidents || []);
+  // The CTA aggregates (stats, calendar, day/week, system trains/buses) read the
+  // gated payload — gateIncidents is CTA-only in Node, so Metra is stripped from
+  // those cards. Metra's own roster cards (line pages + /system/metra) are driven
+  // by this separate ungated slice so they can show the active-disruption variant.
+  const allIncidents = raw.incidents || [];
+  const metraFlat = flattenIncidents(allIncidents.filter((inc) => inc.kind === 'metra'));
+  raw.incidents = gateIncidents(allIncidents);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   // daily-counts.json is optional — if it's missing (e.g. during a build
   // before the cron has dropped one in), skip the calendar OG card rather
@@ -935,7 +1017,7 @@ async function main() {
   const systemHash = createHash('sha256').update(systemTpl).digest('hex').slice(0, 16);
   const indexHash = createHash('sha256').update(indexTpl).digest('hex').slice(0, 16);
 
-  const pages = planPages(payload, dailyPayload);
+  const pages = planPages(payload, dailyPayload, metraFlat);
   if (pages.length === 0) {
     console.log('prerender-pages: nothing to render');
     return;

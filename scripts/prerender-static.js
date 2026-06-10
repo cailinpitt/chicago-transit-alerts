@@ -10,7 +10,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { METRA_LINE_ORDER, METRA_LINES } from '../src/lib/metraLines.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = resolve(__dirname, '..', 'dist');
@@ -40,23 +39,10 @@ const PAGES = [
     title: 'Privacy',
     desc: 'Privacy policy for Chicago Transit Alerts: no accounts, no cookies, no advertising, and only cookieless Cloudflare Web Analytics for aggregate page-view counts.',
   },
-  // Metra roster pages. These render client-side from alerts.json; the stubs
-  // give crawlers a self-canonical 200 with proper title/description so they
-  // can be listed in the sitemap. Per-page Metra OG images are still deferred,
-  // so they reuse the homepage OG card like the other static stubs.
-  {
-    path: '/system/metra',
-    title: 'Metra system health',
-    desc: 'Every Metra line at a glance — active disruptions, cancellations, and delays over the last 30 days, on Chicago Transit Alerts.',
-  },
-  ...METRA_LINE_ORDER.map((line) => {
-    const info = METRA_LINES[line];
-    return {
-      path: `/metra/line/${line}`,
-      title: `${info.label} (Metra)`,
-      desc: `Service alerts, cancellations, and delays for the Metra ${info.label} line — archived on Chicago Transit Alerts.`,
-    };
-  }),
+  // Note: Metra line pages and /system/metra are prerendered by
+  // prerender-pages.js (which runs before this step) with their own OG cards,
+  // so they're intentionally NOT listed here — re-adding them would clobber
+  // those richer stubs with the homepage-card variant.
 ];
 
 const shell = readFileSync(SHELL, 'utf8');
