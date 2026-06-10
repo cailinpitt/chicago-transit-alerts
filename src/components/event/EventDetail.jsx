@@ -453,6 +453,23 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           <StationChips stations={affectedStations} direction={cta.affected_direction} />
         ))}
 
+      {/* Metra: stations referenced in the alert text, resolved upstream to
+          canonical GTFS names (free-text Metra names don't match the roster, so
+          this can't be done in-line). Each links to its Metra station page. */}
+      {cta && incident.kind === 'metra' && cta.mentioned_stations?.length > 0 && (
+        <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">
+            Stations
+          </span>
+          {cta.mentioned_stations.map((name, i) => (
+            <span key={name} className="inline-flex items-center">
+              <StationName name={name} kind="metra" />
+              {i < cta.mentioned_stations.length - 1 ? ',' : ''}
+            </span>
+          ))}
+        </p>
+      )}
+
       {isObsOnly && primary?.signals?.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mt-2">
           <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
