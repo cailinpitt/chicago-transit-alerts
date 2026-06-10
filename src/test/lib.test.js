@@ -126,6 +126,16 @@ describe('filterIncidents', () => {
     expect(result).toHaveLength(2);
   });
 
+  it('agency filter scopes to CTA or Metra; CTA line filter ignores Metra', () => {
+    const cta = aInc({ kind: 'train', routes: ['red'] });
+    const metra = aInc({ kind: 'metra', routes: ['up-w'] });
+    expect(filterIncidents([cta, metra])).toHaveLength(2); // null = all
+    expect(filterIncidents([cta, metra], { agencies: ['metra'] })).toEqual([metra]);
+    expect(filterIncidents([cta, metra], { agencies: ['cta'] })).toEqual([cta]);
+    // A CTA line selection must NOT hide Metra (the agency filter governs it).
+    expect(filterIncidents([cta, metra], { lines: ['red'] })).toHaveLength(2);
+  });
+
   it('filters incidents by train line', () => {
     const out = filterIncidents([aInc({ routes: ['red'] }), aInc({ routes: ['blue'] })], {
       lines: ['red'],

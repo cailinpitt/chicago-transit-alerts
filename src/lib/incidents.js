@@ -830,6 +830,7 @@ export function filterIncidents(
     signals = null,
     sources = null,
     search = '',
+    agencies = null,
     now = Date.now(),
   } = {},
 ) {
@@ -839,6 +840,10 @@ export function filterIncidents(
   const signalSet = hasSignalFilter ? new Set(signals) : null;
   const hasSourceFilter = sources && sources.length < SOURCE_TYPES.length;
   const sourceSet = hasSourceFilter ? new Set(sources) : null;
+  // Agency = 'metra' for kind==='metra', else 'cta' (train + bus). The agency
+  // filter (shown only in the ?metra=1 preview) scopes the feed to one agency.
+  const hasAgencyFilter = agencies && agencies.length > 0 && agencies.length < 2;
+  const agencySet = hasAgencyFilter ? new Set(agencies) : null;
   const { hasSearch, matchesIncident } = buildSearchMatchers(search);
 
   // When selectedDay is pinned, an incident matches iff its [start, end] span
@@ -853,11 +858,19 @@ export function filterIncidents(
   };
 
   return (incidents || []).filter((inc) => {
-    if (inc.kind === 'bus') {
-      if (!showBus) return false;
-      if (hasBusRouteFilter && !(inc.routes || []).some((r) => busRoutes.includes(r))) return false;
-    } else if (hasLineFilter && !(inc.routes || []).some((r) => lines.includes(r))) {
-      return false;
+    const agency = inc.kind === 'metra' ? 'metra' : 'cta';
+    if (agencySet && !agencySet.has(agency)) return false;
+    // The CTA line/bus filters apply only to CTA incidents — a Red Line selection
+    // shouldn't hide Metra (the agency filter governs Metra visibility instead).
+    if (agency === 'cta') {
+      if (inc.kind === 'bus') {
+        if (!showBus) return false;
+        if (hasBusRouteFilter && !(inc.routes || []).some((r) => busRoutes.includes(r))) {
+          return false;
+        }
+      } else if (hasLineFilter && !(inc.routes || []).some((r) => lines.includes(r))) {
+        return false;
+      }
     }
     // Signal filter keeps an incident when any of its observations carries a
     // matching kind. CTA-only incidents have no observations, so they drop —

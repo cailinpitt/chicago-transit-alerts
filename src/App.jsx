@@ -74,6 +74,10 @@ export default function App() {
   const [selectedSignals, setSelectedSignals] = useState(initial.selectedSignals);
   const [selectedSources, setSelectedSources] = useState(initial.selectedSources);
   const [search, setSearch] = useState(initial.search);
+  // Agency scope for the ?metra=1 preview: 'all' | 'cta' | 'metra'. Only shown
+  // when Metra is enabled; default 'all'.
+  const metraOn = useMemo(() => metraEnabled(), []);
+  const [selectedAgency, setSelectedAgency] = useState('all');
 
   function resetFilters() {
     setSelectedLines(null);
@@ -84,6 +88,7 @@ export default function App() {
     setSelectedSignals([]);
     setSelectedSources([...SOURCE_TYPES]);
     setSearch('');
+    setSelectedAgency('all');
   }
 
   // Picking any range pill drops the day pin — the two are mutually exclusive
@@ -346,6 +351,7 @@ export default function App() {
       // pass null so the source filter is skipped.
       sources: selectedSources.length < SOURCE_TYPES.length ? selectedSources : null,
       search,
+      agencies: selectedAgency === 'all' ? null : [selectedAgency],
       now,
     });
   }, [
@@ -353,6 +359,7 @@ export default function App() {
     selectedLines,
     showBus,
     selectedBusRoutes,
+    selectedAgency,
     dateRange,
     selectedDay,
     selectedSignals,
@@ -469,6 +476,33 @@ export default function App() {
                 past the main element's px-4 gutters. */}
             <section className="space-y-3">
               <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-slate-50/95 dark:bg-gh-canvas/95 backdrop-blur-sm">
+                {metraOn && (
+                  <div
+                    className="mb-2 inline-flex rounded-lg border border-slate-300 dark:border-gh-border overflow-hidden text-xs font-semibold"
+                    role="group"
+                    aria-label="Agency"
+                  >
+                    {[
+                      ['all', 'All'],
+                      ['cta', 'CTA'],
+                      ['metra', 'Metra'],
+                    ].map(([value, label]) => (
+                      <button
+                        type="button"
+                        key={value}
+                        onClick={() => setSelectedAgency(value)}
+                        className={`px-3 py-1 transition-colors ${
+                          selectedAgency === value
+                            ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
+                            : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gh-border/40'
+                        }`}
+                        aria-pressed={selectedAgency === value}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <HomeFilters
                   selectedLines={selectedLines}
                   onLinesChange={handleLinesChange}
