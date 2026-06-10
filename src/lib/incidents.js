@@ -449,6 +449,17 @@ export function postUrlRkey(postUrl) {
  * @param {string[]} routes
  * @returns {string}
  */
+// The official-source agency for an incident's `cta`/alert block. For Metra the
+// "cta" block actually holds Metra's own GTFS-rt alert (republished), so it reads
+// as "Metra", not "CTA". Used wherever the UI labels the official source.
+/**
+ * @param {'train'|'bus'|'metra'} kind
+ * @returns {string}
+ */
+export function agencyLabel(kind) {
+  return kind === 'metra' ? 'Metra' : 'CTA';
+}
+
 export function formatRoutesLabel(kind, routes) {
   if (!routes || routes.length === 0) return kind === 'bus' ? 'this route' : 'this line';
   if (kind === 'train') {

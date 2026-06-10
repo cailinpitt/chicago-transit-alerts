@@ -27,7 +27,7 @@ import {
   observationSignals,
   SOURCE_TYPES,
 } from './lib/incidents.js';
-import { gateIncidents, metraEnabled } from './lib/metraGate.js';
+import { gateIncidents, metraEnabled, metraParamPresent } from './lib/metraGate.js';
 import { buildStationIndex } from './lib/stations.js';
 import {
   buildSearch,
@@ -125,9 +125,10 @@ export default function App() {
     });
     // Preserve the Metra preview param across filter changes — buildSearch only
     // emits known filter keys, so without this ?metra=1 would be dropped on the
-    // first interaction and Metra would vanish mid-session.
+    // first interaction (on prod). Keyed on the param actually being present, not
+    // metraEnabled(), so local dev (always-on, no param) doesn't add it to the URL.
     let withMetra = queryString;
-    if (metraEnabled()) {
+    if (metraParamPresent()) {
       const sp = new URLSearchParams(queryString.replace(/^\?/, ''));
       sp.set('metra', '1');
       withMetra = `?${sp.toString()}`;

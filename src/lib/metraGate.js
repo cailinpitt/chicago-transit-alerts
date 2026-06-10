@@ -10,14 +10,26 @@
 
 export const METRA_PARAM = 'metra';
 
-/** Is the Metra preview enabled for this view? (`?metra=1`) */
-export function metraEnabled() {
+/** Is `?metra=1` literally present in the URL? Used for URL-param stickiness. */
+export function metraParamPresent() {
   if (typeof window === 'undefined') return false;
   try {
     return new URLSearchParams(window.location.search).get(METRA_PARAM) === '1';
   } catch {
     return false;
   }
+}
+
+/**
+ * Is the Metra preview enabled for this view? Always on in local dev (so you
+ * don't have to type `?metra=1`); on prod it requires the param.
+ * `import.meta.env.DEV` is true only under `vite dev`. In the Node build/prerender
+ * scripts `import.meta.env` is undefined, so this falls through to the param check
+ * (where `window` is undefined → false) and the build outputs stay CTA-only.
+ */
+export function metraEnabled() {
+  if (import.meta.env?.DEV) return true;
+  return metraParamPresent();
 }
 
 /**

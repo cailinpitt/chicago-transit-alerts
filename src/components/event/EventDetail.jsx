@@ -15,6 +15,7 @@ import {
 } from '../../lib/format.js';
 import {
   affectedLineSegments,
+  agencyLabel,
   flattenIncidents,
   formatEvidenceChip,
   formatRoutesLabel,
@@ -355,7 +356,9 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         <LinePill kind={incident.kind} routes={incident.routes} />
         {isMerged && (
           <>
-            <span className="text-xs text-slate-500 dark:text-slate-400 italic">via CTA</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 italic">
+              via {agencyLabel(incident.kind)}
+            </span>
             <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
             <span className="text-xs text-slate-500 dark:text-slate-400 italic">
               via auto-detection
@@ -363,7 +366,9 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           </>
         )}
         {isAlert && (
-          <span className="text-xs text-slate-500 dark:text-slate-400 italic">via CTA</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400 italic">
+            via {agencyLabel(incident.kind)}
+          </span>
         )}
         {isObsOnly && (
           <span className="text-xs text-slate-500 dark:text-slate-400 italic">
@@ -416,7 +421,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           CTA post. */}
       {isObsOnly && (
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 italic">
-          No matching CTA alert — surfaced from live vehicle tracking only.
+          No matching {agencyLabel(incident.kind)} alert — surfaced from live vehicle tracking only.
         </p>
       )}
 
