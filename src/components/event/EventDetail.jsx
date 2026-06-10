@@ -170,6 +170,10 @@ function DurationScale({ stats }) {
 
 export function EventDetail({ incident, incidents, alerts, observations, stationIndex, dark }) {
   const cta = incident.cta;
+  // The official-source agency for this incident's alert block — "Metra" for
+  // Metra incidents (whose `cta` block holds Metra's own republished alert),
+  // "CTA" otherwise. Threaded through all the "Per CTA" / "via CTA" copy.
+  const agency = agencyLabel(incident.kind);
   const { primary, extras } = splitObservations(incident);
   const isMerged = !!cta && !!primary;
   const isAlert = !!cta && !primary;
@@ -675,9 +679,8 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         const hasObsEntries = obsDetections.length > 0;
         const sectionTitle = hasObsEntries
           ? `Timeline · ${entries.length} updates`
-          : `Per CTA · ${entries.length} updates`;
-        const sourceLabel = (e) =>
-          e.type === 'obs-detect' ? 'Per bot' : e.type === 'cleared' ? 'Per CTA' : 'Per CTA';
+          : `Per ${agency} · ${entries.length} updates`;
+        const sourceLabel = (e) => (e.type === 'obs-detect' ? 'Per bot' : `Per ${agency}`);
         const joinBullets = (items) => items.map((b) => b.replace(/\.\s*$/, '')).join('; ') + '.';
 
         // A single CTA message with no clear yet — and no bot entries to
@@ -689,7 +692,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           return (
             <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
               <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
-                Per CTA
+                Per {agency}
               </p>
               <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
                 {linkifyMentionedStations(v.short_description, linkPool, stationIndex)}
@@ -756,7 +759,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                     </div>
                     {isCleared ? (
                       <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                        CTA cleared this alert.
+                        {agency} cleared this alert.
                       </p>
                     ) : isObsDetect ? (
                       <>
@@ -855,10 +858,10 @@ export function EventDetail({ incident, incidents, alerts, observations, station
               Bot lead time
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">
-              Bot flagged this <strong>{botLeadPhrase}</strong> before CTA{' '}
+              Bot flagged this <strong>{botLeadPhrase}</strong> before {agency}{' '}
               <span className="text-slate-500 dark:text-slate-400 text-xs">
-                (first observed {formatTime(botLeadOnsetTs)} on {formatDate(botLeadOnsetTs)}; CTA
-                posted {formatTime(cta.first_seen_ts)})
+                (first observed {formatTime(botLeadOnsetTs)} on {formatDate(botLeadOnsetTs)};{' '}
+                {agency} posted {formatTime(cta.first_seen_ts)})
               </span>
             </dd>
           </div>
@@ -955,7 +958,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
               Service stabilized
             </dt>
             <dd className="text-slate-700 dark:text-slate-200">
-              {stabilizationDelta} after CTA cleared the alert
+              {stabilizationDelta} after {agency} cleared the alert
             </dd>
           </div>
         )}
@@ -1073,7 +1076,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             rel="noopener noreferrer"
             className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
           >
-            {isMerged ? 'Via CTA →' : 'View on Bluesky →'}
+            {isMerged ? `Via ${agency} →` : 'View on Bluesky →'}
           </a>
         )}
         {isMerged && primary?.post_url && (

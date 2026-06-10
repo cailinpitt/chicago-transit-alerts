@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { formatDate, formatTime } from '../../lib/format.js';
 import {
+  agencyLabel,
   botSummaryText,
   findContemporaneousOnOtherLines,
   findRelatedIncidents,
@@ -63,11 +64,13 @@ function ContextRow({ other, stationIndex, showLinePill }) {
             {showLinePill && <LinePill kind={other.kind} routes={other.routes} />}
             {otherIsMerged && (
               <span className="text-xs text-slate-500 dark:text-slate-400 italic">
-                via CTA + auto-detection
+                via {agencyLabel(other.kind)} + auto-detection
               </span>
             )}
             {!otherIsMerged && otherIsAlert && (
-              <span className="text-xs text-slate-500 dark:text-slate-400 italic">via CTA</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 italic">
+                via {agencyLabel(other.kind)}
+              </span>
             )}
             {!otherIsMerged && !otherIsAlert && (
               <span className="text-xs text-slate-500 dark:text-slate-400 italic">

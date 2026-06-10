@@ -32,8 +32,11 @@ function getSources(incident) {
   const { primary, extras } = splitObservations(incident);
   const out = [];
   if (cta?.post_url) {
-    // Merged → "Via CTA" (the bot post follows); pure CTA alert → "View on Bluesky".
-    out.push({ url: cta.post_url, label: primary ? 'Via CTA' : 'View on Bluesky' });
+    // Merged → "Via CTA"/"Via Metra" (the bot post follows); pure alert → "View on Bluesky".
+    out.push({
+      url: cta.post_url,
+      label: primary ? `Via ${agencyLabel(incident.kind)}` : 'View on Bluesky',
+    });
   } else if (primary?.post_url) {
     // Bot-only incident: the observation post is the main source.
     out.push({ url: primary.post_url, label: 'View on Bluesky' });
@@ -282,9 +285,9 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
           {stabilizationDelta && (
             <span
               className="inline-flex items-center mt-1.5 mr-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300"
-              title="Time from CTA clearing the alert until the bot saw sustained normal service. Reflects the felt return-to-normal, not just CTA's bookkeeping."
+              title={`Time from ${agencyLabel(incident.kind)} clearing the alert until the bot saw sustained normal service. Reflects the felt return-to-normal, not just ${agencyLabel(incident.kind)}'s bookkeeping.`}
             >
-              Stabilized {stabilizationDelta} after CTA cleared
+              Stabilized {stabilizationDelta} after {agencyLabel(incident.kind)} cleared
             </span>
           )}
 
