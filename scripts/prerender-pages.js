@@ -51,6 +51,7 @@ import {
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../src/lib/metraLines.js';
+import { buildMetraStationIndex } from '../src/lib/metraStations.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 import trainStations from '../src/lib/trainStations.json' with { type: 'json' };
 
@@ -688,6 +689,37 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
     });
   }
 
+  // Metra stations — same card, built from the Metra incident index (metraFlat,
+  // since the CTA payload above has Metra stripped). They live under the
+  // /metra/station/ namespace, so applyDisclaimer's path check gives them the
+  // Metra disclaimer automatically.
+  const metraStationIndex = buildMetraStationIndex(metraFlat.alerts, metraFlat.observations, {
+    now,
+    windowDays: WINDOW_DAYS,
+  });
+  for (const [slug, rec] of [...metraStationIndex].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const linePills = rec.lines
+      .map((line) => {
+        const info = METRA_LINES[line];
+        if (!info) return null;
+        return `<span class="line-pill" style="background:${info.color};color:${info.textColor}">${escHtml(info.label)}</span>`;
+      })
+      .filter(Boolean)
+      .join('');
+    pages.push({
+      kind: 'station',
+      slug: `metra-station-${slug}`,
+      outDir: resolve(DIST, 'metra', 'station', slug),
+      url: `${SITE}/metra/station/${slug}`,
+      path: `/metra/station/${slug}`,
+      stationName: rec.name,
+      linePills,
+      ogTitle: `${rec.name} · Metra · Chicago Transit Alerts`,
+      desc: `Metra cancellations, delays, and service alerts at ${rec.name} — archived on chicagotransitalerts.app.`,
+      subtitle: `Metra station · ${rec.count} incident${rec.count === 1 ? '' : 's'} on record (90d)`,
+    });
+  }
+
   return pages;
 }
 
@@ -832,11 +864,12 @@ function fillLineTemplate(tpl, page) {
 }
 
 function fillStationTemplate(tpl, page) {
-  return tpl
+  const html = tpl
     .replaceAll('__STATION_NAME__', escHtml(page.stationName))
     .replaceAll('__LINE_PILLS__', page.linePills)
     .replaceAll('__SUBTITLE__', escHtml(page.subtitle))
     .replaceAll('__PATH__', escHtml(page.path));
+  return applyDisclaimer(html, page);
 }
 
 function fillCalendarTemplate(tpl, page) {

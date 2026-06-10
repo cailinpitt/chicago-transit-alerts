@@ -7,9 +7,9 @@
 // so a single projection reads fine end-to-end.
 
 import { projectInto, sliceTrackBetween } from './lineMap.js';
-import lineShapes from './metraLineShapes.json';
+import lineShapes from './metraLineShapes.json' with { type: 'json' };
 import { METRA_LINE_ORDER, normalizeMetraLine } from './metraLines.js';
-import metraStations from './metraStations.json';
+import metraStations from './metraStations.json' with { type: 'json' };
 import { slugifyStation } from './stations.js';
 
 // metraStations.json is keyed by the GTFS route_id (UPPERCASE: 'UP-N'); the web

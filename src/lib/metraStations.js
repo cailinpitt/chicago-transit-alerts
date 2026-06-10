@@ -4,7 +4,7 @@
 // to keep them isolated from the CTA `/station/:slug` namespace.
 
 import { normalizeMetraLine } from './metraLines.js';
-import metraStationsData from './metraStations.json';
+import metraStationsData from './metraStations.json' with { type: 'json' };
 import { slugifyStation } from './stations.js';
 
 // slug → { slug, name, lines: [metra web keys] }, and slug → Set(line keys).

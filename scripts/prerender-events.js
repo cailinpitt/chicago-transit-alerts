@@ -31,6 +31,7 @@ import {
   summarizeSignals,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
+import { METRA_LINES, normalizeMetraLine } from '../src/lib/metraLines.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -109,6 +110,33 @@ function accentFor(incident) {
       chips: chips.length > 0 ? chips : [{ ...stripSoft(BUS_ACCENT), label }],
     };
   }
+  // Metra — same chip-per-line treatment as train, but keyed off METRA_LINES
+  // (lowercase web keys) and without the " Line" suffix (Metra lines are named
+  // outright, e.g. "Rock Island"). Metra incidents are single-line in practice,
+  // but the map handles a multi-route payload the same way.
+  if (incident.kind === 'metra') {
+    const chips = routes.map((r) => {
+      const line = METRA_LINES[normalizeMetraLine(r)];
+      return line
+        ? { color: line.color, text: line.textColor, label: line.label }
+        : { color: BUS_ACCENT.color, text: BUS_ACCENT.text, label: r };
+    });
+    const first = METRA_LINES[normalizeMetraLine(routes[0] ?? '')];
+    if (first) {
+      return {
+        color: first.color,
+        soft: softColor(first.color, 0.22),
+        text: first.textColor,
+        label,
+        chips: chips.length > 0 ? chips : [{ ...stripSoft(BUS_ACCENT), label }],
+      };
+    }
+    return {
+      ...BUS_ACCENT,
+      label,
+      chips: chips.length > 0 ? chips : [{ ...stripSoft(BUS_ACCENT), label }],
+    };
+  }
   // Bus alerts keep a single neutral chip — multi-route bus labels already
   // collapse to bare numbers (`#136, #147, #151`), which there's no brand
   // color to split by.
@@ -127,10 +155,10 @@ function describeObservation(obs) {
   const summary = summarizeSignals(observationSignals(obs), obs.kind);
   if (!summary) return 'Service disruption detected by bot.';
   const impact = `${summary[0].toLowerCase()}${summary.slice(1)}`;
-  // Trains run on a "line", buses on a "route". Skip the suffix entirely when
-  // the phrase already names the route (thin-gap → "route not running"), so it
-  // doesn't read "route not running on this route".
-  const where = obs.kind === 'train' ? ' on this line' : ' on this route';
+  // Buses run on a "route", trains and Metra on a "line". Skip the suffix
+  // entirely when the phrase already names the route (thin-gap → "route not
+  // running"), so it doesn't read "route not running on this route".
+  const where = obs.kind === 'bus' ? ' on this route' : ' on this line';
   const tail = /\broute\b/.test(impact) ? '' : where;
   return `Bot detected ${impact}${tail}.`;
 }
@@ -154,9 +182,10 @@ const BOT_IMPACT = 'Disruption detected';
 
 function summarize(incident) {
   if (incident.headline) {
+    const agency = incident.kind === 'metra' ? 'Metra' : 'CTA';
     return {
       title: incident.headline,
-      subtitle: 'CTA service alert · archived on chicagotransitalerts.app',
+      subtitle: `${agency} service alert · archived on chicagotransitalerts.app`,
     };
   }
   const accent = accentFor(incident);
@@ -222,7 +251,7 @@ function buildJsonLd(incident, { ogTitle, desc, url }) {
   } else {
     ld.location = {
       '@type': 'Place',
-      name: 'Chicago Transit Authority',
+      name: incident.kind === 'metra' ? 'Metra' : 'Chicago Transit Authority',
       address: { '@type': 'PostalAddress', addressLocality: 'Chicago', addressRegion: 'IL' },
     };
   }
@@ -325,6 +354,15 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant =
   return html;
 }
 
+// Swap the static "…with the CTA" disclaimer to "…with Metra" on Metra event
+// cards, mirroring applyDisclaimer in prerender-pages.js. Keeps the shared OG
+// template otherwise untouched.
+function applyDisclaimer(html, kind) {
+  return kind === 'metra'
+    ? html.replace('Not affiliated with the CTA', 'Not affiliated with Metra')
+    : html;
+}
+
 function fillTemplate(tpl, fields) {
   // One pill per affected line/route. Colors are inlined per chip so each
   // carries its own brand color (the template's `--accent` only drives the
@@ -342,7 +380,7 @@ function fillTemplate(tpl, fields) {
   // incident carries no usable timestamp, so nothing renders rather than an
   // empty element.
   const dateHtml = fields.date ? `<div class="date-corner">${escHtml(fields.date)}</div>` : '';
-  return tpl
+  const html = tpl
     .replaceAll('__ACCENT__', fields.accent.color)
     .replaceAll('__ACCENT_SOFT__', fields.accent.soft)
     .replaceAll('__ACCENT_TEXT__', fields.accent.text)
@@ -352,13 +390,17 @@ function fillTemplate(tpl, fields) {
     .replaceAll('__TITLE__', escHtml(fields.title))
     .replaceAll('__SUBTITLE__', escHtml(fields.subtitle))
     .replaceAll('__EVENT_ID__', escHtml(fields.id));
+  return applyDisclaimer(html, fields.kind);
 }
 
 // Hash the inputs that affect the rendered PNG. If this is unchanged from the
 // last build's signature, we can skip Playwright entirely for this event.
-function signatureFor({ id, title, subtitle, badge, date, accent, templateHash }) {
+function signatureFor({ id, title, subtitle, badge, date, accent, templateHash, kind }) {
   const h = createHash('sha256');
-  h.update(JSON.stringify({ id, title, subtitle, badge, date, accent, templateHash }));
+  // The Metra disclaimer swap (fillTemplate) changes the rendered PNG without
+  // touching any field below, so fold the agency in to bust the cache.
+  const disc = kind === 'metra' ? 'metra' : undefined;
+  h.update(JSON.stringify({ id, title, subtitle, badge, date, accent, templateHash, disc }));
   return h.digest('hex');
 }
 
@@ -393,9 +435,10 @@ async function main() {
   // keys arrive already normalized to full names ('green') from the export, so
   // formatRoutesLabel can look them up in TRAIN_LINES directly.
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
-  // Pre-launch: drop kind='metra' incidents (gateIncidents is CTA-only in Node)
-  // so no Metra event pages, feed entries, sitemap urls, or CSV rows are published.
-  raw.incidents = gateIncidents(raw.incidents || []);
+  // Metra is launched and the event OG card is Metra-aware (accentFor +
+  // describeObservation handle kind='metra'), so opt in explicitly — Metra event
+  // pages get their own prerendered stub + per-event OG image like CTA events.
+  raw.incidents = gateIncidents(raw.incidents || [], true);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const shell = readFileSync(SHELL, 'utf8');
   const template = readFileSync(TEMPLATE, 'utf8');
@@ -437,6 +480,7 @@ async function main() {
       date,
       accent,
       templateHash,
+      kind: incident.kind,
     });
     const canonicalDir = resolve(DIST, 'event', id);
     mkdirSync(canonicalDir, { recursive: true });
@@ -456,7 +500,15 @@ async function main() {
     } else {
       renders.push({
         id,
-        html: fillTemplate(template, { id, title, subtitle, badge: canonicalBadge, date, accent }),
+        html: fillTemplate(template, {
+          id,
+          title,
+          subtitle,
+          badge: canonicalBadge,
+          date,
+          accent,
+          kind: incident.kind,
+        }),
         outDir: canonicalDir,
         cacheDir,
         cachedPng,
@@ -495,6 +547,7 @@ async function main() {
         date,
         accent,
         templateHash,
+        kind: incident.kind,
       });
       const resolvedCachedPng = resolve(cacheDir, 'og-resolved.png');
       const resolvedCachedSig = resolve(cacheDir, 'sig-resolved');
@@ -507,7 +560,15 @@ async function main() {
       } else {
         renders.push({
           id: `${id}/resolved`,
-          html: fillTemplate(template, { id, title, subtitle, badge: 'Archived', date, accent }),
+          html: fillTemplate(template, {
+            id,
+            title,
+            subtitle,
+            badge: 'Archived',
+            date,
+            accent,
+            kind: incident.kind,
+          }),
           outDir: resolvedDir,
           cacheDir,
           cachedPng: resolvedCachedPng,

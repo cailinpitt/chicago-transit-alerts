@@ -14,6 +14,7 @@ import { chicagoDayIsoUTC, chicagoDayUTC } from '../src/lib/format.js';
 import { flattenIncidents, mergeMatchingIncidents, postUrlRkey } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINE_ORDER } from '../src/lib/metraLines.js';
+import { buildMetraStationIndex } from '../src/lib/metraStations.js';
 import { buildStationIndex } from '../src/lib/stations.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -51,10 +52,12 @@ function main() {
     return;
   }
   const raw = JSON.parse(readFileSync(DATA, 'utf8'));
-  // Metra incident-derived URLs (event/day pages) stay out of the sitemap until
-  // those pages get prerendered OG cards — gateIncidents is CTA-only in Node, so
-  // it strips kind='metra' here. The Metra *roster* pages (line pages + the
-  // system dashboard) are static and ARE listed below, via prerender-static.js.
+  // The CTA payload below has Metra stripped (gateIncidents is CTA-only in Node)
+  // so the CTA station/event/day loops stay CTA-scoped. Metra event + station
+  // pages now get prerendered OG cards, so they're added separately from
+  // `metraFlat` (the un-gated Metra incidents) further down. Metra roster pages
+  // (line pages + the system dashboard) are listed via the static blocks.
+  const metraFlat = flattenIncidents((raw.incidents || []).filter((inc) => inc.kind === 'metra'));
   raw.incidents = gateIncidents(raw.incidents || []);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const generatedAt = payload.generated_at ?? Date.now();
@@ -117,6 +120,19 @@ function main() {
   });
   for (const slug of [...stations.keys()].sort()) {
     entries.push(urlEntry(`${SITE}/station/${slug}`, generatedIso, 'weekly', 0.5));
+  }
+
+  // Metra stations — same ≥1-incident gating, under the /metra/station/ namespace.
+  const metraStations = buildMetraStationIndex(
+    metraFlat.alerts ?? [],
+    metraFlat.observations ?? [],
+    {
+      now: generatedAt,
+      windowDays: WINDOW_DAYS,
+    },
+  );
+  for (const slug of [...metraStations.keys()].sort()) {
+    entries.push(urlEntry(`${SITE}/metra/station/${slug}`, generatedIso, 'weekly', 0.5));
   }
 
   // Day pages — every Chicago calendar day in the last 30 days that had at
@@ -190,6 +206,21 @@ function main() {
     pushEvent(postUrlRkey(a.post_url), a.resolved_ts ?? a.first_seen_ts);
   }
   for (const o of standaloneObs) {
+    pushEvent(postUrlRkey(o.post_url), o.resolved_ts ?? o.ts);
+  }
+  // Metra events — same posted-only rule (prerender-events keys off the post
+  // rkey), so only Metra incidents with a Bluesky post get a sitemap URL.
+  const metraMerge = mergeMatchingIncidents(metraFlat.alerts ?? [], metraFlat.observations ?? []);
+  for (const m of metraMerge.merged) {
+    pushEvent(
+      postUrlRkey(m.post_url) ?? postUrlRkey(m.obs_post_url),
+      m.resolved_ts ?? m.first_seen_ts,
+    );
+  }
+  for (const a of metraMerge.standaloneAlerts) {
+    pushEvent(postUrlRkey(a.post_url), a.resolved_ts ?? a.first_seen_ts);
+  }
+  for (const o of metraMerge.standaloneObs) {
     pushEvent(postUrlRkey(o.post_url), o.resolved_ts ?? o.ts);
   }
   entries.push(...eventEntries);

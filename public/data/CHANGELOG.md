@@ -25,9 +25,6 @@ flat CSV and the Atom/JSON feeds — they are no longer `alerts.json`-only.
   `external_url`/`post_url` (website-data-first) and link to the on-site event
   page (`/event/<incident-id>`) rather than a Bluesky post.
 
-Still CTA-only: prerendered OG card **images** (the `og.png` thumbnails). The
-on-site Metra line/event maps render client-side and aren't part of this data API.
-
 ## 2026-06-09 — Metra commuter rail incidents: `kind: "metra"` (additive)
 
 `alerts.json` now includes Metra (Chicago commuter rail) incidents alongside the
