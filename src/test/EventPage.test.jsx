@@ -287,6 +287,32 @@ const PAYLOAD = {
         },
       ],
     },
+    {
+      id: 'metra-official-delay',
+      kind: 'metra',
+      routes: ['ri'],
+      first_seen_ts: NOW - 45 * 60_000,
+      resolved_ts: NOW - 10 * 60_000,
+      active: false,
+      sources: ['cta'],
+      cta: ctaBlock({
+        alert_id: 'metra-delay-1',
+        headline: 'RID #426 Delayed',
+        short_description:
+          'RID train #426, scheduled to arrive LaSalle Street Station at 3:36 PM, is operating 30 to 35 minutes behind schedule due to switch problems.',
+        first_seen_ts: NOW - 45 * 60_000,
+        resolved_ts: NOW - 10 * 60_000,
+        active: false,
+        post_url: 'https://bsky.app/profile/did:plc:abc/post/metra-official-delay',
+      }),
+      metra_status: {
+        source: 'delay',
+        deadline_ts: NOW - 10 * 60_000,
+        delay_min: 35,
+        train_number: '426',
+      },
+      observations: [],
+    },
   ],
 };
 
@@ -366,6 +392,16 @@ describe('EventPage', () => {
     // The run (origin → destination) survives even though the map is dropped.
     expect(screen.getByText('LaSalle Street')).toBeInTheDocument();
     expect(screen.getByText('Joliet')).toBeInTheDocument();
+  });
+
+  it('shows a delay badge for an official-only Metra delay alert', async () => {
+    render(<EventPage eventId="metra-official-delay" />);
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: /Rock Island train #426 delayed/i }),
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByText('delayed')).toBeInTheDocument();
   });
 
   it('shows a not-found message for an unknown id', async () => {

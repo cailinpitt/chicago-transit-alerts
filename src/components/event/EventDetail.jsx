@@ -25,6 +25,7 @@ import {
   formatEvidenceChip,
   formatRoutesLabel,
   mergeMatchingIncidents,
+  metraIncidentStatus,
   metraPointEvent,
   SIGNAL_LABELS,
   splitObservations,
@@ -372,6 +373,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // pre-rendered sentence via describe()). Null for the timetable-cancellation
   // path above, which has its own schedule summary.
   const pointEvent = !cancel ? metraPointEvent(incident) : null;
+  const metraStatus = !cancel ? metraIncidentStatus(incident) : null;
   // The timetable cancellation and every bot point event (late / cancelled /
   // not-seen-running) describe a single scheduled train at a point in time, not
   // a running disruption — so none of them get a map, a "last seen", a duration,
@@ -418,9 +420,9 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           >
             {cancellationStatusLabel(cancel)}
           </span>
-        ) : pointEvent ? (
+        ) : metraStatus ? (
           <>
-            <MetraPointBadge source={pointEvent.source} />
+            <MetraPointBadge source={metraStatus.source} />
             {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
           </>
         ) : (

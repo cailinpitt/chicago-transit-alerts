@@ -10,12 +10,14 @@ import {
   botSummaryText,
   formatEvidenceChip,
   incidentHeadlineText,
+  metraIncidentStatus,
   splitObservations,
 } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
 import LongRunningBanner from './LongRunningBanner.jsx';
+import MetraPointBadge from './MetraPointBadge.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
 
@@ -164,6 +166,7 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
   // Single-train cancellation: show the schedule, not an "ongoing" elapsed timer.
   const cancel = cancellationInfo(incident);
   const cancelPhrase = cancellationSchedulePhrase(cancel);
+  const metraStatus = !cancel ? metraIncidentStatus(incident) : null;
   // The cohort key buckets on kind + line + signal; for a nested incident that
   // comes off the primary observation (CTA-only incidents have no signal key).
   const typicalKey = typicalDurationKey({
@@ -240,6 +243,13 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
               </span>
               {cancelPhrase && ` · ${cancelPhrase}`}
             </span>
+          ) : metraStatus ? (
+            <>
+              <MetraPointBadge source={metraStatus.source} />
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                · {elapsedText} ongoing
+              </span>
+            </>
           ) : (
             <span className="text-xs text-slate-500 dark:text-slate-400">
               {elapsedText} ongoing
@@ -308,6 +318,7 @@ const COMPACT_PILL_LIMIT = 1;
 function ActiveRow({ incident, now, isNew }) {
   const startTs = incident.first_seen_ts;
   const cancel = cancellationInfo(incident);
+  const metraStatus = !cancel ? metraIncidentStatus(incident) : null;
   const elapsedText = cancel ? cancellationStatusLabel(cancel) : elapsed(now, startTs);
   const { descriptionText } = describeIncident(incident, null);
   const eventId = incident.id;
@@ -332,8 +343,9 @@ function ActiveRow({ incident, now, isNew }) {
       <span className="flex-1 min-w-0 truncate whitespace-nowrap text-slate-700 dark:text-slate-200">
         {descriptionText}
       </span>
-      <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 tabular-nums">
-        {elapsedText}
+      <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 tabular-nums inline-flex items-center gap-1.5">
+        {metraStatus && <MetraPointBadge source={metraStatus.source} />}
+        <span>{elapsedText}</span>
       </span>
     </>
   );

@@ -20,6 +20,7 @@ import {
   flattenIncidents,
   formatEvidenceChip,
   incidentHeadlineText,
+  metraIncidentStatus,
   metraPointEvent,
   splitObservations,
 } from '../lib/incidents.js';
@@ -89,6 +90,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   // bot shipped no sentence — then the station pair stays the description and
   // only the badge flags the kind.
   const pointEvent = metraPointEvent(incident);
+  const metraStatus = metraIncidentStatus(incident);
   const pointLede = pointEvent?.lede ?? null;
 
   // For a merged incident spanning more than one line (a Loop-wide alert that
@@ -252,10 +254,10 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                   </>
                 )}
               </>
-            ) : pointEvent ? (
+            ) : metraStatus ? (
               <>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-                <MetraPointBadge source={pointEvent.source} />
+                <MetraPointBadge source={metraStatus.source} />
                 {incident.active && (
                   <>
                     <span className="text-xs text-slate-300 dark:text-slate-600">·</span>

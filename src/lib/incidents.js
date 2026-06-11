@@ -433,6 +433,41 @@ export function metraPointEvent(incident) {
   };
 }
 
+function officialMetraStatusSource(incident) {
+  if (incident?.kind !== 'metra' || !incident.cta) return null;
+  const exported = incident.metra_status?.source;
+  if (isMetraPointSource(exported)) return exported;
+  if (incident.cancellation?.state) return 'cancellation';
+
+  // Backward-compatible display fallback for already-published data that predates
+  // metra_status. Keep it text-only and conservative; the backend remains the
+  // source of truth for schedule anchors and train numbers.
+  const text = [incident.cta.headline, incident.cta.short_description].filter(Boolean).join(' \n ');
+  if (/\bwill\s+not\s+operate\b|\bcancell?ed\b|\bannull?ed\b|\bnot\s+running\b/i.test(text)) {
+    return 'cancellation';
+  }
+  if (
+    /\bdelayed?\b|\b\d{1,3}\s*(?:\+|\s*or\s+more)?\s*minutes?\s+(?:late|behind|delay)/i.test(text)
+  ) {
+    return 'delay';
+  }
+  return null;
+}
+
+/**
+ * Badge-level Metra incident status. Bot point events use their observation
+ * source; official Metra alerts use the exported metra_status classification
+ * when present, with a conservative text fallback for older data.
+ * @param {Incident} incident
+ * @returns {{source:string}|null}
+ */
+export function metraIncidentStatus(incident) {
+  const official = officialMetraStatusSource(incident);
+  if (official) return { source: official };
+  const point = metraPointEvent(incident);
+  return point ? { source: point.source } : null;
+}
+
 // Short status-badge label for each Metra point-event kind. 'cancellation-
 // inferred' reads "possible cancellation" — the train was scheduled but never
 // seen and Metra didn't flag it, so the outcome is stated while signalling it's
@@ -486,6 +521,7 @@ function metraMultiTrainHeadline(incident) {
   const nums = collectMetraTrainNumbers(incident);
   if (nums.length === 0) return null;
   const sources = new Set((incident.observations || []).map((o) => o.detection_source));
+  if (isMetraPointSource(incident.metra_status?.source)) sources.add(incident.metra_status.source);
   let status = 'affected';
   if (incident.cancellation?.state === 'cancelled') status = 'cancelled';
   else if (sources.size > 0 && [...sources].every((s) => s === 'delay')) status = 'delayed';

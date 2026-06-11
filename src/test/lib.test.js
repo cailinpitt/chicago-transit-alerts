@@ -24,6 +24,7 @@ import {
   findRelatedIncidents,
   incidentHeadlineText,
   mergeMatchingIncidents,
+  metraIncidentStatus,
   metraPointEvent,
   metraPointEventLabel,
   observationSignals,
@@ -683,6 +684,33 @@ describe('metraPointEventLabel', () => {
     expect(metraPointEventLabel('cancellation')).toBe('cancelled');
     expect(metraPointEventLabel('cancellation-inferred')).toBe('possible cancellation');
     expect(metraPointEventLabel('gap')).toBeNull();
+  });
+});
+
+describe('metraIncidentStatus', () => {
+  it('reads official Metra delay classifications', () => {
+    expect(
+      metraIncidentStatus({
+        kind: 'metra',
+        cta: { headline: 'RID #426 Delayed' },
+        metra_status: { source: 'delay', train_number: '426' },
+        observations: [],
+      }),
+    ).toEqual({ source: 'delay' });
+  });
+
+  it('falls back to official Metra alert text for older data', () => {
+    expect(
+      metraIncidentStatus({
+        kind: 'metra',
+        cta: {
+          headline: 'RID #426 Delayed',
+          short_description:
+            'RID train #426 is operating 30 to 35 minutes behind schedule due to switch problems.',
+        },
+        observations: [],
+      }),
+    ).toEqual({ source: 'delay' });
   });
 });
 

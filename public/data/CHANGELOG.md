@@ -6,6 +6,23 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-11 — Official Metra alert status: `metra_status` (additive)
+
+Official Metra alerts that can be classified as single-train delays or
+cancellations now carry a top-level **`metra_status`** object on the incident.
+This mirrors the existing Metra bot observation vocabulary (`delay`,
+`cancellation`, `cancellation-inferred`) so clients can render consistent badges
+for official-only Metra alerts as well as bot-detected point events.
+
+- **New field** `incidents[].metra_status`, an object (or `null`) with:
+  - `source` — currently `"delay"` or `"cancellation"` for official Metra alerts.
+  - `train_number` — the train/run number when known.
+  - `delay_min` / `deadline_ts` — present for schedule-anchored delays, when known.
+  - `state` — present for schedule-anchored cancellations, matching
+    `incidents[].cancellation.state`.
+- **Compatibility** — this is additive. Existing `cta.headline`,
+  `observations[].detection_source`, and `incidents[].cancellation` are unchanged.
+
 ## 2026-06-11 — Metra single-train cancellations: `cta.cancellation` (additive)
 
 A Metra alert that annuls exactly one scheduled train (e.g. "UPW train #67 will

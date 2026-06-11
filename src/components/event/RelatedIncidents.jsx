@@ -6,7 +6,7 @@ import {
   findContemporaneousOnOtherLines,
   findRelatedIncidents,
   formatRoutesLabel,
-  metraPointEvent,
+  metraIncidentStatus,
 } from '../../lib/incidents.js';
 import LinePill from '../LinePill.jsx';
 import MetraPointBadge from '../MetraPointBadge.jsx';
@@ -28,13 +28,13 @@ function ContextRow({ other, stationIndex, showLinePill }) {
   const otherIsMerged = !!other.cta && otherHasObs;
   const otherIsAlert = !!other.cta && !otherHasObs;
   const detailsId = other.id;
-  // Bot-only Metra point event → a delayed / cancelled / possible-cancellation
-  // badge, same as the incident list and the event page it links to.
-  const pointEvent = metraPointEvent(other);
+  // Metra delay/cancellation status badge, whether it came from an official
+  // alert classification or an auto-detected point event.
   // Schedule-anchored single-train Metra cancellation (from a Metra alert) →
   // the same 'cancelled' / 'upcoming cancellation' badge the incident list and
   // event page show.
   const cancel = cancellationInfo(other);
+  const metraStatus = !cancel ? metraIncidentStatus(other) : null;
   return (
     <div className="relative flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-gh-subtle/40 transition-colors">
       {detailsId && (
@@ -65,7 +65,7 @@ function ContextRow({ other, stationIndex, showLinePill }) {
                 via auto-detection
               </span>
             )}
-            {pointEvent && <MetraPointBadge source={pointEvent.source} />}
+            {metraStatus && <MetraPointBadge source={metraStatus.source} />}
             {cancel && (
               <span
                 className={`text-xs font-semibold ${
