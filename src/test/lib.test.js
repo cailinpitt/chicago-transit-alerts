@@ -700,17 +700,18 @@ describe('metraIncidentStatus', () => {
   });
 
   it('falls back to official Metra alert text for older data', () => {
-    expect(
-      metraIncidentStatus({
-        kind: 'metra',
-        cta: {
-          headline: 'RID #426 Delayed',
-          short_description:
-            'RID train #426 is operating 30 to 35 minutes behind schedule due to switch problems.',
-        },
-        observations: [],
-      }),
-    ).toEqual({ source: 'delay' });
+    const incident = {
+      kind: 'metra',
+      routes: ['ri'],
+      cta: {
+        headline: 'RID #426 Delayed',
+        short_description:
+          'RID train #426 is operating 30 to 35 minutes behind schedule due to switch problems.',
+      },
+      observations: [],
+    };
+    expect(metraIncidentStatus(incident)).toEqual({ source: 'delay' });
+    expect(incidentHeadlineText(incident)).toBe('Rock Island train #426 delayed');
   });
 });
 

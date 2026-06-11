@@ -522,6 +522,8 @@ function metraMultiTrainHeadline(incident) {
   if (nums.length === 0) return null;
   const sources = new Set((incident.observations || []).map((o) => o.detection_source));
   if (isMetraPointSource(incident.metra_status?.source)) sources.add(incident.metra_status.source);
+  const official = officialMetraStatusSource(incident);
+  if (isMetraPointSource(official)) sources.add(official);
   let status = 'affected';
   if (incident.cancellation?.state === 'cancelled') status = 'cancelled';
   else if (sources.size > 0 && [...sources].every((s) => s === 'delay')) status = 'delayed';
