@@ -183,7 +183,14 @@ export default function App() {
   useEffect(() => {
     const url = dataUrl('alerts.json');
 
+    // Don't refetch on every unhide — a quick alt-tab away and back shouldn't
+    // fire a request. Only revalidate on focus if it's been at least this long
+    // since the last fetch; shorter toggles ride the data we already have.
+    const MIN_REFETCH_GAP_MS = 60 * 1000;
+    let lastFetchedAt = 0;
+
     function fetchData() {
+      lastFetchedAt = Date.now();
       // 'no-cache' (not 'no-store'): always revalidate, but send the stored
       // ETag so an unchanged file comes back 304 with no body — skipping the
       // ~800KB re-parse on the common quiet poll. R2 only changes the bytes
@@ -230,7 +237,7 @@ export default function App() {
     }
     function handleVisibility() {
       if (document.visibilityState === 'visible') {
-        fetchData();
+        if (Date.now() - lastFetchedAt >= MIN_REFETCH_GAP_MS) fetchData();
         startPolling();
       } else {
         stopPolling();
