@@ -6,6 +6,24 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-10 — Metra observations drop the unused `evidence` payload + `alerts.json` minified
+
+Two payload-size changes, both transparent to JSON consumers:
+
+- **Metra observations no longer carry `evidence`.** Metra cancellation/delay
+  observations (`detection_source` `"cancellation"` / `"cancellation-inferred"` /
+  `"delay"`) previously shipped an `observations[].evidence` object
+  (`tripId`, `serviceDate`, `scheduledDepTs`, `headsign`, …). That payload was
+  never rendered — the rider-facing bits are already baked into the
+  observation's `bot_description` and `onset_ts` — so it's now omitted to keep
+  the file small on heavy-cancellation (weather) days. **CTA train/bus
+  observations still carry `evidence` unchanged.** This is backfilled across all
+  historical Metra incidents on the next export, not just new ones.
+- **`alerts.json` is now minified** (no pretty-print indentation). Pure
+  formatting — `JSON.parse` consumers are unaffected; only anyone diffing the
+  raw bytes will notice. Shaves ~30% off the uncompressed payload (and the
+  parse time every client pays on load).
+
 ## 2026-06-10 — Metra in the CSV + syndication feeds (additive)
 
 Metra incidents (`kind: "metra"`, shipped 2026-06-09) now also flow through the
