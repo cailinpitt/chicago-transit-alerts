@@ -489,7 +489,8 @@ function metraMultiTrainHeadline(incident) {
   let status = 'affected';
   if (incident.cancellation?.state === 'cancelled') status = 'cancelled';
   else if (sources.size > 0 && [...sources].every((s) => s === 'delay')) status = 'delayed';
-  else if (sources.size > 0 && [...sources].every((s) => s === 'cancellation')) status = 'cancelled';
+  else if (sources.size > 0 && [...sources].every((s) => s === 'cancellation'))
+    status = 'cancelled';
   else if (sources.size > 0 && [...sources].every((s) => s === 'cancellation-inferred')) {
     status = 'possibly cancelled';
   }
