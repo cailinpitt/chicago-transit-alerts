@@ -1,16 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import IncidentList from '../components/IncidentList.jsx';
+import MetraUpcomingCancellations from '../components/MetraUpcomingCancellations.jsx';
 import {
   cancellationInfo,
   cancellationSchedulePhrase,
   cancellationStatusLabel,
+  collectUpcomingCancellations,
 } from '../lib/cancellation.js';
 
 const NOW = 1_000_000_000_000;
 
-// A Metra single-train cancellation incident. `cta.cancellation` is the block
-// the cta-insights export ships; `state` flips upcoming → cancelled server-side.
+// A Metra single-train cancellation incident. `cancellation` is the top-level
+// block the cta-insights export ships; `state` flips upcoming → cancelled
+// server-side.
 const cancelInc = (cancellation, over = {}) => ({
   id: 'metra1',
   kind: 'metra',
@@ -18,12 +21,12 @@ const cancelInc = (cancellation, over = {}) => ({
   first_seen_ts: NOW - 20 * 60_000,
   resolved_ts: cancellation.state === 'cancelled' ? NOW - 10 * 60_000 : null,
   active: cancellation.state !== 'cancelled',
+  cancellation,
   cta: {
     alert_id: 'm-a1',
     headline: 'UPW train #67 will not operate',
     post_url: 'https://bsky.app/alert',
     first_seen_ts: NOW - 20 * 60_000,
-    cancellation,
   },
   observations: [],
   ...over,
@@ -81,5 +84,48 @@ describe('IncidentList cancellation rendering', () => {
     render(<IncidentList incidents={[cancelInc(CANCELLED)]} />);
     expect(screen.getByText('cancelled')).toBeInTheDocument();
     expect(screen.queryByText(/duration/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('collectUpcomingCancellations', () => {
+  const other = { id: 'x', kind: 'metra', routes: ['up-w'], cta: { headline: 'Signal problems' } };
+
+  it('returns only upcoming cancellations whose departure is still ahead, soonest first', () => {
+    const soon = cancelInc(
+      { ...UPCOMING, scheduled_departure_ts: NOW + 30 * 60_000 },
+      { id: 'soon' },
+    );
+    const later = cancelInc(
+      { ...UPCOMING, scheduled_departure_ts: NOW + 90 * 60_000 },
+      { id: 'later' },
+    );
+    const past = cancelInc(
+      { ...UPCOMING, scheduled_departure_ts: NOW - 5 * 60_000 },
+      { id: 'past' },
+    );
+    const done = cancelInc(CANCELLED, { id: 'done' });
+    const got = collectUpcomingCancellations([later, done, soon, past, other], { now: NOW });
+    expect(got.map((g) => g.id)).toEqual(['soon', 'later']); // past + cancelled + non-cancel dropped
+    expect(got[0].trainNumber).toBe('67');
+  });
+
+  it('is empty when there are no upcoming cancellations', () => {
+    expect(collectUpcomingCancellations([other, cancelInc(CANCELLED)], { now: NOW })).toEqual([]);
+  });
+});
+
+describe('MetraUpcomingCancellations', () => {
+  it('renders nothing when there are no upcoming cancellations', () => {
+    const { container } = render(
+      <MetraUpcomingCancellations incidents={[cancelInc(CANCELLED)]} now={NOW} />,
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('lists upcoming cancellations with a count, train number, and origin', () => {
+    render(<MetraUpcomingCancellations incidents={[cancelInc(UPCOMING)]} now={NOW} />);
+    expect(screen.getByText(/1 upcoming cancellation/)).toBeInTheDocument();
+    expect(screen.getByText('Train #67')).toBeInTheDocument();
+    expect(screen.getByText(/Chicago OTC/)).toBeInTheDocument();
   });
 });

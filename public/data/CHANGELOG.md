@@ -9,12 +9,12 @@ watch this file before pinning to the format.
 ## 2026-06-11 — Metra single-train cancellations: `cta.cancellation` (additive)
 
 A Metra alert that annuls exactly one scheduled train (e.g. "UPW train #67 will
-not operate") now carries a **`cancellation`** object on its `cta` block, anchoring
-the event to that train's timetable instead of to when Metra clears the alert from
-its feed. **Additive** — `null`/absent on every other alert, and `cta`'s existing
-`first_seen_ts` / `resolved_ts` / `active` fields are unchanged.
+not operate") now carries a top-level **`cancellation`** object on the incident,
+anchoring the event to that train's timetable instead of to when Metra clears the
+alert from its feed. **Additive** — `null`/absent on every other incident, and the
+incident's existing `first_seen_ts` / `resolved_ts` / `active` fields are unchanged.
 
-- **New field** `incidents[].cta.cancellation`, an object (or `null`) with:
+- **New field** `incidents[].cancellation`, an object (or `null`) with:
   - `state` — `"upcoming"` (announced, before the train's scheduled departure) or
     `"cancelled"` (the scheduled departure has passed; terminal).
   - `scheduled_departure_ts` / `scheduled_arrival_ts` — the cancelled train's

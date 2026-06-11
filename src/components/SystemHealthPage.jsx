@@ -24,6 +24,7 @@ import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
 import { LONG_RUNNING_THRESHOLD_MS } from './LongRunningBanner.jsx';
+import MetraUpcomingCancellations from './MetraUpcomingCancellations.jsx';
 import TrendSparkline from './TrendSparkline.jsx';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -450,10 +451,11 @@ export default function SystemHealthPage({ kind }) {
     const recent = [];
     const longRunning = [];
     for (const i of activeIncidents) {
+      // Upcoming single-train cancellations get their own forward-looking strip,
+      // not the "active disruptions" cards or the long-running framing.
+      if (cancellationInfo(i)) continue;
       const startTs = i.first_seen_ts ?? i.ts;
-      // Single-train cancellations are schedule-anchored, never "long running".
-      if (!cancellationInfo(i) && startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS)
-        longRunning.push(i);
+      if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
       else recent.push(i);
     }
     return { recentActive: recent, longRunningActive: longRunning };
@@ -579,6 +581,10 @@ export default function SystemHealthPage({ kind }) {
 
         {data && (
           <>
+            {kind === 'metra' && (
+              <MetraUpcomingCancellations incidents={modeIncidents} now={now} showLine />
+            )}
+
             {(recentActive.length > 0 || longRunningActive.length > 0) && (
               <ActiveAlerts
                 incidents={recentActive}

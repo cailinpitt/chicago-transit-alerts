@@ -31,6 +31,7 @@ import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
 import LineMap from './LineMap.jsx';
 import { LONG_RUNNING_THRESHOLD_MS } from './LongRunningBanner.jsx';
+import MetraUpcomingCancellations from './MetraUpcomingCancellations.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
 import { SignalBreakdownSingleRoute } from './SignalBreakdown.jsx';
 import Timeline from './Timeline.jsx';
@@ -220,11 +221,12 @@ export default function LinePage({ kind, lineId }) {
     const recent = [];
     const longRunning = [];
     for (const i of activeIncidents) {
+      // Upcoming single-train cancellations are forward-looking, not live
+      // disruptions — they get their own strip, not the "active disruptions"
+      // cards (and never the long-running "Day N" framing).
+      if (cancellationInfo(i)) continue;
       const startTs = i.first_seen_ts ?? i.ts;
-      // A single-train cancellation is schedule-anchored, not a long-running
-      // disruption — never give it "Day N" framing even if announced early.
-      if (!cancellationInfo(i) && startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS)
-        longRunning.push(i);
+      if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
       else recent.push(i);
     }
     return { recentActive: recent, longRunningActive: longRunning };
@@ -431,6 +433,8 @@ export default function LinePage({ kind, lineId }) {
 
         {data && (
           <>
+            {isMetra && <MetraUpcomingCancellations incidents={lineIncidents} now={now} />}
+
             {(recentActive.length > 0 || longRunningActive.length > 0) && (
               <ActiveAlerts
                 incidents={recentActive}

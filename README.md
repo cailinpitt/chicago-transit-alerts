@@ -181,6 +181,9 @@ The top-level array is `incidents` — **one object per real-world disruption**.
       "resolved_ts": null,              // null = still open
       "active": true,
       "sources": ["cta", "bot"],        // which observers contributed: "cta", "bot", or both
+      "cancellation": null,             // Metra single-train annulment (else null): { state:
+                                        // 'upcoming'|'cancelled', scheduled_departure_ts,
+                                        // scheduled_arrival_ts, train_number, origin }
       "cta": {                          // null for bot-only incidents
         "alert_id": "...",
         "headline": "...",
@@ -197,10 +200,7 @@ The top-level array is `incidents` — **one object per real-world disruption**.
         "affected_stations": [],        // full segment fill (endpoints + inner stops) for a
                                         // "between X and Y" alert; [] when no segment resolves
         "cta_event_start_ts": null,     // CTA's claimed event window (date-only flags alongside)
-        "cta_event_end_ts": null,
-        "cancellation": null,           // Metra single-train annulment (else null): { state:
-                                        // 'upcoming'|'cancelled', scheduled_departure_ts,
-                                        // scheduled_arrival_ts, train_number, origin }
+        "cta_event_end_ts": null
         // "versions": [...]            // present only when CTA edited the alert text over time
       },
       "observations": [                 // [] for CTA-only incidents
