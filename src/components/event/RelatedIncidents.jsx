@@ -1,35 +1,16 @@
 import { useMemo } from 'react';
+import { cancellationInfo, cancellationStatusLabel } from '../../lib/cancellation.js';
 import { formatDate, formatTime } from '../../lib/format.js';
 import {
   agencyLabel,
-  botSummaryText,
   findContemporaneousOnOtherLines,
   findRelatedIncidents,
   formatRoutesLabel,
-  splitObservations,
+  metraPointEvent,
 } from '../../lib/incidents.js';
 import LinePill from '../LinePill.jsx';
-import StationName from '../StationName.jsx';
-import { incidentRoutes } from './incidentText.jsx';
-
-function relatedDescription(incident, stationIndex) {
-  if (incident.cta) return incident.cta.headline;
-  const { primary } = splitObservations(incident);
-  if (primary?.from_station && primary?.to_station) {
-    return (
-      <>
-        <StationName name={primary.from_station} stationIndex={stationIndex} /> →{' '}
-        <StationName name={primary.to_station} stationIndex={stationIndex} />
-        {primary.direction_label && (
-          <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-400 font-normal">
-            ({primary.direction_label})
-          </span>
-        )}
-      </>
-    );
-  }
-  return botSummaryText(incident);
-}
+import MetraPointBadge from '../MetraPointBadge.jsx';
+import { describe, incidentRoutes } from './incidentText.jsx';
 
 // Contemporaneous activity on OTHER lines/routes within ±1h of this event.
 // Shared row layout for the "Surrounding 24h" and "Elsewhere on system"
@@ -47,6 +28,13 @@ function ContextRow({ other, stationIndex, showLinePill }) {
   const otherIsMerged = !!other.cta && otherHasObs;
   const otherIsAlert = !!other.cta && !otherHasObs;
   const detailsId = other.id;
+  // Bot-only Metra point event → a delayed / cancelled / possible-cancellation
+  // badge, same as the incident list and the event page it links to.
+  const pointEvent = metraPointEvent(other);
+  // Schedule-anchored single-train Metra cancellation (from a Metra alert) →
+  // the same 'cancelled' / 'upcoming cancellation' badge the incident list and
+  // event page show.
+  const cancel = cancellationInfo(other);
   return (
     <div className="relative flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-gh-subtle/40 transition-colors">
       {detailsId && (
@@ -77,10 +65,22 @@ function ContextRow({ other, stationIndex, showLinePill }) {
                 via auto-detection
               </span>
             )}
+            {pointEvent && <MetraPointBadge source={pointEvent.source} />}
+            {cancel && (
+              <span
+                className={`text-xs font-semibold ${
+                  cancel.isUpcoming
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                {cancellationStatusLabel(cancel)}
+              </span>
+            )}
             {other.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
           </div>
           <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
-            {relatedDescription(other, stationIndex)}
+            {describe(other, stationIndex)}
           </p>
           {detailsId && (
             <div className="mt-1">

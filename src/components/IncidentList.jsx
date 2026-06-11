@@ -20,11 +20,11 @@ import {
   flattenIncidents,
   formatEvidenceChip,
   metraPointEvent,
-  metraPointEventLabel,
   splitObservations,
 } from '../lib/incidents.js';
 import HighlightedText from './HighlightedText.jsx';
 import LinePill from './LinePill.jsx';
+import MetraPointBadge from './MetraPointBadge.jsx';
 import OfficialBadge from './OfficialBadge.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
@@ -89,9 +89,6 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   // only the badge flags the kind.
   const pointEvent = metraPointEvent(incident);
   const pointLede = pointEvent?.lede ?? null;
-  // Confirmed cancellation reads as a settled fact (slate, like the existing
-  // timetable cancellation badge); late / unconfirmed stay amber (caution).
-  const pointBadgeAmber = pointEvent && pointEvent.source !== 'cancellation';
 
   // For a merged incident spanning more than one line (a Loop-wide alert that
   // merged a detection per line), the single primary "from → to" sub-line hides
@@ -257,15 +254,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             ) : pointEvent ? (
               <>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-                <span
-                  className={`text-xs font-semibold ${
-                    pointBadgeAmber
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-slate-500 dark:text-slate-400'
-                  }`}
-                >
-                  {metraPointEventLabel(pointEvent.source)}
-                </span>
+                <MetraPointBadge source={pointEvent.source} />
                 {incident.active && (
                   <>
                     <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
