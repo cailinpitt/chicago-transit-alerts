@@ -18,4 +18,15 @@ describe('SubscribeContent feed picker', () => {
       screen.getByDisplayValue('https://chicagotransitalerts.app/feed/route/66.xml'),
     ).toBeInTheDocument();
   });
+
+  it('updates the feed URL when a Metra line is picked', async () => {
+    render(<SubscribeContent />);
+    await userEvent.selectOptions(
+      screen.getByLabelText('Choose a line or route'),
+      'metra/line/bnsf',
+    );
+    expect(
+      screen.getByDisplayValue('https://chicagotransitalerts.app/feed/metra/line/bnsf.xml'),
+    ).toBeInTheDocument();
+  });
 });

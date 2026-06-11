@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 
 const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
 const SITE = 'https://chicagotransitalerts.app';
@@ -24,6 +25,12 @@ const ROUTE_FEED_OPTIONS = Object.keys(BUS_ROUTE_NAMES)
     value: `route/${r}`,
     label: BUS_ROUTE_NAMES[r] ? `#${r} ${BUS_ROUTE_NAMES[r]}` : `#${r}`,
   }));
+// Metra feeds live under their own namespace (`metra/line/:line`) so a Metra
+// route_id can never collide with a CTA train-line key.
+const METRA_FEED_OPTIONS = METRA_LINE_ORDER.map((id) => ({
+  value: `metra/line/${id}`,
+  label: METRA_LINES[id]?.label ?? id,
+}));
 
 export default function SubscribeContent() {
   const [copied, setCopied] = useState(null);
@@ -113,8 +120,9 @@ export default function SubscribeContent() {
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-3">RSS / Atom feed</h3>
       <p>
-        An Atom feed of the 50 most recent incidents — official CTA alerts and bot-detected
-        disruptions, all lines and routes. Drop the URL below into any feed reader to follow along.
+        An Atom feed of the 50 most recent incidents — official CTA and Metra alerts plus
+        bot-detected disruptions, across every line and route. Drop the URL below into any feed
+        reader to follow along.
       </p>
       <p className="text-xs text-slate-500 dark:text-slate-400">
         Capped at 50 entries, which typically covers the last 3–7 days depending on how active the
@@ -143,10 +151,11 @@ export default function SubscribeContent() {
         Just one line or route
       </h3>
       <p>
-        Only care about your commute? Pick a line or route to get its own feed — every train line
-        and every bus route has one at a predictable URL (
-        <code className="text-xs">/feed/line/:line.xml</code> or{' '}
-        <code className="text-xs">/feed/route/:route.xml</code>):
+        Only care about your commute? Pick a line or route to get its own feed — every CTA train
+        line, every bus route, and every Metra line has one at a predictable URL (
+        <code className="text-xs">/feed/line/:line.xml</code>,{' '}
+        <code className="text-xs">/feed/route/:route.xml</code>, or{' '}
+        <code className="text-xs">/feed/metra/line/:line.xml</code>):
       </p>
       <div className="space-y-2">
         <label htmlFor="feed-picker" className="sr-only">
@@ -158,15 +167,22 @@ export default function SubscribeContent() {
           onChange={(e) => setPickedFeed(e.target.value)}
           className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200"
         >
-          <optgroup label="Train lines">
+          <optgroup label="CTA Train Lines">
             {LINE_FEED_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
           </optgroup>
-          <optgroup label="Bus routes">
+          <optgroup label="CTA Bus Routes">
             {ROUTE_FEED_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Metra Lines">
+            {METRA_FEED_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
@@ -192,9 +208,9 @@ export default function SubscribeContent() {
         </div>
       </div>
       <p className="text-xs text-slate-500 dark:text-slate-400">
-        Feeds exist for every line and every roster route up front, so you can subscribe to your
-        route today — it just stays quiet until something happens, then fills in automatically.
-        Every line and route page also carries a{' '}
+        Feeds exist for every CTA line, every roster route, and every Metra line up front, so you
+        can subscribe to your route today — it just stays quiet until something happens, then fills
+        in automatically. Every line and route page also carries a{' '}
         <span className="whitespace-nowrap">“🔔 Subscribe (RSS)”</span> link. A JSON Feed version
         lives at the same path with a <code>.json</code> extension.
       </p>
