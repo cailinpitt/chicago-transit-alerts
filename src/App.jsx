@@ -184,7 +184,12 @@ export default function App() {
     const url = dataUrl('alerts.json');
 
     function fetchData() {
-      fetch(url, { cache: 'no-store' })
+      // 'no-cache' (not 'no-store'): always revalidate, but send the stored
+      // ETag so an unchanged file comes back 304 with no body — skipping the
+      // ~800KB re-parse on the common quiet poll. R2 only changes the bytes
+      // when incidents change (push-web-data byte-compares before upload), so
+      // the ETag is stable during quiet periods and most polls cost nothing.
+      fetch(url, { cache: 'no-cache' })
         .then((r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json();
@@ -209,9 +214,36 @@ export default function App() {
         });
     }
 
-    fetchData();
-    const id = setInterval(fetchData, 5 * 60 * 1000); // poll every 5 minutes
-    return () => clearInterval(id);
+    // Poll every 5 minutes, but only while the tab is visible — a backgrounded
+    // tab doesn't need a 5-min ticker doing fetch+parse work it can't show.
+    // On return to the foreground we fetch once immediately (so the user never
+    // looks at stale data while the next interval tick is pending) and resume.
+    let intervalId = null;
+    function startPolling() {
+      if (intervalId == null) intervalId = setInterval(fetchData, 5 * 60 * 1000);
+    }
+    function stopPolling() {
+      if (intervalId != null) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    }
+    function handleVisibility() {
+      if (document.visibilityState === 'visible') {
+        fetchData();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    }
+
+    fetchData(); // initial load regardless of visibility (e.g. background tab)
+    if (document.visibilityState === 'visible') startPolling();
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   // The whole page is scoped to the selected agency. Everything downstream
