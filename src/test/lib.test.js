@@ -22,6 +22,7 @@ import {
   buildSearchMatchers,
   filterIncidents,
   findRelatedIncidents,
+  incidentHeadlineText,
   mergeMatchingIncidents,
   metraPointEvent,
   metraPointEventLabel,
@@ -222,6 +223,84 @@ describe('filterIncidents', () => {
       const out = filterIncidents([active], { selectedDay: dayUtc, now: onDayTs + 60_000 });
       expect(out).toHaveLength(1);
     });
+  });
+});
+
+describe('incidentHeadlineText', () => {
+  it('summarizes Metra alert incidents that contain multiple delayed trains', () => {
+    const inc = aInc({
+      kind: 'metra',
+      routes: ['ri'],
+      cta: {
+        headline: 'RID #428 Delayed',
+        short_description:
+          'RID train #428, scheduled to depart Joliet at 3:25 PM, is operating 20 to 25 minutes behind schedule.',
+      },
+      observations: [
+        {
+          id: 'metra-1003',
+          kind: 'metra',
+          line: 'ri',
+          detection_source: 'delay',
+          train_number: '426',
+          ts: NOW,
+        },
+        {
+          id: 'metra-1004',
+          kind: 'metra',
+          line: 'ri',
+          detection_source: 'delay',
+          train_number: '428',
+          ts: NOW,
+        },
+      ],
+    });
+
+    expect(incidentHeadlineText(inc)).toBe('Rock Island trains #426 and #428 delayed');
+  });
+
+  it('summarizes single-train Metra alert incidents from the train identity', () => {
+    const inc = aInc({
+      kind: 'metra',
+      routes: ['ri'],
+      cta: { headline: 'RID #418 on the move.' },
+      observations: [
+        {
+          id: 'metra-1004',
+          kind: 'metra',
+          line: 'ri',
+          detection_source: 'delay',
+          train_number: '418',
+          ts: NOW,
+        },
+      ],
+    });
+
+    expect(incidentHeadlineText(inc)).toBe('Rock Island train #418 delayed');
+  });
+
+  it('uses the earliest official version as the stable CTA incident title', () => {
+    const inc = aInc({
+      kind: 'train',
+      routes: ['red'],
+      cta: {
+        headline: 'Red Line Service Resuming Normal Routing',
+        versions: [
+          {
+            ts: NOW,
+            headline: '95th/Dan Ryan-bound Subway Trains Rerouted to Elevated Tracks',
+          },
+          {
+            ts: NOW + 20 * 60_000,
+            headline: 'Red Line Service Resuming Normal Routing',
+          },
+        ],
+      },
+    });
+
+    expect(incidentHeadlineText(inc)).toBe(
+      '95th/Dan Ryan-bound Subway Trains Rerouted to Elevated Tracks',
+    );
   });
 });
 
@@ -1124,6 +1203,33 @@ describe('buildSearchMatchers', () => {
   it('matches signal label aliases', () => {
     const o = oInc({ obs: { signals: ['gap'], detection_source: 'gap' } });
     expect(buildSearchMatchers('headway gap').matchesIncident(o)).toBe(true);
+  });
+
+  it('matches synthesized Metra multi-train titles', () => {
+    const inc = aInc({
+      kind: 'metra',
+      routes: ['ri'],
+      cta: { headline: 'RID #428 Delayed' },
+      observations: [
+        {
+          id: 'metra-1003',
+          kind: 'metra',
+          line: 'ri',
+          detection_source: 'delay',
+          train_number: '426',
+          ts: NOW,
+        },
+        {
+          id: 'metra-1004',
+          kind: 'metra',
+          line: 'ri',
+          detection_source: 'delay',
+          train_number: '428',
+          ts: NOW,
+        },
+      ],
+    });
+    expect(buildSearchMatchers('#426').matchesIncident(inc)).toBe(true);
   });
 });
 

@@ -55,7 +55,7 @@ const inferred = {
 };
 
 // A Metra alert that annuls one scheduled train carries a top-level
-// `cancellation` block (state 'cancelled') and renders from its headline.
+// `cancellation` block (state 'cancelled') and renders as a stable train-title.
 const cancelled = {
   id: 'rid413',
   kind: 'metra',
@@ -91,7 +91,7 @@ describe('RelatedIncidents', () => {
 
   it('shows a cancelled badge for a single-train Metra cancellation', () => {
     render(<RelatedIncidents incident={parent} incidents={[parent, cancelled]} />);
-    expect(screen.getByText('RID #413 Will Not Operate')).toBeInTheDocument();
+    expect(screen.getByText('Rock Island train #413 cancelled')).toBeInTheDocument();
     expect(screen.getByText('cancelled')).toBeInTheDocument();
   });
 });

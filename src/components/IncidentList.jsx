@@ -19,6 +19,7 @@ import {
   botSummaryText,
   flattenIncidents,
   formatEvidenceChip,
+  incidentHeadlineText,
   metraPointEvent,
   splitObservations,
 } from '../lib/incidents.js';
@@ -140,7 +141,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   // at a glance instead of looking identical.
   const directionLabel = primary?.direction_label ?? null;
   if (cta) {
-    description = <HighlightedText text={cta.headline} query={searchQuery} />;
+    description = <HighlightedText text={incidentHeadlineText(incident)} query={searchQuery} />;
   } else if (pointLede) {
     description = <HighlightedText text={pointLede} query={searchQuery} />;
   } else if (obsFrom && obsTo) {

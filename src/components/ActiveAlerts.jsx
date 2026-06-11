@@ -6,7 +6,12 @@ import {
 } from '../lib/cancellation.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../lib/format.js';
-import { botSummaryText, formatEvidenceChip, splitObservations } from '../lib/incidents.js';
+import {
+  botSummaryText,
+  formatEvidenceChip,
+  incidentHeadlineText,
+  splitObservations,
+} from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
@@ -113,7 +118,8 @@ const ACTIVE_CARD_PILL_LIMIT = 4;
 // are single-line, no nested links).
 function describeIncident(incident, stationIndex) {
   if (incident.cta) {
-    return { description: incident.cta.headline, descriptionText: incident.cta.headline };
+    const headline = incidentHeadlineText(incident);
+    return { description: headline, descriptionText: headline };
   }
   const { primary } = splitObservations(incident);
   const hasStations = !!(primary?.from_station && primary?.to_station);

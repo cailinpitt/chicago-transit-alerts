@@ -47,7 +47,7 @@ function flattenIncidentAlert(inc) {
     alert_id: c.alert_id,
     kind: inc.kind,
     routes: inc.routes,
-    headline: c.headline,
+    headline: incidentHeadlineText(inc) ?? c.headline,
     short_description: c.short_description ?? null,
     first_seen_ts: c.first_seen_ts,
     resolved_ts: c.resolved_ts ?? null,
@@ -176,6 +176,7 @@ function flattenIncidentAlert(inc) {
  * @property {string} line                  'red'/'g'/etc. for trains, route number string for buses.
  * @property {string | null} [direction]     Opaque per-line direction key (e.g. 'branch-0-outbound', 'branch-len116-41722--87624', 'all'). Use `direction_label` for display.
  * @property {string | null} [direction_label] Pre-rendered 'toward <terminus>' string for the renderer (e.g. 'toward Kimball', 'toward the Loop', 'toward 95th/Dan Ryan'). Null when `direction` carries no usable terminus info (single-branch lines, buses, unrecognized keys).
+ * @property {string | null} [train_number] Metra point-event run number when known (e.g. "428"). Used to title incidents that span multiple trains.
  * @property {string | null} [from_station]
  * @property {string | null} [to_station]
  * @property {string[]} [stations]          Full station fill of the observed stretch (endpoints + inner stops), ordered from_station → to_station. Omitted when the segment can't be enumerated (e.g. roundups); fall back to from_station/to_station.
@@ -451,6 +452,62 @@ export function metraPointEventLabel(source) {
     default:
       return null;
   }
+}
+
+function naturalList(items) {
+  if (items.length <= 1) return items[0] ?? '';
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+}
+
+function collectMetraTrainNumbers(incident) {
+  if (incident?.kind !== 'metra' || !incident.cta) return [];
+  const out = [];
+  const push = (n) => {
+    const s = n == null ? null : String(n).trim();
+    if (s && !out.includes(s)) out.push(s);
+  };
+  const scanText = (text) => {
+    if (!text) return;
+    for (const m of String(text).matchAll(/\btrain\s+#?(\d{1,4})\b/gi)) push(m[1]);
+    for (const m of String(text).matchAll(/\b[A-Z]{2,5}\s*#(\d{1,4})\b/g)) push(m[1]);
+  };
+  scanText(incident.cta.headline);
+  scanText(incident.cta.short_description);
+  for (const v of incident.cta.versions || []) {
+    scanText(v.headline);
+    scanText(v.short_description);
+  }
+  for (const o of incident.observations || []) push(o.train_number);
+  return out.sort((a, b) => Number(a) - Number(b));
+}
+
+function metraMultiTrainHeadline(incident) {
+  const nums = collectMetraTrainNumbers(incident);
+  if (nums.length === 0) return null;
+  const sources = new Set((incident.observations || []).map((o) => o.detection_source));
+  let status = 'affected';
+  if (incident.cancellation?.state === 'cancelled') status = 'cancelled';
+  else if (sources.size > 0 && [...sources].every((s) => s === 'delay')) status = 'delayed';
+  else if (sources.size > 0 && [...sources].every((s) => s === 'cancellation')) status = 'cancelled';
+  else if (sources.size > 0 && [...sources].every((s) => s === 'cancellation-inferred')) {
+    status = 'possibly cancelled';
+  }
+  const line = formatRoutesLabel('metra', incident.routes || []);
+  const trainWord = nums.length === 1 ? 'train' : 'trains';
+  return `${line} ${trainWord} ${naturalList(nums.map((n) => `#${n}`))} ${status}`;
+}
+
+function stableOfficialHeadline(incident) {
+  const versions = incident?.cta?.versions;
+  const first = Array.isArray(versions) ? versions.find((v) => v?.headline)?.headline : null;
+  return first || incident?.cta?.headline || '';
+}
+
+export function incidentHeadlineText(incident) {
+  if (!incident) return '';
+  if (incident.cta) return metraMultiTrainHeadline(incident) ?? stableOfficialHeadline(incident);
+  return null;
 }
 
 // The per-line affected stretches for an incident, as `{ line, from, to }`
@@ -845,6 +902,7 @@ export function buildSearchMatchers(query) {
     const c = inc.cta;
     if (c) {
       const fields = [
+        incidentHeadlineText(inc),
         c.headline,
         c.affected_from_station,
         c.affected_to_station,
