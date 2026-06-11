@@ -28,6 +28,7 @@ import EventMap from '../EventMap.jsx';
 import EventReplay from '../EventReplay.jsx';
 import LinePill from '../LinePill.jsx';
 import MultiLineEventMap from '../MultiLineEventMap.jsx';
+import OfficialBadge from '../OfficialBadge.jsx';
 import ShareLink from '../ShareLink.jsx';
 import StationName from '../StationName.jsx';
 import {
@@ -708,8 +709,9 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           if (!v.short_description) return null;
           return (
             <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
-              <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+              <p className="flex items-center text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Per {agency}
+                <OfficialBadge agency={agency} className="ml-1" />
               </p>
               <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
                 {linkifyMentionedStations(v.short_description, linkPool, stationIndex)}
@@ -720,8 +722,12 @@ export function EventDetail({ incident, incidents, alerts, observations, station
 
         return (
           <section className="mt-4">
-            <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+            <p className="flex items-center text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               {sectionTitle}
+              {/* Badge only on the agency-scoped title ("Per CTA · N updates");
+                  the mixed "Timeline" variant tags official entries inline via
+                  the per-entry source label below. */}
+              {!hasObsEntries && <OfficialBadge agency={agency} className="ml-1" />}
             </p>
             {/* LinkedIn-style rail: each <li> renders its own connector
                 segment running from just below its dot down into the
@@ -764,8 +770,9 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                         {formatDate(e.ts)} · {formatTime(e.ts)}
                       </p>
                       {hasObsEntries && (
-                        <span className="text-[10px] uppercase tracking-wider font-medium text-slate-500 dark:text-slate-400">
+                        <span className="inline-flex items-center text-[10px] uppercase tracking-wider font-medium text-slate-500 dark:text-slate-400">
                           {sourceLabel(e)}
+                          {!isObsDetect && <OfficialBadge agency={agency} className="ml-1" />}
                         </span>
                       )}
                       {isLatest && (

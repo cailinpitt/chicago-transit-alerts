@@ -18,6 +18,7 @@ import {
 } from '../lib/incidents.js';
 import HighlightedText from './HighlightedText.jsx';
 import LinePill from './LinePill.jsx';
+import OfficialBadge from './OfficialBadge.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
 
@@ -181,8 +182,13 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             <LinePill kind={incident.kind} routes={incident.routes} />
             {isMerged && (
               <>
-                <span className="text-xs text-slate-500 dark:text-slate-400 italic">
+                <span className="inline-flex items-center text-xs text-slate-500 dark:text-slate-400 italic">
                   via {agencyLabel(incident.kind)}
+                  <OfficialBadge
+                    agency={agencyLabel(incident.kind)}
+                    size="w-3 h-3"
+                    className="ml-1"
+                  />
                 </span>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 italic">
@@ -191,8 +197,13 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
               </>
             )}
             {isAlert && (
-              <span className="text-xs text-slate-500 dark:text-slate-400 italic">
+              <span className="inline-flex items-center text-xs text-slate-500 dark:text-slate-400 italic">
                 via {agencyLabel(incident.kind)}
+                <OfficialBadge
+                  agency={agencyLabel(incident.kind)}
+                  size="w-3 h-3"
+                  className="ml-1"
+                />
               </span>
             )}
             {isObsOnly && (
