@@ -11,6 +11,7 @@ import {
   formatEvidenceChip,
   incidentHeadlineText,
   metraIncidentStatus,
+  metraPointEventTitle,
   splitObservations,
 } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
@@ -124,6 +125,8 @@ function describeIncident(incident, stationIndex) {
     return { description: headline, descriptionText: headline };
   }
   const { primary } = splitObservations(incident);
+  const metraTitle = metraPointEventTitle(incident);
+  if (metraTitle) return { description: metraTitle, descriptionText: metraTitle };
   const hasStations = !!(primary?.from_station && primary?.to_station);
 
   if (hasStations) {

@@ -288,6 +288,32 @@ const PAYLOAD = {
       ],
     },
     {
+      id: 'metra-991',
+      kind: 'metra',
+      routes: ['me'],
+      first_seen_ts: NOW - 60 * 60_000,
+      resolved_ts: NOW - 60 * 60_000,
+      active: false,
+      sources: ['bot'],
+      cta: null,
+      observations: [
+        {
+          id: 'metra-991',
+          kind: 'metra',
+          line: 'me',
+          train_number: '121',
+          from_station: 'Millennium Station',
+          to_station: 'University Park',
+          detection_source: 'delay',
+          ts: NOW - 60 * 60_000,
+          onset_ts: NOW - 65 * 60_000,
+          resolved_ts: NOW - 60 * 60_000,
+          active: false,
+          bot_description: '~70 min late — the 12:20 PM University Park train',
+        },
+      ],
+    },
+    {
       id: 'metra-official-delay',
       kind: 'metra',
       routes: ['ri'],
@@ -394,6 +420,16 @@ describe('EventPage', () => {
     expect(screen.getByText('Joliet')).toBeInTheDocument();
   });
 
+  it('renders a bot-only Metra delay title with the train number when available', async () => {
+    render(<EventPage eventId="metra-991" />);
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: /Metra Electric train #121 delayed/i }),
+      ).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('heading', { name: /12:20 PM University Park train/i })).toBeNull();
+  });
+
   it('shows a delay badge for an official-only Metra delay alert', async () => {
     render(<EventPage eventId="metra-official-delay" />);
     await waitFor(() => {
@@ -401,7 +437,7 @@ describe('EventPage', () => {
         screen.getByRole('heading', { name: /Rock Island train #426 delayed/i }),
       ).toBeInTheDocument();
     });
-    expect(screen.getByText('delayed')).toBeInTheDocument();
+    expect(screen.getAllByText('delayed').length).toBeGreaterThan(0);
   });
 
   it('shows a not-found message for an unknown id', async () => {

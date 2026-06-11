@@ -95,7 +95,7 @@ describe('IncidentList', () => {
     expect(screen.getByText('ongoing')).toBeInTheDocument();
   });
 
-  it('shows a "delayed" badge and leads with the lateness sentence for a Metra delay', () => {
+  it('shows a "delayed" badge and leads with the train number for a Metra delay', () => {
     const delayInc = {
       id: 'metra-992',
       kind: 'metra',
@@ -109,6 +109,7 @@ describe('IncidentList', () => {
           id: 'metra-992',
           kind: 'metra',
           line: 'bnsf',
+          train_number: '121',
           from_station: 'Aurora',
           to_station: 'Chicago Union Station',
           detection_source: 'delay',
@@ -121,11 +122,8 @@ describe('IncidentList', () => {
     };
     render(<IncidentList incidents={[delayInc]} />);
     expect(screen.getByText('delayed')).toBeInTheDocument();
-    // Lateness sentence is the primary description…
-    expect(
-      screen.getByText('~57 min late — the 12:05 PM Chicago Union Station train'),
-    ).toBeInTheDocument();
-    // …and the affected stretch moves to the secondary line.
+    expect(screen.getByText('BNSF train #121 delayed')).toBeInTheDocument();
+    // The affected stretch moves to the secondary line.
     expect(screen.getByText('Aurora')).toBeInTheDocument();
     expect(screen.getByText('Chicago Union Station')).toBeInTheDocument();
   });

@@ -495,6 +495,10 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         </p>
       )}
 
+      {pointEvent?.lede && pointEvent.lede !== description && (
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{pointEvent.lede}</p>
+      )}
+
       {/* Point events lead the title with the lateness/cancellation sentence and
           draw no map, so the train's run (origin → destination) would otherwise
           be lost. Show it here as a compact line. */}

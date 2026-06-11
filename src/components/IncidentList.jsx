@@ -22,6 +22,7 @@ import {
   incidentHeadlineText,
   metraIncidentStatus,
   metraPointEvent,
+  metraPointEventTitle,
   splitObservations,
 } from '../lib/incidents.js';
 import HighlightedText from './HighlightedText.jsx';
@@ -91,6 +92,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   // only the badge flags the kind.
   const pointEvent = metraPointEvent(incident);
   const metraStatus = metraIncidentStatus(incident);
+  const pointTitle = metraPointEventTitle(incident);
   const pointLede = pointEvent?.lede ?? null;
 
   // For a merged incident spanning more than one line (a Loop-wide alert that
@@ -144,6 +146,8 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   const directionLabel = primary?.direction_label ?? null;
   if (cta) {
     description = <HighlightedText text={incidentHeadlineText(incident)} query={searchQuery} />;
+  } else if (pointTitle) {
+    description = <HighlightedText text={pointTitle} query={searchQuery} />;
   } else if (pointLede) {
     description = <HighlightedText text={pointLede} query={searchQuery} />;
   } else if (obsFrom && obsTo) {
@@ -357,11 +361,9 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             </p>
           )}
 
-          {/* Metra point event: the sentence is the description, so the affected
-              stretch moves to this secondary line (origin → destination). Only
-              when a lede was shown — otherwise the pair is already the
-              description above. */}
-          {pointLede && obsFrom && obsTo && (
+          {/* Metra point event: when the main description is a train-number title
+              or the bot sentence, keep the affected run visible below it. */}
+          {(pointTitle || pointLede) && obsFrom && obsTo && (
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               <StationName
                 name={obsFrom}

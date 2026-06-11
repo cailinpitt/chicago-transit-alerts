@@ -433,6 +433,27 @@ export function metraPointEvent(incident) {
   };
 }
 
+export function metraPointEventTitle(incident) {
+  if (!incident || incident.cta || incident.kind !== 'metra') return null;
+  const { primary } = splitObservations(incident);
+  if (!primary || !isMetraPointSource(primary.detection_source)) return null;
+  const trainNumber = primary.train_number == null ? null : String(primary.train_number).trim();
+  if (!trainNumber) return null;
+  const routes =
+    Array.isArray(incident.routes) && incident.routes.length > 0
+      ? incident.routes
+      : primary.line
+        ? [primary.line]
+        : [];
+  const line = formatRoutesLabel('metra', routes);
+  const status =
+    primary.detection_source === 'cancellation-inferred'
+      ? 'possibly cancelled'
+      : metraPointEventLabel(primary.detection_source);
+  if (!line || !status) return null;
+  return `${line} train #${trainNumber} ${status}`;
+}
+
 function officialMetraStatusSource(incident) {
   if (incident?.kind !== 'metra' || !incident.cta) return null;
   const exported = incident.metra_status?.source;

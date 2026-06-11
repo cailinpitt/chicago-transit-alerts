@@ -27,6 +27,7 @@ import {
   metraIncidentStatus,
   metraPointEvent,
   metraPointEventLabel,
+  metraPointEventTitle,
   observationSignals,
   searchFilterIncidents,
 } from '../lib/incidents.js';
@@ -684,6 +685,38 @@ describe('metraPointEventLabel', () => {
     expect(metraPointEventLabel('cancellation')).toBe('cancelled');
     expect(metraPointEventLabel('cancellation-inferred')).toBe('possible cancellation');
     expect(metraPointEventLabel('gap')).toBeNull();
+  });
+});
+
+describe('metraPointEventTitle', () => {
+  it('uses train numbers for bot-only Metra delay titles', () => {
+    expect(
+      metraPointEventTitle({
+        id: 'metra-991',
+        kind: 'metra',
+        routes: ['me'],
+        cta: null,
+        observations: [
+          {
+            detection_source: 'delay',
+            line: 'me',
+            train_number: '121',
+            bot_description: '~70 min late — the 12:20 PM University Park train',
+          },
+        ],
+      }),
+    ).toBe('Metra Electric train #121 delayed');
+  });
+
+  it('returns null when a bot-only Metra point event has no train number', () => {
+    expect(
+      metraPointEventTitle({
+        kind: 'metra',
+        routes: ['me'],
+        cta: null,
+        observations: [{ detection_source: 'delay', line: 'me' }],
+      }),
+    ).toBeNull();
   });
 });
 
