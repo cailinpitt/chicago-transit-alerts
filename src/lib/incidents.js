@@ -392,6 +392,67 @@ export function botSummaryText(incident) {
   return 'Service disruption detected';
 }
 
+// Metra bot-detected point events — one scheduled train that ran late, was
+// cancelled, or was never seen running. These are recorded website-data-first
+// (no per-trip Bluesky post; an hourly rollup digest summarizes them), so they
+// arrive as bot-only incidents with the rider-facing sentence pre-rendered in
+// `bot_description` (e.g. "~57 min late — the 12:05 PM … train", "Scheduled
+// train not seen running — the 9:55 AM Joliet train"). Without intervention the
+// row shows only the station pair, which reads like a route; so we lead with the
+// sentence and stamp a short status badge per kind.
+const METRA_POINT_SOURCES = new Set(['delay', 'cancellation', 'cancellation-inferred']);
+
+/**
+ * True when `source` is one of the Metra point-event detection kinds.
+ * @param {string | null | undefined} source
+ */
+export function isMetraPointSource(source) {
+  return source != null && METRA_POINT_SOURCES.has(source);
+}
+
+/**
+ * Normalize a Metra point-event incident for display, or null when the incident
+ * isn't one. Skips merged incidents that carry a Metra alert (`cta`) — those
+ * render from the alert headline. `lede` is the pre-rendered sentence to lead
+ * the row/title with; null when the bot shipped none (callers fall back to the
+ * station pair, with the badge still marking the kind).
+ * @param {Incident} incident
+ * @returns {{ source: string, lede: string | null, fromStation: string | null, toStation: string | null, directionLabel: string | null } | null}
+ */
+export function metraPointEvent(incident) {
+  if (!incident || incident.cta) return null;
+  const { primary } = splitObservations(incident);
+  if (!primary || !isMetraPointSource(primary.detection_source)) return null;
+  return {
+    source: primary.detection_source,
+    lede: primary.bot_description ?? null,
+    fromStation: primary.from_station ?? null,
+    toStation: primary.to_station ?? null,
+    directionLabel: primary.direction_label ?? null,
+  };
+}
+
+// Short status-badge label for each Metra point-event kind. 'cancellation-
+// inferred' reads "possible cancellation" — the train was scheduled but never
+// seen and Metra didn't flag it, so the outcome is stated while signalling it's
+// unconfirmed. Returns null for unknown kinds.
+/**
+ * @param {string} source
+ * @returns {string | null}
+ */
+export function metraPointEventLabel(source) {
+  switch (source) {
+    case 'delay':
+      return 'delayed';
+    case 'cancellation':
+      return 'cancelled';
+    case 'cancellation-inferred':
+      return 'possible cancellation';
+    default:
+      return null;
+  }
+}
+
 // The per-line affected stretches for an incident, as `{ line, from, to }`
 // segments. A multi-line incident (a Loop-wide alert that merged several
 // pulse-cold detections) carries one segment per merged observation, each on

@@ -262,6 +262,31 @@ const PAYLOAD = {
         },
       ],
     },
+    {
+      id: 'metra-972',
+      kind: 'metra',
+      routes: ['ri'],
+      first_seen_ts: NOW - 60 * 60_000,
+      resolved_ts: NOW - 60 * 60_000,
+      active: false,
+      sources: ['bot'],
+      cta: null,
+      observations: [
+        {
+          id: 'metra-972',
+          kind: 'metra',
+          line: 'ri',
+          from_station: 'LaSalle Street',
+          to_station: 'Joliet',
+          detection_source: 'cancellation-inferred',
+          ts: NOW - 60 * 60_000,
+          onset_ts: NOW - 65 * 60_000,
+          resolved_ts: NOW - 60 * 60_000,
+          active: false,
+          bot_description: 'Scheduled train not seen running — the 9:55 AM Joliet train',
+        },
+      ],
+    },
   ],
 };
 
@@ -322,6 +347,25 @@ describe('EventPage', () => {
       expect(screen.getAllByText('#66 Chicago').length).toBeGreaterThan(0);
     });
     expect(screen.getByText('ongoing')).toBeInTheDocument();
+  });
+
+  it('renders an inferred Metra cancellation with a cancellation-style layout', async () => {
+    render(<EventPage eventId="metra-972" />);
+    await waitFor(() => {
+      expect(
+        screen.getByText('Scheduled train not seen running — the 9:55 AM Joliet train'),
+      ).toBeInTheDocument();
+    });
+    // "possible cancellation" badge, scheduled-departure relabel, and no
+    // duration/last-seen framing (a train that never ran).
+    expect(screen.getByText('possible cancellation')).toBeInTheDocument();
+    expect(screen.getByText('Scheduled departure')).toBeInTheDocument();
+    expect(screen.queryByText('First seen')).not.toBeInTheDocument();
+    expect(screen.queryByText('Last seen')).not.toBeInTheDocument();
+    expect(screen.queryByText('Duration')).not.toBeInTheDocument();
+    // The run (origin → destination) survives even though the map is dropped.
+    expect(screen.getByText('LaSalle Street')).toBeInTheDocument();
+    expect(screen.getByText('Joliet')).toBeInTheDocument();
   });
 
   it('shows a not-found message for an unknown id', async () => {

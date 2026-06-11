@@ -19,6 +19,8 @@ import {
   botSummaryText,
   flattenIncidents,
   formatEvidenceChip,
+  metraPointEvent,
+  metraPointEventLabel,
   splitObservations,
 } from '../lib/incidents.js';
 import HighlightedText from './HighlightedText.jsx';
@@ -80,6 +82,16 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   // ongoing/duration framing (a train that won't run has no duration).
   const cancel = cancellationInfo(incident);
   const cancelPhrase = cancellationSchedulePhrase(cancel);
+  // Metra point event (late / cancelled / not-seen-running train): lead the
+  // description with the pre-rendered sentence and mark the row with a status
+  // badge so it doesn't read like a route/reroute. `pointLede` is null when the
+  // bot shipped no sentence — then the station pair stays the description and
+  // only the badge flags the kind.
+  const pointEvent = metraPointEvent(incident);
+  const pointLede = pointEvent?.lede ?? null;
+  // Confirmed cancellation reads as a settled fact (slate, like the existing
+  // timetable cancellation badge); late / unconfirmed stay amber (caution).
+  const pointBadgeAmber = pointEvent && pointEvent.source !== 'cancellation';
 
   // For a merged incident spanning more than one line (a Loop-wide alert that
   // merged a detection per line), the single primary "from → to" sub-line hides
@@ -132,6 +144,8 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   const directionLabel = primary?.direction_label ?? null;
   if (cta) {
     description = <HighlightedText text={cta.headline} query={searchQuery} />;
+  } else if (pointLede) {
+    description = <HighlightedText text={pointLede} query={searchQuery} />;
   } else if (obsFrom && obsTo) {
     description = (
       <>
@@ -240,6 +254,25 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                   </>
                 )}
               </>
+            ) : pointEvent ? (
+              <>
+                <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+                <span
+                  className={`text-xs font-semibold ${
+                    pointBadgeAmber
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                  }`}
+                >
+                  {metraPointEventLabel(pointEvent.source)}
+                </span>
+                {incident.active && (
+                  <>
+                    <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+                    <span className="text-xs font-semibold text-red-500">ongoing</span>
+                  </>
+                )}
+              </>
             ) : (
               <>
                 {duration && (
@@ -329,6 +362,29 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                   </span>
                 </Fragment>
               ))}
+            </p>
+          )}
+
+          {/* Metra point event: the sentence is the description, so the affected
+              stretch moves to this secondary line (origin → destination). Only
+              when a lede was shown — otherwise the pair is already the
+              description above. */}
+          {pointLede && obsFrom && obsTo && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <StationName
+                name={obsFrom}
+                kind={incident.kind}
+                stationIndex={stationIndex}
+                searchQuery={searchQuery}
+              />{' '}
+              →{' '}
+              <StationName
+                name={obsTo}
+                kind={incident.kind}
+                stationIndex={stationIndex}
+                searchQuery={searchQuery}
+              />
+              {directionLabel && <span className="ml-1.5">({directionLabel})</span>}
             </p>
           )}
 

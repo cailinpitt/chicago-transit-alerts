@@ -25,6 +25,8 @@ import {
   formatEvidenceChip,
   formatRoutesLabel,
   mergeMatchingIncidents,
+  metraPointEvent,
+  metraPointEventLabel,
   SIGNAL_LABELS,
   splitObservations,
 } from '../../lib/incidents.js';
@@ -365,6 +367,22 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // with a duration — it's an annulled train tied to a timetable slot).
   const cancel = cancellationInfo(incident);
   const cancelPhrase = cancellationSchedulePhrase(cancel);
+  // Metra point event (late / cancelled / not-seen-running train): a status pill
+  // in place of the resolved/ongoing pill (the title already leads with the
+  // pre-rendered sentence via describe()). Null for the timetable-cancellation
+  // path above, which has its own schedule summary.
+  const pointEvent = !cancel ? metraPointEvent(incident) : null;
+  const pointBadgeAmber = pointEvent && pointEvent.source !== 'cancellation';
+  // The timetable cancellation and every bot point event (late / cancelled /
+  // not-seen-running) describe a single scheduled train at a point in time, not
+  // a running disruption — so none of them get a map, a "last seen", a duration,
+  // or duration-ranked severity. The rider-facing magnitude (how late, or that
+  // it was cancelled) is already in the title sentence.
+  const isPointInTime = !!cancel || !!pointEvent;
+  // For a bot point event the "start" timestamp is the train's scheduled
+  // departure (onset_ts = scheduledDepTs upstream), not a "first seen" — relabel
+  // it when we have that anchor.
+  const startIsScheduledDep = !!pointEvent && primary?.onset_ts != null;
 
   return (
     <article className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-6">
@@ -401,6 +419,19 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           >
             {cancellationStatusLabel(cancel)}
           </span>
+        ) : pointEvent ? (
+          <>
+            <span
+              className={`text-xs font-semibold ${
+                pointBadgeAmber
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              {metraPointEventLabel(pointEvent.source)}
+            </span>
+            {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
+          </>
         ) : (
           <>
             {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
@@ -431,7 +462,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           badge ranks duration against every incident on the line (30d); the
           signal badge ranks it against the same-signal cohort the
           DurationScale below draws (90d). Both only appear when notable. */}
-      {(lineRank || signalSeverity) && (
+      {!isPointInTime && (lineRank || signalSeverity) && (
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {lineRank && (
             <SeverityBadge
@@ -468,6 +499,21 @@ export function EventDetail({ incident, incidents, alerts, observations, station
       {isObsOnly && (
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 italic">
           No matching {agencyLabel(incident.kind)} alert — surfaced from live vehicle tracking only.
+        </p>
+      )}
+
+      {/* Point events lead the title with the lateness/cancellation sentence and
+          draw no map, so the train's run (origin → destination) would otherwise
+          be lost. Show it here as a compact line. */}
+      {pointEvent?.fromStation && pointEvent.toStation && (
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">
+          <StationName name={pointEvent.fromStation} kind="metra" stationIndex={stationIndex} /> →{' '}
+          <StationName name={pointEvent.toStation} kind="metra" stationIndex={stationIndex} />
+          {pointEvent.directionLabel && (
+            <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+              ({pointEvent.directionLabel})
+            </span>
+          )}
         </p>
       )}
 
@@ -574,7 +620,10 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           resolution sentences become two entries on a LinkedIn-style rail
           matching the "Per CTA · N updates" pattern. */}
       {(() => {
-        const detection = isObsOnly ? primary?.bot_description : null;
+        // Metra point events lead the title with this exact sentence and carry
+        // no onset/resolution/evidence rail, so the "Per bot" entry would just
+        // restate the title — suppress it for them.
+        const detection = isObsOnly && !pointEvent ? primary?.bot_description : null;
         const resolution = isObsOnly ? primary?.bot_resolved_description : null;
         const bullets = isObsOnly ? primary?.bot_evidence_bullets : null;
         const onsetText = isObsOnly ? (primary?.onset_description ?? null) : null;
@@ -885,13 +934,13 @@ export function EventDetail({ incident, incidents, alerts, observations, station
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-4">
         <div>
           <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            First seen
+            {startIsScheduledDep ? 'Scheduled departure' : 'First seen'}
           </dt>
           <dd className="text-slate-700 dark:text-slate-200">
             {formatDate(startTs)} · {formatTime(startTs)}
           </dd>
         </div>
-        {!cancel && endTs && (
+        {!isPointInTime && endTs && (
           <div>
             <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Last seen
@@ -901,7 +950,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             </dd>
           </div>
         )}
-        {!cancel && duration && (
+        {!isPointInTime && duration && (
           <div>
             <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Duration
@@ -913,7 +962,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             "Duration" row above only renders once resolved, so this is the
             running counterpart while it's still open. Suppressed for a
             cancellation — a train that won't run has no "ongoing" time. */}
-        {!cancel && elapsedMs != null && (
+        {!isPointInTime && elapsedMs != null && (
           <div title="Time since this incident was first seen — still ongoing.">
             <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Ongoing for
@@ -1066,8 +1115,10 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         ))}
 
       {/* Metra incidents are single-line (one route key), so they always use
-          the single-line EventMap — never the multi-line Loop variant. */}
-      {incident.kind === 'metra' && (
+          the single-line EventMap — never the multi-line Loop variant. A
+          cancellation (timetable, confirmed, or inferred) describes a train that
+          never ran, so there's no stretch to map — suppress it. */}
+      {incident.kind === 'metra' && !isPointInTime && (
         <EventMap
           kind="metra"
           lineKey={Array.isArray(incident.routes) ? incident.routes[0] : null}
@@ -1143,7 +1194,9 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         </div>
       )}
 
-      <DurationScale stats={cohortStats} />
+      {/* "Duration vs typical" ranks by elapsed duration; a cancelled train has
+          none (its only timestamp delta is detection lag), so suppress it. */}
+      {!isPointInTime && <DurationScale stats={cohortStats} />}
 
       <MiniTimeline incident={incident} incidents={incidents} dark={dark} />
 

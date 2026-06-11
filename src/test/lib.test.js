@@ -23,6 +23,8 @@ import {
   filterIncidents,
   findRelatedIncidents,
   mergeMatchingIncidents,
+  metraPointEvent,
+  metraPointEventLabel,
   observationSignals,
   searchFilterIncidents,
 } from '../lib/incidents.js';
@@ -542,6 +544,66 @@ describe('observationSignals', () => {
 
   it('returns [] when neither field is present', () => {
     expect(observationSignals({})).toEqual([]);
+  });
+});
+
+describe('metraPointEvent', () => {
+  const pointInc = (over = {}) => ({
+    id: 'metra-992',
+    kind: 'metra',
+    routes: ['bnsf'],
+    cta: null,
+    observations: [
+      {
+        id: 'metra-992',
+        detection_source: 'delay',
+        from_station: 'Aurora',
+        to_station: 'Chicago Union Station',
+        direction_label: null,
+        bot_description: '~57 min late — the 12:05 PM Chicago Union Station train',
+        ...over,
+      },
+    ],
+  });
+
+  it('returns the kind, lede, and station pair for a delay', () => {
+    expect(metraPointEvent(pointInc())).toEqual({
+      source: 'delay',
+      lede: '~57 min late — the 12:05 PM Chicago Union Station train',
+      fromStation: 'Aurora',
+      toStation: 'Chicago Union Station',
+      directionLabel: null,
+    });
+  });
+
+  it('recognizes confirmed and inferred cancellations', () => {
+    expect(metraPointEvent(pointInc({ detection_source: 'cancellation' }))?.source).toBe(
+      'cancellation',
+    );
+    expect(metraPointEvent(pointInc({ detection_source: 'cancellation-inferred' }))?.source).toBe(
+      'cancellation-inferred',
+    );
+  });
+
+  it('returns a null lede when the bot shipped no description', () => {
+    expect(metraPointEvent(pointInc({ bot_description: undefined })).lede).toBeNull();
+  });
+
+  it('returns null for non-point observations', () => {
+    expect(metraPointEvent({ cta: null, observations: [{ detection_source: 'gap' }] })).toBeNull();
+  });
+
+  it('returns null for incidents carrying a Metra alert (merged)', () => {
+    expect(metraPointEvent({ ...pointInc(), cta: { headline: 'x' } })).toBeNull();
+  });
+});
+
+describe('metraPointEventLabel', () => {
+  it('maps each kind to its badge label', () => {
+    expect(metraPointEventLabel('delay')).toBe('delayed');
+    expect(metraPointEventLabel('cancellation')).toBe('cancelled');
+    expect(metraPointEventLabel('cancellation-inferred')).toBe('possible cancellation');
+    expect(metraPointEventLabel('gap')).toBeNull();
   });
 });
 

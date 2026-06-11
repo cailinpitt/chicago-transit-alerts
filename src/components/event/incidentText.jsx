@@ -1,4 +1,4 @@
-import { botSummaryText, splitObservations } from '../../lib/incidents.js';
+import { botSummaryText, isMetraPointSource, splitObservations } from '../../lib/incidents.js';
 import { displayStationName } from '../../lib/stations.js';
 import StationName from '../StationName.jsx';
 
@@ -15,6 +15,12 @@ export function incidentRoutes(incident) {
 export function describeText(incident) {
   if (incident.cta) return incident.cta.headline;
   const { primary } = splitObservations(incident);
+  // Metra point event: lead with the pre-rendered sentence ("~57 min late — …",
+  // "Scheduled train not seen running — …") so the title reads as a delay /
+  // cancellation, not a route.
+  if (isMetraPointSource(primary?.detection_source) && primary?.bot_description) {
+    return primary.bot_description;
+  }
   if (primary?.from_station && primary?.to_station) {
     const seg = `${displayStationName(primary.from_station)} → ${displayStationName(primary.to_station)}`;
     return primary.direction_label ? `${seg} (${primary.direction_label})` : seg;
@@ -25,6 +31,10 @@ export function describeText(incident) {
 export function describe(incident, stationIndex) {
   if (incident.cta) return incident.cta.headline;
   const { primary } = splitObservations(incident);
+  // Metra point event: the pre-rendered sentence is the title (see describeText).
+  if (isMetraPointSource(primary?.detection_source) && primary?.bot_description) {
+    return primary.bot_description;
+  }
   if (primary?.from_station && primary?.to_station) {
     return (
       <>

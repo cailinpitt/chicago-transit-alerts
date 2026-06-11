@@ -95,6 +95,74 @@ describe('IncidentList', () => {
     expect(screen.getByText('ongoing')).toBeInTheDocument();
   });
 
+  it('shows a "delayed" badge and leads with the lateness sentence for a Metra delay', () => {
+    const delayInc = {
+      id: 'metra-992',
+      kind: 'metra',
+      routes: ['bnsf'],
+      first_seen_ts: NOW,
+      resolved_ts: NOW,
+      active: false,
+      cta: null,
+      observations: [
+        {
+          id: 'metra-992',
+          kind: 'metra',
+          line: 'bnsf',
+          from_station: 'Aurora',
+          to_station: 'Chicago Union Station',
+          detection_source: 'delay',
+          ts: NOW,
+          resolved_ts: NOW,
+          active: false,
+          bot_description: '~57 min late — the 12:05 PM Chicago Union Station train',
+        },
+      ],
+    };
+    render(<IncidentList incidents={[delayInc]} />);
+    expect(screen.getByText('delayed')).toBeInTheDocument();
+    // Lateness sentence is the primary description…
+    expect(
+      screen.getByText('~57 min late — the 12:05 PM Chicago Union Station train'),
+    ).toBeInTheDocument();
+    // …and the affected stretch moves to the secondary line.
+    expect(screen.getByText('Aurora')).toBeInTheDocument();
+    expect(screen.getByText('Chicago Union Station')).toBeInTheDocument();
+  });
+
+  it('shows a "possible cancellation" badge for an inferred Metra cancellation', () => {
+    const inferredInc = {
+      id: 'metra-972',
+      kind: 'metra',
+      routes: ['ri'],
+      first_seen_ts: NOW,
+      resolved_ts: NOW,
+      active: false,
+      cta: null,
+      observations: [
+        {
+          id: 'metra-972',
+          kind: 'metra',
+          line: 'ri',
+          from_station: 'LaSalle Street',
+          to_station: 'Joliet',
+          detection_source: 'cancellation-inferred',
+          ts: NOW,
+          resolved_ts: NOW,
+          active: false,
+          bot_description: 'Scheduled train not seen running — the 9:55 AM Joliet train',
+        },
+      ],
+    };
+    render(<IncidentList incidents={[inferredInc]} />);
+    expect(screen.getByText('possible cancellation')).toBeInTheDocument();
+    expect(
+      screen.getByText('Scheduled train not seen running — the 9:55 AM Joliet train'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('LaSalle Street')).toBeInTheDocument();
+    expect(screen.getByText('Joliet')).toBeInTheDocument();
+  });
+
   it('shows load more button when incidents exceed page size', () => {
     const incidents = Array.from({ length: 26 }, (_, i) =>
       alertInc({ id: `a${i + 1}`, first_seen_ts: NOW - (i + 1) * 60_000 }),
