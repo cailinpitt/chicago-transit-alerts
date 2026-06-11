@@ -1,4 +1,9 @@
 import { Fragment, useMemo, useState } from 'react';
+import {
+  cancellationInfo,
+  cancellationSchedulePhrase,
+  cancellationStatusLabel,
+} from '../lib/cancellation.js';
 import { buildCsv } from '../lib/csv.js';
 import {
   chicagoDayUTC,
@@ -71,6 +76,10 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   const isObsOnly = !cta;
   const eventId = incident.id;
   const sources = getSources(incident);
+  // Single-train Metra cancellation → schedule-anchored badge instead of the
+  // ongoing/duration framing (a train that won't run has no duration).
+  const cancel = cancellationInfo(incident);
+  const cancelPhrase = cancellationSchedulePhrase(cancel);
 
   // For a merged incident spanning more than one line (a Loop-wide alert that
   // merged a detection per line), the single primary "from → to" sub-line hides
@@ -211,18 +220,46 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                 via auto-detection
               </span>
             )}
-            {duration && (
+            {cancel ? (
               <>
-                <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  {duration} duration
+                <span
+                  className={`text-xs font-semibold ${
+                    cancel.isUpcoming
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                  }`}
+                >
+                  {cancellationStatusLabel(cancel)}
                 </span>
+                {cancelPhrase && (
+                  <>
+                    <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {cancelPhrase}
+                    </span>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {duration && (
+                  <>
+                    <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {duration} duration
+                    </span>
+                  </>
+                )}
+                {!endTs && !incident.active && (
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    duration unknown
+                  </span>
+                )}
+                {incident.active && (
+                  <span className="text-xs font-semibold text-red-500">ongoing</span>
+                )}
               </>
             )}
-            {!endTs && !incident.active && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">duration unknown</span>
-            )}
-            {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
             {incident.active &&
               cta?.cta_event_end_ts != null &&
               (() => {

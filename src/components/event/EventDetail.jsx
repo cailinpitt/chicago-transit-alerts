@@ -7,6 +7,11 @@ import {
   computeStretchRecurrence,
 } from '../../lib/aggregate.js';
 import {
+  cancellationInfo,
+  cancellationSchedulePhrase,
+  cancellationStatusLabel,
+} from '../../lib/cancellation.js';
+import {
   formatDate,
   formatDuration,
   formatEstimatedEnd,
@@ -355,6 +360,12 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // The main post link: CTA's announcement when present, else the bot post.
   const primaryUrl = cta ? cta.post_url : (primary?.post_url ?? null);
 
+  // Single-train Metra cancellation: replaces the ongoing/resolved pill and the
+  // duration framing with the train's schedule (this isn't an open disruption
+  // with a duration — it's an annulled train tied to a timetable slot).
+  const cancel = cancellationInfo(incident);
+  const cancelPhrase = cancellationSchedulePhrase(cancel);
+
   return (
     <article className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-6">
       <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -380,11 +391,41 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             via auto-detection
           </span>
         )}
-        {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
-        {!incident.active && incident.resolved_ts != null && (
-          <span className="text-xs font-semibold text-green-600 dark:text-green-400">resolved</span>
+        {cancel ? (
+          <span
+            className={`text-xs font-semibold ${
+              cancel.isUpcoming
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-slate-500 dark:text-slate-400'
+            }`}
+          >
+            {cancellationStatusLabel(cancel)}
+          </span>
+        ) : (
+          <>
+            {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
+            {!incident.active && incident.resolved_ts != null && (
+              <span className="text-xs font-semibold text-green-600 dark:text-green-400">
+                resolved
+              </span>
+            )}
+          </>
         )}
       </div>
+
+      {/* Schedule-anchored cancellation summary — the cancelled train's
+          timetable slot, in place of a "duration" that doesn't apply to a
+          train that never ran. */}
+      {cancel && cancelPhrase && (
+        <div className="mb-3 text-sm text-slate-600 dark:text-slate-300">
+          <span className="font-medium">
+            {cancel.trainNumber ? `Train #${cancel.trainNumber}` : 'Train'}
+          </span>{' '}
+          scheduled {cancelPhrase}
+          {cancel.origin ? ` from ${cancel.origin}` : ''}
+          {cancel.isUpcoming ? ' — will not operate.' : ' — did not operate.'}
+        </div>
+      )}
 
       {/* Severity badges — "was this a bad one?" at a glance. The line-wide
           badge ranks duration against every incident on the line (30d); the
@@ -677,7 +718,10 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         // For merged CTA+bot incidents, interleave bot detection entries
         // (back-dated to obs.onset_ts) so the chronology answers "who detected
         // this first." Each entry is tagged with its source label below.
-        const hasResolved = !incident.active && incident.resolved_ts != null;
+        // A cancellation is terminal but not "cleared" — no resolution entry
+        // (and an annulment Metra dropped from the feed before this lifecycle
+        // shipped may carry an old "resolved" reply we must not surface).
+        const hasResolved = !cancel && !incident.active && incident.resolved_ts != null;
         const obsDetections = isMerged
           ? (incident.observations || []).map((o) => ({
               type: 'obs-detect',
@@ -847,7 +891,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             {formatDate(startTs)} · {formatTime(startTs)}
           </dd>
         </div>
-        {endTs && (
+        {!cancel && endTs && (
           <div>
             <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Last seen
@@ -857,7 +901,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             </dd>
           </div>
         )}
-        {duration && (
+        {!cancel && duration && (
           <div>
             <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Duration
@@ -867,8 +911,9 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         )}
         {/* Live elapsed time for an active incident — ticks each minute. The
             "Duration" row above only renders once resolved, so this is the
-            running counterpart while it's still open. */}
-        {elapsedMs != null && (
+            running counterpart while it's still open. Suppressed for a
+            cancellation — a train that won't run has no "ongoing" time. */}
+        {!cancel && elapsedMs != null && (
           <div title="Time since this incident was first seen — still ongoing.">
             <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Ongoing for
@@ -1153,7 +1198,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                 </a>
               ),
           )}
-        {resolvedUrl && (
+        {!cancel && resolvedUrl && (
           <a
             href={resolvedUrl}
             target="_blank"
@@ -1163,7 +1208,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             Resolution post →
           </a>
         )}
-        {obsResolvedUrl && obsResolvedUrl !== resolvedUrl && (
+        {!cancel && obsResolvedUrl && obsResolvedUrl !== resolvedUrl && (
           <a
             href={obsResolvedUrl}
             target="_blank"

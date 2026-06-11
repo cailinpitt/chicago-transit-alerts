@@ -10,6 +10,7 @@ import {
 } from '../lib/aggregate.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
+import { cancellationInfo } from '../lib/cancellation.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay, formatMinutesAsHours } from '../lib/format.js';
@@ -450,7 +451,9 @@ export default function SystemHealthPage({ kind }) {
     const longRunning = [];
     for (const i of activeIncidents) {
       const startTs = i.first_seen_ts ?? i.ts;
-      if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
+      // Single-train cancellations are schedule-anchored, never "long running".
+      if (!cancellationInfo(i) && startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS)
+        longRunning.push(i);
       else recent.push(i);
     }
     return { recentActive: recent, longRunningActive: longRunning };

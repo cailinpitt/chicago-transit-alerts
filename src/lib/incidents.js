@@ -67,6 +67,8 @@ function flattenIncidentAlert(inc) {
     cta_event_end_ts: c.cta_event_end_ts ?? null,
     cta_event_start_is_date_only: c.cta_event_start_is_date_only ?? false,
     cta_event_end_is_date_only: c.cta_event_end_is_date_only ?? false,
+    // Schedule-anchored single-train Metra cancellation (null otherwise).
+    cancellation: c.cancellation ?? null,
     _incidentId: inc.id,
   };
   // versions only present when CTA edited the alert (>1 version on the wire).

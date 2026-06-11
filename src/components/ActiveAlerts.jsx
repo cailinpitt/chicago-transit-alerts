@@ -1,4 +1,9 @@
 import { typicalDurationKey } from '../lib/aggregate.js';
+import {
+  cancellationInfo,
+  cancellationSchedulePhrase,
+  cancellationStatusLabel,
+} from '../lib/cancellation.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../lib/format.js';
 import { botSummaryText, formatEvidenceChip, splitObservations } from '../lib/incidents.js';
@@ -150,6 +155,9 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
   const { primary } = splitObservations(incident);
   const startTs = incident.first_seen_ts;
   const elapsedText = elapsed(now, startTs);
+  // Single-train cancellation: show the schedule, not an "ongoing" elapsed timer.
+  const cancel = cancellationInfo(incident);
+  const cancelPhrase = cancellationSchedulePhrase(cancel);
   // The cohort key buckets on kind + line + signal; for a nested incident that
   // comes off the primary observation (CTA-only incidents have no signal key).
   const typicalKey = typicalDurationKey({
@@ -219,25 +227,36 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
               +{desktopOverflow}
             </span>
           )}
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            {elapsedText} ongoing
-            {typicalText && (
-              <>
-                {' · '}
-                <span title={`Median over ${typical.count} past similar incidents (last 90 days)`}>
-                  typically {typicalText}
-                </span>
-              </>
-            )}
-            {estimatedEndText && (
-              <>
-                {' · '}
-                <span title="CTA tagged this alert with an estimated end time when it was posted.">
-                  CTA estimated end {estimatedEndText}
-                </span>
-              </>
-            )}
-          </span>
+          {cancel ? (
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="font-semibold text-amber-600 dark:text-amber-400">
+                {cancellationStatusLabel(cancel)}
+              </span>
+              {cancelPhrase && ` · ${cancelPhrase}`}
+            </span>
+          ) : (
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {elapsedText} ongoing
+              {typicalText && (
+                <>
+                  {' · '}
+                  <span
+                    title={`Median over ${typical.count} past similar incidents (last 90 days)`}
+                  >
+                    typically {typicalText}
+                  </span>
+                </>
+              )}
+              {estimatedEndText && (
+                <>
+                  {' · '}
+                  <span title="CTA tagged this alert with an estimated end time when it was posted.">
+                    CTA estimated end {estimatedEndText}
+                  </span>
+                </>
+              )}
+            </span>
+          )}
         </div>
         <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
           {description}
@@ -282,7 +301,8 @@ const COMPACT_PILL_LIMIT = 1;
 // regardless of how many routes the alert touches.
 function ActiveRow({ incident, now, isNew }) {
   const startTs = incident.first_seen_ts;
-  const elapsedText = elapsed(now, startTs);
+  const cancel = cancellationInfo(incident);
+  const elapsedText = cancel ? cancellationStatusLabel(cancel) : elapsed(now, startTs);
   const { descriptionText } = describeIncident(incident, null);
   const eventId = incident.id;
 

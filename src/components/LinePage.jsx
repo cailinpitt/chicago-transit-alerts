@@ -15,6 +15,7 @@ import {
 } from '../lib/aggregate.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
+import { cancellationInfo } from '../lib/cancellation.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
@@ -220,7 +221,10 @@ export default function LinePage({ kind, lineId }) {
     const longRunning = [];
     for (const i of activeIncidents) {
       const startTs = i.first_seen_ts ?? i.ts;
-      if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
+      // A single-train cancellation is schedule-anchored, not a long-running
+      // disruption — never give it "Day N" framing even if announced early.
+      if (!cancellationInfo(i) && startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS)
+        longRunning.push(i);
       else recent.push(i);
     }
     return { recentActive: recent, longRunningActive: longRunning };

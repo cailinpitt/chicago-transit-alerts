@@ -6,6 +6,35 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-11 — Metra single-train cancellations: `cta.cancellation` (additive)
+
+A Metra alert that annuls exactly one scheduled train (e.g. "UPW train #67 will
+not operate") now carries a **`cancellation`** object on its `cta` block, anchoring
+the event to that train's timetable instead of to when Metra clears the alert from
+its feed. **Additive** — `null`/absent on every other alert, and `cta`'s existing
+`first_seen_ts` / `resolved_ts` / `active` fields are unchanged.
+
+- **New field** `incidents[].cta.cancellation`, an object (or `null`) with:
+  - `state` — `"upcoming"` (announced, before the train's scheduled departure) or
+    `"cancelled"` (the scheduled departure has passed; terminal).
+  - `scheduled_departure_ts` / `scheduled_arrival_ts` — the cancelled train's
+    origin departure and final arrival (epoch ms), from the GTFS timetable.
+  - `train_number` — the run number as a string (e.g. `"67"`).
+  - `origin` — the origin station name (e.g. `"Chicago OTC"`).
+- **Lifecycle via existing fields** — an `"upcoming"` cancellation is `active:
+  true` with `resolved_ts: null`; once finalized it is `active: false` with
+  `resolved_ts` set to the scheduled departure (the moment the train's slot
+  passed). Note this means `resolved_ts` here marks "the cancellation took effect,"
+  not "service was restored" — a cancelled train does not un-cancel, so
+  `resolved_ts − first_seen_ts` is **not** a meaningful disruption duration for
+  these. Use `state` for the label.
+- **Scope** — only single-train annulments populate this. Open-ended Metra notices
+  ("no UP-N service due to police activity") carry no `cancellation` object and keep
+  the ordinary ongoing→resolved lifecycle (where `resolved_ts` does mean cleared).
+
+This is backfilled across historical Metra cancellation alerts on the next export,
+not just new ones. `alerts.csv` is unaffected.
+
 ## 2026-06-10 — Metra observations drop the unused `evidence` payload + `alerts.json` minified
 
 Two payload-size changes, both transparent to JSON consumers:
