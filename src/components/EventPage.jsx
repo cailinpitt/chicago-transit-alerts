@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { eventTrail } from '../lib/breadcrumbs.js';
 import { dataUrl } from '../lib/dataSource.js';
-import { findIncidentById, flattenIncidents, formatRoutesLabel } from '../lib/incidents.js';
+import {
+  findIncidentById,
+  flattenIncidents,
+  formatRoutesLabel,
+  withRuntimeAliasesAll,
+} from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import Breadcrumb from './Breadcrumb.jsx';
 import BrowseMenu from './BrowseMenu.jsx';
@@ -33,8 +38,12 @@ export default function EventPage({ eventId }) {
           return r.json();
         })
         .then((fresh) => {
+          const normalized = {
+            ...fresh,
+            incidents: withRuntimeAliasesAll(fresh.incidents || []),
+          };
           setData((prev) => {
-            if (!prev || fresh.generated_at !== prev.generated_at) return fresh;
+            if (!prev || normalized.generated_at !== prev.generated_at) return normalized;
             return prev;
           });
         })

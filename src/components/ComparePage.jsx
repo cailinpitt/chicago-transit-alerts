@@ -18,6 +18,7 @@ import {
   observationSignals,
   SIGNAL_LABELS,
   SIGNAL_TYPES,
+  withRuntimeAliasesAll,
 } from '../lib/incidents.js';
 import { METRA_LINE_ORDER, METRA_LINES, normalizeMetraLine } from '../lib/metraLines.js';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -539,7 +540,9 @@ export default function ComparePage() {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then(setData)
+      .then((fresh) =>
+        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
+      )
       .catch(setError);
   }, []);
 

@@ -47,7 +47,9 @@ import {
 import {
   flattenIncidents,
   formatRoutesLabel,
+  legacyKind,
   mergeMatchingIncidents,
+  withRuntimeAliasesAll,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../src/lib/metraLines.js';
@@ -1015,9 +1017,9 @@ async function main() {
   // gated payload — gateIncidents is CTA-only in Node, so Metra is stripped from
   // those cards. Metra's own roster cards (line pages + /system/metra) are driven
   // by this separate ungated slice so they can show the active-disruption variant.
-  const allIncidents = raw.incidents || [];
-  const metraFlat = flattenIncidents(allIncidents.filter((inc) => inc.kind === 'metra'));
-  raw.incidents = gateIncidents(allIncidents);
+  const allIncidents = withRuntimeAliasesAll(raw.incidents || []);
+  const metraFlat = flattenIncidents(allIncidents.filter((inc) => legacyKind(inc) === 'metra'));
+  raw.incidents = withRuntimeAliasesAll(gateIncidents(allIncidents));
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   // daily-counts.json is optional — if it's missing (e.g. during a build
   // before the cron has dropped one in), skip the calendar OG card rather

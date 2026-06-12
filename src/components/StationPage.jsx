@@ -5,7 +5,11 @@ import { computeTypicalDurations } from '../lib/aggregate.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
-import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
+import {
+  flattenIncidents,
+  searchFilterIncidents,
+  withRuntimeAliasesAll,
+} from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { metraStationBySlug } from '../lib/metraStations.js';
 import {
@@ -44,7 +48,9 @@ export default function StationPage({ slug, kind = 'train' }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then(setData)
+      .then((fresh) =>
+        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
+      )
       .catch(setError);
   }, []);
 

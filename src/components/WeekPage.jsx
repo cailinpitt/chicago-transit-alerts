@@ -13,7 +13,7 @@ import {
   formatDuration,
   formatWeekRange,
 } from '../lib/format.js';
-import { flattenIncidents } from '../lib/incidents.js';
+import { flattenIncidents, withRuntimeAliasesAll } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc } from '../lib/urlState.js';
@@ -59,7 +59,9 @@ export default function WeekPage({ weekParam }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then(setData)
+      .then((fresh) =>
+        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
+      )
       .catch(setError);
   }, [weekStartUtc]);
 

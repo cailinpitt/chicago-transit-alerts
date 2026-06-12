@@ -166,69 +166,85 @@ https://chicagotransitalerts.app/data/alerts.json
 
 It's regenerated whenever the underlying data changes (typically every 7 minutes when there's activity) and served from GitHub Pages with no auth. Use it however you like — research, journalism, hobby dashboards, training data. Breaking changes to this shape are recorded in the [data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md) ([source](public/data/CHANGELOG.md)) — check it before pinning to the format.
 
-The top-level array is `incidents` — **one object per real-world disruption**. An official alert (CTA or Metra) and the bot observation(s) describing the same incident are paired server-side into a single object (no client-side merging needed): the `cta` block carries the official alert (null for bot-only incidents), and `observations[]` carries the bot detections (empty for CTA-only incidents). `sources` tells you which contributed. A non-exhaustive sketch:
+The top-level array is `incidents` — **one object per real-world disruption**. An official alert (CTA or Metra) and the bot detection(s) describing the same incident are paired server-side into a single object (no client-side merging needed): `official_alert` carries the agency alert (null for bot-only incidents), and `detections[]` carries bot detections (empty for official-alert-only incidents). `sources` tells you which contributed. A non-exhaustive sketch:
 
 ```jsonc
 {
+  "schema_version": 2,
   "generated_at": 1715200000000,        // epoch ms when the snapshot was produced
   "data_start_ts": 1707350400000,       // earliest moment we have coverage for
   "incidents": [
     {
       "id": "3k2j...",                  // stable permalink id (Bluesky post rkey); /event/:id
-      "kind": "train",                  // "train", "bus", or "metra"
+      "agency": "cta",                  // "cta" or "metra"
+      "mode": "train",                  // "train", "bus", or "commuter_rail"
       "routes": ["red"],                // CTA line names ('red',…), bus route numbers, or Metra codes ('up-n')
-      "first_seen_ts": 1715199000000,
-      "resolved_ts": null,              // null = still open
-      "active": true,
       "sources": ["cta", "bot"],        // which observers contributed: "cta", "bot", or both
-      "cancellation": null,             // Metra single-train annulment (else null): { state:
-                                        // 'upcoming'|'cancelled', scheduled_departure_ts,
-                                        // scheduled_arrival_ts, train_number, origin }
-      "cta": {                          // null for bot-only incidents
-        "alert_id": "...",
-        "headline": "...",
-        "short_description": "...",     // CTA's own body text (reroute/closure details)
-        "post_url": "https://bsky.app/profile/.../post/...",
-        "resolved_reply_url": null,     // reply post when CTA cleared the alert
-        "first_seen_ts": 1715199000000, // CTA's own lifecycle, distinct from the incident's
-        "resolved_ts": null,
+      "lifecycle": {
+        "first_seen_ts": 1715199000000,
+        "resolved_ts": null,            // null = still open
         "active": true,
-        "affected_from_station": null,
-        "affected_to_station": null,
-        "affected_direction": null,
-        "mentioned_stations": [],       // canonical station names parsed from the alert text
-        "affected_stations": [],        // full segment fill (endpoints + inner stops) for a
-                                        // "between X and Y" alert; [] when no segment resolves
-        "cta_event_start_ts": null,     // CTA's claimed event window (date-only flags alongside)
-        "cta_event_end_ts": null
+        "duration_ms": null
+      },
+      "official_alert": {               // null for bot-only incidents
+        "id": "...",
+        "headline": "...",
+        "description": "...",          // agency body text (reroute/closure details)
+        "post_url": "https://bsky.app/profile/.../post/...",
+        "resolved_reply_url": null,     // reply post when the agency alert cleared
+        "lifecycle": {
+          "first_seen_ts": 1715199000000, // agency alert lifecycle, distinct from incident lifecycle
+          "resolved_ts": null,
+          "active": true,
+          "duration_ms": null
+        },
+        "scope": {
+          "from_station": null,
+          "to_station": null,
+          "stations": [],              // full segment fill; [] when no segment resolves
+          "direction": null,
+          "mentioned_stations": []      // canonical station names parsed from alert text
+        },
+        "agency_event_window": {        // agency-claimed event window, when present
+          "start_ts": null,
+          "end_ts": null,
+          "start_is_date_only": false,
+          "end_is_date_only": false
+        }
         // "versions": [...]            // present only when CTA edited the alert text over time
       },
-      "observations": [                 // [] for CTA-only incidents
+      "detections": [                   // [] for official-alert-only incidents
         {
           "id": 12345,
-          "detection_source": "pulse-cold", // CTA: 'gap','bunching','ghost','pulse-held','thin-gap','roundup'
-                                            // Metra: 'cancellation','cancellation-inferred','delay'
-          "signals": ["gap", "bunching"],   // populated for roundups
-          "from_station": "Howard",
-          "to_station": "Loyola",
-          "stations": ["Howard", "Jarvis", "Morse", "Loyola"], // full stretch (endpoints + inner
-                                        // stops), from_station → to_station; omitted when not enumerable
-          "direction_label": "toward the Loop", // pre-rendered "toward <terminus>"; null when unavailable
-          "ts": 1715199000000,          // when the bot posted; matches post_url
-          "onset_ts": 1715197860000,    // disruption start, back-dated to the last observed train
-                                        // (pulse-cold/thin-gap); null when not back-dated — use ts
-          "resolved_ts": 1715202600000,
-          "duration_ms": 4740000,       // resolved_ts - (onset_ts ?? ts); null while active
-          "active": false,
+          "source": "pulse-cold",       // CTA: gap/bunching/ghost/pulse-held/thin-gap/roundup
+                                        // Metra: cancellation/cancellation-inferred/delay
+          "scope": {
+            "route": "red",
+            "from_station": "Howard",
+            "to_station": "Loyola",
+            "stations": ["Howard", "Jarvis", "Morse", "Loyola"],
+            "direction": "branch-0-inbound",
+            "direction_label": "toward the Loop"
+          },
+          "lifecycle": {
+            "first_seen_ts": 1715199000000, // when the bot posted; matches post_url
+            "onset_ts": 1715197860000,      // back-dated start for absence-style detections
+            "resolved_ts": 1715202600000,
+            "duration_ms": 4740000,
+            "active": false
+          },
           "post_url": "https://bsky.app/profile/.../post/...",
           "resolved_post_url": null,
-          "bot_description": "…",       // pre-rendered plain-English summary
-          "onset_description": "…",     // pre-rendered "the gap began here" sentence for the
-                                        // onset timeline entry; omitted when there's no back-date
-          "evidence": { /* … */ }       // small "why the bot fired" payload (CTA train/bus only;
-                                        // omitted on Metra observations — see bot_description instead)
+          "description": "…",           // pre-rendered plain-English summary
+          "evidence": {
+            "signals": ["gap", "bunching"], // populated for roundups
+            "details": { /* … */ },
+            "bullets": [],
+            "onset_description": "…"
+          }
         }
-      ]
+      ],
+      "status": null                    // Metra cancellation/delay/planned-work status, else null
     }
   ]
 }
@@ -236,15 +252,15 @@ The top-level array is `incidents` — **one object per real-world disruption**.
 
 Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/incidents.js). An [Atom feed](https://chicagotransitalerts.app/feed.xml) is also published if you want notifications without polling — globally, or [per line/route](#subscribe) (e.g. `/feed/line/red.xml`, `/feed/route/66.xml`, `/feed/metra/line/up-n.xml`), each with a JSON Feed twin.
 
-A flat CSV mirror is also published for spreadsheet and pandas users — the incidents are flattened back to **one row per alert or observation**, with an explicit `type` column:
+A flat CSV mirror is also published for spreadsheet and pandas users — the incidents are flattened to **one row per official alert or detection**, with an explicit `record_type` column:
 
 ```
 https://chicagotransitalerts.app/data/alerts.csv
 ```
 
-Columns: `type, id, kind, routes, headline, detection_source, signals, from_station, to_station, direction, direction_label, first_seen_ts, onset_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` (full line names) and `signals` are semicolon-separated when multi-valued. `onset_ts` is the disruption start for absence-style observations (back-dated from `first_seen_ts` to the last observed train) and is blank when not back-dated; `duration_minutes` is measured from `onset_ts` when present, else `first_seen_ts`. Regenerated alongside `alerts.json`.
+Columns: `record_type, incident_id, agency, mode, routes, source, status_type, headline, description, from_station, to_station, stations, direction, direction_label, first_seen_ts, onset_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` and `stations` are semicolon-separated when multi-valued. `onset_ts` is the disruption start for absence-style detections and is blank when not back-dated; `duration_minutes` is measured from `onset_ts` when present, else `first_seen_ts`. Regenerated alongside `alerts.json`.
 
-> **Metra coverage note.** Metra incidents (`kind: "metra"`) are present in `alerts.json`, the flat **CSV**, the global **feed**, and their own **per-line Metra feeds** (`/feed/metra/line/:line.xml`), and are rendered across the site. Metra cancellations/delays are website-data-first (no individual Bluesky post), so their feed entries link to the on-site event page and carry no `post_url`. Metra line pages and event pages render a geographic line map (line shape + station heatmap, and per-event from→to segment highlighting), and Metra line, station, event, and system pages all get prerendered OG share cards (posted events only, same rule as CTA).
+> **Metra coverage note.** Metra incidents (`agency: "metra"`, `mode: "commuter_rail"`) are present in `alerts.json`, the flat **CSV**, the global **feed**, and their own **per-line Metra feeds** (`/feed/metra/line/:line.xml`), and are rendered across the site. Metra cancellations/delays are website-data-first (no individual Bluesky post), so their feed entries link to the on-site event page and carry no `post_url`. Metra line pages and event pages render a geographic line map (line shape + station heatmap, and per-event from→to segment highlighting), and Metra line, station, event, and system pages all get prerendered OG share cards (posted events only, same rule as CTA).
 
 Please be a courteous client — cache responses, don't poll faster than every few minutes, and credit the project if you build something public.
 

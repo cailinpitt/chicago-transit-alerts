@@ -20,6 +20,7 @@ import {
   postUrlRkey,
   SIGNAL_LABELS,
   summarizeSignals,
+  withRuntimeAliasesAll,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../src/lib/metraLines.js';
@@ -237,7 +238,7 @@ function entryContentHtml(incident, thumb) {
 //   - mode: bus | train
 //   - per-route: route-82 (#82) for bus; line-brown (Brown Line) for train
 //   - state: ongoing | resolved
-//   - source: cta-alert and/or any signal kinds (pulse-cold, ghost, …)
+//   - source: official-alert and/or any signal kinds (pulse-cold, ghost, …)
 // Atom uses term + optional label; JSON Feed gets the labels.
 function entryCategories(incident) {
   const cats = [];
@@ -268,11 +269,11 @@ function entryCategories(incident) {
         ? { term: 'ongoing', label: 'Ongoing' }
         : { term: 'closed', label: 'Closed' },
   );
-  // Sources: an alert-backed incident gets `cta-alert`; observation signals
+  // Sources: an alert-backed incident gets `official-alert`; observation signals
   // (pulse-cold, ghost, bunching, …) come from observationSignals which
   // already handles roundup unwrapping.
   if (incident.alert_id || incident.headline) {
-    cats.push({ term: 'cta-alert', label: 'CTA Alert' });
+    cats.push({ term: 'official-alert', label: 'Official Alert' });
   }
   // Merged records expose detection_source as obs_detection_source — pass a
   // shim so observationSignals' single-key probe finds it. Standalone obs
@@ -444,7 +445,7 @@ function main() {
   // Feeds (global + per-line) and the CSV are Metra-aware, so opt in explicitly
   // (showMetra=true) — the Node-default gate stays CTA-only for the not-yet-Metra
   // build outputs (OG-prerendered event/sitemap pages).
-  raw.incidents = gateIncidents(raw.incidents || [], true);
+  raw.incidents = withRuntimeAliasesAll(gateIncidents(raw.incidents || [], true));
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
     payload.alerts || [],

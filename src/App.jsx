@@ -24,8 +24,10 @@ import { dataUrl } from './lib/dataSource.js';
 import {
   filterIncidents,
   flattenIncidents,
+  incidentAgency,
   observationSignals,
   SOURCE_TYPES,
+  withRuntimeAliasesAll,
 } from './lib/incidents.js';
 import { gateIncidents } from './lib/metraGate.js';
 import { buildStationIndex } from './lib/stations.js';
@@ -205,7 +207,10 @@ export default function App() {
           // In the browser gateIncidents is a pass-through (Metra is launched);
           // it only strips Metra in the Node build scripts. Kept here as the
           // single load boundary so the split lives in exactly one place.
-          const gated = { ...fresh, incidents: gateIncidents(fresh.incidents) };
+          const gated = {
+            ...fresh,
+            incidents: withRuntimeAliasesAll(gateIncidents(fresh.incidents)),
+          };
           setData((prev) => {
             // Only update if generated_at changed (or on first load).
             if (!prev || gated.generated_at !== prev.generated_at) return gated;
@@ -260,9 +265,7 @@ export default function App() {
   const agencyIncidents = useMemo(() => {
     if (!data) return [];
     if (selectedAgency === 'all') return data.incidents;
-    return data.incidents.filter(
-      (inc) => (inc.kind === 'metra' ? 'metra' : 'cta') === selectedAgency,
-    );
+    return data.incidents.filter((inc) => incidentAgency(inc) === selectedAgency);
   }, [data, selectedAgency]);
 
   // Flat { alerts, observations } view of the (agency-scoped) payload — the

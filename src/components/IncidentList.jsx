@@ -17,7 +17,6 @@ import {
   affectedLineSegments,
   agencyLabel,
   botSummaryText,
-  flattenIncidents,
   formatEvidenceChip,
   incidentHeadlineText,
   metraIncidentStatus,
@@ -495,12 +494,10 @@ export default function IncidentList({
 
   // Trigger a CSV download of the currently filtered incidents. The button is
   // wired to the same `incidents` the list renders, so what the user sees is
-  // what they get. The CSV schema is still the flat alerts/observations shape,
-  // so flatten just before serializing. Object URL is revoked after the click
-  // so we don't leak a Blob URL per export.
+  // what they get. Object URL is revoked after the click so we don't leak a
+  // Blob URL per export.
   function handleDownloadCsv() {
-    const { alerts, observations } = flattenIncidents(incidents);
-    const csv = buildCsv(alerts, observations);
+    const csv = buildCsv(incidents);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

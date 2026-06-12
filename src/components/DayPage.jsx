@@ -5,7 +5,7 @@ import { dayTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
-import { filterIncidents, flattenIncidents } from '../lib/incidents.js';
+import { filterIncidents, flattenIncidents, withRuntimeAliasesAll } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc, parseUrlState } from '../lib/urlState.js';
@@ -74,7 +74,9 @@ export default function DayPage({ dateStr }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then(setData)
+      .then((fresh) =>
+        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
+      )
       .catch(setError);
   }, [dayUtc]);
 

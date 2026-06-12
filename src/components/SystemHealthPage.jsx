@@ -14,7 +14,12 @@ import { cancellationInfo } from '../lib/cancellation.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay, formatMinutesAsHours } from '../lib/format.js';
-import { filterIncidents, flattenIncidents, mergeMatchingIncidents } from '../lib/incidents.js';
+import {
+  filterIncidents,
+  flattenIncidents,
+  mergeMatchingIncidents,
+  withRuntimeAliasesAll,
+} from '../lib/incidents.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
@@ -407,7 +412,9 @@ export default function SystemHealthPage({ kind }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then(setData)
+      .then((fresh) =>
+        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
+      )
       .catch(setError);
   }, []);
 

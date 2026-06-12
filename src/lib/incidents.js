@@ -7,6 +7,184 @@ import { TRAIN_LINES } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
 import { metraLineInfo } from './metraLines.js';
 
+export function incidentAgency(incident) {
+  return incident?.agency ?? (incident?.kind === 'metra' ? 'metra' : 'cta');
+}
+
+export function incidentMode(incident) {
+  return incident?.mode ?? (incident?.kind === 'metra' ? 'commuter_rail' : incident?.kind);
+}
+
+export function legacyKind(incidentOrMode) {
+  const mode = typeof incidentOrMode === 'string' ? incidentOrMode : incidentMode(incidentOrMode);
+  if (mode === 'commuter_rail') return 'metra';
+  return mode;
+}
+
+export function incidentLifecycle(incident) {
+  if (incident?.lifecycle) return incident.lifecycle;
+  return {
+    first_seen_ts: incident?.first_seen_ts ?? null,
+    resolved_ts: incident?.resolved_ts ?? null,
+    active: incident?.active ?? false,
+    duration_ms:
+      incident?.duration_ms ??
+      (incident?.resolved_ts != null && incident?.first_seen_ts != null
+        ? incident.resolved_ts - incident.first_seen_ts
+        : null),
+  };
+}
+
+export function officialAlert(incident) {
+  return incident?.official_alert ?? incident?.cta ?? null;
+}
+
+export function incidentDetections(incident) {
+  return incident?.detections ?? incident?.observations ?? [];
+}
+
+function officialScope(alert) {
+  if (!alert) return {};
+  return (
+    alert.scope ?? {
+      from_station: alert.affected_from_station ?? null,
+      to_station: alert.affected_to_station ?? null,
+      direction: alert.affected_direction ?? null,
+      mentioned_stations: alert.mentioned_stations ?? [],
+      stations: alert.affected_stations ?? [],
+    }
+  );
+}
+
+function officialLifecycle(alert) {
+  if (!alert) return {};
+  return (
+    alert.lifecycle ?? {
+      first_seen_ts: alert.first_seen_ts ?? null,
+      resolved_ts: alert.resolved_ts ?? null,
+      active: alert.active ?? false,
+      duration_ms:
+        alert.duration_ms ??
+        (alert.resolved_ts != null && alert.first_seen_ts != null
+          ? alert.resolved_ts - alert.first_seen_ts
+          : null),
+    }
+  );
+}
+
+function detectionScope(detection) {
+  if (!detection) return {};
+  return (
+    detection.scope ?? {
+      route: detection.line ?? null,
+      direction: detection.direction ?? null,
+      direction_label: detection.direction_label ?? null,
+      from_station: detection.from_station ?? null,
+      to_station: detection.to_station ?? null,
+      stations: detection.stations ?? [],
+    }
+  );
+}
+
+function detectionLifecycle(detection) {
+  if (!detection) return {};
+  return (
+    detection.lifecycle ?? {
+      first_seen_ts: detection.ts ?? null,
+      onset_ts: detection.onset_ts ?? null,
+      resolved_ts: detection.resolved_ts ?? null,
+      active: detection.active ?? false,
+      duration_ms: detection.duration_ms ?? null,
+    }
+  );
+}
+
+function legacyDetection(incident, detection) {
+  const scope = detectionScope(detection);
+  const lifecycle = detectionLifecycle(detection);
+  const evidence = detection.evidence ?? {};
+  return {
+    id: detection.id,
+    kind: legacyKind(incident),
+    line: scope.route ?? incident?.routes?.[0] ?? null,
+    direction: scope.direction ?? null,
+    direction_label: scope.direction_label ?? null,
+    train_number: evidence.train_number ?? detection.train_number ?? null,
+    from_station: scope.from_station ?? null,
+    to_station: scope.to_station ?? null,
+    stations: scope.stations ?? [],
+    detection_source: detection.source ?? detection.detection_source ?? null,
+    signals: evidence.signals ?? detection.signals ?? null,
+    evidence: evidence.details ?? detection.evidence ?? null,
+    ts: lifecycle.first_seen_ts,
+    onset_ts: lifecycle.onset_ts ?? null,
+    resolved_ts: lifecycle.resolved_ts ?? null,
+    duration_ms: lifecycle.duration_ms ?? null,
+    active: lifecycle.active ?? false,
+    post_url: detection.post_url ?? null,
+    resolved_post_url: detection.resolved_post_url ?? null,
+    bot_description: detection.description ?? detection.bot_description ?? null,
+    bot_resolved_description:
+      evidence.resolved_description ?? detection.bot_resolved_description ?? null,
+    bot_evidence_bullets: evidence.bullets ?? detection.bot_evidence_bullets ?? [],
+    onset_description: evidence.onset_description ?? detection.onset_description ?? null,
+    _incidentId: incident?.id,
+  };
+}
+
+export function withRuntimeAliases(incident) {
+  if (!incident || incident.kind || !incident.mode) return incident;
+  const lifecycle = incidentLifecycle(incident);
+  const c = officialAlert(incident);
+  const scopedOfficial = c?.alert_id
+    ? c
+    : c
+      ? {
+          ...c,
+          alert_id: c.id,
+          short_description: c.description ?? null,
+          first_seen_ts: c.lifecycle?.first_seen_ts ?? null,
+          resolved_ts: c.lifecycle?.resolved_ts ?? null,
+          active: c.lifecycle?.active ?? false,
+          affected_from_station: c.scope?.from_station ?? null,
+          affected_to_station: c.scope?.to_station ?? null,
+          affected_direction: c.scope?.direction ?? null,
+          mentioned_stations: c.scope?.mentioned_stations ?? [],
+          affected_stations: c.scope?.stations ?? [],
+          cta_event_start_ts: c.agency_event_window?.start_ts ?? null,
+          cta_event_end_ts: c.agency_event_window?.end_ts ?? null,
+          cta_event_start_is_date_only: c.agency_event_window?.start_is_date_only ?? false,
+          cta_event_end_is_date_only: c.agency_event_window?.end_is_date_only ?? false,
+        }
+      : null;
+  const observations = incidentDetections(incident).map((d) => legacyDetection(incident, d));
+  return {
+    ...incident,
+    kind: legacyKind(incident),
+    first_seen_ts: lifecycle.first_seen_ts,
+    resolved_ts: lifecycle.resolved_ts ?? null,
+    active: lifecycle.active ?? false,
+    duration_ms: lifecycle.duration_ms ?? null,
+    cta: scopedOfficial,
+    observations,
+    metra_status: incident.status ? { source: incident.status.type, ...incident.status } : null,
+    cancellation:
+      incident.status?.type === 'cancellation'
+        ? {
+            state: incident.status.state ?? null,
+            scheduled_departure_ts: incident.status.scheduled_departure_ts ?? null,
+            scheduled_arrival_ts: incident.status.scheduled_arrival_ts ?? null,
+            train_number: incident.status.train_number ?? null,
+            origin: incident.status.origin ?? null,
+          }
+        : null,
+  };
+}
+
+export function withRuntimeAliasesAll(incidents) {
+  return (incidents || []).map(withRuntimeAliases);
+}
+
 // Flatten the published `incidents[]` wire shape into the `{ alerts, observations }`
 // representation the analytics layer (aggregate.js, CSV/feed generators, the
 // station index) still consumes.
@@ -30,9 +208,9 @@ export function flattenIncidents(incidents) {
   const alerts = [];
   const observations = [];
   for (const inc of incidents || []) {
-    if (inc.cta) alerts.push(flattenIncidentAlert(inc));
-    for (const o of inc.observations || []) {
-      observations.push({ ...o, _incidentId: inc.id });
+    if (officialAlert(inc)) alerts.push(flattenIncidentAlert(inc));
+    for (const o of incidentDetections(inc)) {
+      observations.push(inc.detections ? legacyDetection(inc, o) : { ...o, _incidentId: inc.id });
     }
   }
   return { alerts, observations };
@@ -42,34 +220,49 @@ export function flattenIncidents(incidents) {
 // incident carries `kind`/`routes` at the top level and CTA's own lifecycle
 // (first_seen_ts/resolved_ts/active) inside `cta`.
 function flattenIncidentAlert(inc) {
-  const c = inc.cta;
+  const c = officialAlert(inc);
+  const scope = officialScope(c);
+  const lifecycle = officialLifecycle(c);
+  const agencyWindow = c.agency_event_window ?? {};
   const alert = {
-    alert_id: c.alert_id,
-    kind: inc.kind,
+    alert_id: c.id ?? c.alert_id,
+    kind: legacyKind(inc),
     routes: inc.routes,
     headline: incidentHeadlineText(inc) ?? c.headline,
-    short_description: c.short_description ?? null,
-    first_seen_ts: c.first_seen_ts,
-    resolved_ts: c.resolved_ts ?? null,
-    duration_ms: c.resolved_ts != null ? c.resolved_ts - c.first_seen_ts : null,
-    active: c.active,
+    short_description: c.description ?? c.short_description ?? null,
+    first_seen_ts: lifecycle.first_seen_ts,
+    resolved_ts: lifecycle.resolved_ts ?? null,
+    duration_ms: lifecycle.duration_ms ?? null,
+    active: lifecycle.active,
     post_url: c.post_url,
     resolved_reply_url: c.resolved_reply_url ?? null,
-    affected_from_station: c.affected_from_station ?? null,
-    affected_to_station: c.affected_to_station ?? null,
-    affected_direction: c.affected_direction ?? null,
-    mentioned_stations: c.mentioned_stations ?? [],
+    affected_from_station: scope.from_station ?? null,
+    affected_to_station: scope.to_station ?? null,
+    affected_direction: scope.direction ?? null,
+    mentioned_stations: scope.mentioned_stations ?? [],
     // Full station fill of the affected segment (endpoints + inner stops),
     // enumerated upstream. Lets buildStationIndex tie the inner stations to
     // the incident, not just the two named endpoints.
-    affected_stations: c.affected_stations ?? [],
-    cta_event_start_ts: c.cta_event_start_ts ?? null,
-    cta_event_end_ts: c.cta_event_end_ts ?? null,
-    cta_event_start_is_date_only: c.cta_event_start_is_date_only ?? false,
-    cta_event_end_is_date_only: c.cta_event_end_is_date_only ?? false,
+    affected_stations: scope.stations ?? [],
+    cta_event_start_ts: agencyWindow.start_ts ?? c.cta_event_start_ts ?? null,
+    cta_event_end_ts: agencyWindow.end_ts ?? c.cta_event_end_ts ?? null,
+    cta_event_start_is_date_only:
+      agencyWindow.start_is_date_only ?? c.cta_event_start_is_date_only ?? false,
+    cta_event_end_is_date_only:
+      agencyWindow.end_is_date_only ?? c.cta_event_end_is_date_only ?? false,
     // Schedule-anchored single-train Metra cancellation (null otherwise).
     // Top-level on the incident, not under the `cta` block.
-    cancellation: inc.cancellation ?? null,
+    cancellation:
+      inc.cancellation ??
+      (inc.status?.type === 'cancellation'
+        ? {
+            state: inc.status.state ?? null,
+            scheduled_departure_ts: inc.status.scheduled_departure_ts ?? null,
+            scheduled_arrival_ts: inc.status.scheduled_arrival_ts ?? null,
+            train_number: inc.status.train_number ?? null,
+            origin: inc.status.origin ?? null,
+          }
+        : null),
     _incidentId: inc.id,
   };
   // versions only present when CTA edited the alert (>1 version on the wire).
@@ -78,147 +271,78 @@ function flattenIncidentAlert(inc) {
 }
 
 /**
- * Top-level payload served by `public/data/alerts.json`. Regenerated server-
- * side every ~7 minutes by the cta-insights pipeline. The wire format is a list
- * of unified `incidents`; the view reads them directly, while the analytics
- * layer flattens them to `{ alerts, observations }` via `flattenIncidents`.
+ * Top-level v2 payload served by `public/data/alerts.json`.
  *
  * @typedef {object} AlertsPayload
- * @property {number} generated_at  Epoch ms when the snapshot was produced.
- * @property {number} data_start_ts Earliest moment we have coverage for; days
- *   before this are rendered as "no data" rather than "no incidents".
+ * @property {2} schema_version
+ * @property {number} generated_at Epoch ms when the snapshot was produced.
+ * @property {number} data_start_ts Earliest moment we have coverage for.
  * @property {Incident[]} incidents
  */
 
 /**
- * One real-world disruption as published on the wire. Pairs the official CTA
- * alert (`cta`, null for bot-only incidents) with the bot observation(s)
- * describing the same event (`observations`, empty for CTA-only incidents).
- * The alert↔observation pairing is done server-side; the frontend never merges.
+ * One real-world disruption as published on the v2 wire.
  *
  * @typedef {object} Incident
- * @property {string} id            Stable permalink id (Bluesky post rkey).
- * @property {'train' | 'bus'} kind
- * @property {string[]} routes      Full train line names ('red', 'green', …) or bus route numbers.
- * @property {number} first_seen_ts
- * @property {number | null} resolved_ts
- * @property {boolean} active
- * @property {Array<'cta' | 'bot'>} sources  Which observers contributed.
- * @property {IncidentCta | null} cta        The official CTA alert, or null.
- * @property {Observation[]} observations    Bot detections, or [].
+ * @property {string} id Stable permalink id.
+ * @property {'cta' | 'metra'} agency
+ * @property {'train' | 'bus' | 'commuter_rail'} mode
+ * @property {string[]} routes Full CTA train names, bus route ids, or lowercase Metra keys.
+ * @property {Lifecycle} lifecycle Incident-level lifecycle across all sources.
+ * @property {Array<'cta' | 'bot'>} sources Which observers contributed.
+ * @property {OfficialAlert | null} official_alert Agency alert, or null.
+ * @property {Detection[]} detections Bot detections, or [].
+ * @property {MetraStatus | null} status Metra cancellation/delay/planned-work status, or null.
  */
 
+/** @typedef {{first_seen_ts:number|null,onset_ts?:number|null,resolved_ts:number|null,active:boolean,duration_ms:number|null}} Lifecycle */
+
 /**
- * The `cta` sub-block of an {@link Incident}. Carries CTA's own lifecycle
- * (first_seen_ts/resolved_ts/active) distinct from the incident-level fields,
- * so the service-stabilization delta (CTA cleared vs. bot saw recovery) stays
- * computable. `flattenIncidents` expands this back into a flat {@link Alert}.
- *
- * @typedef {object} IncidentCta
- * @property {string} alert_id
+ * @typedef {object} OfficialAlert
+ * @property {string} id
  * @property {string} headline
- * @property {string | null} [short_description]
+ * @property {string | null} description
  * @property {string} [post_url]
  * @property {string | null} [resolved_reply_url]
- * @property {number} first_seen_ts
- * @property {number | null} resolved_ts
- * @property {boolean} active
- * @property {string | null} [affected_from_station]
- * @property {string | null} [affected_to_station]
- * @property {string | null} [affected_direction]
+ * @property {Lifecycle} lifecycle
+ * @property {Scope} scope
+ * @property {{start_ts:number|null,end_ts:number|null,start_is_date_only:boolean,end_is_date_only:boolean}} agency_event_window
+ * @property {object[]} [versions]
+ */
+
+/**
+ * @typedef {object} Scope
+ * @property {string | null} [route]
+ * @property {string | null} from_station
+ * @property {string | null} to_station
+ * @property {string[]} stations
+ * @property {string | null} direction
+ * @property {string | null} [direction_label]
  * @property {string[]} [mentioned_stations]
- * @property {string[]} [affected_stations]  Full station fill of the affected segment (endpoints + inner stops), enumerated upstream per route. Empty when no segment resolves; falls back to affected_from/to_station.
- * @property {number | null} [cta_event_start_ts]
- * @property {number | null} [cta_event_end_ts]
- * @property {boolean} [cta_event_start_is_date_only]
- * @property {boolean} [cta_event_end_is_date_only]
- * @property {object[]} [versions]  Present only when CTA edited the alert text.
  */
 
 /**
- * Official CTA service alert (one per `alert_id`). `routes` is plural because
- * the CTA sometimes scopes a single alert to multiple lines (e.g. Red+Purple
- * shared trackage).
- *
- * @typedef {object} Alert
- * @property {string} alert_id
- * @property {'train' | 'bus'} kind
- * @property {string[]} routes              Train line keys ('red', 'g', …) or bus route numbers.
- * @property {string} headline
- * @property {string | null} [short_description]  CTA's own body text for the alert (ShortDescription,
- *   falling back to FullDescription) — the reroute/closure details published with the headline.
- * @property {number} first_seen_ts
- * @property {number} [last_seen_ts]
- * @property {number | null} resolved_ts    null = still open.
- * @property {number | null} duration_ms
- * @property {boolean} active
- * @property {string} [post_url]            Bluesky post announcing the alert.
- * @property {string} [resolved_reply_url]  Reply post when the alert cleared.
- * @property {string | null} [affected_from_station]
- * @property {string | null} [affected_to_station]
- * @property {string | null} [affected_direction]
- * @property {string[]} [mentioned_stations]  Canonical station names extracted from the alert text (line-scoped). Empty/missing when nothing resolved.
- * @property {string[]} [affected_stations]  Full station fill of the affected segment (endpoints + inner stops), enumerated from the line geometry. Empty when no segment resolves.
- * @property {number | null} [cta_event_start_ts]  CTA's own claimed event start (from EventStart).
- * @property {number | null} [cta_event_end_ts]    CTA's own claimed event end (from EventEnd).
- * @property {boolean} [cta_event_start_is_date_only]  CTA posted EventStart as a date with no time.
- * @property {boolean} [cta_event_end_is_date_only]    CTA posted EventEnd as a date with no time.
- */
-
-/**
- * Bot-detected observation — gap, bunching, ghost, pulse, or roundup. Singular
- * `line` (vs. `routes` on Alert) because each observation is scoped to one
- * line/route.
- *
- * @typedef {object} Observation
- * @property {number} id
- * @property {'train' | 'bus'} kind
- * @property {string} line                  'red'/'g'/etc. for trains, route number string for buses.
- * @property {string | null} [direction]     Opaque per-line direction key (e.g. 'branch-0-outbound', 'branch-len116-41722--87624', 'all'). Use `direction_label` for display.
- * @property {string | null} [direction_label] Pre-rendered 'toward <terminus>' string for the renderer (e.g. 'toward Kimball', 'toward the Loop', 'toward 95th/Dan Ryan'). Null when `direction` carries no usable terminus info (single-branch lines, buses, unrecognized keys).
- * @property {string | null} [train_number] Metra point-event run number when known (e.g. "428"). Used to title incidents that span multiple trains.
- * @property {string | null} [from_station]
- * @property {string | null} [to_station]
- * @property {string[]} [stations]          Full station fill of the observed stretch (endpoints + inner stops), ordered from_station → to_station. Omitted when the segment can't be enumerated (e.g. roundups); fall back to from_station/to_station.
- * @property {'roundup' | string} [detection_source]  'roundup' = multi-signal correlation.
- * @property {string[]} [signals]           Signal sources for roundups: 'gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-held'.
- * @property {number} ts                    When the bot first posted; matches post_url. Used as the start when onset_ts is absent.
- * @property {number | null} [onset_ts]     Disruption start for absence-style observations (pulse-cold, thin-gap, roundups bundling them), back-dated from `ts` to the last observed train. Null when not back-dated.
- * @property {number | null} resolved_ts
- * @property {number | null} [duration_ms]  resolved_ts - (onset_ts ?? ts); null while active.
- * @property {boolean} active
- * @property {string} [post_url]
+ * @typedef {object} Detection
+ * @property {number | string} id
+ * @property {string} source
+ * @property {Scope} scope
+ * @property {Lifecycle} lifecycle
+ * @property {string | null} [post_url]
  * @property {string | null} [resolved_post_url]
- * @property {string} [onset_description]   Pre-rendered sentence for the onset timeline entry (the back-dated start at `onset_ts`). Omitted when there's no meaningful back-date.
+ * @property {string | null} description
+ * @property {{signals:string[]|null,details:object|null,bullets:string[],onset_description:string|null,train_number:string|null,resolved_description:string|null}} evidence
  */
 
 /**
- * Result of merging an Alert with a matching Observation. Carries fields from
- * both plus the metadata the UI uses to flag it as a merged record.
- *
- * @typedef {object} MergedIncident
- * @property {'merged'} _type
- * @property {number} _sortTs
- * @property {string} alert_id
- * @property {'train' | 'bus'} kind
- * @property {string[]} routes
- * @property {string} headline
- * @property {string | null} [short_description]
- * @property {number} first_seen_ts
- * @property {number | null} resolved_ts
- * @property {boolean} active
- * @property {string} [post_url]
- * @property {string} [resolved_reply_url]
- * @property {string | null} [affected_from_station]
- * @property {string | null} [affected_to_station]
- * @property {string | null} [affected_direction]
- * @property {string[]} [mentioned_stations]
- * @property {string | null} [from_station]
- * @property {string | null} [to_station]
- * @property {string} [obs_post_url]
- * @property {string | null} [obs_resolved_post_url]
- * @property {number} obs_id
- * @property {Array<{id: number, post_url?: string, resolved_post_url?: string | null, ts: number, resolved_ts?: number | null, detection_source?: string, signals?: string[], from_station?: string | null, to_station?: string | null, line?: string}>} [extra_obs]
+ * @typedef {object} MetraStatus
+ * @property {string} type
+ * @property {string} [state]
+ * @property {string | null} [train_number]
+ * @property {number | null} [scheduled_departure_ts]
+ * @property {number | null} [scheduled_arrival_ts]
+ * @property {string | null} [origin]
+ * @property {number | null} [delay_min]
+ * @property {number | null} [deadline_ts]
  */
 
 // User-visible signal categories — the chips and stacked-bar segments.

@@ -342,6 +342,86 @@ const PAYLOAD = {
   ],
 };
 
+const V2_PAYLOAD = {
+  schema_version: 2,
+  generated_at: NOW + 1,
+  data_start_ts: NOW - 90 * 24 * 60 * 60_000,
+  incidents: [
+    {
+      id: 'v2evt',
+      agency: 'cta',
+      mode: 'train',
+      routes: ['red'],
+      sources: ['cta', 'bot'],
+      lifecycle: {
+        first_seen_ts: NOW - 60 * 60_000,
+        resolved_ts: NOW - 20 * 60_000,
+        active: false,
+        duration_ms: 40 * 60_000,
+      },
+      official_alert: {
+        id: 'v2-alert',
+        headline: 'Red Line Service Delayed',
+        description: 'Red Line trains are delayed between Howard and Loyola.',
+        post_url: 'https://bsky.app/profile/did:plc:abc/post/v2evt',
+        resolved_reply_url: null,
+        lifecycle: {
+          first_seen_ts: NOW - 60 * 60_000,
+          resolved_ts: NOW - 20 * 60_000,
+          active: false,
+          duration_ms: 40 * 60_000,
+        },
+        scope: {
+          from_station: 'Howard',
+          to_station: 'Loyola',
+          stations: ['Howard', 'Jarvis', 'Morse', 'Loyola'],
+          direction: 'toward 95th/Dan Ryan',
+          mentioned_stations: [],
+        },
+        agency_event_window: {
+          start_ts: null,
+          end_ts: null,
+          start_is_date_only: false,
+          end_is_date_only: false,
+        },
+      },
+      detections: [
+        {
+          id: 9001,
+          source: 'pulse-cold',
+          scope: {
+            route: 'red',
+            from_station: 'Howard',
+            to_station: 'Loyola',
+            stations: ['Howard', 'Jarvis', 'Morse', 'Loyola'],
+            direction: 'branch-0-inbound',
+            direction_label: 'toward 95th/Dan Ryan',
+          },
+          lifecycle: {
+            first_seen_ts: NOW - 55 * 60_000,
+            onset_ts: NOW - 70 * 60_000,
+            resolved_ts: NOW - 22 * 60_000,
+            active: false,
+            duration_ms: 48 * 60_000,
+          },
+          post_url: 'https://bsky.app/profile/did:plc:xyz/post/v2obs',
+          resolved_post_url: null,
+          description: 'Red Line service appears degraded — a stretch without trains.',
+          evidence: {
+            signals: null,
+            details: null,
+            bullets: [],
+            onset_description: 'Last train observed through this stretch around here.',
+            train_number: null,
+            resolved_description: null,
+          },
+        },
+      ],
+      status: null,
+    },
+  ],
+};
+
 beforeEach(() => {
   globalThis.fetch = vi.fn(() =>
     Promise.resolve({ ok: true, json: () => Promise.resolve(PAYLOAD) }),
@@ -389,6 +469,19 @@ describe('EventPage', () => {
     const crumbs = screen.getByRole('navigation', { name: 'Breadcrumb' });
     expect(within(crumbs).getByRole('link', { name: 'Home' })).toBeInTheDocument();
     expect(within(crumbs).getByText('Red Line')).toBeInTheDocument();
+  });
+
+  it('renders a v2-only incident payload after fetch normalization', async () => {
+    globalThis.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve(V2_PAYLOAD) }),
+    );
+    render(<EventPage eventId="v2evt" />);
+    await waitFor(() => {
+      expect(screen.getByText('Red Line Service Delayed')).toBeInTheDocument();
+    });
+    expect(screen.getAllByText(/Per CTA/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Per bot/).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: 'Loyola' }).length).toBeGreaterThan(0);
   });
 
   it('renders a standalone observation by id', async () => {

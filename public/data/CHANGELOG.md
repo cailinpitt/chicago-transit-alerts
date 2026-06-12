@@ -6,6 +6,48 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-12 — `schema_version: 2` incident model (breaking)
+
+`alerts.json`, `alerts.csv`, and the Atom/JSON feeds now use an agency-neutral
+v2 incident shape. This is a breaking release: no v1 compatibility endpoint is
+published.
+
+- **Top-level payload** — `alerts.json` now includes `schema_version: 2`.
+- **Incident identity/scope** — `incidents[].kind` is replaced by
+  `incidents[].agency` (`"cta"` / `"metra"`) plus `incidents[].mode`
+  (`"train"` / `"bus"` / `"commuter_rail"`). `routes` remains unchanged.
+- **Lifecycle grouping** — incident `first_seen_ts`, `resolved_ts`, `active`, and
+  `duration_ms` now live under `incidents[].lifecycle`.
+- **Official alerts** — `incidents[].cta` is renamed to
+  `incidents[].official_alert`. Its lifecycle fields move to
+  `official_alert.lifecycle`; `short_description` is renamed `description`;
+  `alert_id` is renamed `id`.
+- **Scope grouping** — official alert `affected_from_station`,
+  `affected_to_station`, `affected_direction`, `affected_stations`, and
+  `mentioned_stations` now live under `official_alert.scope` as `from_station`,
+  `to_station`, `direction`, `stations`, and `mentioned_stations`.
+- **Agency event window** — `cta_event_start_ts`, `cta_event_end_ts`, and their
+  date-only flags now live under `official_alert.agency_event_window` as
+  `start_ts`, `end_ts`, `start_is_date_only`, and `end_is_date_only`.
+- **Bot detections** — `incidents[].observations[]` is renamed to
+  `incidents[].detections[]`. `detection_source` is renamed `source`; station,
+  route, and direction fields move to `detections[].scope`; `ts`, `onset_ts`,
+  `resolved_ts`, `active`, and `duration_ms` move to `detections[].lifecycle`.
+  `bot_description` is renamed `description`; evidence details are grouped under
+  `detections[].evidence`.
+- **Metra status** — `incidents[].metra_status` and `incidents[].cancellation`
+  are collapsed into `incidents[].status`, with `type` replacing `source`.
+  Schedule anchors (`train_number`, `scheduled_departure_ts`,
+  `scheduled_arrival_ts`, `origin`, `delay_min`, `deadline_ts`) live in that same
+  `status` object when known.
+- **CSV** — `alerts.csv` now uses v2 columns:
+  `record_type, incident_id, agency, mode, routes, source, status_type, headline,
+  description, from_station, to_station, stations, direction, direction_label,
+  first_seen_ts, onset_ts, resolved_ts, duration_minutes, active, post_url,
+  resolved_post_url`.
+- **Feeds** — feed entries are generated from v2 incidents and use the
+  `official-alert` category term instead of `cta-alert`.
+
 ## 2026-06-12 — Metra planned delay advisories use `planned-delay` status (additive)
 
 Official Metra construction/work-zone alerts that warn of possible delays now

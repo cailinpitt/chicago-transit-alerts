@@ -20,7 +20,11 @@ import { cancellationInfo } from '../lib/cancellation.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
-import { flattenIncidents, searchFilterIncidents } from '../lib/incidents.js';
+import {
+  flattenIncidents,
+  searchFilterIncidents,
+  withRuntimeAliasesAll,
+} from '../lib/incidents.js';
 import { metraLineInfo, normalizeMetraLine } from '../lib/metraLines.js';
 import { buildMetraStationIndex } from '../lib/metraStations.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -178,7 +182,9 @@ export default function LinePage({ kind, lineId }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then(setData)
+      .then((fresh) =>
+        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
+      )
       .catch(setError);
   }, []);
 

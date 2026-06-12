@@ -1,48 +1,42 @@
 // CSV row construction shared by the postbuild full-dataset export
 // (`scripts/generate-csv.js`) and the in-browser "Download filtered CSV"
-// button (`IncidentList`). Keeping this in one place means the on-disk
-// columns and the user-downloaded columns can't drift.
+// button (`IncidentList`). Mirrors the public alerts.json v2 concepts.
 
-import { observationSignals } from './incidents.js';
+import {
+  incidentAgency,
+  incidentDetections,
+  incidentLifecycle,
+  incidentMode,
+  officialAlert,
+} from './incidents.js';
 
-// Order chosen so the first columns identify the row, the middle columns
-// describe what + where, and the trailing columns carry metadata.
 export const CSV_COLUMNS = [
-  'type', // 'alert' | 'observation'
-  'id', // alert_id (alerts) or `obs-N` (observations)
-  'kind', // 'train' | 'bus' | 'metra'
-  'routes', // semicolon-separated train line keys, bus route ids, or Metra line keys
-  'headline', // alerts only
-  'detection_source', // observations only ('gap', 'pulse-cold', 'cancellation', 'cancellation-inferred', 'delay', etc.)
-  'signals', // observations only, semicolon-separated
+  'record_type',
+  'incident_id',
+  'agency',
+  'mode',
+  'routes',
+  'source',
+  'status_type',
+  'headline',
+  'description',
   'from_station',
   'to_station',
-  'direction', // opaque per-line direction key (alerts: cardinal; observations: 'branch-N-…' / 'branch-len…')
-  'direction_label', // observations only — pre-rendered 'toward <terminus>' string; blank otherwise
-  'first_seen_ts', // ISO 8601 (UTC) — when the bot first posted; matches post_url
-  // ISO 8601 (UTC) or empty — disruption start, back-dated to the last observed
-  // train for absence-style observations (pulse-cold, thin-gap). Empty when not
-  // back-dated; fall back to first_seen_ts.
+  'stations',
+  'direction',
+  'direction_label',
+  'first_seen_ts',
   'onset_ts',
-  'resolved_ts', // ISO 8601 (UTC) or empty
-  'duration_minutes', // resolved_ts - (onset_ts or first_seen_ts), blank when unresolved
-  'active', // 'true' | 'false'
+  'resolved_ts',
+  'duration_minutes',
+  'active',
   'post_url',
   'resolved_post_url',
-  // CTA's own posted EventStart/EventEnd (alerts only — observations don't
-  // carry these). Date-only flags signal when CTA only provided a calendar
-  // day; in that case the timestamp anchors to end-of-day Chicago time.
-  'cta_event_start_ts', // ISO 8601 (UTC) or empty
-  'cta_event_end_ts', // ISO 8601 (UTC) or empty
-  'cta_event_start_is_date_only', // 'true' | 'false' | ''
-  'cta_event_end_is_date_only', // 'true' | 'false' | ''
 ];
 
 export function csvEscape(value) {
   if (value == null) return '';
   const s = String(value);
-  // Wrap in quotes when the field contains anything CSV-meaningful. RFC 4180
-  // says any double quote inside a quoted field is escaped by doubling it.
   if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
     return `"${s.replaceAll('"', '""')}"`;
   }
@@ -54,61 +48,97 @@ function isoOrEmpty(ms) {
   return new Date(ms).toISOString();
 }
 
-export function alertRow(a) {
+function durationMinutes(lifecycle) {
+  if (!lifecycle) return '';
+  if (lifecycle.duration_ms != null) return Math.round(lifecycle.duration_ms / 60_000);
+  if (lifecycle.resolved_ts != null && lifecycle.first_seen_ts != null) {
+    return Math.round(
+      (lifecycle.resolved_ts - (lifecycle.onset_ts ?? lifecycle.first_seen_ts)) / 60_000,
+    );
+  }
+  return '';
+}
+
+function officialRow(incident, alert) {
+  const scope = alert.scope ?? {
+    from_station: alert.affected_from_station ?? null,
+    to_station: alert.affected_to_station ?? null,
+    stations: alert.affected_stations ?? [],
+    mentioned_stations: alert.mentioned_stations ?? [],
+    direction: alert.affected_direction ?? null,
+  };
+  const lifecycle =
+    alert.lifecycle ??
+    incidentLifecycle({
+      first_seen_ts: alert.first_seen_ts,
+      resolved_ts: alert.resolved_ts,
+      active: alert.active,
+      duration_ms: alert.duration_ms,
+    });
   return {
-    type: 'alert',
-    id: a.alert_id,
-    kind: a.kind,
-    routes: (a.routes ?? []).join(';'),
-    headline: a.headline ?? '',
-    detection_source: '',
-    signals: '',
-    from_station: a.affected_from_station ?? '',
-    to_station: a.affected_to_station ?? '',
-    direction: a.affected_direction ?? '',
-    direction_label: '', // observations-only field; blank for alert rows
-    first_seen_ts: isoOrEmpty(a.first_seen_ts),
-    onset_ts: '', // alerts carry CTA's own start in cta_event_start_ts, not onset_ts
-    resolved_ts: isoOrEmpty(a.resolved_ts),
-    duration_minutes:
-      a.resolved_ts != null && a.first_seen_ts != null
-        ? Math.round((a.duration_ms ?? a.resolved_ts - a.first_seen_ts) / 60_000)
-        : '',
-    active: a.active ? 'true' : 'false',
-    post_url: a.post_url ?? '',
-    resolved_post_url: a.resolved_reply_url ?? '',
-    cta_event_start_ts: isoOrEmpty(a.cta_event_start_ts),
-    cta_event_end_ts: isoOrEmpty(a.cta_event_end_ts),
-    cta_event_start_is_date_only:
-      a.cta_event_start_ts != null ? (a.cta_event_start_is_date_only ? 'true' : 'false') : '',
-    cta_event_end_is_date_only:
-      a.cta_event_end_ts != null ? (a.cta_event_end_is_date_only ? 'true' : 'false') : '',
+    record_type: 'official_alert',
+    incident_id: incident.id,
+    agency: incidentAgency(incident),
+    mode: incidentMode(incident),
+    routes: (incident.routes ?? []).join(';'),
+    source: 'official',
+    status_type: incident.status?.type ?? incident.metra_status?.source ?? '',
+    headline: alert.headline ?? '',
+    description: alert.description ?? alert.short_description ?? '',
+    from_station: scope.from_station ?? '',
+    to_station: scope.to_station ?? '',
+    stations: (scope.stations?.length ? scope.stations : (scope.mentioned_stations ?? [])).join(
+      ';',
+    ),
+    direction: scope.direction ?? '',
+    direction_label: '',
+    first_seen_ts: isoOrEmpty(lifecycle.first_seen_ts),
+    onset_ts: '',
+    resolved_ts: isoOrEmpty(lifecycle.resolved_ts),
+    duration_minutes: durationMinutes(lifecycle),
+    active: lifecycle.active ? 'true' : 'false',
+    post_url: alert.post_url ?? '',
+    resolved_post_url: alert.resolved_reply_url ?? '',
   };
 }
 
-export function observationRow(o) {
+function detectionRow(incident, detection) {
+  const scope = detection.scope ?? {
+    from_station: detection.from_station ?? null,
+    to_station: detection.to_station ?? null,
+    stations: detection.stations ?? [],
+    direction: detection.direction ?? null,
+    direction_label: detection.direction_label ?? null,
+  };
+  const lifecycle = detection.lifecycle ?? {
+    first_seen_ts: detection.ts,
+    onset_ts: detection.onset_ts,
+    resolved_ts: detection.resolved_ts,
+    active: detection.active,
+    duration_ms: detection.duration_ms,
+  };
   return {
-    type: 'observation',
-    id: `obs-${o.id}`,
-    kind: o.kind,
-    routes: o.line ?? '',
+    record_type: 'detection',
+    incident_id: incident.id,
+    agency: incidentAgency(incident),
+    mode: incidentMode(incident),
+    routes: (incident.routes ?? []).join(';'),
+    source: detection.source ?? detection.detection_source ?? '',
+    status_type: incident.status?.type ?? incident.metra_status?.source ?? '',
     headline: '',
-    detection_source: o.detection_source ?? '',
-    signals: observationSignals(o).join(';'),
-    from_station: o.from_station ?? '',
-    to_station: o.to_station ?? '',
-    direction: o.direction ?? '',
-    direction_label: o.direction_label ?? '',
-    first_seen_ts: isoOrEmpty(o.ts),
-    onset_ts: isoOrEmpty(o.onset_ts),
-    resolved_ts: isoOrEmpty(o.resolved_ts),
-    duration_minutes:
-      o.resolved_ts != null && o.ts != null
-        ? Math.round((o.duration_ms ?? o.resolved_ts - (o.onset_ts ?? o.ts)) / 60_000)
-        : '',
-    active: o.active ? 'true' : 'false',
-    post_url: o.post_url ?? '',
-    resolved_post_url: o.resolved_post_url ?? '',
+    description: detection.description ?? detection.bot_description ?? '',
+    from_station: scope.from_station ?? '',
+    to_station: scope.to_station ?? '',
+    stations: (scope.stations ?? []).join(';'),
+    direction: scope.direction ?? '',
+    direction_label: scope.direction_label ?? '',
+    first_seen_ts: isoOrEmpty(lifecycle.first_seen_ts),
+    onset_ts: isoOrEmpty(lifecycle.onset_ts),
+    resolved_ts: isoOrEmpty(lifecycle.resolved_ts),
+    duration_minutes: durationMinutes(lifecycle),
+    active: lifecycle.active ? 'true' : 'false',
+    post_url: detection.post_url ?? '',
+    resolved_post_url: detection.resolved_post_url ?? '',
   };
 }
 
@@ -116,18 +146,16 @@ function rowToCsv(row) {
   return CSV_COLUMNS.map((c) => csvEscape(row[c])).join(',');
 }
 
-// Build a complete CSV document for the given alerts + observations. Sorts
-// newest-first so `head` of the file shows recent data, matching the SPA's
-// list order.
-/**
- * @param {Array<object>} alerts
- * @param {Array<object>} observations
- * @returns {string}
- */
-export function buildCsv(alerts, observations) {
-  const rows = [...(alerts ?? []).map(alertRow), ...(observations ?? []).map(observationRow)].sort(
-    (a, b) => (b.first_seen_ts < a.first_seen_ts ? -1 : b.first_seen_ts > a.first_seen_ts ? 1 : 0),
+export function buildCsv(incidents) {
+  const rows = [];
+  for (const incident of incidents ?? []) {
+    const alert = officialAlert(incident);
+    if (alert) rows.push(officialRow(incident, alert));
+    for (const detection of incidentDetections(incident))
+      rows.push(detectionRow(incident, detection));
+  }
+  rows.sort((a, b) =>
+    b.first_seen_ts < a.first_seen_ts ? -1 : b.first_seen_ts > a.first_seen_ts ? 1 : 0,
   );
-  const lines = [CSV_COLUMNS.join(','), ...rows.map(rowToCsv)];
-  return `${lines.join('\n')}\n`;
+  return `${[CSV_COLUMNS.join(','), ...rows.map(rowToCsv)].join('\n')}\n`;
 }

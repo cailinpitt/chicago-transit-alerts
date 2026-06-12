@@ -11,7 +11,13 @@ import { fileURLToPath } from 'node:url';
 import { listWeeks } from '../src/lib/aggregate.js';
 import { TRAIN_LINE_ORDER } from '../src/lib/ctaLines.js';
 import { chicagoDayIsoUTC, chicagoDayUTC } from '../src/lib/format.js';
-import { flattenIncidents, mergeMatchingIncidents, postUrlRkey } from '../src/lib/incidents.js';
+import {
+  flattenIncidents,
+  legacyKind,
+  mergeMatchingIncidents,
+  postUrlRkey,
+  withRuntimeAliasesAll,
+} from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINE_ORDER } from '../src/lib/metraLines.js';
 import { buildMetraStationIndex } from '../src/lib/metraStations.js';
@@ -57,8 +63,9 @@ function main() {
   // pages now get prerendered OG cards, so they're added separately from
   // `metraFlat` (the un-gated Metra incidents) further down. Metra roster pages
   // (line pages + the system dashboard) are listed via the static blocks.
-  const metraFlat = flattenIncidents((raw.incidents || []).filter((inc) => inc.kind === 'metra'));
-  raw.incidents = gateIncidents(raw.incidents || []);
+  const allIncidents = withRuntimeAliasesAll(raw.incidents || []);
+  const metraFlat = flattenIncidents(allIncidents.filter((inc) => legacyKind(inc) === 'metra'));
+  raw.incidents = withRuntimeAliasesAll(gateIncidents(allIncidents));
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const generatedAt = payload.generated_at ?? Date.now();
   const generatedIso = isoDate(generatedAt);

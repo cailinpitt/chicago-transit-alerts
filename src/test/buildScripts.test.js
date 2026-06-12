@@ -125,6 +125,86 @@ describe('flattenIncidents wire → flat contract', () => {
     expect(observations[0]).toMatchObject({ post_url: OBS_URL, line: 'red' });
   });
 
+  it('expands v2 official_alert and detections into the flat compatibility shape', () => {
+    const { alerts, observations } = flattenIncidents([
+      {
+        id: 'v2',
+        agency: 'cta',
+        mode: 'train',
+        routes: ['red'],
+        lifecycle: {
+          first_seen_ts: NOW - 60 * 60_000,
+          resolved_ts: NOW - 30 * 60_000,
+          active: false,
+        },
+        official_alert: {
+          id: 'v2-alert',
+          headline: 'Red Line Delays',
+          description: 'Delayed near Howard.',
+          post_url: ALERT_URL,
+          lifecycle: {
+            first_seen_ts: NOW - 60 * 60_000,
+            resolved_ts: NOW - 30 * 60_000,
+            active: false,
+          },
+          scope: {
+            from_station: 'Howard',
+            to_station: 'Loyola',
+            direction: 'toward 95th/Dan Ryan',
+            stations: ['Howard', 'Jarvis', 'Morse', 'Loyola'],
+            mentioned_stations: [],
+          },
+          agency_event_window: {
+            start_ts: null,
+            end_ts: null,
+            start_is_date_only: false,
+            end_is_date_only: false,
+          },
+        },
+        detections: [
+          {
+            id: 7,
+            source: 'pulse-cold',
+            scope: {
+              route: 'red',
+              from_station: 'Howard',
+              to_station: 'Loyola',
+              direction_label: 'toward 95th/Dan Ryan',
+              stations: ['Howard', 'Jarvis', 'Morse', 'Loyola'],
+            },
+            lifecycle: {
+              first_seen_ts: NOW - 55 * 60_000,
+              onset_ts: NOW - 70 * 60_000,
+              resolved_ts: NOW - 35 * 60_000,
+              active: false,
+            },
+            post_url: OBS_URL,
+            description: 'Red Line service appears degraded.',
+            evidence: { signals: null, details: null, bullets: [] },
+          },
+        ],
+      },
+    ]);
+
+    expect(alerts[0]).toMatchObject({
+      alert_id: 'v2-alert',
+      kind: 'train',
+      headline: 'Red Line Delays',
+      affected_from_station: 'Howard',
+      affected_to_station: 'Loyola',
+      affected_stations: ['Howard', 'Jarvis', 'Morse', 'Loyola'],
+    });
+    expect(observations[0]).toMatchObject({
+      id: 7,
+      kind: 'train',
+      line: 'red',
+      detection_source: 'pulse-cold',
+      from_station: 'Howard',
+      to_station: 'Loyola',
+      _incidentId: 'v2',
+    });
+  });
+
   it('tolerates a missing/empty incidents list', () => {
     expect(flattenIncidents([])).toEqual({ alerts: [], observations: [] });
     expect(flattenIncidents(undefined)).toEqual({ alerts: [], observations: [] });

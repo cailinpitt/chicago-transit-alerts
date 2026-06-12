@@ -29,6 +29,7 @@ import {
   mergeMatchingIncidents,
   observationSignals,
   summarizeSignals,
+  withRuntimeAliasesAll,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINES, normalizeMetraLine } from '../src/lib/metraLines.js';
@@ -438,7 +439,7 @@ async function main() {
   // Metra is launched and the event OG card is Metra-aware (accentFor +
   // describeObservation handle kind='metra'), so opt in explicitly — Metra event
   // pages get their own prerendered stub + per-event OG image like CTA events.
-  raw.incidents = gateIncidents(raw.incidents || [], true);
+  raw.incidents = withRuntimeAliasesAll(gateIncidents(raw.incidents || [], true));
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const shell = readFileSync(SHELL, 'utf8');
   const template = readFileSync(TEMPLATE, 'utf8');

@@ -1,3 +1,5 @@
+import { legacyKind } from './incidents.js';
+
 // Metra is launched and threaded through nearly every surface: the SPA, the CSV,
 // the global + per-line feeds, geographic maps, and prerendered OG cards +
 // sitemap entries for Metra line/station/event/system pages. The Node default
@@ -21,5 +23,5 @@
  */
 export function gateIncidents(incidents, showMetra = typeof window !== 'undefined') {
   if (showMetra) return incidents || [];
-  return (incidents || []).filter((inc) => inc.kind !== 'metra');
+  return (incidents || []).filter((inc) => legacyKind(inc) !== 'metra');
 }
