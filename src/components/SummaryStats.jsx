@@ -3,7 +3,7 @@ import { buildDailyTrend, computeDisruptionMinutes } from '../lib/aggregate.js';
 import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatMinutesAsHours } from '../lib/format.js';
-import { METRA_LINE_ORDER } from '../lib/metraLines.js';
+import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 import TrendSparkline from './TrendSparkline.jsx';
 
 // Callout threshold: only surface a "X% busier/quieter than the prior week"
@@ -45,6 +45,9 @@ export default function SummaryStats({
   mostAffectedId,
   quietestLineId,
   quietestLineDays,
+  metraMostAffectedId,
+  metraQuietestLineId,
+  metraQuietestLineDays,
   alerts,
   observations,
   // Homepage hides the active-now figure because the Active Now / All-clear
@@ -85,8 +88,15 @@ export default function SummaryStats({
     );
   }, [alerts, observations]);
 
+  // CTA and Metra each surface their own "most affected" / "quietest" line, and
+  // only while the page-level agency filter covers that agency (the data is
+  // already agency-scoped, so the off-agency phrases come back empty anyway —
+  // this gate just makes the intent explicit and matches the disruption cards).
+  const showCta = agency !== 'metra';
+  const showMetra = agency !== 'cta';
+
   let affectedPhrase = null;
-  if (mostAffectedKind === 'train' && TRAIN_LINES[mostAffectedId]) {
+  if (showCta && mostAffectedKind === 'train' && TRAIN_LINES[mostAffectedId]) {
     const info = TRAIN_LINES[mostAffectedId];
     affectedPhrase = (
       <>
@@ -94,13 +104,24 @@ export default function SummaryStats({
         days)
       </>
     );
-  } else if (mostAffectedKind === 'bus') {
+  } else if (showCta && mostAffectedKind === 'bus') {
     affectedPhrase = (
       <>
         <strong className="text-slate-800 dark:text-slate-100">
           {formatBusRoute(mostAffectedId)}
         </strong>{' '}
         most affected (last 30 days)
+      </>
+    );
+  }
+
+  // Metra lines carry their own name ("BNSF", "Metra Electric") — no " Line".
+  let metraAffectedPhrase = null;
+  if (showMetra && metraMostAffectedId && METRA_LINES[metraMostAffectedId]) {
+    const info = METRA_LINES[metraMostAffectedId];
+    metraAffectedPhrase = (
+      <>
+        <strong style={{ color: info.color }}>{info.label}</strong> most affected (last 30 days)
       </>
     );
   }
@@ -127,12 +148,28 @@ export default function SummaryStats({
   // Quietest streak: positive callout, surfaced only when the streak is
   // long enough to be interesting. <2 days clears that bar most of the time.
   let quietestPhrase = null;
-  if (quietestLineId && TRAIN_LINES[quietestLineId] && quietestLineDays >= 2) {
+  if (showCta && quietestLineId && TRAIN_LINES[quietestLineId] && quietestLineDays >= 2) {
     const info = TRAIN_LINES[quietestLineId];
     quietestPhrase = (
       <>
         <strong style={{ color: info.color }}>{info.label} Line</strong> quietest:{' '}
         {quietestLineDays} days since last incident
+      </>
+    );
+  }
+
+  let metraQuietestPhrase = null;
+  if (
+    showMetra &&
+    metraQuietestLineId &&
+    METRA_LINES[metraQuietestLineId] &&
+    metraQuietestLineDays >= 2
+  ) {
+    const info = METRA_LINES[metraQuietestLineId];
+    metraQuietestPhrase = (
+      <>
+        <strong style={{ color: info.color }}>{info.label}</strong> quietest:{' '}
+        {metraQuietestLineDays} days since last incident
       </>
     );
   }
@@ -241,6 +278,12 @@ export default function SummaryStats({
           {quietestPhrase && (
             <p className="text-sm text-slate-600 dark:text-slate-300">{quietestPhrase}</p>
           )}
+          {metraAffectedPhrase && (
+            <p className="text-sm text-slate-600 dark:text-slate-300">{metraAffectedPhrase}</p>
+          )}
+          {metraQuietestPhrase && (
+            <p className="text-sm text-slate-600 dark:text-slate-300">{metraQuietestPhrase}</p>
+          )}
         </div>
       </div>
 
@@ -263,6 +306,7 @@ export default function SummaryStats({
           </div>
         )}
         <StatRow>{[affectedPhrase, quietestPhrase]}</StatRow>
+        <StatRow>{[metraAffectedPhrase, metraQuietestPhrase]}</StatRow>
       </div>
     </div>
   );

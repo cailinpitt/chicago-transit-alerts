@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { typicalDurationKey } from '../lib/aggregate.js';
 import {
   cancellationInfo,
@@ -9,18 +10,19 @@ import { formatDuration, formatEstimatedEnd } from '../lib/format.js';
 import {
   botSummaryText,
   formatEvidenceChip,
+  incidentCategory,
   incidentHeadlineText,
   incidentLifecycle,
   legacyKind,
   metraIncidentStatus,
   metraPointEventTitle,
+  modeLabel,
   officialAlert,
   splitObservations,
 } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { displayStationName } from '../lib/stations.js';
 import LinePill from './LinePill.jsx';
-import LongRunningBanner from './LongRunningBanner.jsx';
 import MetraPointBadge from './MetraPointBadge.jsx';
 import ShareLink from './ShareLink.jsx';
 import StationName from './StationName.jsx';
@@ -84,16 +86,15 @@ const GANTT_SPAN_LADDER_MS = [
   3 * 60 * 60 * 1000, // 3h
   6 * 60 * 60 * 1000, // 6h
   12 * 60 * 60 * 1000, // 12h
-  24 * 60 * 60 * 1000, // 24h
 ];
 
 function ceilToGanttSpan(rawSpanMs) {
   for (const step of GANTT_SPAN_LADDER_MS) {
     if (rawSpanMs <= step) return step;
   }
-  // Past 24h falls through — incidents older than that are already lifted
-  // into LongRunningBanner, so the gantt shouldn't see them. Cap at the
-  // ladder's top rung as a graceful fallback if the threshold ever moves.
+  // Past 12h falls through — the gantt only spans the live bands (disruptions
+  // + delays), and planned/scheduled work (the usual multi-day source) is
+  // excluded, so anything older is rare. Cap at the ladder's top rung.
   return GANTT_SPAN_LADDER_MS[GANTT_SPAN_LADDER_MS.length - 1];
 }
 
@@ -165,7 +166,7 @@ function elapsed(now, startTs) {
 // without nesting interactive content, which would be invalid HTML.
 // The per-card pulsing dot has been dropped: the section header already has
 // one, and stacking six of them reads as anxiety, not information.
-function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
+function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex, showAgency = true }) {
   const { primary } = splitObservations(incident);
   const kind = legacyKind(incident);
   const alert = officialAlert(incident);
@@ -227,6 +228,11 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
           unclickable for navigation. */}
       <div className="relative z-10 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+          {showAgency && (
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              {modeLabel(kind)}
+            </span>
+          )}
           <LinePill kind={kind} routes={mobileRoutes} />
           {/* Extra pills shown only on sm+ — `contents` so the <a>s flow into
               the same wrap row rather than nesting in a box. */}
@@ -324,7 +330,16 @@ const COMPACT_PILL_LIMIT = 1;
 // typical-duration hint (signal-to-noise loss in a single line). Pills are
 // capped and the description is truncated so the row stays exactly one line
 // regardless of how many routes the alert touches.
-function ActiveRow({ incident, now, isNew }) {
+// Border tint per row tone. Disruptions keep the urgent red treatment;
+// delays — routine, lower-stakes "running late" events — get a calmer amber
+// so a screen full of Metra delays doesn't read as an emergency.
+const ROW_TONE = {
+  disruption: 'border-red-200 dark:border-red-900 hover:border-red-300 dark:hover:border-red-800',
+  delay:
+    'border-amber-200 dark:border-amber-900/60 hover:border-amber-300 dark:hover:border-amber-800',
+};
+
+function ActiveRow({ incident, now, isNew, tone = 'disruption', showAgency = false }) {
   const kind = legacyKind(incident);
   const startTs = incidentLifecycle(incident).first_seen_ts;
   const cancel = cancellationInfo(incident);
@@ -337,12 +352,17 @@ function ActiveRow({ incident, now, isNew }) {
   const shownRoutes = allRoutes.slice(0, COMPACT_PILL_LIMIT);
   const overflowCount = allRoutes.length - shownRoutes.length;
 
-  const className = `flex items-center gap-3 px-3 py-2 rounded-md border border-red-200 dark:border-red-900 bg-white dark:bg-gh-surface text-sm hover:border-red-300 dark:hover:border-red-800 transition-colors ${
-    isNew ? 'animate-fade-highlight' : ''
-  }`;
+  const className = `flex items-center gap-3 px-3 py-2 rounded-md border bg-white dark:bg-gh-surface text-sm transition-colors ${
+    ROW_TONE[tone] ?? ROW_TONE.disruption
+  } ${isNew ? 'animate-fade-highlight' : ''}`;
   const inner = (
     <>
       <span className="flex items-center gap-1 flex-shrink-0">
+        {showAgency && (
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-0.5">
+            {modeLabel(kind)}
+          </span>
+        )}
         <LinePill kind={kind} routes={shownRoutes} linked={false} />
         {overflowCount > 0 && (
           <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
@@ -494,6 +514,194 @@ function ActiveMiniGantt({ incidents, now }) {
 const BURST_RATIO_THRESHOLD = 2;
 const BURST_MIN_RECENT = 3;
 
+// Stable agency order for the per-section sub-groups: CTA rail, CTA bus, then
+// Metra. Keeps the "Showing: All" view from reshuffling as incidents come and
+// go.
+const MODE_ORDER = ['train', 'bus', 'metra'];
+
+// Split a list into agency sub-groups in MODE_ORDER, dropping empties. Lets a
+// section render a "CTA Bus" / "Metra" label above each cluster so a reader
+// scans by agency without the page-level toggle.
+function groupByMode(incidents) {
+  const byMode = new Map();
+  for (const inc of incidents) {
+    const kind = legacyKind(inc);
+    if (!byMode.has(kind)) byMode.set(kind, []);
+    byMode.get(kind).push(inc);
+  }
+  const ordered = [];
+  for (const kind of MODE_ORDER) {
+    if (byMode.has(kind)) ordered.push({ kind, items: byMode.get(kind) });
+  }
+  // Any unknown kind falls through in insertion order after the known ones.
+  for (const [kind, items] of byMode) {
+    if (!MODE_ORDER.includes(kind)) ordered.push({ kind, items });
+  }
+  return ordered;
+}
+
+function startTsOf(inc) {
+  return incidentLifecycle(inc).first_seen_ts ?? 0;
+}
+
+// Newest-first within a bucket so the freshest event reads at the top.
+function byRecency(a, b) {
+  return startTsOf(b) - startTsOf(a);
+}
+
+// A collapsible severity band: a toggle header (chevron + colored dot + label +
+// count) over hide-able content. The dot color carries the section's tone (red
+// for disruptions, amber for delays, slate for planned) so the bands stay
+// distinguishable at a glance, and each collapses independently so a reader can
+// fold away the parts they don't care about (e.g. a wall of routine delays).
+function CollapsibleBand({ label, count, dotClass, textClass, defaultOpen = true, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-1.5 mb-1.5 -ml-0.5 px-0.5 py-0.5 rounded-md text-left hover:bg-slate-50 dark:hover:bg-gh-subtle/50 transition-colors"
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 12 12"
+          className={`h-3 w-3 flex-shrink-0 text-slate-400 dark:text-slate-500 transition-transform ${
+            open ? 'rotate-90' : ''
+          }`}
+        >
+          <path
+            d="M4 2.5 L8 6 L4 9.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${dotClass}`} />
+        <h3 className={`text-xs font-semibold uppercase tracking-wider ${textClass}`}>
+          {label}
+          <span className="ml-1.5 font-normal text-slate-400 dark:text-slate-500">({count})</span>
+        </h3>
+      </button>
+      {open && children}
+    </div>
+  );
+}
+
+// Tiny agency sub-label inside a multi-agency section ("CTA Bus", "Metra").
+function AgencyHeader({ kind }) {
+  return (
+    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-1 mb-1 px-0.5">
+      {modeLabel(kind)}
+    </p>
+  );
+}
+
+// Routine in-progress delays — calmer amber rows, grouped by agency. These are
+// high-volume and low-stakes (a single train running late), so they sit below
+// the red disruptions band and never get the full-card treatment.
+function DelaySection({ incidents, now, highlightedIds }) {
+  const groups = groupByMode(incidents);
+  const labelGroups = groups.length > 1;
+  return (
+    <CollapsibleBand
+      label="Delays"
+      count={incidents.length}
+      dotClass="bg-amber-500"
+      textClass="text-amber-700 dark:text-amber-500"
+    >
+      <div className="space-y-2">
+        {groups.map(({ kind, items }) => (
+          <div key={kind}>
+            {labelGroups && <AgencyHeader kind={kind} />}
+            <div className="space-y-1.5">
+              {[...items].sort(byRecency).map((incident) => (
+                <ActiveRow
+                  key={incident.id}
+                  incident={incident}
+                  now={now}
+                  tone="delay"
+                  showAgency={!labelGroups}
+                  isNew={incident.id != null && highlightedIds?.has(incident.id)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </CollapsibleBand>
+  );
+}
+
+// One planned/scheduled row. The headline carries the human date range ("Sat
+// Jun 13 through Sun Jun 14"); when the alert also has a machine-readable end
+// we append a "through <date>" chip. No elapsed timer — for advance-notice
+// work, "Day 1" is meaningless noise.
+function PlannedRow({ incident, now }) {
+  const kind = legacyKind(incident);
+  const alert = officialAlert(incident);
+  const headline =
+    (alert ? incidentHeadlineText(incident) : null) ?? alert?.headline ?? 'Planned work';
+  const windowEnd = formatEstimatedEnd(alert?.agency_event_window?.end_ts, now, {
+    dateOnly: alert?.agency_event_window?.end_is_date_only === true,
+  });
+  const eventId = incident.id;
+  const allRoutes = Array.isArray(incident.routes) ? incident.routes : [];
+  const shownRoutes = allRoutes.slice(0, COMPACT_PILL_LIMIT);
+  const overflowCount = allRoutes.length - shownRoutes.length;
+
+  const content = (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5 rounded-md border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+        <LinePill kind={kind} routes={shownRoutes} linked={false} />
+        {overflowCount > 0 && (
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
+            +{overflowCount}
+          </span>
+        )}
+        {windowEnd && (
+          <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+            through {windowEnd}
+          </span>
+        )}
+      </div>
+      <p className="flex-1 min-w-0 text-sm text-slate-700 dark:text-slate-200 truncate whitespace-nowrap">
+        {headline}
+      </p>
+    </div>
+  );
+  return eventId ? <a href={`/event/${eventId}`}>{content}</a> : content;
+}
+
+// Planned & scheduled work — advance notices and multi-day reroutes, grouped
+// by agency. Lifted out of the live bands so a future "track construction this
+// weekend" notice isn't mistimed as something ongoing right now.
+function PlannedSection({ incidents, now }) {
+  const groups = groupByMode(incidents);
+  return (
+    <CollapsibleBand
+      label="Planned & scheduled"
+      count={incidents.length}
+      dotClass="bg-slate-400 dark:bg-slate-500"
+      textClass="text-slate-500 dark:text-slate-400"
+    >
+      <div className="space-y-2">
+        {groups.map(({ kind, items }) => (
+          <div key={kind} className="space-y-1.5">
+            {groups.length > 1 && <AgencyHeader kind={kind} />}
+            {[...items].sort(byRecency).map((incident) => (
+              <PlannedRow key={incident.id} incident={incident} now={now} />
+            ))}
+          </div>
+        ))}
+      </div>
+    </CollapsibleBand>
+  );
+}
+
 export default function ActiveAlerts({
   incidents,
   longRunningIncidents = [],
@@ -508,20 +716,39 @@ export default function ActiveAlerts({
     burst.recentCount >= BURST_MIN_RECENT &&
     burst.ratio != null &&
     burst.ratio >= BURST_RATIO_THRESHOLD;
-  // First 1-2 stay as full cards — the freshest, most-likely-to-investigate
-  // incidents get visual weight. Beyond that we collapse to compact rows so
-  // a system-wide bad afternoon doesn't push the rest of the page below the
-  // fold.
-  const fullCount = Math.min(incidents.length, FULL_CARD_LIMIT);
-  const fullCards = incidents.slice(0, fullCount);
-  const compactRows = incidents.slice(fullCount);
 
-  // Combined active set drives the section count. Long-running incidents
-  // are intentionally excluded from the gantt — a multi-day planned alert
-  // anchors the time axis at "-4d ago" and squishes the meaningful short-
-  // running bars into invisible right-edge slivers. The Day-N rows in the
-  // long-running section already make the duration the headline number.
-  const totalActive = incidents.length + longRunningIncidents.length;
+  // The homepage now organizes the active set by the *nature* of each incident
+  // — live disruption, routine delay, or planned/scheduled work — not by
+  // elapsed time. Merge the time-split inputs the callers still pass and
+  // re-bucket by category.
+  const { disruptions, delays, planned } = useMemo(() => {
+    const all = [...incidents, ...longRunningIncidents];
+    const d = [];
+    const dl = [];
+    const p = [];
+    for (const inc of all) {
+      const c = incidentCategory(inc, now);
+      if (c === 'planned') p.push(inc);
+      else if (c === 'delay') dl.push(inc);
+      else d.push(inc);
+    }
+    d.sort(byRecency);
+    return { disruptions: d, delays: dl, planned: p };
+  }, [incidents, longRunningIncidents, now]);
+
+  // The "Started" ribbon compares how long live events have been running, so
+  // it spans disruptions + delays only — planned work runs on a multi-day
+  // scale that would crush the live bars into right-edge slivers.
+  const live = useMemo(() => [...disruptions, ...delays], [disruptions, delays]);
+  const totalActive = disruptions.length + delays.length + planned.length;
+
+  // First 1-2 disruptions stay as full cards — the freshest, most-likely-to-
+  // investigate events get visual weight. Beyond that we collapse to compact
+  // rows so a system-wide bad afternoon doesn't push the page below the fold.
+  const fullCount = Math.min(disruptions.length, FULL_CARD_LIMIT);
+  const fullCards = disruptions.slice(0, fullCount);
+  const compactRows = disruptions.slice(fullCount);
+  const mixedAgencies = new Set(live.map((i) => legacyKind(i))).size > 1;
 
   return (
     <section>
@@ -545,31 +772,48 @@ export default function ActiveAlerts({
           </span>
         )}
       </div>
-      <ActiveMiniGantt incidents={incidents} now={now} />
-      <div className="space-y-2">
-        {fullCards.map((incident) => (
-          <ActiveCard
-            key={incident.id}
-            incident={incident}
-            now={now}
-            isNew={incident.id != null && highlightedIds?.has(incident.id)}
-            typicalDurations={typicalDurations}
-            stationIndex={stationIndex}
-          />
-        ))}
-        {compactRows.length > 0 && (
-          <div className="space-y-1.5 pt-1">
-            {compactRows.map((incident) => (
-              <ActiveRow
-                key={incident.id}
-                incident={incident}
-                now={now}
-                isNew={incident.id != null && highlightedIds?.has(incident.id)}
-              />
-            ))}
-          </div>
+      <ActiveMiniGantt incidents={live} now={now} />
+      <div className="space-y-4">
+        {disruptions.length > 0 && (
+          <CollapsibleBand
+            label="Disruptions"
+            count={disruptions.length}
+            dotClass="bg-red-500"
+            textClass="text-red-600 dark:text-red-400"
+          >
+            <div className="space-y-2">
+              {fullCards.map((incident) => (
+                <ActiveCard
+                  key={incident.id}
+                  incident={incident}
+                  now={now}
+                  isNew={incident.id != null && highlightedIds?.has(incident.id)}
+                  typicalDurations={typicalDurations}
+                  stationIndex={stationIndex}
+                  showAgency={mixedAgencies}
+                />
+              ))}
+              {compactRows.length > 0 && (
+                <div className="space-y-1.5">
+                  {compactRows.map((incident) => (
+                    <ActiveRow
+                      key={incident.id}
+                      incident={incident}
+                      now={now}
+                      tone="disruption"
+                      showAgency={mixedAgencies}
+                      isNew={incident.id != null && highlightedIds?.has(incident.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </CollapsibleBand>
         )}
-        <LongRunningBanner incidents={longRunningIncidents} now={now} />
+        {delays.length > 0 && (
+          <DelaySection incidents={delays} now={now} highlightedIds={highlightedIds} />
+        )}
+        {planned.length > 0 && <PlannedSection incidents={planned} now={now} />}
       </div>
     </section>
   );

@@ -257,6 +257,10 @@ export function buildBusIncidentsByDay(
  *   mostAffectedCount: number,
  *   quietestLineId: string | null,
  *   quietestLineDays: number,
+ *   metraMostAffectedId: string | null,
+ *   metraMostAffectedCount: number,
+ *   metraQuietestLineId: string | null,
+ *   metraQuietestLineDays: number,
  * }}
  */
 export function computeSummaryStats(alerts, observations, now = Date.now()) {
@@ -289,62 +293,81 @@ export function computeSummaryStats(alerts, observations, now = Date.now()) {
   const activeCount = incidents.filter((i) => i.active).length;
   const weeklyCount = incidents.filter((i) => i.ts >= weekAgo).length;
 
-  // Count last-30-day incidents per (kind, key) — train line key (e.g. "red")
-  // or bus route number ("66"). Bus routes are included so the "most
-  // affected" answer reflects reality even when a chronically-troubled bus
-  // route outpaces every train line.
-  const counts = new Map(); // key: `${kind}:${id}` -> { kind, id, count }
+  // Count last-30-day incidents per (kind, key) — train line key (e.g. "red"),
+  // bus route number ("66"), or Metra line key ("bnsf"). Bus routes are
+  // included so the CTA "most affected" answer reflects reality even when a
+  // chronically-troubled bus route outpaces every train line. CTA and Metra are
+  // counted into separate maps so each agency surfaces its own leader — the
+  // homepage shows a CTA line and a Metra line side by side.
+  const ctaCounts = new Map(); // key: `${kind}:${id}` -> { kind, id, count }
+  const metraCounts = new Map(); // key: metra line -> { kind:'metra', id, count }
   for (const inc of incidents) {
     if (inc.ts < monthAgo) continue;
-    if (inc.kind !== 'train' && inc.kind !== 'bus') continue;
     if (inc.kind === 'train') {
       for (const line of inc.lines || []) {
         if (!TRAIN_LINE_ORDER.includes(line)) continue;
         const key = `train:${line}`;
-        const cur = counts.get(key) || { kind: 'train', id: line, count: 0 };
+        const cur = ctaCounts.get(key) || { kind: 'train', id: line, count: 0 };
         cur.count++;
-        counts.set(key, cur);
+        ctaCounts.set(key, cur);
       }
-    } else {
+    } else if (inc.kind === 'bus') {
       for (const route of inc.lines || []) {
         const id = String(route);
         const key = `bus:${id}`;
-        const cur = counts.get(key) || { kind: 'bus', id, count: 0 };
+        const cur = ctaCounts.get(key) || { kind: 'bus', id, count: 0 };
         cur.count++;
-        counts.set(key, cur);
+        ctaCounts.set(key, cur);
+      }
+    } else if (inc.kind === 'metra') {
+      for (const line of inc.lines || []) {
+        if (!METRA_LINE_ORDER.includes(line)) continue;
+        const cur = metraCounts.get(line) || { kind: 'metra', id: line, count: 0 };
+        cur.count++;
+        metraCounts.set(line, cur);
       }
     }
   }
-  let mostAffected = null;
-  for (const entry of counts.values()) {
-    if (!mostAffected || entry.count > mostAffected.count) mostAffected = entry;
-  }
+  const pickMost = (map) => {
+    let best = null;
+    for (const entry of map.values()) {
+      if (!best || entry.count > best.count) best = entry;
+    }
+    return best;
+  };
+  const mostAffected = pickMost(ctaCounts);
+  const metraMostAffected = pickMost(metraCounts);
 
-  // Quietest line: among the eight train lines, find the one whose most
-  // recent incident is the oldest (longest streak of clean days). Buses are
-  // excluded — there are too many low-traffic routes for "Route 192: 60 days
-  // since last incident" to be meaningful, and that's not the kind of brag
-  // riders care about anyway.
-  const lastTsByLine = new Map();
-  for (const inc of incidents) {
-    if (inc.kind !== 'train') continue;
-    for (const line of inc.lines || []) {
-      if (!TRAIN_LINE_ORDER.includes(line)) continue;
-      const prev = lastTsByLine.get(line);
-      if (prev == null || inc.ts > prev) lastTsByLine.set(line, inc.ts);
+  // Quietest line: among a rail agency's lines, find the one whose most recent
+  // incident is the oldest (longest streak of clean days). Buses are excluded —
+  // there are too many low-traffic routes for "Route 192: 60 days since last
+  // incident" to be meaningful, and that's not the kind of brag riders care
+  // about anyway. Computed per agency so CTA and Metra each get a streak.
+  const quietestFor = (kind, lineOrder) => {
+    const lastTsByLine = new Map();
+    for (const inc of incidents) {
+      if (inc.kind !== kind) continue;
+      for (const line of inc.lines || []) {
+        if (!lineOrder.includes(line)) continue;
+        const prev = lastTsByLine.get(line);
+        if (prev == null || inc.ts > prev) lastTsByLine.set(line, inc.ts);
+      }
     }
-  }
-  let quietestLineId = null;
-  let quietestLineDays = 0;
-  for (const line of TRAIN_LINE_ORDER) {
-    const ts = lastTsByLine.get(line);
-    if (ts == null) continue; // no data for this line — skip rather than guess at the streak
-    const days = Math.floor((now - ts) / DAY_MS);
-    if (days > quietestLineDays) {
-      quietestLineDays = days;
-      quietestLineId = line;
+    let lineId = null;
+    let lineDays = 0;
+    for (const line of lineOrder) {
+      const ts = lastTsByLine.get(line);
+      if (ts == null) continue; // no data for this line — skip rather than guess at the streak
+      const days = Math.floor((now - ts) / DAY_MS);
+      if (days > lineDays) {
+        lineDays = days;
+        lineId = line;
+      }
     }
-  }
+    return { lineId, lineDays };
+  };
+  const ctaQuietest = quietestFor('train', TRAIN_LINE_ORDER);
+  const metraQuietest = quietestFor('metra', METRA_LINE_ORDER);
 
   return {
     activeCount,
@@ -352,8 +375,12 @@ export function computeSummaryStats(alerts, observations, now = Date.now()) {
     mostAffectedKind: mostAffected?.kind ?? null,
     mostAffectedId: mostAffected?.id ?? null,
     mostAffectedCount: mostAffected?.count ?? 0,
-    quietestLineId,
-    quietestLineDays,
+    quietestLineId: ctaQuietest.lineId,
+    quietestLineDays: ctaQuietest.lineDays,
+    metraMostAffectedId: metraMostAffected?.id ?? null,
+    metraMostAffectedCount: metraMostAffected?.count ?? 0,
+    metraQuietestLineId: metraQuietest.lineId,
+    metraQuietestLineDays: metraQuietest.lineDays,
   };
 }
 

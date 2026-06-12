@@ -284,7 +284,7 @@ export default function App() {
       .sort((a, b) => incidentLifecycle(b).first_seen_ts - incidentLifecycle(a).first_seen_ts);
   }, [agencyIncidents]);
 
-  // Split active incidents on the 24h elapsed mark. Long-runners (planned
+  // Split active incidents on the 12h elapsed mark. Long-runners (planned
   // reroutes, multi-day construction) get their own quieter banner — left
   // mixed with the breaking-news cards they trained users to ignore the
   // red treatment after a day or two.

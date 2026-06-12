@@ -15,10 +15,10 @@ import LinePill from './LinePill.jsx';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Threshold above which an active incident gets lifted out of the regular
-// ActiveAlerts stack. 24h is the point where a disruption stops being "what
+// ActiveAlerts stack. 12h is the point where a disruption stops being "what
 // just happened" and starts being "the state of this line for a while now"
 // — usually a planned reroute, weekend slow zone, or multi-day construction.
-export const LONG_RUNNING_THRESHOLD_MS = 24 * 60 * 60 * 1000;
+export const LONG_RUNNING_THRESHOLD_MS = 12 * 60 * 60 * 1000;
 
 // Cap on how many route pills render inline before collapsing into a "+N".
 // A CTA "Temporary Reroute" alert can touch a dozen bus routes; rendering

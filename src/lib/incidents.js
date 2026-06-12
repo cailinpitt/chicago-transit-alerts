@@ -538,6 +538,49 @@ export function metraIncidentStatus(incident) {
   return point ? { source: point.source } : null;
 }
 
+const PLANNED_TEXT_RE =
+  /\b(track\s+construction|construction|planned\s+work|work\s+zone|maintenance|temporary\s+reroute|reroute)\b/i;
+
+/**
+ * True when an active incident is planned/scheduled work — a published-ahead
+ * notice (track construction, maintenance) or a multi-day scheduled disruption
+ * (a temporary reroute with a fixed end date) — rather than something unfolding
+ * in real time. These get lifted into the homepage's "Planned & scheduled"
+ * section, where the date window, not an elapsed timer, is the headline fact.
+ * @param {Incident} incident
+ * @param {number} now
+ * @returns {boolean}
+ */
+export function isPlannedIncident(incident, now = Date.now()) {
+  if (metraIncidentStatus(incident)?.source === 'planned-delay') return true;
+  const alert = officialAlert(incident);
+  if (!alert) return false;
+  const w = alert.agency_event_window ?? {};
+  // Advance notice: the scheduled work hasn't started yet.
+  if (w.start_ts != null && w.start_ts > now) return true;
+  // A scheduled multi-day window posted as a date range (date-only end) —
+  // reroutes and construction carry these; live point disruptions don't.
+  if (w.end_ts != null && w.end_is_date_only === true) return true;
+  const text = [alert.headline, alert.description].filter(Boolean).join(' ');
+  return PLANNED_TEXT_RE.test(text);
+}
+
+/**
+ * Three-way bucket for the homepage's active list:
+ *   'planned'    — scheduled / advance-notice work (see {@link isPlannedIncident})
+ *   'delay'      — a routine in-progress delay (a single Metra train running late)
+ *   'disruption' — everything else live (gaps, ghosts, cancellations, and
+ *                  reroutes without a fixed window)
+ * @param {Incident} incident
+ * @param {number} now
+ * @returns {'planned'|'delay'|'disruption'}
+ */
+export function incidentCategory(incident, now = Date.now()) {
+  if (isPlannedIncident(incident, now)) return 'planned';
+  if (metraIncidentStatus(incident)?.source === 'delay') return 'delay';
+  return 'disruption';
+}
+
 // Short status-badge label for each Metra point-event kind. 'cancellation-
 // inferred' reads "possible cancellation" — the train was scheduled but never
 // seen and Metra didn't flag it, so the outcome is stated while signalling it's
@@ -697,6 +740,21 @@ export function postUrlRkey(postUrl) {
  */
 export function agencyLabel(kind) {
   return kind === 'metra' ? 'Metra' : 'CTA';
+}
+
+// Specific agency + mode label for grouping the active list — "CTA Train",
+// "CTA Bus", or "Metra". Unlike agencyLabel (which collapses CTA's two modes
+// to a bare "CTA"), this keeps bus and train distinct so the homepage can say
+// "CTA Bus" rather than an ambiguous "Bus".
+/**
+ * @param {'train'|'bus'|'metra'} kind
+ * @returns {string}
+ */
+export function modeLabel(kind) {
+  if (kind === 'metra') return 'Metra';
+  if (kind === 'bus') return 'CTA Bus';
+  if (kind === 'train') return 'CTA Train';
+  return 'CTA';
 }
 
 export function formatRoutesLabel(kind, routes) {

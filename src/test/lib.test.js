@@ -22,12 +22,15 @@ import {
   buildSearchMatchers,
   filterIncidents,
   findRelatedIncidents,
+  incidentCategory,
   incidentHeadlineText,
+  isPlannedIncident,
   mergeMatchingIncidents,
   metraIncidentStatus,
   metraPointEvent,
   metraPointEventLabel,
   metraPointEventTitle,
+  modeLabel,
   observationSignals,
   searchFilterIncidents,
 } from '../lib/incidents.js';
@@ -627,7 +630,33 @@ describe('computeSummaryStats', () => {
       mostAffectedCount: 0,
       quietestLineId: null,
       quietestLineDays: 0,
+      metraMostAffectedId: null,
+      metraMostAffectedCount: 0,
+      metraQuietestLineId: null,
+      metraQuietestLineDays: 0,
     });
+  });
+
+  it('computes a separate most-affected and quietest line for Metra', () => {
+    const alerts = [
+      // CTA train leader.
+      makeAlert({ alert_id: 1, routes: ['red'], first_seen_ts: NOW - 1 * DAY }),
+      makeAlert({ alert_id: 2, routes: ['red'], first_seen_ts: NOW - 2 * DAY }),
+      // Metra: BNSF is the most-affected line; UP-N's lone old incident makes
+      // it the quietest.
+      makeAlert({ alert_id: 3, kind: 'metra', routes: ['bnsf'], first_seen_ts: NOW - 1 * DAY }),
+      makeAlert({ alert_id: 4, kind: 'metra', routes: ['bnsf'], first_seen_ts: NOW - 3 * DAY }),
+      makeAlert({ alert_id: 5, kind: 'metra', routes: ['up-n'], first_seen_ts: NOW - 9 * DAY }),
+    ];
+    const r = computeSummaryStats(alerts, [], NOW);
+    // CTA leaders unchanged by the Metra rows.
+    expect(r.mostAffectedKind).toBe('train');
+    expect(r.mostAffectedId).toBe('red');
+    // Metra gets its own pair.
+    expect(r.metraMostAffectedId).toBe('bnsf');
+    expect(r.metraMostAffectedCount).toBe(2);
+    expect(r.metraQuietestLineId).toBe('up-n');
+    expect(r.metraQuietestLineDays).toBe(9);
   });
 
   it('quietest line picks the train line with the oldest most-recent incident', () => {
@@ -873,6 +902,76 @@ describe('metraIncidentStatus', () => {
     expect(incidentHeadlineText(incident)).toBe(
       'Track Construction Saturday, June 13 through Sunday, June 14',
     );
+  });
+});
+
+describe('incidentCategory / isPlannedIncident', () => {
+  const NOW_TS = NOW;
+
+  it('classifies a Metra planned-delay as planned work', () => {
+    const inc = aInc({
+      kind: 'metra',
+      routes: ['up-n'],
+      active: true,
+      cta: { headline: 'Track Construction Saturday, June 13' },
+      metra_status: { source: 'planned-delay' },
+    });
+    expect(isPlannedIncident(inc, NOW_TS)).toBe(true);
+    expect(incidentCategory(inc, NOW_TS)).toBe('planned');
+  });
+
+  it('classifies a routine Metra delay as a delay', () => {
+    const inc = aInc({
+      kind: 'metra',
+      routes: ['ri'],
+      active: true,
+      cta: { headline: 'RID #703 Delayed' },
+      metra_status: { source: 'delay', train_number: '703' },
+    });
+    expect(isPlannedIncident(inc, NOW_TS)).toBe(false);
+    expect(incidentCategory(inc, NOW_TS)).toBe('delay');
+  });
+
+  it('treats a CTA alert with a multi-day date-only window as planned', () => {
+    const inc = aInc({
+      kind: 'bus',
+      routes: ['2', '6', '10'],
+      active: true,
+      cta: {
+        headline: 'Temporary Reroute',
+        cta_event_start_ts: NOW_TS - 30 * DAY,
+        cta_event_end_ts: NOW_TS + 18 * DAY,
+        cta_event_end_is_date_only: true,
+      },
+    });
+    expect(incidentCategory(inc, NOW_TS)).toBe('planned');
+  });
+
+  it('treats an alert whose scheduled work starts in the future as planned', () => {
+    const inc = aInc({
+      kind: 'train',
+      routes: ['red'],
+      active: true,
+      cta: {
+        headline: 'Weekend service change',
+        cta_event_start_ts: NOW_TS + 2 * DAY,
+      },
+    });
+    expect(incidentCategory(inc, NOW_TS)).toBe('planned');
+  });
+
+  it('falls back to a disruption for a live gap with no planned signal', () => {
+    const inc = oInc({ kind: 'bus', routes: ['66'], active: true, obs: { source: 'roundup' } });
+    expect(isPlannedIncident(inc, NOW_TS)).toBe(false);
+    expect(incidentCategory(inc, NOW_TS)).toBe('disruption');
+  });
+});
+
+describe('modeLabel', () => {
+  it('keeps CTA bus and train distinct and labels Metra', () => {
+    expect(modeLabel('train')).toBe('CTA Train');
+    expect(modeLabel('bus')).toBe('CTA Bus');
+    expect(modeLabel('metra')).toBe('Metra');
   });
 });
 

@@ -50,6 +50,37 @@ describe('SummaryStats', () => {
     expect(screen.getAllByText(/most affected \(last 30 days\)/i).length).toBeGreaterThan(0);
   });
 
+  it('renders separate CTA and Metra most-affected / quietest lines', () => {
+    render(
+      <SummaryStats
+        {...baseProps}
+        metraMostAffectedId="bnsf"
+        metraQuietestLineId="up-n"
+        metraQuietestLineDays={9}
+      />,
+    );
+    expect(screen.getAllByText(/Red Line/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Yellow Line/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/BNSF/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Union Pacific North/).length).toBeGreaterThan(0);
+  });
+
+  it('gates the per-agency lines on the agency filter', () => {
+    const props = {
+      ...baseProps,
+      metraMostAffectedId: 'bnsf',
+      metraQuietestLineId: 'up-n',
+      metraQuietestLineDays: 9,
+    };
+    const { rerender } = render(<SummaryStats {...props} agency="cta" />);
+    expect(screen.getAllByText(/Red Line/).length).toBeGreaterThan(0);
+    expect(screen.queryAllByText(/BNSF/)).toHaveLength(0);
+
+    rerender(<SummaryStats {...props} agency="metra" />);
+    expect(screen.queryAllByText(/Red Line/)).toHaveLength(0);
+    expect(screen.getAllByText(/BNSF/).length).toBeGreaterThan(0);
+  });
+
   it('renders an "all clear" active label when nothing is active', () => {
     render(<SummaryStats {...baseProps} activeCount={0} showActive />);
     expect(screen.getAllByText(/all clear/i).length).toBeGreaterThan(0);

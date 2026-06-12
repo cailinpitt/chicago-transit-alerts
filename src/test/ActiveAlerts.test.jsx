@@ -37,9 +37,51 @@ describe('ActiveAlerts', () => {
         stationIndex={null}
       />,
     );
-    expect(screen.getByText(/Active Now/i)).toBeInTheDocument();
-    // 1 active + 1 long-running.
-    expect(screen.getByText('(2)')).toBeInTheDocument();
+    // 1 active + 1 long-running, merged and re-bucketed by category. Scope to
+    // the section's h2 — sub-section labels (h3) also carry counts.
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/Active Now\s*\(2\)/);
+  });
+
+  it('buckets active incidents into Disruptions, Delays, and Planned sections', () => {
+    render(
+      <ActiveAlerts
+        incidents={[
+          // Live disruption (CTA train).
+          activeInc({
+            id: 'd1',
+            cta: { headline: 'Red Line gap', post_url: 'https://bsky.app/profile/x/post/d1' },
+          }),
+          // Routine Metra delay → Delays.
+          activeInc({
+            id: 'dl1',
+            kind: 'metra',
+            routes: ['bnsf'],
+            metra_status: { source: 'delay' },
+            cta: { headline: 'BNSF 1282 delayed', post_url: 'https://bsky.app/profile/x/post/dl1' },
+          }),
+          // Planned track construction → Planned & scheduled.
+          activeInc({
+            id: 'p1',
+            kind: 'metra',
+            routes: ['up-n'],
+            metra_status: { source: 'planned-delay' },
+            cta: {
+              headline: 'Track Construction Sat Jun 13',
+              post_url: 'https://bsky.app/profile/x/post/p1',
+            },
+          }),
+        ]}
+        now={NOW}
+        typicalDurations={null}
+        stationIndex={null}
+      />,
+    );
+    expect(screen.getByText(/^Disruptions$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Delays$/)).toBeInTheDocument();
+    expect(screen.getByText(/Planned & scheduled/)).toBeInTheDocument();
+    expect(screen.getByText('Red Line gap')).toBeInTheDocument();
+    expect(screen.getByText('BNSF 1282 delayed')).toBeInTheDocument();
+    expect(screen.getByText('Track Construction Sat Jun 13')).toBeInTheDocument();
   });
 
   it('keeps the first two incidents as full cards and collapses the rest to compact rows', () => {
