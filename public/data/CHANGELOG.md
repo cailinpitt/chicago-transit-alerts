@@ -16,6 +16,9 @@ published.
 - **Incident identity/scope** — `incidents[].kind` is replaced by
   `incidents[].agency` (`"cta"` / `"metra"`) plus `incidents[].mode`
   (`"train"` / `"bus"` / `"commuter_rail"`). `routes` remains unchanged.
+- **Sources** — `incidents[].sources` now names the contributing observer:
+  official CTA alerts use `"cta"`, official Metra alerts use `"metra"`, and bot
+  detections use `"bot"`.
 - **Lifecycle grouping** — incident `first_seen_ts`, `resolved_ts`, `active`, and
   `duration_ms` now live under `incidents[].lifecycle`.
 - **Official alerts** — `incidents[].cta` is renamed to

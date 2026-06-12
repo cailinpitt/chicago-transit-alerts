@@ -250,7 +250,7 @@ function SignalsPopover({ selectedSignals, onSignalsChange }) {
   );
 }
 
-// Source-type popover — three pills (CTA reported, Bot observation, Both)
+// Source-type popover — three pills (Agency reported, Bot observation, Both)
 // for narrowing the incident list by where the detection came from. Mirrors
 // SignalsPopover's structure so the affordance feels the same across the
 // filter row. Empty selection means "no narrowing" (show all three buckets).

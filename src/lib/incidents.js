@@ -289,7 +289,7 @@ function flattenIncidentAlert(inc) {
  * @property {'train' | 'bus' | 'commuter_rail'} mode
  * @property {string[]} routes Full CTA train names, bus route ids, or lowercase Metra keys.
  * @property {Lifecycle} lifecycle Incident-level lifecycle across all sources.
- * @property {Array<'cta' | 'bot'>} sources Which observers contributed.
+ * @property {Array<'cta' | 'metra' | 'bot'>} sources Which observers contributed.
  * @property {OfficialAlert | null} official_alert Agency alert, or null.
  * @property {Detection[]} detections Bot detections, or [].
  * @property {MetraStatus | null} status Metra cancellation/delay/planned-work status, or null.
@@ -353,14 +353,14 @@ export const SIGNAL_TYPES = ['gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-he
 
 // Source categories for the filter chip. Each incident falls into exactly
 // one bucket after `mergeMatchingIncidents` runs:
-//   'cta'    — CTA alert with no matching bot detection
-//   'bot'    — bot detection with no matching CTA alert
-//   'merged' — CTA alert and bot detection that paired up
+//   'cta'    — official agency alert with no matching bot detection
+//   'bot'    — bot detection with no matching official agency alert
+//   'merged' — official agency alert and bot detection that paired up
 // Order is the display order in the popover; keep it CTA → bot → merged so
 // the "they agreed" row sits at the end as the strongest signal.
 export const SOURCE_TYPES = ['cta', 'bot', 'merged'];
 export const SOURCE_LABELS = {
-  cta: 'CTA reported',
+  cta: 'Agency reported',
   bot: 'Bot observation',
   merged: 'Both',
 };
@@ -1048,8 +1048,10 @@ export function splitObservations(incident) {
   return { primary: obs[0], extras: obs.slice(1) };
 }
 
-// Which source bucket an incident falls in: 'merged' (CTA + bot), 'cta' (CTA
-// alert with no bot detection), or 'bot' (bot-only). Drives the source filter.
+// Which source bucket an incident falls in: 'merged' (official agency + bot),
+// 'cta' (official agency alert with no bot detection), or 'bot' (bot-only).
+// Drives the source filter. The internal bucket id remains 'cta' for URL
+// compatibility; the public wire `incident.sources` uses the agency name.
 /**
  * @param {Incident} incident
  * @returns {'cta' | 'bot' | 'merged'}

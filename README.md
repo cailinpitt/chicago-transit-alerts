@@ -179,7 +179,7 @@ The top-level array is `incidents` — **one object per real-world disruption**.
       "agency": "cta",                  // "cta" or "metra"
       "mode": "train",                  // "train", "bus", or "commuter_rail"
       "routes": ["red"],                // CTA line names ('red',…), bus route numbers, or Metra codes ('up-n')
-      "sources": ["cta", "bot"],        // which observers contributed: "cta", "bot", or both
+      "sources": ["cta", "bot"],        // observers: "cta"/"metra" official agency alerts and/or "bot"
       "lifecycle": {
         "first_seen_ts": 1715199000000,
         "resolved_ts": null,            // null = still open
