@@ -34,7 +34,7 @@ import { flattenIncidents } from '../src/lib/incidents.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 // Public production feed by default; override with CTA_DATA_URL for a fork.
-const LIVE = process.env.CTA_DATA_URL || 'https://chicagotransitalerts.app/data/alerts.json';
+const LIVE = process.env.CTA_DATA_URL || 'https://data.chicagotransitalerts.app/alerts.json';
 
 function parseArgs(argv) {
   const out = {};

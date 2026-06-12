@@ -161,7 +161,7 @@ The site is a static React app — no backend, no database calls from the browse
 The same JSON the SPA reads is published at a stable URL:
 
 ```
-https://chicagotransitalerts.app/data/alerts.json
+https://data.chicagotransitalerts.app/alerts.json
 ```
 
 It's regenerated whenever the underlying data changes (typically every 7 minutes when there's activity) and served from GitHub Pages with no auth. Use it however you like — research, journalism, hobby dashboards, training data. Breaking changes to this shape are recorded in the [data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md) ([source](public/data/CHANGELOG.md)) — check it before pinning to the format.
@@ -255,7 +255,7 @@ Field-by-field documentation lives as JSDoc in [`src/lib/incidents.js`](src/lib/
 A flat CSV mirror is also published for spreadsheet and pandas users — the incidents are flattened to **one row per official alert or detection**, with an explicit `record_type` column:
 
 ```
-https://chicagotransitalerts.app/data/alerts.csv
+https://data.chicagotransitalerts.app/alerts.csv
 ```
 
 Columns: `record_type, incident_id, agency, mode, routes, source, status_type, headline, description, from_station, to_station, stations, direction, direction_label, first_seen_ts, onset_ts, resolved_ts, duration_minutes, active, post_url, resolved_post_url`. Timestamps are ISO 8601 (UTC); `routes` and `stations` are semicolon-separated when multi-valued. `onset_ts` is the disruption start for absence-style detections and is blank when not back-dated; `duration_minutes` is measured from `onset_ts` when present, else `first_seen_ts`. Regenerated alongside `alerts.json`.
