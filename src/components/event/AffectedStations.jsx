@@ -1,5 +1,5 @@
 import { TRAIN_LINE_ORDER } from '../../lib/ctaLines.js';
-import { splitObservations } from '../../lib/incidents.js';
+import { officialAlert, splitObservations } from '../../lib/incidents.js';
 import { displayStationName, linesServingStation, slugifyStation } from '../../lib/stations.js';
 import StationName from '../StationName.jsx';
 import { RowLabel } from './MiniTimeline.jsx';
@@ -98,7 +98,8 @@ export function linkifyMentionedStations(text, mentions, stationIndex) {
 }
 
 export function collectAffectedStations(incident) {
-  const cta = incident.cta;
+  const cta = officialAlert(incident);
+  const scope = cta?.scope ?? {};
   const { primary, extras } = splitObservations(incident);
   const seen = new Set();
   const out = [];
@@ -109,8 +110,8 @@ export function collectAffectedStations(incident) {
     seen.add(key);
     out.push(name);
   }
-  add(cta?.affected_from_station);
-  add(cta?.affected_to_station);
+  add(scope.from_station);
+  add(scope.to_station);
   add(primary?.from_station);
   add(primary?.to_station);
   // Every merged observation's endpoints, not just the primary's. A Loop-wide
@@ -125,7 +126,7 @@ export function collectAffectedStations(incident) {
   // pulled from the alert text ("delays at Monroe"). Include after the
   // segment endpoints so the canonical "from → to" still renders first when
   // both are present; the dedupe keeps overlap from doubling up.
-  for (const name of cta?.mentioned_stations || []) add(name);
+  for (const name of scope.mentioned_stations || []) add(name);
   // Upstream sometimes carries both a bare name (e.g. "Garfield" from the
   // headline) and its fully qualified counterpart ("Garfield (Green)" from
   // the extracted mentions) for the same physical station. Drop the bare

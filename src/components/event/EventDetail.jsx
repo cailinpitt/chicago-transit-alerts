@@ -24,9 +24,12 @@ import {
   flattenIncidents,
   formatEvidenceChip,
   formatRoutesLabel,
+  incidentLifecycle,
+  legacyKind,
   mergeMatchingIncidents,
   metraIncidentStatus,
   metraPointEvent,
+  officialAlert,
   SIGNAL_LABELS,
   splitObservations,
 } from '../../lib/incidents.js';
@@ -88,7 +91,7 @@ function SeverityBadge({ children, tone = 'amber', title }) {
 // west/in/out) — title-case it so the rendered chip reads "South" not
 // "south".
 function formatAffected(incident) {
-  const d = incident.cta?.affected_direction;
+  const d = officialAlert(incident)?.scope?.direction;
   if (!d) return null;
   return d.charAt(0).toUpperCase() + d.slice(1);
 }
@@ -178,19 +181,9 @@ function DurationScale({ stats }) {
 }
 
 export function EventDetail({ incident, incidents, alerts, observations, stationIndex, dark }) {
-  const cta = incident.cta;
-  // The official-source agency for this incident's alert block — "Metra" for
-  // Metra incidents (whose `cta` block holds Metra's own republished alert),
-  // "CTA" otherwise. Threaded through all the "Per CTA" / "via CTA" copy.
-  const agency = agencyLabel(incident.kind);
-  const { primary, extras } = splitObservations(incident);
-  const isMerged = !!cta && !!primary;
-  const isAlert = !!cta && !primary;
-  const isObsOnly = !cta;
-
   // Flat reconstruction of just this incident — reproduces the record the old
-  // client-side merge produced, so the helpers that still read the flat shape
-  // (cohort stats, affectedLineSegments) keep working unchanged.
+  // client-side merge produced, so the helpers and display branches that still
+  // read the flat shape keep working without mutating the v2 incident.
   const flatSubject = useMemo(() => {
     const f = flattenIncidents([incident]);
     const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
@@ -199,13 +192,24 @@ export function EventDetail({ incident, incidents, alerts, observations, station
     );
     return merged[0] ?? standaloneAlerts[0] ?? standaloneObs[0] ?? null;
   }, [incident]);
+  const cta = flatSubject?.alert_id ? flatSubject : null;
+  const kind = legacyKind(incident);
+  const lifecycle = incidentLifecycle(incident);
+  // The official-source agency for this incident's alert block — "Metra" for
+  // Metra incidents (whose `cta` block holds Metra's own republished alert),
+  // "CTA" otherwise. Threaded through all the "Per CTA" / "via CTA" copy.
+  const agency = agencyLabel(kind);
+  const { primary, extras } = splitObservations(incident);
+  const isMerged = !!cta && !!primary;
+  const isAlert = !!cta && !primary;
+  const isObsOnly = !cta;
 
   // For absence-style observations (pulse-cold/thin-gap) the export publishes an
   // onset_ts back-dated to the last observed train; use it as the start so
   // "First seen" lines up with the back-dated duration_ms instead of showing
   // the same minute for first/last seen.
-  const startTs = (isObsOnly ? (primary?.onset_ts ?? null) : null) ?? incident.first_seen_ts;
-  const endTs = incident.resolved_ts ?? null;
+  const startTs = (isObsOnly ? (primary?.onset_ts ?? null) : null) ?? lifecycle.first_seen_ts;
+  const endTs = lifecycle.resolved_ts ?? null;
   // Prefer the exported duration_ms when present — it reconciles with onset_ts
   // (resolved_ts - (onset_ts ?? ts)); the raw subtraction is the fallback.
   const durationMs =
@@ -219,13 +223,13 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // Wall-clock ticker (1-minute cadence) so an active incident shows a running
   // "ongoing for…" that advances without waiting on the 5-minute data poll.
   const now = useNow();
-  const elapsedMs = incident.active && startTs != null ? Math.max(0, now - startTs) : null;
+  const elapsedMs = lifecycle.active && startTs != null ? Math.max(0, now - startTs) : null;
 
   // ── Severity / context insights ──────────────────────────────────────────
   // All windowed off Date.now() at compute time (no `now` tick dependency) so
   // they recompute on data poll, not every minute. The label they share.
   const routes = incidentRoutes(incident);
-  const lineLabel = formatRoutesLabel(incident.kind, routes);
+  const lineLabel = formatRoutesLabel(kind, routes);
 
   // Line-wide severity: where this incident's duration ranks among ALL
   // incidents on the line over 30d (any signal, incl. pure CTA alerts).
@@ -275,7 +279,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   const botLead = computeBotLead({
     isMerged,
     ctaFirstSeenTs: cta?.first_seen_ts ?? null,
-    observations: incident.observations,
+    observations: [primary, ...extras].filter(Boolean),
   });
   const botLeadPhrase = botLead?.phrase ?? null;
   const botLeadOnsetTs = botLead?.onsetTs ?? null;
@@ -302,7 +306,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // estimate quietly hides the now-stale label instead of advertising it.
   const ctaEndIsDateOnly = cta?.cta_event_end_is_date_only === true;
   const activeEndPhrase =
-    incident.active && cta?.cta_event_end_ts != null
+    lifecycle.active && cta?.cta_event_end_ts != null
       ? formatEstimatedEnd(cta.cta_event_end_ts, undefined, { dateOnly: ctaEndIsDateOnly })
       : null;
   // Only show the parenthetical when it adds genuinely new info (a short
@@ -320,7 +324,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   const ctaEnd = cta?.cta_event_end_ts ?? null;
   const ctaEstimateBlock = computeCtaEstimate({
     ctaEndTs: ctaEnd,
-    resolvedTs: incident.resolved_ts ?? null,
+    resolvedTs: lifecycle.resolved_ts ?? null,
     dateOnly: ctaEndIsDateOnly,
   });
 
@@ -333,15 +337,15 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // While the incident is active, a paired obs's prior resolution doesn't end
   // it — surfacing it would imply a "back to normal" that hasn't happened, so
   // the obs resolution side is suppressed until the alert clears.
-  const obsResolvedTs = isMerged && !incident.active ? (primary?.resolved_ts ?? null) : null;
+  const obsResolvedTs = isMerged && !lifecycle.active ? (primary?.resolved_ts ?? null) : null;
   let stabilizationDelta = null;
   if (
     isMerged &&
-    incident.resolved_ts != null &&
+    lifecycle.resolved_ts != null &&
     obsResolvedTs != null &&
-    obsResolvedTs > incident.resolved_ts
+    obsResolvedTs > lifecycle.resolved_ts
   ) {
-    stabilizationDelta = formatStabilizationDelta(obsResolvedTs - incident.resolved_ts);
+    stabilizationDelta = formatStabilizationDelta(obsResolvedTs - lifecycle.resolved_ts);
   }
   const description = describe(incident, stationIndex);
   const affected = formatAffected(incident);
@@ -358,7 +362,8 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // null for single-line / pure-CTA incidents, which keep the flat chips.
   const stationsByLine = groupAffectedStationsByLine(segments);
   const resolvedUrl = cta ? (cta.resolved_reply_url ?? null) : (primary?.resolved_post_url ?? null);
-  const obsResolvedUrl = isMerged && !incident.active ? (primary?.resolved_post_url ?? null) : null;
+  const obsResolvedUrl =
+    isMerged && !lifecycle.active ? (primary?.resolved_post_url ?? null) : null;
   const eventId = incident.id;
   // The main post link: CTA's announcement when present, else the bot post.
   const primaryUrl = cta ? cta.post_url : (primary?.post_url ?? null);
@@ -388,11 +393,11 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   return (
     <article className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-6">
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <LinePill kind={incident.kind} routes={incident.routes} />
+        <LinePill kind={kind} routes={incident.routes} />
         {isMerged && (
           <>
             <span className="text-xs text-slate-500 dark:text-slate-400 italic">
-              via {agencyLabel(incident.kind)}
+              via {agencyLabel(kind)}
             </span>
             <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
             <span className="text-xs text-slate-500 dark:text-slate-400 italic">
@@ -402,7 +407,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         )}
         {isAlert && (
           <span className="text-xs text-slate-500 dark:text-slate-400 italic">
-            via {agencyLabel(incident.kind)}
+            via {agencyLabel(kind)}
           </span>
         )}
         {isObsOnly && (
@@ -423,12 +428,16 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         ) : metraStatus ? (
           <>
             <MetraPointBadge source={metraStatus.source} />
-            {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
+            {lifecycle.active && (
+              <span className="text-xs font-semibold text-red-500">ongoing</span>
+            )}
           </>
         ) : (
           <>
-            {incident.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
-            {!incident.active && incident.resolved_ts != null && (
+            {lifecycle.active && (
+              <span className="text-xs font-semibold text-red-500">ongoing</span>
+            )}
+            {!lifecycle.active && lifecycle.resolved_ts != null && (
               <span className="text-xs font-semibold text-green-600 dark:text-green-400">
                 resolved
               </span>
@@ -491,7 +500,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           CTA post. */}
       {isObsOnly && (
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 italic">
-          No matching {agencyLabel(incident.kind)} alert — surfaced from live vehicle tracking only.
+          No matching {agencyLabel(kind)} alert — surfaced from live vehicle tracking only.
         </p>
       )}
 
@@ -527,7 +536,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           incidents on record. The cross-street info is already in the bus
           alert headline, so the chips row adds nothing useful. */}
       {cta &&
-        incident.kind === 'train' &&
+        kind === 'train' &&
         (stationsByLine ? (
           <StationsByLine
             groups={stationsByLine}
@@ -541,7 +550,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
       {/* Metra: stations referenced in the alert text, resolved upstream to
           canonical GTFS names (free-text Metra names don't match the roster, so
           this can't be done in-line). Each links to its Metra station page. */}
-      {cta && incident.kind === 'metra' && cta.mentioned_stations?.length > 0 && (
+      {cta && kind === 'metra' && cta.mentioned_stations?.length > 0 && (
         <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
           <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">
             Stations
@@ -663,7 +672,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         // single "back to normal" sentence and the onset is a one-line marker.
         const entries = [];
         if (resolution)
-          entries.push({ key: 'resolved', ts: incident.resolved_ts, text: resolution });
+          entries.push({ key: 'resolved', ts: lifecycle.resolved_ts, text: resolution });
         entries.push({ key: 'detect', ts: primary.ts, text: detection, bullets });
         if (hasOnset) entries.push({ key: 'onset', ts: onsetTs, text: onsetText });
         return (
@@ -767,9 +776,9 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         // A cancellation is terminal but not "cleared" — no resolution entry
         // (and an annulment Metra dropped from the feed before this lifecycle
         // shipped may carry an old "resolved" reply we must not surface).
-        const hasResolved = !cancel && !incident.active && incident.resolved_ts != null;
+        const hasResolved = !cancel && !lifecycle.active && lifecycle.resolved_ts != null;
         const obsDetections = isMerged
-          ? (incident.observations || []).map((o) => ({
+          ? [primary, ...extras].filter(Boolean).map((o) => ({
               type: 'obs-detect',
               ts: o.onset_ts ?? o.ts,
               obs: o,
@@ -780,7 +789,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           ...obsDetections,
         ].sort((a, b) => b.ts - a.ts);
         if (hasResolved && entries.length > 0) {
-          entries.unshift({ type: 'cleared', ts: incident.resolved_ts });
+          entries.unshift({ type: 'cleared', ts: lifecycle.resolved_ts });
         }
         if (entries.length === 0) return null;
 
@@ -888,13 +897,13 @@ export function EventDetail({ incident, incidents, alerts, observations, station
                           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                             <StationName
                               name={e.obs.from_station}
-                              kind={incident.kind}
+                              kind={kind}
                               stationIndex={stationIndex}
                             />{' '}
                             →{' '}
                             <StationName
                               name={e.obs.to_station}
-                              kind={incident.kind}
+                              kind={kind}
                               stationIndex={stationIndex}
                             />
                           </p>
@@ -1046,17 +1055,20 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         {/* Date-only EventEnd on a resolved alert: no minute-precision
             comparison to make, so just show CTA's stated through-date as
             context. Skipped when the active block already covered it. */}
-        {!incident.active && ctaEndIsDateOnly && ctaEnd != null && incident.resolved_ts != null && (
-          <div
-            className="sm:col-span-2"
-            title="CTA posted this alert's EventEnd as a date with no time, so there's no minute-level comparison to make."
-          >
-            <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              CTA estimated end
-            </dt>
-            <dd className="text-slate-700 dark:text-slate-200">{formatDate(ctaEnd)}</dd>
-          </div>
-        )}
+        {!lifecycle.active &&
+          ctaEndIsDateOnly &&
+          ctaEnd != null &&
+          lifecycle.resolved_ts != null && (
+            <div
+              className="sm:col-span-2"
+              title="CTA posted this alert's EventEnd as a date with no time, so there's no minute-level comparison to make."
+            >
+              <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                CTA estimated end
+              </dt>
+              <dd className="text-slate-700 dark:text-slate-200">{formatDate(ctaEnd)}</dd>
+            </div>
+          )}
         {ctaEstimateBlock && (
           <div
             className="sm:col-span-2"
@@ -1094,12 +1106,12 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           Multi-line incidents (a Loop-wide alert that merged several
           per-line detections) use the combined map so every affected line
           shows its own stretch instead of one arbitrary line. */}
-      {incident.kind === 'train' &&
+      {kind === 'train' &&
         (incidentRoutes(incident).length > 1 ? (
           <MultiLineEventMap
             lineKeys={incidentRoutes(incident)}
             segments={segments}
-            active={!!incident.active}
+            active={!!lifecycle.active}
             sharedTrackage={sharedTrackage}
           />
         ) : (
@@ -1107,7 +1119,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             lineKey={Array.isArray(incident.routes) ? incident.routes[0] : null}
             fromStation={primary?.from_station ?? cta?.affected_from_station ?? null}
             toStation={primary?.to_station ?? cta?.affected_to_station ?? null}
-            active={!!incident.active}
+            active={!!lifecycle.active}
           />
         ))}
 
@@ -1115,13 +1127,13 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           the single-line EventMap — never the multi-line Loop variant. A
           cancellation (timetable, confirmed, or inferred) describes a train that
           never ran, so there's no stretch to map — suppress it. */}
-      {incident.kind === 'metra' && !isPointInTime && (
+      {kind === 'metra' && !isPointInTime && (
         <EventMap
           kind="metra"
           lineKey={Array.isArray(incident.routes) ? incident.routes[0] : null}
           fromStation={primary?.from_station ?? cta?.affected_from_station ?? null}
           toStation={primary?.to_station ?? cta?.affected_to_station ?? null}
-          active={!!incident.active}
+          active={!!lifecycle.active}
         />
       )}
 
@@ -1129,7 +1141,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           window across the schematic. Renders only when a track file exists
           for this event on the R2 origin (train incidents archived before the
           7-day raw-observation rolloff); otherwise EventReplay returns null. */}
-      {incident.kind === 'train' && (
+      {kind === 'train' && (
         <EventReplay
           eventId={incident.id}
           // Prefer the affected observation's own line so a multi-route incident
@@ -1205,7 +1217,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             lineLabel,
             dateText: formatDate(startTs),
             durationText: duration,
-            active: !!incident.active,
+            active: !!lifecycle.active,
             url: typeof window !== 'undefined' ? `${window.location.origin}/event/${eventId}` : '',
           })}
         />

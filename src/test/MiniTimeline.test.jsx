@@ -1,14 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { MiniTimeline } from '../components/event/MiniTimeline.jsx';
+import { incident as v2Incident } from './v2TestHelpers.js';
 
 // Build an incident + a sibling incident on the same day so the centered
 // window has at least one populated (linkable) cell.
 function fixture(kind, routes) {
   const ts = Date.now() - 60 * 60 * 1000; // an hour ago, safely inside the window
-  const incident = { id: 'evt', kind, routes, first_seen_ts: ts };
+  const incident = v2Incident({ id: 'evt', kind, routes, first_seen_ts: ts, cta: null });
   // A second incident on the same line/day guarantees a count>0 cell to link.
-  const sibling = { id: 'sib', kind, routes, first_seen_ts: ts };
+  const sibling = v2Incident({ id: 'sib', kind, routes, first_seen_ts: ts, cta: null });
   return { incident, incidents: [incident, sibling] };
 }
 
@@ -36,7 +37,13 @@ describe('MiniTimeline day links', () => {
 
   it('does not linkify empty days', () => {
     // A line with no incidents in the window renders only inert cells.
-    const incident = { id: 'evt', kind: 'train', routes: ['pink'], first_seen_ts: Date.now() };
+    const incident = v2Incident({
+      id: 'evt',
+      kind: 'train',
+      routes: ['pink'],
+      first_seen_ts: Date.now(),
+      cta: null,
+    });
     render(<MiniTimeline incident={incident} incidents={[incident]} dark={false} />);
     // The single self-incident day is linkable; every other cell is inert.
     const links = screen.queryAllByRole('link');

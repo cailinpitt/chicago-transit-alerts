@@ -13,7 +13,7 @@ import {
   formatDuration,
   formatWeekRange,
 } from '../lib/format.js';
-import { flattenIncidents, withRuntimeAliasesAll } from '../lib/incidents.js';
+import { flattenIncidents, incidentLifecycle } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc } from '../lib/urlState.js';
@@ -59,9 +59,7 @@ export default function WeekPage({ weekParam }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((fresh) =>
-        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
-      )
+      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
   }, [weekStartUtc]);
 
@@ -80,12 +78,12 @@ export default function WeekPage({ weekParam }) {
     const end = weekStartUtc + 6 * DAY_MS;
     return data.incidents
       .filter((inc) => {
-        const ts = inc.first_seen_ts ?? inc.ts;
+        const ts = incidentLifecycle(inc).first_seen_ts;
         if (ts == null) return false;
         const d = chicagoDayUTC(ts);
         return d >= weekStartUtc && d <= end;
       })
-      .sort((a, b) => (b.first_seen_ts ?? b.ts) - (a.first_seen_ts ?? a.ts));
+      .sort((a, b) => incidentLifecycle(b).first_seen_ts - incidentLifecycle(a).first_seen_ts);
   }, [data, weekStartUtc]);
 
   const stationIndex = useMemo(() => {

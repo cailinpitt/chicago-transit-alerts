@@ -2,8 +2,10 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { pickIncidents } from '../../scripts/prerender-events.js';
 import * as incidentsLib from '../lib/incidents.js';
 import { flattenIncidents } from '../lib/incidents.js';
+import { incident, officialAlertFromCta } from './v2TestHelpers.js';
 
 // Regression guard for a class of bug that shipped to production once already:
 // the incidents[] migration deleted `normalizeAlertsPayload` from
@@ -73,7 +75,7 @@ describe('flattenIncidents wire → flat contract', () => {
   const OBS_URL = 'https://bsky.app/profile/did:plc:xyz/post/3mkuutqcneg2h';
 
   const incidents = [
-    {
+    incident({
       id: '3ml5idb536d2c',
       kind: 'train',
       routes: ['red'],
@@ -94,14 +96,14 @@ describe('flattenIncidents wire → flat contract', () => {
           post_url: OBS_URL,
         },
       ],
-    },
-    {
+    }),
+    incident({
       id: '3mkomsa7xhv2i',
       kind: 'bus',
       routes: ['22'],
       cta: null,
       observations: [{ id: 2, kind: 'bus', line: '22', ts: NOW - 10 * 60_000, post_url: 'x' }],
-    },
+    }),
   ];
 
   it('expands cta blocks into flat alerts the export scripts read', () => {
@@ -123,6 +125,37 @@ describe('flattenIncidents wire → flat contract', () => {
     expect(observations).toHaveLength(2);
     expect(observations.map((o) => o._incidentId)).toEqual(['3ml5idb536d2c', '3mkomsa7xhv2i']);
     expect(observations[0]).toMatchObject({ post_url: OBS_URL, line: 'red' });
+  });
+
+  it('prerenders official-alert aliases for grouped v2 incidents', () => {
+    const primaryUrl = 'https://bsky.app/profile/did:plc:abc/post/primaryrkey';
+    const childUrl = 'https://bsky.app/profile/did:plc:abc/post/childrkey';
+    const grouped = incident({
+      id: 'primaryrkey',
+      kind: 'metra',
+      routes: ['bnsf', 'md-w'],
+      cta: {
+        alert_id: 'primary',
+        headline: 'Track Construction Saturday, June 13 through Sunday, June 14',
+        post_url: primaryUrl,
+      },
+      official_alerts: [
+        officialAlertFromCta({
+          alert_id: 'primary',
+          headline: 'Track Construction',
+          post_url: primaryUrl,
+        }),
+        officialAlertFromCta({
+          alert_id: 'child',
+          headline: 'Track Construction',
+          post_url: childUrl,
+        }),
+      ],
+    });
+    const flat = flattenIncidents([grouped]);
+    const picked = pickIncidents({ incidents: [grouped], ...flat });
+    expect([...picked.keys()].sort()).toEqual(['childrkey', 'primaryrkey']);
+    expect(picked.get('childrkey')).toBe(picked.get('primaryrkey'));
   });
 
   it('expands v2 official_alert and detections into the flat compatibility shape', () => {

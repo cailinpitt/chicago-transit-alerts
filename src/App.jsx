@@ -25,9 +25,9 @@ import {
   filterIncidents,
   flattenIncidents,
   incidentAgency,
+  incidentLifecycle,
   observationSignals,
   SOURCE_TYPES,
-  withRuntimeAliasesAll,
 } from './lib/incidents.js';
 import { gateIncidents } from './lib/metraGate.js';
 import { buildStationIndex } from './lib/stations.js';
@@ -209,7 +209,7 @@ export default function App() {
           // single load boundary so the split lives in exactly one place.
           const gated = {
             ...fresh,
-            incidents: withRuntimeAliasesAll(gateIncidents(fresh.incidents)),
+            incidents: gateIncidents(fresh.incidents),
           };
           setData((prev) => {
             // Only update if generated_at changed (or on first load).
@@ -280,8 +280,8 @@ export default function App() {
     // Each incident is already unified server-side, so the active set is just
     // the open incidents — no client-side merge needed.
     return agencyIncidents
-      .filter((inc) => inc.active)
-      .sort((a, b) => b.first_seen_ts - a.first_seen_ts);
+      .filter((inc) => incidentLifecycle(inc).active)
+      .sort((a, b) => incidentLifecycle(b).first_seen_ts - incidentLifecycle(a).first_seen_ts);
   }, [agencyIncidents]);
 
   // Split active incidents on the 24h elapsed mark. Long-runners (planned
@@ -292,7 +292,7 @@ export default function App() {
     const recent = [];
     const longRunning = [];
     for (const i of activeIncidents) {
-      const startTs = i.first_seen_ts ?? i.ts;
+      const startTs = incidentLifecycle(i).first_seen_ts;
       if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
       else recent.push(i);
     }

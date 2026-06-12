@@ -9,8 +9,19 @@ import { metraLineInfo, normalizeMetraLine } from '../lib/metraLines.js';
 const PILL_BASE =
   'inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity';
 
-export default function LinePill({ kind, line, routes }) {
+export default function LinePill({ kind, line, routes, linked = true }) {
   const keys = routes?.length > 0 ? routes : [line];
+  const chipClass = linked ? PILL_BASE : PILL_BASE.replace('cursor-pointer hover:opacity-80', '');
+  const renderChip = (key, href, className, children, props = {}) =>
+    linked ? (
+      <a key={key} href={href} className={className} {...props}>
+        {children}
+      </a>
+    ) : (
+      <span key={key} className={className} {...props}>
+        {children}
+      </span>
+    );
   return (
     <>
       {keys.map((key) => {
@@ -19,15 +30,12 @@ export default function LinePill({ kind, line, routes }) {
           // so the brand-colored pill shows the label as-is.
           const info = metraLineInfo(key);
           if (info) {
-            return (
-              <a
-                key={key}
-                href={`/metra/line/${normalizeMetraLine(key)}`}
-                className={PILL_BASE}
-                style={{ backgroundColor: info.color, color: info.textColor }}
-              >
-                {info.label}
-              </a>
+            return renderChip(
+              key,
+              `/metra/line/${normalizeMetraLine(key)}`,
+              chipClass,
+              info.label,
+              { style: { backgroundColor: info.color, color: info.textColor } },
             );
           }
           // Agency-wide Metra alert with no resolvable line (routes: []) — render
@@ -44,33 +52,17 @@ export default function LinePill({ kind, line, routes }) {
         }
         const info = kind === 'train' ? TRAIN_LINES[key] : null;
         if (info) {
-          return (
-            <a
-              key={key}
-              href={`/line/${key}`}
-              className={PILL_BASE}
-              style={{ backgroundColor: info.color, color: info.textColor }}
-            >
-              {info.label} Line
-            </a>
-          );
+          return renderChip(key, `/line/${key}`, chipClass, `${info.label} Line`, {
+            style: { backgroundColor: info.color, color: info.textColor },
+          });
         }
         const busLabel = kind === 'bus' ? formatBusRoute(key) : key;
-        return (
-          <a
-            key={key}
-            href={kind === 'bus' ? `/route/${key}` : '/'}
-            // max-w-full + an inner truncate keeps a long route name (e.g.
-            // #10 "Obama Presidential Center/Museum of Science & Industry")
-            // on one line, ellipsizing instead of wrapping into a ragged
-            // two-line pill when the container is narrow. The pill still
-            // shows its full width when there's room; the title carries the
-            // complete name for the truncated case.
-            className={`${PILL_BASE} bg-slate-700 text-white max-w-full`}
-            title={kind === 'bus' ? busLabel : undefined}
-          >
-            <span className="min-w-0 truncate">{busLabel}</span>
-          </a>
+        return renderChip(
+          key,
+          kind === 'bus' ? `/route/${key}` : '/',
+          `${chipClass} bg-slate-700 text-white max-w-full`,
+          <span className="min-w-0 truncate">{busLabel}</span>,
+          { title: kind === 'bus' ? busLabel : undefined },
         );
       })}
     </>

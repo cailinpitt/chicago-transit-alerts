@@ -16,6 +16,7 @@
 // cancellation object and keep the ordinary ongoing→resolved status.
 
 import { formatTime } from './format.js';
+import { officialAlert } from './incidents.js';
 
 /**
  * Normalize an incident's cancellation block, or null when it isn't a
@@ -24,7 +25,7 @@ import { formatTime } from './format.js';
  * @returns {{state:string,isUpcoming:boolean,isCancelled:boolean,departureTs:number|null,arrivalTs:number|null,trainNumber:string|null,origin:string|null}|null}
  */
 export function cancellationInfo(incident) {
-  const c = incident?.cancellation;
+  const c = incident?.status?.type === 'cancellation' ? incident.status : null;
   if (!c?.state) return null;
   return {
     state: c.state,
@@ -61,7 +62,7 @@ export function collectUpcomingCancellations(incidents, { now = Date.now() } = {
       trainNumber: info.trainNumber,
       departureTs: info.departureTs,
       origin: info.origin,
-      headline: inc.cta?.headline ?? null,
+      headline: officialAlert(inc)?.headline ?? null,
     });
   }
   return out.sort((a, b) => a.departureTs - b.departureTs);

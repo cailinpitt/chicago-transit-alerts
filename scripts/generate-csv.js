@@ -11,7 +11,6 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCsv } from '../src/lib/csv.js';
-import { withRuntimeAliasesAll } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,14 +28,11 @@ function main() {
   // The CSV mirror is Metra-aware (one flat row per record; the `kind` column
   // already distinguishes Metra rows), so opt in explicitly. The Node-default
   // gate stays CTA-only for the not-yet-Metra build outputs (OG-prerendered pages).
-  raw.incidents = withRuntimeAliasesAll(gateIncidents(raw.incidents || [], true));
+  raw.incidents = gateIncidents(raw.incidents || [], true);
   const csv = buildCsv(raw.incidents);
   writeFileSync(OUT, csv);
   const rowCount = raw.incidents.reduce(
-    (sum, inc) =>
-      sum +
-      (inc.official_alert || inc.cta ? 1 : 0) +
-      (inc.detections || inc.observations || []).length,
+    (sum, inc) => sum + (inc.official_alert ? 1 : 0) + (inc.detections || []).length,
     0,
   );
   console.log(`generate-csv: wrote ${rowCount} rows to ${OUT}`);

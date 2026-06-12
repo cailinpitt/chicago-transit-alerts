@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import EventNav from '../components/event/EventNav.jsx';
+import { incident } from './v2TestHelpers.js';
 
 const HOUR = 60 * 60 * 1000;
 const NOW = 1_700_000_000_000;
@@ -8,10 +9,10 @@ const NOW = 1_700_000_000_000;
 // Three blue-line incidents + one red, so the subject (middle blue) has a
 // same-line prev and a global prev/next that differ.
 const incidents = [
-  { id: 'older-blue', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 3 * HOUR },
-  { id: 'red-between', kind: 'train', routes: ['red'], first_seen_ts: NOW - 2 * HOUR },
-  { id: 'subject', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 1 * HOUR },
-  { id: 'newest', kind: 'train', routes: ['green'], first_seen_ts: NOW },
+  incident({ id: 'older-blue', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 3 * HOUR }),
+  incident({ id: 'red-between', kind: 'train', routes: ['red'], first_seen_ts: NOW - 2 * HOUR }),
+  incident({ id: 'subject', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 1 * HOUR }),
+  incident({ id: 'newest', kind: 'train', routes: ['green'], first_seen_ts: NOW }),
 ];
 
 describe('EventNav', () => {
@@ -34,7 +35,7 @@ describe('EventNav', () => {
   it('renders nothing when the subject is not in the list', () => {
     const { container } = render(
       <EventNav
-        incident={{ id: 'ghost', kind: 'train', routes: ['blue'] }}
+        incident={incident({ id: 'ghost', kind: 'train', routes: ['blue'] })}
         incidents={incidents}
       />,
     );

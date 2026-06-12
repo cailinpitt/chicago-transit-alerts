@@ -91,36 +91,132 @@ const makeObs = (overrides = {}) => ({
   ...overrides,
 });
 
-// Nested incident builders for the incidents-native filter/search tests.
-// `aInc` is a CTA-only incident, `oInc` a bot-only one. Top-level overrides
-// merge in; `cta`/`observations` overrides replace those sub-objects so a test
-// can shape the alert text or the observation's signals/stations.
+const modeForKind = (kind) => (kind === 'metra' ? 'commuter_rail' : kind);
+const agencyForKind = (kind) => (kind === 'metra' ? 'metra' : 'cta');
+const lifecycle = ({ first_seen_ts, ts, onset_ts, resolved_ts, active, duration_ms }) => ({
+  first_seen_ts: first_seen_ts ?? ts ?? null,
+  onset_ts: onset_ts ?? null,
+  resolved_ts: resolved_ts ?? null,
+  active: active ?? false,
+  duration_ms: duration_ms ?? null,
+});
+const detectionFromObs = (_kind, routes, obs = {}) => ({
+  id: obs.id ?? 1,
+  source: obs.detection_source ?? 'gap',
+  scope: {
+    route: obs.line ?? routes?.[0] ?? null,
+    direction: obs.direction ?? null,
+    direction_label: obs.direction_label ?? null,
+    from_station: obs.from_station ?? null,
+    to_station: obs.to_station ?? null,
+    stations: obs.stations ?? [],
+  },
+  lifecycle: lifecycle({
+    first_seen_ts: obs.first_seen_ts ?? obs.ts ?? NOW - DAY,
+    onset_ts: obs.onset_ts ?? null,
+    resolved_ts: obs.resolved_ts ?? NOW - DAY + 30 * 60_000,
+    active: obs.active ?? false,
+    duration_ms: obs.duration_ms ?? null,
+  }),
+  post_url: obs.post_url ?? null,
+  resolved_post_url: obs.resolved_post_url ?? null,
+  description: obs.bot_description ?? null,
+  evidence: {
+    signals: obs.signals ?? null,
+    details: obs.evidence ?? null,
+    bullets: obs.bot_evidence_bullets ?? [],
+    onset_description: obs.onset_description ?? null,
+    train_number: obs.train_number ?? null,
+    resolved_description: obs.bot_resolved_description ?? null,
+  },
+});
+const alertFromCta = (base, cta = {}) => ({
+  id: cta.alert_id ?? cta.id ?? 'a',
+  headline: cta.headline ?? 'Red Line Delays',
+  description: cta.short_description ?? cta.description ?? null,
+  post_url: cta.post_url ?? null,
+  resolved_reply_url: cta.resolved_reply_url ?? null,
+  lifecycle: lifecycle({
+    first_seen_ts: cta.first_seen_ts ?? base.first_seen_ts,
+    resolved_ts: cta.resolved_ts ?? base.resolved_ts,
+    active: cta.active ?? base.active,
+    duration_ms: cta.duration_ms ?? base.duration_ms,
+  }),
+  scope: {
+    from_station: cta.affected_from_station ?? cta.from_station ?? null,
+    to_station: cta.affected_to_station ?? cta.to_station ?? null,
+    stations: cta.affected_stations ?? cta.stations ?? [],
+    mentioned_stations: cta.mentioned_stations ?? [],
+    direction: cta.affected_direction ?? cta.direction ?? null,
+  },
+  agency_event_window: {
+    start_ts: cta.cta_event_start_ts ?? null,
+    end_ts: cta.cta_event_end_ts ?? null,
+    start_is_date_only: cta.cta_event_start_is_date_only ?? false,
+    end_is_date_only: cta.cta_event_end_is_date_only ?? false,
+  },
+  versions: cta.versions,
+});
+
+// Nested v2 incident builders for the incidents-native filter/search tests.
+// `aInc` is an official-alert-only incident, `oInc` a bot-only one. Overrides
+// use the old test vocabulary but are converted to the v2 wire shape here.
 let _incSeq = 0;
 const aInc = (over = {}) => {
-  const { cta, ...top } = over;
+  const {
+    kind = 'train',
+    routes = ['red'],
+    first_seen_ts = NOW - DAY,
+    resolved_ts = NOW - DAY + 30 * 60_000,
+    active = false,
+    cta,
+    observations,
+    metra_status,
+    ...top
+  } = over;
+  const base = { first_seen_ts, resolved_ts, active, duration_ms: top.duration_ms ?? null };
   return {
     id: `inc${_incSeq++}`,
-    kind: 'train',
-    routes: ['red'],
-    first_seen_ts: NOW - DAY,
-    resolved_ts: NOW - DAY + 30 * 60_000,
-    active: false,
-    cta: { alert_id: 'a', headline: 'Red Line Delays', ...cta },
-    observations: [],
+    agency: agencyForKind(kind),
+    mode: modeForKind(kind),
+    routes,
+    lifecycle: lifecycle(base),
+    sources: observations?.length ? [agencyForKind(kind), 'bot'] : [agencyForKind(kind)],
+    official_alert: alertFromCta(base, { alert_id: 'a', headline: 'Red Line Delays', ...cta }),
+    detections: (observations ?? []).map((o) => detectionFromObs(kind, routes, o)),
+    status: metra_status ? { type: metra_status.source, ...metra_status } : null,
     ...top,
   };
 };
 const oInc = (over = {}) => {
-  const { obs, ...top } = over;
+  const {
+    kind = 'train',
+    routes = ['red'],
+    first_seen_ts = NOW - DAY,
+    resolved_ts = NOW - DAY + 30 * 60_000,
+    active = false,
+    obs,
+    ...top
+  } = over;
+  const detection = {
+    id: 1,
+    kind,
+    line: routes[0],
+    ts: first_seen_ts,
+    resolved_ts,
+    active,
+    ...obs,
+  };
   return {
     id: `inc${_incSeq++}`,
-    kind: 'train',
-    routes: ['red'],
-    first_seen_ts: NOW - DAY,
-    resolved_ts: NOW - DAY + 30 * 60_000,
-    active: false,
-    cta: null,
-    observations: [{ id: 1, kind: 'train', line: 'red', ts: NOW - DAY, ...obs }],
+    agency: agencyForKind(kind),
+    mode: modeForKind(kind),
+    routes,
+    lifecycle: lifecycle({ first_seen_ts, resolved_ts, active, duration_ms: top.duration_ms }),
+    sources: ['bot'],
+    official_alert: null,
+    detections: [detectionFromObs(kind, routes, detection)],
+    status: null,
     ...top,
   };
 };
@@ -174,7 +270,7 @@ describe('filterIncidents', () => {
     const train = oInc({ obs: { id: 3, kind: 'train', line: 'red' } });
     const out = filterIncidents([bus, train], { showBus: false });
     expect(out).toHaveLength(1);
-    expect(out[0].kind).toBe('train');
+    expect(out[0].mode).toBe('train');
   });
 
   it('shows bus incidents independently of train line filter', () => {
@@ -195,7 +291,7 @@ describe('filterIncidents', () => {
     const train = aInc({ kind: 'train', routes: ['red'] });
     const out = filterIncidents([bus, train], { showBus: false });
     expect(out).toHaveLength(1);
-    expect(out[0].kind).toBe('train');
+    expect(out[0].mode).toBe('train');
   });
 
   // selectedDay narrows to a single Chicago calendar day. Reference day is the
@@ -629,23 +725,22 @@ describe('observationSignals', () => {
 });
 
 describe('metraPointEvent', () => {
-  const pointInc = (over = {}) => ({
-    id: 'metra-992',
-    kind: 'metra',
-    routes: ['bnsf'],
-    cta: null,
-    observations: [
-      {
+  const pointInc = (over = {}) =>
+    oInc({
+      id: 'metra-992',
+      kind: 'metra',
+      routes: ['bnsf'],
+      obs: {
         id: 'metra-992',
         detection_source: 'delay',
+        line: 'bnsf',
         from_station: 'Aurora',
         to_station: 'Chicago Union Station',
         direction_label: null,
         bot_description: '~57 min late — the 12:05 PM Chicago Union Station train',
         ...over,
       },
-    ],
-  });
+    });
 
   it('returns the kind, lede, and station pair for a delay', () => {
     expect(metraPointEvent(pointInc())).toEqual({
@@ -671,11 +766,26 @@ describe('metraPointEvent', () => {
   });
 
   it('returns null for non-point observations', () => {
-    expect(metraPointEvent({ cta: null, observations: [{ detection_source: 'gap' }] })).toBeNull();
+    expect(metraPointEvent(oInc({ kind: 'metra', obs: { detection_source: 'gap' } }))).toBeNull();
   });
 
   it('returns null for incidents carrying a Metra alert (merged)', () => {
-    expect(metraPointEvent({ ...pointInc(), cta: { headline: 'x' } })).toBeNull();
+    expect(
+      metraPointEvent(
+        aInc({
+          kind: 'metra',
+          routes: ['bnsf'],
+          cta: { headline: 'x' },
+          observations: [
+            {
+              detection_source: 'delay',
+              line: 'bnsf',
+              bot_description: '~57 min late — the 12:05 PM Chicago Union Station train',
+            },
+          ],
+        }),
+      ),
+    ).toBeNull();
   });
 });
 
@@ -692,31 +802,31 @@ describe('metraPointEventLabel', () => {
 describe('metraPointEventTitle', () => {
   it('uses train numbers for bot-only Metra delay titles', () => {
     expect(
-      metraPointEventTitle({
-        id: 'metra-991',
-        kind: 'metra',
-        routes: ['me'],
-        cta: null,
-        observations: [
-          {
+      metraPointEventTitle(
+        oInc({
+          id: 'metra-991',
+          kind: 'metra',
+          routes: ['me'],
+          obs: {
             detection_source: 'delay',
             line: 'me',
             train_number: '121',
             bot_description: '~70 min late — the 12:20 PM University Park train',
           },
-        ],
-      }),
+        }),
+      ),
     ).toBe('Metra Electric train #121 delayed');
   });
 
   it('returns null when a bot-only Metra point event has no train number', () => {
     expect(
-      metraPointEventTitle({
-        kind: 'metra',
-        routes: ['me'],
-        cta: null,
-        observations: [{ detection_source: 'delay', line: 'me' }],
-      }),
+      metraPointEventTitle(
+        oInc({
+          kind: 'metra',
+          routes: ['me'],
+          obs: { detection_source: 'delay', line: 'me' },
+        }),
+      ),
     ).toBeNull();
   });
 });
@@ -724,17 +834,18 @@ describe('metraPointEventTitle', () => {
 describe('metraIncidentStatus', () => {
   it('reads official Metra delay classifications', () => {
     expect(
-      metraIncidentStatus({
-        kind: 'metra',
-        cta: { headline: 'RID #426 Delayed' },
-        metra_status: { source: 'delay', train_number: '426' },
-        observations: [],
-      }),
+      metraIncidentStatus(
+        aInc({
+          kind: 'metra',
+          cta: { headline: 'RID #426 Delayed' },
+          metra_status: { source: 'delay', train_number: '426' },
+        }),
+      ),
     ).toEqual({ source: 'delay' });
   });
 
   it('falls back to official Metra alert text for older data', () => {
-    const incident = {
+    const incident = aInc({
       kind: 'metra',
       routes: ['ri'],
       cta: {
@@ -742,14 +853,13 @@ describe('metraIncidentStatus', () => {
         short_description:
           'RID train #426 is operating 30 to 35 minutes behind schedule due to switch problems.',
       },
-      observations: [],
-    };
+    });
     expect(metraIncidentStatus(incident)).toEqual({ source: 'delay' });
     expect(incidentHeadlineText(incident)).toBe('Rock Island train #426 delayed');
   });
 
   it('treats construction delay advisories as planned work, not train-level delays', () => {
-    const incident = {
+    const incident = aInc({
       kind: 'metra',
       routes: ['md-w'],
       cta: {
@@ -758,8 +868,7 @@ describe('metraIncidentStatus', () => {
           'Track construction will be taking place on Saturday, June 13 through Sunday, June 14. Trains may incur delays enroute up to 20 minutes behind scheduled passing through the work zone.',
       },
       metra_status: { source: 'delay', train_number: null },
-      observations: [],
-    };
+    });
     expect(metraIncidentStatus(incident)).toEqual({ source: 'planned-delay' });
     expect(incidentHeadlineText(incident)).toBe(
       'Track Construction Saturday, June 13 through Sunday, June 14',
@@ -874,11 +983,11 @@ describe('filterIncidents signal filter', () => {
       signals: ['gap'],
     });
     expect(r).toHaveLength(1);
-    expect(r[0].cta).toBeNull();
+    expect(r[0].official_alert).toBeNull();
   });
 
   it('keeps a merged incident whole when one of its observations matches', () => {
-    const merged = {
+    const merged = aInc({
       id: 'm1',
       kind: 'train',
       routes: ['red'],
@@ -887,10 +996,10 @@ describe('filterIncidents signal filter', () => {
       active: false,
       cta: { alert_id: 'a', headline: 'Red Line Delays', first_seen_ts: NOW - DAY },
       observations: [{ id: 1, kind: 'train', line: 'red', detection_source: 'gap', ts: NOW - DAY }],
-    };
+    });
     const r = filterIncidents([merged], { signals: ['gap'] });
     expect(r).toHaveLength(1);
-    expect(r[0].cta).not.toBeNull();
+    expect(r[0].official_alert).not.toBeNull();
   });
 });
 
@@ -1142,27 +1251,9 @@ describe('buildDailyTrend', () => {
 // findRelatedIncidents
 // ---------------------------------------------------------------------------
 describe('findRelatedIncidents', () => {
-  // Nested incident wire shape: top-level id/kind/routes/first_seen_ts with a
-  // nullable cta block and observations[]. findRelatedIncidents reads these
-  // directly now that pairing happens server-side.
-  const alertIncident = (over) => ({
-    kind: 'train',
-    routes: ['red'],
-    resolved_ts: null,
-    active: false,
-    cta: { alert_id: over.id },
-    observations: [],
-    ...over,
-  });
-  const botIncident = (over) => ({
-    kind: 'train',
-    routes: ['red'],
-    resolved_ts: null,
-    active: false,
-    cta: null,
-    observations: [{ id: 1 }],
-    ...over,
-  });
+  const alertIncident = (over) =>
+    aInc({ resolved_ts: null, active: false, cta: { alert_id: over.id }, ...over });
+  const botIncident = (over) => oInc({ resolved_ts: null, active: false, obs: { id: 1 }, ...over });
 
   const self = alertIncident({ id: 'self', first_seen_ts: NOW });
 

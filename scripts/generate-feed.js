@@ -20,7 +20,6 @@ import {
   postUrlRkey,
   SIGNAL_LABELS,
   summarizeSignals,
-  withRuntimeAliasesAll,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../src/lib/metraLines.js';
@@ -445,7 +444,7 @@ function main() {
   // Feeds (global + per-line) and the CSV are Metra-aware, so opt in explicitly
   // (showMetra=true) — the Node-default gate stays CTA-only for the not-yet-Metra
   // build outputs (OG-prerendered event/sitemap pages).
-  raw.incidents = withRuntimeAliasesAll(gateIncidents(raw.incidents || [], true));
+  raw.incidents = gateIncidents(raw.incidents || [], true);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
     payload.alerts || [],

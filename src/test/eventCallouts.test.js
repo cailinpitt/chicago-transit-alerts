@@ -7,6 +7,7 @@ import {
   findIncidentNeighbors,
   formatLeadTime,
 } from '../components/event/callouts.js';
+import { incident } from './v2TestHelpers.js';
 
 const MIN = 60_000;
 const HOUR = 60 * MIN;
@@ -115,10 +116,10 @@ describe('computeCtaEstimate', () => {
 
 describe('findIncidentNeighbors', () => {
   const incidents = [
-    { id: 'a', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 3 * HOUR },
-    { id: 'b', kind: 'train', routes: ['red'], first_seen_ts: NOW - 2 * HOUR },
-    { id: 'c', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 1 * HOUR },
-    { id: 'd', kind: 'bus', routes: ['66'], first_seen_ts: NOW },
+    incident({ id: 'a', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 3 * HOUR }),
+    incident({ id: 'b', kind: 'train', routes: ['red'], first_seen_ts: NOW - 2 * HOUR }),
+    incident({ id: 'c', kind: 'train', routes: ['blue'], first_seen_ts: NOW - 1 * HOUR }),
+    incident({ id: 'd', kind: 'bus', routes: ['66'], first_seen_ts: NOW }),
   ];
 
   it('walks global chronological neighbors', () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { findIncidentById, formatRoutesLabel, postUrlRkey } from '../lib/incidents.js';
+import { incident } from './v2TestHelpers.js';
 
 const ALERT_URL = 'https://bsky.app/profile/did:plc:abc/post/3ml5idb536d2c';
 const OBS_URL = 'https://bsky.app/profile/did:plc:xyz/post/3mkuutqcneg2h';
@@ -11,7 +12,7 @@ const NOW = 1_000_000_000_000;
 // top-level incident whose `id` is the canonical event rkey, with a nullable
 // `cta` block and an `observations[]` list. A merged incident carries both; a
 // bot-only incident has `cta: null`.
-const mergedIncident = {
+const mergedIncident = incident({
   id: '3ml5idb536d2c', // = alert post rkey
   kind: 'train',
   routes: ['red'],
@@ -38,9 +39,9 @@ const mergedIncident = {
       post_url: OBS_URL,
     },
   ],
-};
+});
 
-const botOnlyIncident = {
+const botOnlyIncident = incident({
   id: '3mkomsa7xhv2i', // = obs post rkey
   kind: 'bus',
   routes: ['66'],
@@ -60,7 +61,7 @@ const botOnlyIncident = {
       post_url: STANDALONE_OBS_URL,
     },
   ],
-};
+});
 
 describe('postUrlRkey', () => {
   it('extracts the rkey from a Bluesky post URL', () => {
@@ -86,21 +87,38 @@ describe('findIncidentById', () => {
   it('finds a merged incident by its top-level id (alert post rkey)', () => {
     const found = findIncidentById(incidents, '3ml5idb536d2c');
     expect(found).not.toBeNull();
-    expect(found.cta?.alert_id).toBe('a1');
-    expect(found.observations).toHaveLength(1);
+    expect(found.official_alert?.id).toBe('a1');
+    expect(found.detections).toHaveLength(1);
   });
 
   it('finds a merged incident by one of its observation post rkeys', () => {
     const found = findIncidentById(incidents, '3mkuutqcneg2h');
     expect(found).not.toBeNull();
-    expect(found.cta?.alert_id).toBe('a1');
+    expect(found.official_alert?.id).toBe('a1');
   });
 
   it('finds a bot-only incident by its observation post rkey', () => {
     const found = findIncidentById(incidents, '3mkomsa7xhv2i');
     expect(found).not.toBeNull();
-    expect(found.cta).toBeNull();
-    expect(found.observations[0].id).toBe(2);
+    expect(found.official_alert).toBeNull();
+    expect(found.detections[0].id).toBe(2);
+  });
+
+  it('finds a grouped incident by any official alert rkey alias', () => {
+    const grouped = incident({
+      id: 'canonical',
+      kind: 'metra',
+      routes: ['bnsf', 'md-w'],
+      official_alerts: [
+        { ...mergedIncident.official_alert, post_url: ALERT_URL },
+        {
+          ...mergedIncident.official_alert,
+          id: 'child',
+          post_url: 'https://bsky.app/profile/did:plc:abc/post/childrkey',
+        },
+      ],
+    });
+    expect(findIncidentById([grouped], 'childrkey')).toBe(grouped);
   });
 
   it('returns null for an unknown id', () => {

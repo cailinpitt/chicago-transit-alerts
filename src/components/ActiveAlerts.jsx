@@ -10,8 +10,11 @@ import {
   botSummaryText,
   formatEvidenceChip,
   incidentHeadlineText,
+  incidentLifecycle,
+  legacyKind,
   metraIncidentStatus,
   metraPointEventTitle,
+  officialAlert,
   splitObservations,
 } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
@@ -32,8 +35,8 @@ const BUS_COLOR = '#64748b';
 function incidentColors(incident) {
   // Brand-color palette by agency. Buses (and any unknown kind) have no
   // per-route colors, so they fall back to the shared slate tint.
-  const palette =
-    incident.kind === 'train' ? TRAIN_LINES : incident.kind === 'metra' ? METRA_LINES : null;
+  const kind = legacyKind(incident);
+  const palette = kind === 'train' ? TRAIN_LINES : kind === 'metra' ? METRA_LINES : null;
   if (palette && Array.isArray(incident.routes) && incident.routes.length > 0) {
     return incident.routes.map((r) => palette[r]?.color ?? BUS_COLOR);
   }
@@ -120,7 +123,7 @@ const ACTIVE_CARD_PILL_LIMIT = 4;
 // the compact row can fall back to when stations are missing (compact rows
 // are single-line, no nested links).
 function describeIncident(incident, stationIndex) {
-  if (incident.cta) {
+  if (officialAlert(incident)) {
     const headline = incidentHeadlineText(incident);
     return { description: headline, descriptionText: headline };
   }
@@ -164,7 +167,10 @@ function elapsed(now, startTs) {
 // one, and stacking six of them reads as anxiety, not information.
 function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
   const { primary } = splitObservations(incident);
-  const startTs = incident.first_seen_ts;
+  const kind = legacyKind(incident);
+  const alert = officialAlert(incident);
+  const lifecycle = incidentLifecycle(incident);
+  const startTs = lifecycle.first_seen_ts;
   const elapsedText = elapsed(now, startTs);
   // Single-train cancellation: show the schedule, not an "ongoing" elapsed timer.
   const cancel = cancellationInfo(incident);
@@ -173,19 +179,19 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
   // The cohort key buckets on kind + line + signal; for a nested incident that
   // comes off the primary observation (CTA-only incidents have no signal key).
   const typicalKey = typicalDurationKey({
-    kind: incident.kind,
+    kind,
     line: primary?.line,
     detection_source: primary?.detection_source,
   });
   const typical = typicalKey && typicalDurations ? typicalDurations.get(typicalKey) : null;
   const typicalText =
     typical && typical.count >= TYPICAL_MIN_COUNT ? formatDuration(typical.medianMs) : null;
-  const estimatedEndText = formatEstimatedEnd(incident.cta?.cta_event_end_ts, now, {
-    dateOnly: incident.cta?.cta_event_end_is_date_only === true,
+  const estimatedEndText = formatEstimatedEnd(alert?.agency_event_window?.end_ts, now, {
+    dateOnly: alert?.agency_event_window?.end_is_date_only === true,
   });
   const { description } = describeIncident(incident, stationIndex);
   const eventId = incident.id;
-  const postUrl = incident.cta ? incident.cta.post_url : (primary?.post_url ?? null);
+  const postUrl = alert ? alert.post_url : (primary?.post_url ?? null);
 
   const allRoutes = Array.isArray(incident.routes) ? incident.routes : [];
   // Responsive split: the first chunk shows at every width; the next chunk
@@ -221,12 +227,12 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
           unclickable for navigation. */}
       <div className="relative z-10 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-          <LinePill kind={incident.kind} routes={mobileRoutes} />
+          <LinePill kind={kind} routes={mobileRoutes} />
           {/* Extra pills shown only on sm+ — `contents` so the <a>s flow into
               the same wrap row rather than nesting in a box. */}
           {desktopOnlyRoutes.length > 0 && (
             <span className="hidden sm:contents">
-              <LinePill kind={incident.kind} routes={desktopOnlyRoutes} />
+              <LinePill kind={kind} routes={desktopOnlyRoutes} />
             </span>
           )}
           {mobileOverflow > 0 && (
@@ -281,7 +287,7 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex }) {
           {description}
         </p>
         {(() => {
-          const chip = incident.cta ? null : formatEvidenceChip(primary);
+          const chip = alert ? null : formatEvidenceChip(primary);
           if (!chip) return null;
           return (
             <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
@@ -319,7 +325,8 @@ const COMPACT_PILL_LIMIT = 1;
 // capped and the description is truncated so the row stays exactly one line
 // regardless of how many routes the alert touches.
 function ActiveRow({ incident, now, isNew }) {
-  const startTs = incident.first_seen_ts;
+  const kind = legacyKind(incident);
+  const startTs = incidentLifecycle(incident).first_seen_ts;
   const cancel = cancellationInfo(incident);
   const metraStatus = !cancel ? metraIncidentStatus(incident) : null;
   const elapsedText = cancel ? cancellationStatusLabel(cancel) : elapsed(now, startTs);
@@ -336,7 +343,7 @@ function ActiveRow({ incident, now, isNew }) {
   const inner = (
     <>
       <span className="flex items-center gap-1 flex-shrink-0">
-        <LinePill kind={incident.kind} routes={shownRoutes} />
+        <LinePill kind={kind} routes={shownRoutes} linked={false} />
         {overflowCount > 0 && (
           <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
             +{overflowCount}
@@ -371,7 +378,7 @@ function ActiveRow({ incident, now, isNew }) {
 function ActiveMiniGantt({ incidents, now }) {
   if (incidents.length < 2) return null;
 
-  const starts = incidents.map((i) => i.first_seen_ts).filter((t) => t != null);
+  const starts = incidents.map((i) => incidentLifecycle(i).first_seen_ts).filter((t) => t != null);
   if (starts.length === 0) return null;
   const earliest = Math.min(...starts);
   const rawSpan = Math.max(now - earliest, GANTT_MIN_SPAN_MS);
@@ -383,7 +390,9 @@ function ActiveMiniGantt({ incidents, now }) {
   const leftLabel = formatDuration(span);
 
   // Oldest at top so the eye reads down the list as time progresses.
-  const sorted = [...incidents].sort((a, b) => a.first_seen_ts - b.first_seen_ts);
+  const sorted = [...incidents].sort(
+    (a, b) => incidentLifecycle(a).first_seen_ts - incidentLifecycle(b).first_seen_ts,
+  );
 
   return (
     <div className="bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 px-3 py-2.5 mb-2">
@@ -392,7 +401,8 @@ function ActiveMiniGantt({ incidents, now }) {
       </p>
       <div className="space-y-1">
         {sorted.map((incident) => {
-          const start = incident.first_seen_ts;
+          const kind = legacyKind(incident);
+          const start = incidentLifecycle(incident).first_seen_ts;
           // Position bars against the bucketed axis: a bar's natural width
           // is its duration over the rounded span, anchored to the right edge
           // (`now`). The longest-running incident no longer pins to 0% — its
@@ -410,9 +420,9 @@ function ActiveMiniGantt({ incidents, now }) {
           const eventId = incident.id;
           const routesForLabel = Array.isArray(incident.routes) ? incident.routes : [];
           const routesLabel =
-            incident.kind === 'train'
+            kind === 'train'
               ? routesForLabel.map((r) => TRAIN_LINES[r]?.label ?? r).join(' + ')
-              : incident.kind === 'metra'
+              : kind === 'metra'
                 ? routesForLabel.map((r) => METRA_LINES[r]?.label ?? r).join(' + ')
                 : routesForLabel.map((r) => `#${r}`).join(' + ');
           const elapsedText = elapsed(now, start);

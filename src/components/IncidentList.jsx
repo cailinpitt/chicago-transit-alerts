@@ -19,9 +19,12 @@ import {
   botSummaryText,
   formatEvidenceChip,
   incidentHeadlineText,
+  incidentLifecycle,
+  legacyKind,
   metraIncidentStatus,
   metraPointEvent,
   metraPointEventTitle,
+  officialAlert,
   splitObservations,
 } from '../lib/incidents.js';
 import HighlightedText from './HighlightedText.jsx';
@@ -38,14 +41,15 @@ const PAGE_SIZE = 25;
 // any extra bot observations merged into the same incident. Each entry has
 // `url` and `label` so the renderer doesn't have to re-derive labels.
 function getSources(incident) {
-  const cta = incident.cta;
+  const cta = officialAlert(incident);
+  const kind = legacyKind(incident);
   const { primary, extras } = splitObservations(incident);
   const out = [];
   if (cta?.post_url) {
     // Merged → "Via CTA"/"Via Metra" (the bot post follows); pure alert → "View on Bluesky".
     out.push({
       url: cta.post_url,
-      label: primary ? `Via ${agencyLabel(incident.kind)}` : 'View on Bluesky',
+      label: primary ? `Via ${agencyLabel(kind)}` : 'View on Bluesky',
     });
   } else if (primary?.post_url) {
     // Bot-only incident: the observation post is the main source.
@@ -73,7 +77,9 @@ function getSources(incident) {
 }
 
 function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
-  const cta = incident.cta;
+  const cta = officialAlert(incident);
+  const kind = legacyKind(incident);
+  const lifecycle = incidentLifecycle(incident);
   const { primary } = splitObservations(incident);
   const isMerged = !!cta && !!primary;
   const isAlert = !!cta && !primary;
@@ -118,8 +124,8 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
   })();
   const isMultiLineSegments = lineGroups.length > 1;
 
-  const startTs = incident.first_seen_ts || primary?.ts;
-  const endTs = incident.resolved_ts ?? null;
+  const startTs = lifecycle.first_seen_ts || primary?.ts;
+  const endTs = lifecycle.resolved_ts ?? null;
   // Prefer exported duration_ms (back-dated for absence-style observations).
   const durationMs =
     (isObsOnly ? (primary?.duration_ms ?? null) : null) ?? (endTs != null ? endTs - startTs : null);
@@ -127,13 +133,13 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
 
   // Only render the stabilization chip when CTA cleared the alert before the
   // bot saw sustained recovery — that gap is the felt return-to-normal lag.
-  const obsResolvedTs = isMerged && !incident.active ? (primary?.resolved_ts ?? null) : null;
+  const obsResolvedTs = isMerged && !lifecycle.active ? (primary?.resolved_ts ?? null) : null;
   const stabilizationDelta =
     isMerged &&
-    incident.resolved_ts != null &&
+    lifecycle.resolved_ts != null &&
     obsResolvedTs != null &&
-    obsResolvedTs > incident.resolved_ts
-      ? formatStabilizationDelta(obsResolvedTs - incident.resolved_ts)
+    obsResolvedTs > lifecycle.resolved_ts
+      ? formatStabilizationDelta(obsResolvedTs - lifecycle.resolved_ts)
       : null;
 
   // The description is either highlightable text (alerts/roundups) or a JSX
@@ -154,14 +160,14 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
       <>
         <StationName
           name={obsFrom}
-          kind={incident.kind}
+          kind={kind}
           stationIndex={stationIndex}
           searchQuery={searchQuery}
         />{' '}
         →{' '}
         <StationName
           name={obsTo}
-          kind={incident.kind}
+          kind={kind}
           stationIndex={stationIndex}
           searchQuery={searchQuery}
         />
@@ -205,16 +211,12 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            <LinePill kind={incident.kind} routes={incident.routes} />
+            <LinePill kind={kind} routes={incident.routes} />
             {isMerged && (
               <>
                 <span className="inline-flex items-center text-xs text-slate-500 dark:text-slate-400 italic">
-                  via {agencyLabel(incident.kind)}
-                  <OfficialBadge
-                    agency={agencyLabel(incident.kind)}
-                    size="w-3 h-3"
-                    className="ml-1"
-                  />
+                  via {agencyLabel(kind)}
+                  <OfficialBadge agency={agencyLabel(kind)} size="w-3 h-3" className="ml-1" />
                 </span>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 italic">
@@ -224,12 +226,8 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             )}
             {isAlert && (
               <span className="inline-flex items-center text-xs text-slate-500 dark:text-slate-400 italic">
-                via {agencyLabel(incident.kind)}
-                <OfficialBadge
-                  agency={agencyLabel(incident.kind)}
-                  size="w-3 h-3"
-                  className="ml-1"
-                />
+                via {agencyLabel(kind)}
+                <OfficialBadge agency={agencyLabel(kind)} size="w-3 h-3" className="ml-1" />
               </span>
             )}
             {isObsOnly && (
@@ -261,7 +259,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
               <>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
                 <MetraPointBadge source={metraStatus.source} />
-                {incident.active && (
+                {lifecycle.active && (
                   <>
                     <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
                     <span className="text-xs font-semibold text-red-500">ongoing</span>
@@ -278,21 +276,21 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                     </span>
                   </>
                 )}
-                {!endTs && !incident.active && (
+                {!endTs && !lifecycle.active && (
                   <span className="text-xs text-slate-500 dark:text-slate-400">
                     duration unknown
                   </span>
                 )}
-                {incident.active && (
+                {lifecycle.active && (
                   <span className="text-xs font-semibold text-red-500">ongoing</span>
                 )}
               </>
             )}
-            {incident.active &&
-              cta?.cta_event_end_ts != null &&
+            {lifecycle.active &&
+              cta?.agency_event_window?.end_ts != null &&
               (() => {
-                const phrase = formatEstimatedEnd(cta.cta_event_end_ts, undefined, {
-                  dateOnly: cta.cta_event_end_is_date_only === true,
+                const phrase = formatEstimatedEnd(cta.agency_event_window.end_ts, undefined, {
+                  dateOnly: cta.agency_event_window.end_is_date_only === true,
                 });
                 if (!phrase) return null;
                 return (
@@ -307,7 +305,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                   </>
                 );
               })()}
-            {!incident.active && cta?.cta_event_end_ts != null && (
+            {!lifecycle.active && cta?.agency_event_window?.end_ts != null && (
               <>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
                 <span
@@ -315,9 +313,9 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                   title="CTA tagged this alert with an estimated end time when it was posted."
                 >
                   CTA estimated end{' '}
-                  {cta.cta_event_end_is_date_only === true
-                    ? formatChicagoDay(chicagoDayUTC(cta.cta_event_end_ts))
-                    : formatTime(cta.cta_event_end_ts)}
+                  {cta.agency_event_window.end_is_date_only === true
+                    ? formatChicagoDay(chicagoDayUTC(cta.agency_event_window.end_ts))
+                    : formatTime(cta.agency_event_window.end_ts)}
                 </span>
               </>
             )}
@@ -366,14 +364,14 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               <StationName
                 name={obsFrom}
-                kind={incident.kind}
+                kind={kind}
                 stationIndex={stationIndex}
                 searchQuery={searchQuery}
               />{' '}
               →{' '}
               <StationName
                 name={obsTo}
-                kind={incident.kind}
+                kind={kind}
                 stationIndex={stationIndex}
                 searchQuery={searchQuery}
               />
@@ -386,14 +384,14 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               <StationName
                 name={obsFrom}
-                kind={incident.kind}
+                kind={kind}
                 stationIndex={stationIndex}
                 searchQuery={searchQuery}
               />{' '}
               →{' '}
               <StationName
                 name={obsTo}
-                kind={incident.kind}
+                kind={kind}
                 stationIndex={stationIndex}
                 searchQuery={searchQuery}
               />
@@ -404,9 +402,9 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
           {stabilizationDelta && (
             <span
               className="inline-flex items-center mt-1.5 mr-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300"
-              title={`Time from ${agencyLabel(incident.kind)} clearing the alert until the bot saw sustained normal service. Reflects the felt return-to-normal, not just ${agencyLabel(incident.kind)}'s bookkeeping.`}
+              title={`Time from ${agencyLabel(kind)} clearing the alert until the bot saw sustained normal service. Reflects the felt return-to-normal, not just ${agencyLabel(kind)}'s bookkeeping.`}
             >
-              Stabilized {stabilizationDelta} after {agencyLabel(incident.kind)} cleared
+              Stabilized {stabilizationDelta} after {agencyLabel(kind)} cleared
             </span>
           )}
 
@@ -565,7 +563,7 @@ export default function IncidentList({
   // Each incident is already one row — just order newest-first by start.
   const combined = useMemo(() => {
     const all = [...(incidents || [])];
-    all.sort((a, b) => b.first_seen_ts - a.first_seen_ts);
+    all.sort((a, b) => incidentLifecycle(b).first_seen_ts - incidentLifecycle(a).first_seen_ts);
     return all;
   }, [incidents]);
 
@@ -581,13 +579,13 @@ export default function IncidentList({
   const groups = useMemo(() => {
     const totalsByDay = new Map();
     for (const inc of combined) {
-      const key = chicagoDayUTC(inc.first_seen_ts);
+      const key = chicagoDayUTC(incidentLifecycle(inc).first_seen_ts);
       totalsByDay.set(key, (totalsByDay.get(key) || 0) + 1);
     }
     const out = [];
     let current = null;
     for (const inc of visible) {
-      const key = chicagoDayUTC(inc.first_seen_ts);
+      const key = chicagoDayUTC(incidentLifecycle(inc).first_seen_ts);
       if (!current || current.dayUtc !== key) {
         current = { dayUtc: key, total: totalsByDay.get(key) || 0, incidents: [] };
         out.push(current);

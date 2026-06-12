@@ -12,7 +12,7 @@ import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatDate, formatDuration, formatTime } from '../lib/format.js';
-import { flattenIncidents, formatRoutesLabel, withRuntimeAliasesAll } from '../lib/incidents.js';
+import { flattenIncidents, formatRoutesLabel } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import Breadcrumb from './Breadcrumb.jsx';
 import Footer from './Footer.jsx';
@@ -122,9 +122,7 @@ export default function StatsPage() {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((fresh) =>
-        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
-      )
+      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
   }, []);
 

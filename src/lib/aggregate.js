@@ -4,9 +4,13 @@
 import { TRAIN_LINE_ORDER } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
 import {
+  incidentDetections,
+  incidentLifecycle,
+  legacyKind,
   mergeMatchingIncidents,
   metraIncidentStatus,
   observationSignals,
+  officialAlert,
   postUrlRkey,
   SIGNAL_TYPES,
 } from './incidents.js';
@@ -1628,29 +1632,28 @@ export function computeMetraStatusCounts(
     (line == null && Array.isArray(routes) && routes.includes(lineFilter));
 
   for (const inc of incidents || []) {
-    if (inc.kind !== 'metra') continue;
+    if (legacyKind(inc) !== 'metra') continue;
     const routes = inc.routes || [];
     if (lineFilter && !routes.includes(lineFilter)) continue;
 
     let countedObservation = false;
-    for (const o of inc.observations || []) {
-      if (o.ts == null || o.ts < cutoff) continue;
-      if (!observationInLine(o.line, routes)) continue;
-      if (o.detection_source === 'delay') {
+    for (const o of incidentDetections(inc)) {
+      const lifecycle = o.lifecycle ?? {};
+      const scope = o.scope ?? {};
+      if (lifecycle.first_seen_ts == null || lifecycle.first_seen_ts < cutoff) continue;
+      if (!observationInLine(scope.route, routes)) continue;
+      if (o.source === 'delay') {
         delays += 1;
         countedObservation = true;
-      } else if (
-        o.detection_source === 'cancellation' ||
-        o.detection_source === 'cancellation-inferred'
-      ) {
+      } else if (o.source === 'cancellation' || o.source === 'cancellation-inferred') {
         cancellations += 1;
         countedObservation = true;
       }
     }
 
     if (countedObservation) continue;
-    if (!inc.cta) continue;
-    const ts = inc.first_seen_ts ?? inc.cta?.first_seen_ts ?? null;
+    if (!officialAlert(inc)) continue;
+    const ts = incidentLifecycle(inc).first_seen_ts;
     if (ts == null || ts < cutoff) continue;
     const source = metraIncidentStatus(inc)?.source;
     if (source === 'delay') delays += 1;
@@ -1948,14 +1951,15 @@ export function computeYearOverYear(
 // for still-active incidents (no honest endpoint) — severity framing is
 // retrospective, so an open incident gets no rank.
 function incidentSpanMs(inc) {
-  if (inc.resolved_ts == null || inc.first_seen_ts == null) return null;
-  const d = inc.resolved_ts - inc.first_seen_ts;
+  const lifecycle = incidentLifecycle(inc);
+  if (lifecycle.resolved_ts == null || lifecycle.first_seen_ts == null) return null;
+  const d = lifecycle.resolved_ts - lifecycle.first_seen_ts;
   return d > 0 ? d : null;
 }
 
 // True when a nested incident touches any of `routeSet` and matches `kind`.
 function incidentTouchesRoutes(inc, kind, routeSet) {
-  if (inc.kind !== kind) return false;
+  if (legacyKind(inc) !== kind) return false;
   return (inc.routes || []).some((r) => routeSet.has(r));
 }
 
@@ -1979,15 +1983,15 @@ export function computeStretchRecurrence(
   let lastOtherTs = null;
   const days = new Set();
   for (const inc of incidents || []) {
-    if (inc.kind !== 'train') continue;
-    const ts = inc.first_seen_ts;
+    if (legacyKind(inc) !== 'train') continue;
+    const ts = incidentLifecycle(inc).first_seen_ts;
     if (ts == null || ts < cutoff) continue;
-    const matches = (inc.observations || []).some(
+    const matches = incidentDetections(inc).some(
       (o) =>
-        o.detection_source !== 'roundup' &&
-        o.line === line &&
-        o.from_station === fromStation &&
-        o.to_station === toStation,
+        o.source !== 'roundup' &&
+        o.scope?.route === line &&
+        o.scope?.from_station === fromStation &&
+        o.scope?.to_station === toStation,
     );
     if (!matches) continue;
     count += 1;
@@ -2029,8 +2033,9 @@ export function computeLineDurationRank(
 
   const spans = [];
   for (const inc of incidents || []) {
-    if (!incidentTouchesRoutes(inc, incident.kind, routeSet)) continue;
-    if (inc.first_seen_ts == null || inc.first_seen_ts < cutoff) continue;
+    if (!incidentTouchesRoutes(inc, legacyKind(incident), routeSet)) continue;
+    const firstSeen = incidentLifecycle(inc).first_seen_ts;
+    if (firstSeen == null || firstSeen < cutoff) continue;
     const d = incidentSpanMs(inc);
     if (d == null) continue;
     spans.push({ id: inc.id, d });
@@ -2061,15 +2066,16 @@ export function computeHourOfDayContext(
   { now = Date.now(), windowDays = 90, minTotal = 24 } = {},
 ) {
   const routes = incident?.routes || [];
-  if (routes.length === 0 || incident.first_seen_ts == null) return null;
+  const incidentStart = incidentLifecycle(incident).first_seen_ts;
+  if (routes.length === 0 || incidentStart == null) return null;
   const routeSet = new Set(routes);
   const cutoff = now - windowDays * DAY_MS;
 
   const hours = new Array(24).fill(0);
   let total = 0;
   for (const inc of incidents || []) {
-    if (!incidentTouchesRoutes(inc, incident.kind, routeSet)) continue;
-    const ts = inc.first_seen_ts;
+    if (!incidentTouchesRoutes(inc, legacyKind(incident), routeSet)) continue;
+    const ts = incidentLifecycle(inc).first_seen_ts;
     if (ts == null || ts < cutoff) continue;
     const { hour } = chicagoWeekdayHour(ts);
     if (hour == null) continue;
@@ -2078,7 +2084,7 @@ export function computeHourOfDayContext(
   }
   if (total < minTotal) return null;
 
-  const { hour: thisHour } = chicagoWeekdayHour(incident.first_seen_ts);
+  const { hour: thisHour } = chicagoWeekdayHour(incidentStart);
   if (thisHour == null) return null;
   const inThisHour = hours[thisHour];
   const mean = total / 24;

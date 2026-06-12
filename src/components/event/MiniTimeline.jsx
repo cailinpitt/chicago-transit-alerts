@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { TRAIN_LINES } from '../../lib/ctaLines.js';
 import { chicagoDayUTC, formatChicagoDay, hexToRgba } from '../../lib/format.js';
-import { formatRoutesLabel } from '../../lib/incidents.js';
+import { formatRoutesLabel, incidentLifecycle, legacyKind } from '../../lib/incidents.js';
 import { METRA_LINES } from '../../lib/metraLines.js';
 import { incidentRoutes } from './incidentText.jsx';
 
@@ -19,8 +19,8 @@ const BUS_COLOR = '#64748b'; // slate-500 — mirrors Timeline's bus row tint.
 // only Pink had prior days of trouble).
 function buildEventLineWindow(incident, incidents, numDays = 14, now = Date.now()) {
   const routes = incidentRoutes(incident);
-  const kind = incident.kind;
-  const startTs = incident.first_seen_ts ?? incident.ts;
+  const kind = legacyKind(incident);
+  const startTs = incidentLifecycle(incident).first_seen_ts;
   if (routes.length === 0 || startTs == null) return null;
   const centerDayUtc = chicagoDayUTC(startTs);
   const todayUtc = chicagoDayUTC(now);
@@ -50,7 +50,9 @@ function buildEventLineWindow(incident, incidents, numDays = 14, now = Date.now(
       if (routeSet.has(r)) perRoute[r][idx] += 1;
     }
   }
-  for (const inc of incidents || []) bump(inc.first_seen_ts, inc.routes || [], inc.kind);
+  for (const inc of incidents || []) {
+    bump(incidentLifecycle(inc).first_seen_ts, inc.routes || [], legacyKind(inc));
+  }
 
   return { dayUtcs, perRoute, routes, centerDayUtc };
 }
@@ -191,6 +193,7 @@ function TimelineRow({ counts, dayUtcs, centerDayUtc, color, dark, kind, route }
 }
 
 export function MiniTimeline({ incident, incidents, dark }) {
+  const kind = legacyKind(incident);
   const windowData = useMemo(
     () => buildEventLineWindow(incident, incidents),
     [incident, incidents],
@@ -222,7 +225,7 @@ export function MiniTimeline({ incident, incidents, dark }) {
   return (
     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gh-border">
       <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-        Surrounding {dayUtcs.length} days on {formatRoutesLabel(incident.kind, routes)}
+        Surrounding {dayUtcs.length} days on {formatRoutesLabel(kind, routes)}
       </p>
       {multi ? (
         // Stacked rows: one per route. A fixed-width label column keeps every
@@ -231,15 +234,15 @@ export function MiniTimeline({ incident, incidents, dark }) {
           {routes.map((route) => (
             <div key={route} className="flex items-center gap-2">
               <div className="w-12 flex-shrink-0 flex justify-end">
-                <RowLabel kind={incident.kind} route={route} />
+                <RowLabel kind={kind} route={route} />
               </div>
               <TimelineRow
                 counts={perRoute[route]}
                 dayUtcs={dayUtcs}
                 centerDayUtc={centerDayUtc}
-                color={routeColor(incident.kind, route)}
+                color={routeColor(kind, route)}
                 dark={dark}
-                kind={incident.kind}
+                kind={kind}
                 route={route}
               />
             </div>
@@ -258,9 +261,9 @@ export function MiniTimeline({ incident, incidents, dark }) {
             counts={perRoute[routes[0]]}
             dayUtcs={dayUtcs}
             centerDayUtc={centerDayUtc}
-            color={routeColor(incident.kind, routes[0])}
+            color={routeColor(kind, routes[0])}
             dark={dark}
-            kind={incident.kind}
+            kind={kind}
             route={routes[0]}
           />
           <div className="flex justify-between mt-1.5 text-xs text-slate-500 dark:text-slate-400 tabular-nums">

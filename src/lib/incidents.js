@@ -8,11 +8,11 @@ import { chicagoDayUTC } from './format.js';
 import { metraLineInfo } from './metraLines.js';
 
 export function incidentAgency(incident) {
-  return incident?.agency ?? (incident?.kind === 'metra' ? 'metra' : 'cta');
+  return incident?.agency ?? null;
 }
 
 export function incidentMode(incident) {
-  return incident?.mode ?? (incident?.kind === 'metra' ? 'commuter_rail' : incident?.kind);
+  return incident?.mode ?? null;
 }
 
 export function legacyKind(incidentOrMode) {
@@ -22,81 +22,50 @@ export function legacyKind(incidentOrMode) {
 }
 
 export function incidentLifecycle(incident) {
-  if (incident?.lifecycle) return incident.lifecycle;
-  return {
-    first_seen_ts: incident?.first_seen_ts ?? null,
-    resolved_ts: incident?.resolved_ts ?? null,
-    active: incident?.active ?? false,
-    duration_ms:
-      incident?.duration_ms ??
-      (incident?.resolved_ts != null && incident?.first_seen_ts != null
-        ? incident.resolved_ts - incident.first_seen_ts
-        : null),
-  };
+  return (
+    incident?.lifecycle ?? {
+      first_seen_ts: null,
+      resolved_ts: null,
+      active: false,
+      duration_ms: null,
+    }
+  );
 }
 
 export function officialAlert(incident) {
-  return incident?.official_alert ?? incident?.cta ?? null;
+  return incident?.official_alert ?? null;
+}
+
+export function officialAlerts(incident) {
+  if (Array.isArray(incident?.official_alerts) && incident.official_alerts.length > 0) {
+    return incident.official_alerts;
+  }
+  const one = officialAlert(incident);
+  return one ? [one] : [];
 }
 
 export function incidentDetections(incident) {
-  return incident?.detections ?? incident?.observations ?? [];
+  return incident?.detections ?? [];
 }
 
 function officialScope(alert) {
   if (!alert) return {};
-  return (
-    alert.scope ?? {
-      from_station: alert.affected_from_station ?? null,
-      to_station: alert.affected_to_station ?? null,
-      direction: alert.affected_direction ?? null,
-      mentioned_stations: alert.mentioned_stations ?? [],
-      stations: alert.affected_stations ?? [],
-    }
-  );
+  return alert.scope ?? {};
 }
 
 function officialLifecycle(alert) {
   if (!alert) return {};
-  return (
-    alert.lifecycle ?? {
-      first_seen_ts: alert.first_seen_ts ?? null,
-      resolved_ts: alert.resolved_ts ?? null,
-      active: alert.active ?? false,
-      duration_ms:
-        alert.duration_ms ??
-        (alert.resolved_ts != null && alert.first_seen_ts != null
-          ? alert.resolved_ts - alert.first_seen_ts
-          : null),
-    }
-  );
+  return alert.lifecycle ?? {};
 }
 
 function detectionScope(detection) {
   if (!detection) return {};
-  return (
-    detection.scope ?? {
-      route: detection.line ?? null,
-      direction: detection.direction ?? null,
-      direction_label: detection.direction_label ?? null,
-      from_station: detection.from_station ?? null,
-      to_station: detection.to_station ?? null,
-      stations: detection.stations ?? [],
-    }
-  );
+  return detection.scope ?? {};
 }
 
 function detectionLifecycle(detection) {
   if (!detection) return {};
-  return (
-    detection.lifecycle ?? {
-      first_seen_ts: detection.ts ?? null,
-      onset_ts: detection.onset_ts ?? null,
-      resolved_ts: detection.resolved_ts ?? null,
-      active: detection.active ?? false,
-      duration_ms: detection.duration_ms ?? null,
-    }
-  );
+  return detection.lifecycle ?? {};
 }
 
 function legacyDetection(incident, detection) {
@@ -113,9 +82,9 @@ function legacyDetection(incident, detection) {
     from_station: scope.from_station ?? null,
     to_station: scope.to_station ?? null,
     stations: scope.stations ?? [],
-    detection_source: detection.source ?? detection.detection_source ?? null,
-    signals: evidence.signals ?? detection.signals ?? null,
-    evidence: evidence.details ?? detection.evidence ?? null,
+    detection_source: detection.source ?? null,
+    signals: evidence.signals ?? null,
+    evidence: evidence.details ?? null,
     ts: lifecycle.first_seen_ts,
     onset_ts: lifecycle.onset_ts ?? null,
     resolved_ts: lifecycle.resolved_ts ?? null,
@@ -123,66 +92,12 @@ function legacyDetection(incident, detection) {
     active: lifecycle.active ?? false,
     post_url: detection.post_url ?? null,
     resolved_post_url: detection.resolved_post_url ?? null,
-    bot_description: detection.description ?? detection.bot_description ?? null,
-    bot_resolved_description:
-      evidence.resolved_description ?? detection.bot_resolved_description ?? null,
-    bot_evidence_bullets: evidence.bullets ?? detection.bot_evidence_bullets ?? [],
-    onset_description: evidence.onset_description ?? detection.onset_description ?? null,
+    bot_description: detection.description ?? null,
+    bot_resolved_description: evidence.resolved_description ?? null,
+    bot_evidence_bullets: evidence.bullets ?? [],
+    onset_description: evidence.onset_description ?? null,
     _incidentId: incident?.id,
   };
-}
-
-export function withRuntimeAliases(incident) {
-  if (!incident || incident.kind || !incident.mode) return incident;
-  const lifecycle = incidentLifecycle(incident);
-  const c = officialAlert(incident);
-  const scopedOfficial = c?.alert_id
-    ? c
-    : c
-      ? {
-          ...c,
-          alert_id: c.id,
-          short_description: c.description ?? null,
-          first_seen_ts: c.lifecycle?.first_seen_ts ?? null,
-          resolved_ts: c.lifecycle?.resolved_ts ?? null,
-          active: c.lifecycle?.active ?? false,
-          affected_from_station: c.scope?.from_station ?? null,
-          affected_to_station: c.scope?.to_station ?? null,
-          affected_direction: c.scope?.direction ?? null,
-          mentioned_stations: c.scope?.mentioned_stations ?? [],
-          affected_stations: c.scope?.stations ?? [],
-          cta_event_start_ts: c.agency_event_window?.start_ts ?? null,
-          cta_event_end_ts: c.agency_event_window?.end_ts ?? null,
-          cta_event_start_is_date_only: c.agency_event_window?.start_is_date_only ?? false,
-          cta_event_end_is_date_only: c.agency_event_window?.end_is_date_only ?? false,
-        }
-      : null;
-  const observations = incidentDetections(incident).map((d) => legacyDetection(incident, d));
-  return {
-    ...incident,
-    kind: legacyKind(incident),
-    first_seen_ts: lifecycle.first_seen_ts,
-    resolved_ts: lifecycle.resolved_ts ?? null,
-    active: lifecycle.active ?? false,
-    duration_ms: lifecycle.duration_ms ?? null,
-    cta: scopedOfficial,
-    observations,
-    metra_status: incident.status ? { source: incident.status.type, ...incident.status } : null,
-    cancellation:
-      incident.status?.type === 'cancellation'
-        ? {
-            state: incident.status.state ?? null,
-            scheduled_departure_ts: incident.status.scheduled_departure_ts ?? null,
-            scheduled_arrival_ts: incident.status.scheduled_arrival_ts ?? null,
-            train_number: incident.status.train_number ?? null,
-            origin: incident.status.origin ?? null,
-          }
-        : null,
-  };
-}
-
-export function withRuntimeAliasesAll(incidents) {
-  return (incidents || []).map(withRuntimeAliases);
 }
 
 // Flatten the published `incidents[]` wire shape into the `{ alerts, observations }`
@@ -192,7 +107,7 @@ export function withRuntimeAliasesAll(incidents) {
 // The fuzzy alert↔observation pairing now happens server-side (cta-insights
 // `export-web.js`); each incident already groups its CTA alert with the bot
 // observations that belong to it. We flatten that back out — one flat alert
-// per `incident.cta`, plus every `incident.observations` row — and stamp each
+// per `incident.official_alert`, plus every `incident.detections` row — and stamp each
 // record with `_incidentId` so `mergeMatchingIncidents` can regroup by that
 // decision without re-matching. Train line keys arrive already normalized to
 // full names ('green'), so no per-record normalization happens here anymore.
@@ -244,17 +159,14 @@ function flattenIncidentAlert(inc) {
     // enumerated upstream. Lets buildStationIndex tie the inner stations to
     // the incident, not just the two named endpoints.
     affected_stations: scope.stations ?? [],
-    cta_event_start_ts: agencyWindow.start_ts ?? c.cta_event_start_ts ?? null,
-    cta_event_end_ts: agencyWindow.end_ts ?? c.cta_event_end_ts ?? null,
-    cta_event_start_is_date_only:
-      agencyWindow.start_is_date_only ?? c.cta_event_start_is_date_only ?? false,
-    cta_event_end_is_date_only:
-      agencyWindow.end_is_date_only ?? c.cta_event_end_is_date_only ?? false,
+    cta_event_start_ts: agencyWindow.start_ts ?? null,
+    cta_event_end_ts: agencyWindow.end_ts ?? null,
+    cta_event_start_is_date_only: agencyWindow.start_is_date_only ?? false,
+    cta_event_end_is_date_only: agencyWindow.end_is_date_only ?? false,
     // Schedule-anchored single-train Metra cancellation (null otherwise).
     // Top-level on the incident, not under the `cta` block.
     cancellation:
-      inc.cancellation ??
-      (inc.status?.type === 'cancellation'
+      inc.status?.type === 'cancellation'
         ? {
             state: inc.status.state ?? null,
             scheduled_departure_ts: inc.status.scheduled_departure_ts ?? null,
@@ -262,7 +174,7 @@ function flattenIncidentAlert(inc) {
             train_number: inc.status.train_number ?? null,
             origin: inc.status.origin ?? null,
           }
-        : null),
+        : null,
     _incidentId: inc.id,
   };
   // versions only present when CTA edited the alert (>1 version on the wire).
@@ -511,7 +423,7 @@ export function observationSignals(obs) {
  */
 export function botSummaryText(incident) {
   const { primary } = splitObservations(incident);
-  const summary = summarizeSignals(observationSignals(primary), incident?.kind);
+  const summary = summarizeSignals(observationSignals(primary), legacyKind(incident));
   if (summary) return summary;
   if (primary?.detection_source === 'roundup') return 'Multiple simultaneous disruptions detected';
   return 'Service disruption detected';
@@ -545,7 +457,7 @@ export function isMetraPointSource(source) {
  * @returns {{ source: string, lede: string | null, fromStation: string | null, toStation: string | null, directionLabel: string | null } | null}
  */
 export function metraPointEvent(incident) {
-  if (!incident || incident.cta) return null;
+  if (!incident || officialAlert(incident)) return null;
   const { primary } = splitObservations(incident);
   if (!primary || !isMetraPointSource(primary.detection_source)) return null;
   return {
@@ -558,7 +470,7 @@ export function metraPointEvent(incident) {
 }
 
 export function metraPointEventTitle(incident) {
-  if (!incident || incident.cta || incident.kind !== 'metra') return null;
+  if (!incident || officialAlert(incident) || legacyKind(incident) !== 'metra') return null;
   const { primary } = splitObservations(incident);
   if (!primary || !isMetraPointSource(primary.detection_source)) return null;
   const trainNumber = primary.train_number == null ? null : String(primary.train_number).trim();
@@ -579,24 +491,24 @@ export function metraPointEventTitle(incident) {
 }
 
 function officialMetraStatusSource(incident) {
-  if (incident?.kind !== 'metra' || !incident.cta) return null;
+  const alert = officialAlert(incident);
+  if (legacyKind(incident) !== 'metra' || !alert) return null;
   // Backward-compatible display fallback for already-published data that predates
-  // metra_status, plus a compatibility override for construction advisories that
-  // were briefly exported as generic delays. Keep it text-only and conservative;
-  // the backend remains the source of truth for schedule anchors and train numbers.
-  const text = [incident.cta.headline, incident.cta.short_description].filter(Boolean).join(' \n ');
+  // Keep the text fallback conservative; the backend remains the source of truth
+  // for schedule anchors and train numbers.
+  const text = [alert.headline, alert.description].filter(Boolean).join(' \n ');
   const isPlannedDelay =
     /\b(track\s+construction|construction|planned\s+work|work\s+zone|maintenance)\b/i.test(text) &&
     /\bdelay(?:ed|s)?\b|\b\d{1,3}\s*(?:\+|\s*or\s+more)?\s*minutes?\s+(?:late|behind|delay)/i.test(
       text,
     );
 
-  const exported = incident.metra_status?.source;
+  const exported = incident.status?.type;
   if (exported === 'planned-delay' || (exported === 'delay' && isPlannedDelay)) {
     return 'planned-delay';
   }
   if (isMetraPointSource(exported)) return exported;
-  if (incident.cancellation?.state) return 'cancellation';
+  if (incident.status?.type === 'cancellation') return 'cancellation';
 
   if (/\bwill\s+not\s+operate\b|\bcancell?ed\b|\bannull?ed\b|\bnot\s+running\b/i.test(text)) {
     return 'cancellation';
@@ -614,8 +526,8 @@ function officialMetraStatusSource(incident) {
 
 /**
  * Badge-level Metra incident status. Bot point events use their observation
- * source; official Metra alerts use the exported metra_status classification
- * when present, with a conservative text fallback for older data.
+ * source; official Metra alerts use the exported v2 status classification when
+ * present, with a conservative text fallback for older data.
  * @param {Incident} incident
  * @returns {{source:string}|null}
  */
@@ -656,7 +568,8 @@ function naturalList(items) {
 }
 
 function collectMetraTrainNumbers(incident) {
-  if (incident?.kind !== 'metra' || !incident.cta) return [];
+  const alert = officialAlert(incident);
+  if (legacyKind(incident) !== 'metra' || !alert) return [];
   const out = [];
   const push = (n) => {
     const s = n == null ? null : String(n).trim();
@@ -667,26 +580,28 @@ function collectMetraTrainNumbers(incident) {
     for (const m of String(text).matchAll(/\btrain\s+#?(\d{1,4})\b/gi)) push(m[1]);
     for (const m of String(text).matchAll(/\b[A-Z]{2,5}\s*#(\d{1,4})\b/g)) push(m[1]);
   };
-  scanText(incident.cta.headline);
-  scanText(incident.cta.short_description);
-  for (const v of incident.cta.versions || []) {
+  scanText(alert.headline);
+  scanText(alert.description);
+  for (const v of alert.versions || []) {
     scanText(v.headline);
     scanText(v.short_description);
   }
-  for (const o of incident.observations || []) push(o.train_number);
+  for (const o of incidentDetections(incident)) push(o.evidence?.train_number);
   return out.sort((a, b) => Number(a) - Number(b));
 }
 
 function metraMultiTrainHeadline(incident) {
   const nums = collectMetraTrainNumbers(incident);
   if (nums.length === 0) return null;
-  const sources = new Set((incident.observations || []).map((o) => o.detection_source));
-  if (isMetraPointSource(incident.metra_status?.source)) sources.add(incident.metra_status.source);
+  const { primary, extras } = splitObservations(incident);
+  const sources = new Set([primary, ...extras].filter(Boolean).map((o) => o.detection_source));
+  if (isMetraPointSource(incident.status?.type)) sources.add(incident.status.type);
   const official = officialMetraStatusSource(incident);
   if (isMetraPointSource(official)) sources.add(official);
   let status = 'affected';
-  if (incident.cancellation?.state === 'cancelled') status = 'cancelled';
-  else if (sources.size > 0 && [...sources].every((s) => s === 'delay')) status = 'delayed';
+  if (incident.status?.type === 'cancellation' && incident.status.state === 'cancelled') {
+    status = 'cancelled';
+  } else if (sources.size > 0 && [...sources].every((s) => s === 'delay')) status = 'delayed';
   else if (sources.size > 0 && [...sources].every((s) => s === 'cancellation'))
     status = 'cancelled';
   else if (sources.size > 0 && [...sources].every((s) => s === 'cancellation-inferred')) {
@@ -698,14 +613,17 @@ function metraMultiTrainHeadline(incident) {
 }
 
 function stableOfficialHeadline(incident) {
-  const versions = incident?.cta?.versions;
+  const alert = officialAlert(incident);
+  const versions = alert?.versions;
   const first = Array.isArray(versions) ? versions.find((v) => v?.headline)?.headline : null;
-  return first || incident?.cta?.headline || '';
+  return first || alert?.headline || '';
 }
 
 export function incidentHeadlineText(incident) {
   if (!incident) return '';
-  if (incident.cta) return metraMultiTrainHeadline(incident) ?? stableOfficialHeadline(incident);
+  if (officialAlert(incident)) {
+    return metraMultiTrainHeadline(incident) ?? stableOfficialHeadline(incident);
+  }
   return null;
 }
 
@@ -728,17 +646,18 @@ export function affectedLineSegments(incident) {
     if (!from && !to) return;
     out.push({ line: line ?? null, from: from ?? null, to: to ?? null });
   };
-  const cta = incident.cta;
+  const alert = officialAlert(incident);
+  const scope = officialScope(alert);
   const { primary, extras } = splitObservations(incident);
-  if (cta && primary) {
+  if (alert && primary) {
     // Merged: the primary observation's stretch, then the extras that rode
     // along, then the alert's own (line-agnostic) segment endpoints.
     push(primary.line ?? null, primary.from_station, primary.to_station);
     for (const e of extras) push(e.line ?? null, e.from_station, e.to_station);
-    push(null, cta.affected_from_station, cta.affected_to_station);
-  } else if (cta) {
+    push(null, scope.from_station, scope.to_station);
+  } else if (alert) {
     // Pure CTA alert: only the alert-level segment, applied across its routes.
-    push(null, cta.affected_from_station, cta.affected_to_station);
+    push(null, scope.from_station, scope.to_station);
   } else if (primary) {
     // Bot-only: the observation's own stretch.
     push(primary.line ?? null, primary.from_station, primary.to_station);
@@ -822,8 +741,8 @@ export function findIncidentById(incidents, id) {
   if (!id) return null;
   for (const inc of incidents || []) {
     if (inc.id === id) return inc;
-    if (postUrlRkey(inc.cta?.post_url) === id) return inc;
-    if ((inc.observations || []).some((o) => postUrlRkey(o.post_url) === id)) return inc;
+    if (officialAlerts(inc).some((alert) => postUrlRkey(alert.post_url) === id)) return inc;
+    if (incidentDetections(inc).some((o) => postUrlRkey(o.post_url) === id)) return inc;
   }
   return null;
 }
@@ -842,8 +761,8 @@ export function findRelatedIncidents(incident, incidents, windowMs = 24 * 60 * 6
   if (!incident) return [];
   const routes = new Set(incident.routes || []);
   if (routes.size === 0) return [];
-  const kind = incident.kind;
-  const ts = incident.first_seen_ts;
+  const kind = legacyKind(incident);
+  const ts = incidentLifecycle(incident).first_seen_ts;
   if (ts == null) return [];
   const lo = ts - windowMs;
   const hi = ts + windowMs;
@@ -851,14 +770,14 @@ export function findRelatedIncidents(incident, incidents, windowMs = 24 * 60 * 6
   const out = [];
   for (const other of incidents || []) {
     if (other.id === incident.id) continue;
-    if (other.kind !== kind) continue;
+    if (legacyKind(other) !== kind) continue;
     if (!(other.routes || []).some((r) => routes.has(r))) continue;
-    const t = other.first_seen_ts;
+    const t = incidentLifecycle(other).first_seen_ts;
     if (t == null || t < lo || t > hi) continue;
     out.push(other);
   }
 
-  out.sort((a, b) => b.first_seen_ts - a.first_seen_ts);
+  out.sort((a, b) => incidentLifecycle(b).first_seen_ts - incidentLifecycle(a).first_seen_ts);
   return out;
 }
 
@@ -881,8 +800,8 @@ export function findRelatedIncidents(incident, incidents, windowMs = 24 * 60 * 6
 export function findContemporaneousOnOtherLines(incident, incidents, windowMs = 60 * 60 * 1000) {
   if (!incident) return [];
   const selfRoutes = new Set(incident.routes || []);
-  const selfKind = incident.kind;
-  const ts = incident.first_seen_ts;
+  const selfKind = legacyKind(incident);
+  const ts = incidentLifecycle(incident).first_seen_ts;
   if (ts == null) return [];
   const lo = ts - windowMs;
   const hi = ts + windowMs;
@@ -891,18 +810,18 @@ export function findContemporaneousOnOtherLines(incident, incidents, windowMs = 
   // already covers that, so it's excluded here. Cross-kind (train vs bus) is
   // always "different" because the route key spaces are disjoint.
   const overlapsSelfRoutes = (other) =>
-    other.kind === selfKind && (other.routes || []).some((r) => selfRoutes.has(r));
+    legacyKind(other) === selfKind && (other.routes || []).some((r) => selfRoutes.has(r));
 
   const out = [];
   for (const other of incidents || []) {
     if (other.id === incident.id) continue;
-    const t = other.first_seen_ts;
+    const t = incidentLifecycle(other).first_seen_ts;
     if (t == null || t < lo || t > hi) continue;
     if (overlapsSelfRoutes(other)) continue;
     out.push(other);
   }
 
-  out.sort((a, b) => b.first_seen_ts - a.first_seen_ts);
+  out.sort((a, b) => incidentLifecycle(b).first_seen_ts - incidentLifecycle(a).first_seen_ts);
   return out;
 }
 
@@ -1038,10 +957,11 @@ function buildMergedRecord(alert, obsList) {
  * @returns {{ primary: Observation | null, extras: Observation[] }}
  */
 export function splitObservations(incident) {
-  const obs = incident?.observations || [];
+  const obs = incidentDetections(incident).map((d) => legacyDetection(incident, d));
   if (obs.length === 0) return { primary: null, extras: [] };
-  if (incident.cta) {
-    const anchor = incident.cta.first_seen_ts;
+  const alert = officialAlert(incident);
+  if (alert) {
+    const anchor = alert.lifecycle?.first_seen_ts ?? incidentLifecycle(incident).first_seen_ts;
     const sorted = [...obs].sort((a, b) => Math.abs(a.ts - anchor) - Math.abs(b.ts - anchor));
     return { primary: sorted[0], extras: sorted.slice(1) };
   }
@@ -1057,8 +977,8 @@ export function splitObservations(incident) {
  * @returns {'cta' | 'bot' | 'merged'}
  */
 export function incidentSource(incident) {
-  if (!incident.cta) return 'bot';
-  return (incident.observations?.length ?? 0) > 0 ? 'merged' : 'cta';
+  if (!officialAlert(incident)) return 'bot';
+  return incidentDetections(incident).length > 0 ? 'merged' : 'cta';
 }
 
 // Build the per-incident text matcher used by both `filterIncidents` and
@@ -1099,19 +1019,23 @@ export function buildSearchMatchers(query) {
   };
   const matchesIncident = (inc) => {
     // Route/line keys and their labels are carried at the incident top level.
-    if ((inc.routes || []).some((r) => matchesLine(r, inc.kind))) return true;
-    const c = inc.cta;
+    const kind = legacyKind(inc);
+    if ((inc.routes || []).some((r) => matchesLine(r, kind))) return true;
+    const c = officialAlert(inc);
+    const scope = officialScope(c);
     if (c) {
       const fields = [
         incidentHeadlineText(inc),
         c.headline,
-        c.affected_from_station,
-        c.affected_to_station,
-        c.affected_direction,
+        c.description,
+        scope.from_station,
+        scope.to_station,
+        scope.direction,
       ].filter(Boolean);
       if (fields.some((s) => s.toLowerCase().includes(q))) return true;
     }
-    for (const o of inc.observations || []) {
+    const { primary, extras } = splitObservations(inc);
+    for (const o of [primary, ...extras].filter(Boolean)) {
       const fields = [o.from_station, o.to_station, o.direction].filter((v) => v != null);
       if (fields.some((v) => String(v).toLowerCase().includes(q))) return true;
       for (const sig of observationSignals(o)) {
@@ -1204,13 +1128,15 @@ export function filterIncidents(
   };
 
   return (incidents || []).filter((inc) => {
-    const agency = inc.kind === 'metra' ? 'metra' : 'cta';
+    const kind = legacyKind(inc);
+    const lifecycle = incidentLifecycle(inc);
+    const agency = incidentAgency(inc) ?? (kind === 'metra' ? 'metra' : 'cta');
     if (agencySet && !agencySet.has(agency)) return false;
     // The CTA line/bus filters apply only to CTA incidents — a Red Line selection
     // shouldn't hide Metra. Metra has its own line filter; the agency control
     // governs cross-agency visibility.
     if (agency === 'cta') {
-      if (inc.kind === 'bus') {
+      if (kind === 'bus') {
         if (!showBus) return false;
         if (hasBusRouteFilter && !(inc.routes || []).some((r) => busRoutes.includes(r))) {
           return false;
@@ -1228,15 +1154,16 @@ export function filterIncidents(
     // CTA+bot incident with a matching detection stays whole rather than being
     // demoted to its bot half).
     if (hasSignalFilter) {
-      const obs = inc.observations || [];
+      const { primary, extras } = splitObservations(inc);
+      const obs = [primary, ...extras].filter(Boolean);
       if (!obs.some((o) => observationSignals(o).some((s) => signalSet.has(s)))) return false;
     }
     if (hasSourceFilter && !sourceSet.has(incidentSource(inc))) return false;
     if (hasSearch && !matchesIncident(inc)) return false;
     if (selectedDay != null) {
-      return overlapsSelectedDay(inc.first_seen_ts, inc.resolved_ts);
+      return overlapsSelectedDay(lifecycle.first_seen_ts, lifecycle.resolved_ts);
     }
-    if (startTs && inc.first_seen_ts < startTs && !inc.active) return false;
+    if (startTs && lifecycle.first_seen_ts < startTs && !lifecycle.active) return false;
     return true;
   });
 }

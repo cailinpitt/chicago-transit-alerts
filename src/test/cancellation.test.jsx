@@ -8,29 +8,28 @@ import {
   cancellationStatusLabel,
   collectUpcomingCancellations,
 } from '../lib/cancellation.js';
+import { incident } from './v2TestHelpers.js';
 
 const NOW = 1_000_000_000_000;
 
-// A Metra single-train cancellation incident. `cancellation` is the top-level
-// block the cta-insights export ships; `state` flips upcoming → cancelled
-// server-side.
-const cancelInc = (cancellation, over = {}) => ({
-  id: 'metra1',
-  kind: 'metra',
-  routes: ['UP-W'],
-  first_seen_ts: NOW - 20 * 60_000,
-  resolved_ts: cancellation.state === 'cancelled' ? NOW - 10 * 60_000 : null,
-  active: cancellation.state !== 'cancelled',
-  cancellation,
-  cta: {
-    alert_id: 'm-a1',
-    headline: 'UPW train #67 will not operate',
-    post_url: 'https://bsky.app/alert',
+const cancelInc = (cancellation, over = {}) =>
+  incident({
+    id: 'metra1',
+    kind: 'metra',
+    routes: ['UP-W'],
     first_seen_ts: NOW - 20 * 60_000,
-  },
-  observations: [],
-  ...over,
-});
+    resolved_ts: cancellation.state === 'cancelled' ? NOW - 10 * 60_000 : null,
+    active: cancellation.state !== 'cancelled',
+    cancellation,
+    cta: {
+      alert_id: 'm-a1',
+      headline: 'UPW train #67 will not operate',
+      post_url: 'https://bsky.app/alert',
+      first_seen_ts: NOW - 20 * 60_000,
+    },
+    observations: [],
+    ...over,
+  });
 
 const UPCOMING = {
   state: 'upcoming',
@@ -43,8 +42,8 @@ const CANCELLED = { ...UPCOMING, state: 'cancelled' };
 
 describe('cancellation helpers', () => {
   it('returns null for an incident with no cancellation block', () => {
-    expect(cancellationInfo({ cta: { headline: 'x' } })).toBeNull();
-    expect(cancellationInfo({ cta: null })).toBeNull();
+    expect(cancellationInfo(incident({ kind: 'metra', cta: { headline: 'x' } }))).toBeNull();
+    expect(cancellationInfo(incident({ kind: 'metra', cta: null }))).toBeNull();
     expect(cancellationInfo(undefined)).toBeNull();
   });
 
@@ -88,7 +87,12 @@ describe('IncidentList cancellation rendering', () => {
 });
 
 describe('collectUpcomingCancellations', () => {
-  const other = { id: 'x', kind: 'metra', routes: ['up-w'], cta: { headline: 'Signal problems' } };
+  const other = incident({
+    id: 'x',
+    kind: 'metra',
+    routes: ['up-w'],
+    cta: { headline: 'Signal problems' },
+  });
 
   it('returns only upcoming cancellations whose departure is still ahead, soonest first', () => {
     const soon = cancelInc(

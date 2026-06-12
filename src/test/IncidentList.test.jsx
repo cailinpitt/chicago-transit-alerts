@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import IncidentList from '../components/IncidentList.jsx';
+import { incident } from './v2TestHelpers.js';
 
 const NOW = 1_000_000_000_000;
 
@@ -20,41 +21,54 @@ const obsRecord = (over = {}) => ({
   ...over,
 });
 
-const alertInc = (over = {}) => ({
-  id: 'alert1',
-  kind: 'train',
-  routes: ['red'],
-  first_seen_ts: NOW - 60 * 60_000,
-  resolved_ts: NOW - 30 * 60_000,
-  active: false,
-  cta: {
-    alert_id: 'a1',
-    headline: 'Red Line Delays',
-    post_url: 'https://bsky.app/alert',
+const alertInc = (over = {}) =>
+  incident({
+    id: 'alert1',
+    kind: 'train',
+    routes: ['red'],
     first_seen_ts: NOW - 60 * 60_000,
-  },
-  observations: [],
-  ...over,
-});
+    resolved_ts: NOW - 30 * 60_000,
+    active: false,
+    cta: {
+      alert_id: 'a1',
+      headline: 'Red Line Delays',
+      post_url: 'https://bsky.app/alert',
+      first_seen_ts: NOW - 60 * 60_000,
+    },
+    observations: [],
+    ...over,
+  });
 
-const obsInc = (over = {}) => ({
-  id: 'obs1',
-  kind: 'train',
-  routes: ['red'],
-  first_seen_ts: NOW - 55 * 60_000,
-  resolved_ts: NOW - 30 * 60_000,
-  active: false,
-  cta: null,
-  observations: [obsRecord()],
-  ...over,
-});
+const obsInc = (over = {}) =>
+  incident({
+    id: 'obs1',
+    kind: 'train',
+    routes: ['red'],
+    first_seen_ts: NOW - 55 * 60_000,
+    resolved_ts: NOW - 30 * 60_000,
+    active: false,
+    cta: null,
+    observations: [obsRecord()],
+    ...over,
+  });
 
-const mergedInc = (over = {}) => ({
-  ...alertInc(),
-  id: 'm1',
-  observations: [obsRecord()],
-  ...over,
-});
+const mergedInc = (over = {}) =>
+  incident({
+    id: 'm1',
+    kind: 'train',
+    routes: ['red'],
+    first_seen_ts: NOW - 60 * 60_000,
+    resolved_ts: NOW - 30 * 60_000,
+    active: false,
+    cta: {
+      alert_id: 'a1',
+      headline: 'Red Line Delays',
+      post_url: 'https://bsky.app/alert',
+      first_seen_ts: NOW - 60 * 60_000,
+    },
+    observations: [obsRecord()],
+    ...over,
+  });
 
 describe('IncidentList', () => {
   it('shows empty state when there are no incidents', () => {
@@ -81,7 +95,7 @@ describe('IncidentList', () => {
   it('shows both Bluesky links for a merged incident', () => {
     render(<IncidentList incidents={[mergedInc()]} />);
     expect(screen.getByText('Via CTA →')).toBeInTheDocument();
-    expect(screen.getByText('Bot detection →')).toBeInTheDocument();
+    expect(screen.getByText('Bot detection (gap) →')).toBeInTheDocument();
   });
 
   it('shows the station segment for a merged incident', () => {
@@ -96,7 +110,7 @@ describe('IncidentList', () => {
   });
 
   it('shows a "delayed" badge and leads with the train number for a Metra delay', () => {
-    const delayInc = {
+    const delayInc = incident({
       id: 'metra-992',
       kind: 'metra',
       routes: ['bnsf'],
@@ -119,7 +133,7 @@ describe('IncidentList', () => {
           bot_description: '~57 min late — the 12:05 PM Chicago Union Station train',
         },
       ],
-    };
+    });
     render(<IncidentList incidents={[delayInc]} />);
     expect(screen.getByText('delayed')).toBeInTheDocument();
     expect(screen.getByText('BNSF train #121 delayed')).toBeInTheDocument();
@@ -129,7 +143,7 @@ describe('IncidentList', () => {
   });
 
   it('shows a "possible cancellation" badge for an inferred Metra cancellation', () => {
-    const inferredInc = {
+    const inferredInc = incident({
       id: 'metra-972',
       kind: 'metra',
       routes: ['ri'],
@@ -151,7 +165,7 @@ describe('IncidentList', () => {
           bot_description: 'Scheduled train not seen running — the 9:55 AM Joliet train',
         },
       ],
-    };
+    });
     render(<IncidentList incidents={[inferredInc]} />);
     expect(screen.getByText('possible cancellation')).toBeInTheDocument();
     expect(

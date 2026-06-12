@@ -1,6 +1,7 @@
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import EventPage from '../components/EventPage.jsx';
+import { incident } from './v2TestHelpers.js';
 
 const NOW = 1_000_000_000_000;
 
@@ -339,7 +340,7 @@ const PAYLOAD = {
       },
       observations: [],
     },
-  ],
+  ].map((inc) => incident(inc)),
 };
 
 const V2_PAYLOAD = {

@@ -29,7 +29,6 @@ import {
   mergeMatchingIncidents,
   observationSignals,
   summarizeSignals,
-  withRuntimeAliasesAll,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINES, normalizeMetraLine } from '../src/lib/metraLines.js';
@@ -212,6 +211,30 @@ function pickIncidents(payload) {
   merged.forEach(add);
   standaloneAlerts.forEach(add);
   standaloneObs.forEach(add);
+
+  // Grouped v2 incidents can carry multiple official alerts. The canonical
+  // card is rendered from the primary official alert above; add the remaining
+  // official post rkeys as aliases so older per-line URLs keep resolving.
+  for (const inc of payload.incidents ?? []) {
+    const officialAlerts =
+      Array.isArray(inc.official_alerts) && inc.official_alerts.length > 0
+        ? inc.official_alerts
+        : inc.official_alert
+          ? [inc.official_alert]
+          : [];
+    if (officialAlerts.length <= 1) continue;
+    const aliases = officialAlerts.map((alert) => postUrlRkey(alert?.post_url)).filter(Boolean);
+    if (aliases.length === 0) continue;
+    const canonicalId =
+      aliases.find((id) => out.has(id)) ??
+      (out.has(inc.id) ? inc.id : null) ??
+      postUrlRkey(inc.official_alert?.post_url);
+    const canonicalIncident = canonicalId ? out.get(canonicalId) : null;
+    if (!canonicalIncident) continue;
+    for (const alias of aliases) {
+      if (!out.has(alias)) out.set(alias, canonicalIncident);
+    }
+  }
   return out;
 }
 
@@ -439,7 +462,7 @@ async function main() {
   // Metra is launched and the event OG card is Metra-aware (accentFor +
   // describeObservation handle kind='metra'), so opt in explicitly — Metra event
   // pages get their own prerendered stub + per-event OG image like CTA events.
-  raw.incidents = withRuntimeAliasesAll(gateIncidents(raw.incidents || [], true));
+  raw.incidents = gateIncidents(raw.incidents || [], true);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const shell = readFileSync(SHELL, 'utf8');
   const template = readFileSync(TEMPLATE, 'utf8');

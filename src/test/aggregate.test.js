@@ -14,6 +14,7 @@ import {
   serviceHoursForLine,
 } from '../lib/aggregate.js';
 import { chicagoDayUTC } from '../lib/format.js';
+import { incident } from './v2TestHelpers.js';
 
 // Fixed reference instant so day/window math is deterministic across runs.
 const NOW = 1_700_000_000_000; // 2023-11-14T22:13:20Z
@@ -413,17 +414,18 @@ describe('computeMetraLeaderboards', () => {
 // computeMetraStatusCounts
 // ---------------------------------------------------------------------------
 describe('computeMetraStatusCounts', () => {
-  const metraIncident = (over = {}) => ({
-    id: 'm1',
-    kind: 'metra',
-    routes: ['me'],
-    first_seen_ts: NOW - HOUR,
-    resolved_ts: NOW,
-    active: false,
-    cta: null,
-    observations: [],
-    ...over,
-  });
+  const metraIncident = (over = {}) =>
+    incident({
+      id: 'm1',
+      kind: 'metra',
+      routes: ['me'],
+      first_seen_ts: NOW - HOUR,
+      resolved_ts: NOW,
+      active: false,
+      cta: null,
+      observations: [],
+      ...over,
+    });
 
   it('counts bot delay and cancellation observations for a line', () => {
     const out = computeMetraStatusCounts(

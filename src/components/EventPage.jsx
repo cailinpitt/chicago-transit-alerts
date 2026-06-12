@@ -6,7 +6,8 @@ import {
   findIncidentById,
   flattenIncidents,
   formatRoutesLabel,
-  withRuntimeAliasesAll,
+  incidentLifecycle,
+  legacyKind,
 } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -40,7 +41,7 @@ export default function EventPage({ eventId }) {
         .then((fresh) => {
           const normalized = {
             ...fresh,
-            incidents: withRuntimeAliasesAll(fresh.incidents || []),
+            incidents: fresh.incidents || [],
           };
           setData((prev) => {
             if (!prev || normalized.generated_at !== prev.generated_at) return normalized;
@@ -86,7 +87,7 @@ export default function EventPage({ eventId }) {
     // Prefix the tab title with the route label so a generic CTA headline
     // (e.g. "Temporary Reroute") doesn't lose the route context the rest of
     // the page makes obvious.
-    const label = formatRoutesLabel(incident.kind, incidentRoutes(incident));
+    const label = formatRoutesLabel(legacyKind(incident), incidentRoutes(incident));
     const desc = describeText(incident);
     document.title = `${label} · ${desc} · ${base}`;
     return () => {
@@ -106,8 +107,8 @@ export default function EventPage({ eventId }) {
             items={
               incident
                 ? eventTrail(
-                    incident.first_seen_ts ?? incident.ts,
-                    formatRoutesLabel(incident.kind, incidentRoutes(incident)),
+                    incidentLifecycle(incident).first_seen_ts,
+                    formatRoutesLabel(legacyKind(incident), incidentRoutes(incident)),
                   )
                 : [{ label: 'Home', href: '/' }, { label: 'Incident' }]
             }

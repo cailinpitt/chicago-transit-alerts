@@ -5,7 +5,7 @@ import { dayTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
-import { filterIncidents, flattenIncidents, withRuntimeAliasesAll } from '../lib/incidents.js';
+import { filterIncidents, flattenIncidents, legacyKind } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc, parseUrlState } from '../lib/urlState.js';
@@ -74,9 +74,7 @@ export default function DayPage({ dateStr }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((fresh) =>
-        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
-      )
+      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
   }, [dayUtc]);
 
@@ -119,9 +117,10 @@ export default function DayPage({ dateStr }) {
     const buses = new Set();
     const metra = new Set();
     for (const inc of filtered) {
-      if (inc.kind === 'train') for (const r of inc.routes ?? []) trains.add(r);
-      else if (inc.kind === 'bus') for (const r of inc.routes ?? []) buses.add(String(r));
-      else if (inc.kind === 'metra') for (const r of inc.routes ?? []) metra.add(String(r));
+      const kind = legacyKind(inc);
+      if (kind === 'train') for (const r of inc.routes ?? []) trains.add(r);
+      else if (kind === 'bus') for (const r of inc.routes ?? []) buses.add(String(r));
+      else if (kind === 'metra') for (const r of inc.routes ?? []) metra.add(String(r));
     }
     return { trains: [...trains], buses: [...buses].sort(), metra: [...metra].sort() };
   }, [filtered]);

@@ -2,6 +2,8 @@
 // JSX so the fiddly time-bucketing math (… min / …h …m / …d …h ahead,
 // early/late, the various skip thresholds) is unit-testable in isolation.
 
+import { incidentLifecycle, legacyKind } from '../../lib/incidents.js';
+
 const MIN = 60_000;
 
 // "5 min", "1h 30m", or "2h" from a positive millisecond span. Used for the
@@ -82,15 +84,18 @@ export function computeCtaEstimate({ ctaEndTs, resolvedTs, dateOnly }) {
 export function findIncidentNeighbors(incident, incidents, { sameRouteOnly = false } = {}) {
   if (!incident || !Array.isArray(incidents)) return { prev: null, next: null };
   const routeSet = sameRouteOnly ? new Set(incident.routes || []) : null;
+  const incidentKind = legacyKind(incident);
   const pool = incidents.filter((inc) => {
     if (sameRouteOnly) {
-      if (inc.kind !== incident.kind) return false;
+      if (legacyKind(inc) !== incidentKind) return false;
       if (!(inc.routes || []).some((r) => routeSet.has(r))) return false;
     }
-    return inc.first_seen_ts != null;
+    return incidentLifecycle(inc).first_seen_ts != null;
   });
   pool.sort(
-    (a, b) => a.first_seen_ts - b.first_seen_ts || String(a.id).localeCompare(String(b.id)),
+    (a, b) =>
+      incidentLifecycle(a).first_seen_ts - incidentLifecycle(b).first_seen_ts ||
+      String(a.id).localeCompare(String(b.id)),
   );
   const idx = pool.findIndex((inc) => inc.id === incident.id);
   if (idx < 0) return { prev: null, next: null };

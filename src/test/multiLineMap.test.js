@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { affectedLineSegments } from '../lib/incidents.js';
 import { buildMultiLineMap, sliceTrackBetween } from '../lib/lineMap.js';
+import { incident as v2Incident } from './v2TestHelpers.js';
 
 describe('sliceTrackBetween', () => {
   // A simple horizontal polyline; stations sit on two of its points.
@@ -88,7 +89,7 @@ describe('affectedLineSegments', () => {
     // Observation ts ordering vs the CTA anchor decides the primary (closest)
     // and the order of the extras: brown (anchor), then pink, then orange.
     const T = 1_000_000_000_000;
-    const incident = {
+    const incident = v2Incident({
       id: '115102',
       kind: 'train',
       routes: ['purple', 'pink', 'green', 'brown', 'orange'],
@@ -118,7 +119,7 @@ describe('affectedLineSegments', () => {
           ts: T + 2000,
         },
       ],
-    };
+    });
     const segs = affectedLineSegments(incident);
     expect(segs).toEqual([
       { line: 'brown', from: 'Armitage (Brown/Purple)', to: 'Chicago (Brown/Purple)' },
@@ -128,35 +129,35 @@ describe('affectedLineSegments', () => {
   });
 
   it('uses the alert-level segment (line null) for a pure CTA alert', () => {
-    const incident = {
+    const incident = v2Incident({
       id: 'a1',
       kind: 'train',
       routes: ['red', 'purple'],
       cta: { alert_id: 'a1', affected_from_station: 'Belmont', affected_to_station: 'Howard' },
       observations: [],
-    };
+    });
     expect(affectedLineSegments(incident)).toEqual([{ line: null, from: 'Belmont', to: 'Howard' }]);
   });
 
   it('returns the single segment for a standalone observation', () => {
-    const incident = {
+    const incident = v2Incident({
       id: 'o1',
       kind: 'train',
       routes: ['red'],
       cta: null,
       observations: [{ line: 'red', from_station: 'Howard', to_station: 'Loyola', ts: 1 }],
-    };
+    });
     expect(affectedLineSegments(incident)).toEqual([{ line: 'red', from: 'Howard', to: 'Loyola' }]);
   });
 
   it('skips segments with no endpoints', () => {
-    const incident = {
+    const incident = v2Incident({
       id: 'm1',
       kind: 'train',
       routes: ['red'],
       cta: { alert_id: 'm1', affected_from_station: null, affected_to_station: null },
       observations: [{ line: 'red', from_station: null, to_station: null, ts: 1 }],
-    };
+    });
     expect(affectedLineSegments(incident)).toEqual([]);
   });
 });

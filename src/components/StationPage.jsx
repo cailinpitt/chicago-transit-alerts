@@ -7,8 +7,10 @@ import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import {
   flattenIncidents,
+  incidentDetections,
+  incidentLifecycle,
+  legacyKind,
   searchFilterIncidents,
-  withRuntimeAliasesAll,
 } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { metraStationBySlug } from '../lib/metraStations.js';
@@ -48,9 +50,7 @@ export default function StationPage({ slug, kind = 'train' }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((fresh) =>
-        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
-      )
+      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
   }, []);
 
@@ -71,9 +71,11 @@ export default function StationPage({ slug, kind = 'train' }) {
   const metraStationIncidents = useMemo(() => {
     if (!isMetra || !data) return [];
     return data.incidents.filter((inc) => {
-      if (inc.kind !== 'metra') return false;
-      return (inc.observations || []).some(
-        (o) => slugifyStation(o.from_station) === slug || slugifyStation(o.to_station) === slug,
+      if (legacyKind(inc) !== 'metra') return false;
+      return incidentDetections(inc).some(
+        (o) =>
+          slugifyStation(o.scope?.from_station) === slug ||
+          slugifyStation(o.scope?.to_station) === slug,
       );
     });
   }, [isMetra, data, slug]);
@@ -111,8 +113,8 @@ export default function StationPage({ slug, kind = 'train' }) {
   const activeIncidents = useMemo(
     () =>
       stationIncidents
-        .filter((inc) => inc.active)
-        .sort((a, b) => b.first_seen_ts - a.first_seen_ts),
+        .filter((inc) => incidentLifecycle(inc).active)
+        .sort((a, b) => incidentLifecycle(b).first_seen_ts - incidentLifecycle(a).first_seen_ts),
     [stationIncidents],
   );
 

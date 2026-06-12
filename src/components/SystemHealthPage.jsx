@@ -17,8 +17,9 @@ import { chicagoDayUTC, formatChicagoDay, formatMinutesAsHours } from '../lib/fo
 import {
   filterIncidents,
   flattenIncidents,
+  incidentLifecycle,
+  legacyKind,
   mergeMatchingIncidents,
-  withRuntimeAliasesAll,
 } from '../lib/incidents.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -412,9 +413,7 @@ export default function SystemHealthPage({ kind }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((fresh) =>
-        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
-      )
+      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
   }, []);
 
@@ -445,12 +444,14 @@ export default function SystemHealthPage({ kind }) {
   // Nested incidents for this mode — drives the incident list.
   const modeIncidents = useMemo(() => {
     if (!data) return [];
-    return data.incidents.filter((inc) => inc.kind === kind);
+    return data.incidents.filter((inc) => legacyKind(inc) === kind);
   }, [data, kind]);
 
   const activeIncidents = useMemo(
     () =>
-      modeIncidents.filter((inc) => inc.active).sort((a, b) => b.first_seen_ts - a.first_seen_ts),
+      modeIncidents
+        .filter((inc) => incidentLifecycle(inc).active)
+        .sort((a, b) => incidentLifecycle(b).first_seen_ts - incidentLifecycle(a).first_seen_ts),
     [modeIncidents],
   );
 
@@ -461,7 +462,7 @@ export default function SystemHealthPage({ kind }) {
       // Upcoming single-train cancellations get their own forward-looking strip,
       // not the "active disruptions" cards or the long-running framing.
       if (cancellationInfo(i)) continue;
-      const startTs = i.first_seen_ts ?? i.ts;
+      const startTs = incidentLifecycle(i).first_seen_ts;
       if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
       else recent.push(i);
     }

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { formatRoutesLabel } from '../../lib/incidents.js';
+import { formatRoutesLabel, legacyKind } from '../../lib/incidents.js';
 import { findIncidentNeighbors } from './callouts.js';
 import { describeText, incidentRoutes } from './incidentText.jsx';
 
@@ -59,14 +59,15 @@ export default function EventNav({ incident, incidents }) {
   if (!hasSameLine && !hasGlobal) return null;
 
   const routes = incidentRoutes(incident);
-  const lineLabel = formatRoutesLabel(incident.kind, routes);
+  const kind = legacyKind(incident);
+  const lineLabel = formatRoutesLabel(kind, routes);
   const listHref =
     routes.length === 1
-      ? incident.kind === 'train'
+      ? kind === 'train'
         ? `/line/${routes[0]}`
-        : incident.kind === 'bus'
+        : kind === 'bus'
           ? `/route/${routes[0]}`
-          : incident.kind === 'metra'
+          : kind === 'metra'
             ? `/metra/line/${routes[0]}`
             : null
       : null;

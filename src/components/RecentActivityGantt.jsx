@@ -1,6 +1,12 @@
 import { useMemo } from 'react';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
-import { formatRoutesLabel, splitObservations } from '../lib/incidents.js';
+import {
+  formatRoutesLabel,
+  incidentLifecycle,
+  legacyKind,
+  officialAlert,
+  splitObservations,
+} from '../lib/incidents.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -21,17 +27,21 @@ export default function RecentActivityGantt({ incidents, now }) {
     const windowStart = now - WINDOW_MS;
     const all = (incidents ?? []).map((inc) => {
       const { primary } = splitObservations(inc);
+      const kind = legacyKind(inc);
+      const lifecycle = incidentLifecycle(inc);
+      const alert = officialAlert(inc);
+      const scope = alert?.scope ?? {};
       return {
-        kind: inc.kind,
+        kind,
         routes: inc.routes ?? [],
-        startTs: inc.first_seen_ts,
-        endTs: inc.resolved_ts ?? null,
-        active: inc.active,
-        headline: inc.cta?.headline ?? null,
+        startTs: lifecycle.first_seen_ts,
+        endTs: lifecycle.resolved_ts ?? null,
+        active: lifecycle.active,
+        headline: alert?.headline ?? null,
         // Merged/bot incidents surface the primary observation's stretch; a
         // pure CTA alert falls back to its own affected_* segment.
-        from: primary?.from_station ?? inc.cta?.affected_from_station ?? null,
-        to: primary?.to_station ?? inc.cta?.affected_to_station ?? null,
+        from: primary?.from_station ?? scope.from_station ?? null,
+        to: primary?.to_station ?? scope.to_station ?? null,
         eventId: inc.id,
       };
     });

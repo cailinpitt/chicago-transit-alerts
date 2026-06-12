@@ -22,8 +22,9 @@ import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
 import {
   flattenIncidents,
+  incidentLifecycle,
+  legacyKind,
   searchFilterIncidents,
-  withRuntimeAliasesAll,
 } from '../lib/incidents.js';
 import { metraLineInfo, normalizeMetraLine } from '../lib/metraLines.js';
 import { buildMetraStationIndex } from '../lib/metraStations.js';
@@ -182,9 +183,7 @@ export default function LinePage({ kind, lineId }) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((fresh) =>
-        setData({ ...fresh, incidents: withRuntimeAliasesAll(fresh.incidents || []) }),
-      )
+      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
   }, []);
 
@@ -198,7 +197,9 @@ export default function LinePage({ kind, lineId }) {
     if (!data) return [];
     return data.incidents.filter(
       (inc) =>
-        inc.kind === kind && Array.isArray(inc.routes) && inc.routes.includes(effectiveLineId),
+        legacyKind(inc) === kind &&
+        Array.isArray(inc.routes) &&
+        inc.routes.includes(effectiveLineId),
     );
   }, [data, kind, effectiveLineId]);
 
@@ -220,7 +221,9 @@ export default function LinePage({ kind, lineId }) {
   // open incidents on this line.
   const activeIncidents = useMemo(
     () =>
-      lineIncidents.filter((inc) => inc.active).sort((a, b) => b.first_seen_ts - a.first_seen_ts),
+      lineIncidents
+        .filter((inc) => incidentLifecycle(inc).active)
+        .sort((a, b) => incidentLifecycle(b).first_seen_ts - incidentLifecycle(a).first_seen_ts),
     [lineIncidents],
   );
 
@@ -232,7 +235,7 @@ export default function LinePage({ kind, lineId }) {
       // disruptions — they get their own strip, not the "active disruptions"
       // cards (and never the long-running "Day N" framing).
       if (cancellationInfo(i)) continue;
-      const startTs = i.first_seen_ts ?? i.ts;
+      const startTs = incidentLifecycle(i).first_seen_ts;
       if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
       else recent.push(i);
     }

@@ -16,7 +16,6 @@ import {
   legacyKind,
   mergeMatchingIncidents,
   postUrlRkey,
-  withRuntimeAliasesAll,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINE_ORDER } from '../src/lib/metraLines.js';
@@ -63,9 +62,9 @@ function main() {
   // pages now get prerendered OG cards, so they're added separately from
   // `metraFlat` (the un-gated Metra incidents) further down. Metra roster pages
   // (line pages + the system dashboard) are listed via the static blocks.
-  const allIncidents = withRuntimeAliasesAll(raw.incidents || []);
+  const allIncidents = raw.incidents || [];
   const metraFlat = flattenIncidents(allIncidents.filter((inc) => legacyKind(inc) === 'metra'));
-  raw.incidents = withRuntimeAliasesAll(gateIncidents(allIncidents));
+  raw.incidents = gateIncidents(allIncidents);
   const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
   const generatedAt = payload.generated_at ?? Date.now();
   const generatedIso = isoDate(generatedAt);

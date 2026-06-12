@@ -6,7 +6,11 @@ import {
   findContemporaneousOnOtherLines,
   findRelatedIncidents,
   formatRoutesLabel,
+  incidentDetections,
+  incidentLifecycle,
+  legacyKind,
   metraIncidentStatus,
+  officialAlert,
 } from '../../lib/incidents.js';
 import LinePill from '../LinePill.jsx';
 import MetraPointBadge from '../MetraPointBadge.jsx';
@@ -23,10 +27,12 @@ import { describe, incidentRoutes } from './incidentText.jsx';
 // RelatedIncidents preserves the existing convention there (the section
 // header already names the line, so a pill on every row would be noise).
 function ContextRow({ other, stationIndex, showLinePill }) {
-  const ts = other.first_seen_ts;
-  const otherHasObs = (other.observations?.length ?? 0) > 0;
-  const otherIsMerged = !!other.cta && otherHasObs;
-  const otherIsAlert = !!other.cta && !otherHasObs;
+  const kind = legacyKind(other);
+  const lifecycle = incidentLifecycle(other);
+  const ts = lifecycle.first_seen_ts;
+  const otherHasObs = incidentDetections(other).length > 0;
+  const otherIsMerged = !!officialAlert(other) && otherHasObs;
+  const otherIsAlert = !!officialAlert(other) && !otherHasObs;
   const detailsId = other.id;
   // Metra delay/cancellation status badge, whether it came from an official
   // alert classification or an auto-detected point event.
@@ -49,15 +55,15 @@ function ContextRow({ other, stationIndex, showLinePill }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            {showLinePill && <LinePill kind={other.kind} routes={other.routes} />}
+            {showLinePill && <LinePill kind={kind} routes={other.routes} />}
             {otherIsMerged && (
               <span className="text-xs text-slate-500 dark:text-slate-400 italic">
-                via {agencyLabel(other.kind)} + auto-detection
+                via {agencyLabel(kind)} + auto-detection
               </span>
             )}
             {!otherIsMerged && otherIsAlert && (
               <span className="text-xs text-slate-500 dark:text-slate-400 italic">
-                via {agencyLabel(other.kind)}
+                via {agencyLabel(kind)}
               </span>
             )}
             {!otherIsMerged && !otherIsAlert && (
@@ -77,7 +83,9 @@ function ContextRow({ other, stationIndex, showLinePill }) {
                 {cancellationStatusLabel(cancel)}
               </span>
             )}
-            {other.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
+            {lifecycle.active && (
+              <span className="text-xs font-semibold text-red-500">ongoing</span>
+            )}
           </div>
           <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
             {describe(other, stationIndex)}
@@ -142,7 +150,7 @@ export function RelatedIncidents({ incident, incidents, stationIndex }) {
   // Routes the parent event affects — used to label the section without
   // re-deriving from each row (all rows share at least one of these).
   const routes = incidentRoutes(incident);
-  const lineLabel = formatRoutesLabel(incident.kind, routes);
+  const lineLabel = formatRoutesLabel(legacyKind(incident), routes);
   return (
     <section className="mt-4">
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">

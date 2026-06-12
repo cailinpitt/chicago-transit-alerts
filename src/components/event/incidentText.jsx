@@ -3,6 +3,7 @@ import {
   incidentHeadlineText,
   isMetraPointSource,
   metraPointEventTitle,
+  officialAlert,
   splitObservations,
 } from '../../lib/incidents.js';
 import { displayStationName } from '../../lib/stations.js';
@@ -19,7 +20,7 @@ export function incidentRoutes(incident) {
 // Plain-string variant of `describe` for places that can't render JSX —
 // document.title, plain text logging, etc.
 export function describeText(incident) {
-  if (incident.cta) return incidentHeadlineText(incident);
+  if (officialAlert(incident)) return incidentHeadlineText(incident);
   const { primary } = splitObservations(incident);
   // Metra point event: prefer train-number titles when the exporter supplies the
   // run number; otherwise fall back to the pre-rendered bot sentence.
@@ -36,7 +37,7 @@ export function describeText(incident) {
 }
 
 export function describe(incident, stationIndex) {
-  if (incident.cta) return incidentHeadlineText(incident);
+  if (officialAlert(incident)) return incidentHeadlineText(incident);
   const { primary } = splitObservations(incident);
   // Metra point event: same title policy as describeText.
   const metraTitle = metraPointEventTitle(incident);

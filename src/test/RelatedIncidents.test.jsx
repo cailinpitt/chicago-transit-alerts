@@ -1,12 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { RelatedIncidents } from '../components/event/RelatedIncidents.jsx';
+import { incident } from './v2TestHelpers.js';
 
 const NOW = 1_000_000_000_000;
 
 // The event whose page we're on — a Rock Island incident so the related list
 // (same line, ±24h) picks up the rows below.
-const parent = {
+const parent = incident({
   id: 'parent',
   kind: 'metra',
   routes: ['ri'],
@@ -28,9 +29,9 @@ const parent = {
       bot_description: '~20 min late — the 1:25 PM LaSalle Street train',
     },
   ],
-};
+});
 
-const inferred = {
+const inferred = incident({
   id: 'metra-972',
   kind: 'metra',
   routes: ['ri'],
@@ -52,11 +53,11 @@ const inferred = {
       bot_description: 'Scheduled train not seen running — the 9:55 AM Joliet train',
     },
   ],
-};
+});
 
 // A Metra alert that annuls one scheduled train carries a top-level
 // `cancellation` block (state 'cancelled') and renders as a stable train-title.
-const cancelled = {
+const cancelled = incident({
   id: 'rid413',
   kind: 'metra',
   routes: ['ri'],
@@ -77,7 +78,7 @@ const cancelled = {
     post_url: 'https://bsky.app/x',
   },
   observations: [],
-};
+});
 
 describe('RelatedIncidents', () => {
   it('titles a bot-only point event with its sentence and shows the badge', () => {

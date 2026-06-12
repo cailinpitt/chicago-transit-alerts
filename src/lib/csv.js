@@ -60,21 +60,8 @@ function durationMinutes(lifecycle) {
 }
 
 function officialRow(incident, alert) {
-  const scope = alert.scope ?? {
-    from_station: alert.affected_from_station ?? null,
-    to_station: alert.affected_to_station ?? null,
-    stations: alert.affected_stations ?? [],
-    mentioned_stations: alert.mentioned_stations ?? [],
-    direction: alert.affected_direction ?? null,
-  };
-  const lifecycle =
-    alert.lifecycle ??
-    incidentLifecycle({
-      first_seen_ts: alert.first_seen_ts,
-      resolved_ts: alert.resolved_ts,
-      active: alert.active,
-      duration_ms: alert.duration_ms,
-    });
+  const scope = alert.scope ?? {};
+  const lifecycle = alert.lifecycle ?? incidentLifecycle(null);
   return {
     record_type: 'official_alert',
     incident_id: incident.id,
@@ -82,7 +69,7 @@ function officialRow(incident, alert) {
     mode: incidentMode(incident),
     routes: (incident.routes ?? []).join(';'),
     source: 'official',
-    status_type: incident.status?.type ?? incident.metra_status?.source ?? '',
+    status_type: incident.status?.type ?? '',
     headline: alert.headline ?? '',
     description: alert.description ?? alert.short_description ?? '',
     from_station: scope.from_station ?? '',
@@ -103,30 +90,18 @@ function officialRow(incident, alert) {
 }
 
 function detectionRow(incident, detection) {
-  const scope = detection.scope ?? {
-    from_station: detection.from_station ?? null,
-    to_station: detection.to_station ?? null,
-    stations: detection.stations ?? [],
-    direction: detection.direction ?? null,
-    direction_label: detection.direction_label ?? null,
-  };
-  const lifecycle = detection.lifecycle ?? {
-    first_seen_ts: detection.ts,
-    onset_ts: detection.onset_ts,
-    resolved_ts: detection.resolved_ts,
-    active: detection.active,
-    duration_ms: detection.duration_ms,
-  };
+  const scope = detection.scope ?? {};
+  const lifecycle = detection.lifecycle ?? {};
   return {
     record_type: 'detection',
     incident_id: incident.id,
     agency: incidentAgency(incident),
     mode: incidentMode(incident),
     routes: (incident.routes ?? []).join(';'),
-    source: detection.source ?? detection.detection_source ?? '',
-    status_type: incident.status?.type ?? incident.metra_status?.source ?? '',
+    source: detection.source ?? '',
+    status_type: incident.status?.type ?? '',
     headline: '',
-    description: detection.description ?? detection.bot_description ?? '',
+    description: detection.description ?? '',
     from_station: scope.from_station ?? '',
     to_station: scope.to_station ?? '',
     stations: (scope.stations ?? []).join(';'),

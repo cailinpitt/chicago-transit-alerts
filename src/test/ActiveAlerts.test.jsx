@@ -1,28 +1,30 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import ActiveAlerts from '../components/ActiveAlerts.jsx';
+import { incident } from './v2TestHelpers.js';
 
 const NOW = 1_700_000_000_000;
 const MIN = 60_000;
 
 // Nested incident shape with a CTA block — ActiveCard shows `cta.headline`
 // directly, so the headline doubles as a stable text handle in assertions.
-const activeInc = (over = {}) => ({
-  id: 'a1',
-  kind: 'train',
-  routes: ['red'],
-  active: true,
-  first_seen_ts: NOW - 20 * MIN,
-  resolved_ts: null,
-  cta: {
-    alert_id: 'x',
-    headline: 'Red Line Delays',
-    post_url: 'https://bsky.app/profile/x/post/a1',
+const activeInc = (over = {}) =>
+  incident({
+    id: 'a1',
+    kind: 'train',
+    routes: ['red'],
+    active: true,
     first_seen_ts: NOW - 20 * MIN,
-  },
-  observations: [],
-  ...over,
-});
+    resolved_ts: null,
+    cta: {
+      alert_id: 'x',
+      headline: 'Red Line Delays',
+      post_url: 'https://bsky.app/profile/x/post/a1',
+      first_seen_ts: NOW - 20 * MIN,
+    },
+    observations: [],
+    ...over,
+  });
 
 describe('ActiveAlerts', () => {
   it('renders the "Active Now" heading with the combined active + long-running count', () => {
