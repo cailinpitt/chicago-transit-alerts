@@ -176,10 +176,10 @@ The top-level array is `incidents` — **one object per real-world disruption**.
   "incidents": [
     {
       "id": "3k2j...",                  // stable permalink id (Bluesky post rkey); /event/:id
-      "agency": "cta",                  // "cta" or "metra"
-      "mode": "train",                  // "train", "bus", or "commuter_rail"
-      "routes": ["red"],                // CTA line names ('red',…), bus route numbers, or Metra codes ('up-n')
-      "sources": ["cta", "bot"],        // observers: "cta"/"metra" official agency alerts and/or "bot"
+      "agency": "metra",                // "cta" or "metra"
+      "mode": "commuter_rail",          // "train", "bus", or "commuter_rail"
+      "routes": ["up-n"],               // CTA line names ('red',…), bus route numbers, or Metra codes ('up-n')
+      "sources": ["metra", "bot"],      // observers: "cta"/"metra" official agency alerts and/or "bot"
       "lifecycle": {
         "first_seen_ts": 1715199000000,
         "resolved_ts": null,            // null = still open
@@ -211,20 +211,20 @@ The top-level array is `incidents` — **one object per real-world disruption**.
           "start_is_date_only": false,
           "end_is_date_only": false
         }
-        // "versions": [...]            // present only when CTA edited the alert text over time
+        // "versions": [...]            // present only when the agency edited the alert text over time
       },
       "detections": [                   // [] for official-alert-only incidents
         {
           "id": 12345,
-          "source": "pulse-cold",       // CTA: gap/bunching/ghost/pulse-held/thin-gap/roundup
+          "source": "delay",            // CTA: gap/bunching/ghost/pulse-held/thin-gap/roundup
                                         // Metra: cancellation/cancellation-inferred/delay
           "scope": {
-            "route": "red",
-            "from_station": "Howard",
-            "to_station": "Loyola",
-            "stations": ["Howard", "Jarvis", "Morse", "Loyola"],
-            "direction": "branch-0-inbound",
-            "direction_label": "toward the Loop"
+            "route": "up-n",
+            "from_station": "Waukegan",
+            "to_station": "Ogilvie Transportation Center",
+            "stations": ["Waukegan", "Lake Forest", "Ogilvie Transportation Center"],
+            "direction": "inbound",
+            "direction_label": "inbound"
           },
           "lifecycle": {
             "first_seen_ts": 1715199000000, // when the bot posted; matches post_url

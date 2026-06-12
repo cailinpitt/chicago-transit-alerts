@@ -264,7 +264,8 @@ replacing the previous separate `alerts[]` and `observations[]` arrays.
 - Each incident is one real-world disruption. It pairs the official CTA alert
   (`cta`, `null` for bot-only incidents) with the bot observation(s) describing
   the same event (`observations[]`, empty for CTA-only incidents), plus a
-  `sources` field listing which contributed (`"cta"`, `"bot"`, or both). The
+  `sources` field listing which contributed (`"cta"`, `"bot"`, or both in this
+  v1-era model; v2 also uses `"metra"` for official Metra alerts). The
   alert↔observation pairing that consumers previously had to do themselves now
   happens once, server-side.
 - Train line keys are now **full names** (`red`, `blue`, `brown`, `green`,
