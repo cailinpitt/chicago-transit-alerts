@@ -20,7 +20,7 @@ export default function AboutContent() {
         <li>
           <a
             className={LINK}
-            href="https://bsky.app/profile/ctaalertinsights.bsky.social"
+            href="https://bsky.app/profile/ctaalertinsights.chicagotransitalerts.app"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -34,7 +34,7 @@ export default function AboutContent() {
         <li>
           <a
             className={LINK}
-            href="https://bsky.app/profile/ctatraininsights.bsky.social"
+            href="https://bsky.app/profile/ctatraininsights.chicagotransitalerts.app"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -46,7 +46,7 @@ export default function AboutContent() {
         <li>
           <a
             className={LINK}
-            href="https://bsky.app/profile/ctabusinsights.bsky.social"
+            href="https://bsky.app/profile/ctabusinsights.chicagotransitalerts.app"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -57,7 +57,7 @@ export default function AboutContent() {
         <li>
           <a
             className={LINK}
-            href="https://bsky.app/profile/metraalertinsights.bsky.social"
+            href="https://bsky.app/profile/metraalertinsights.chicagotransitalerts.app"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -69,7 +69,7 @@ export default function AboutContent() {
         <li>
           <a
             className={LINK}
-            href="https://bsky.app/profile/metrainsights.bsky.social"
+            href="https://bsky.app/profile/metrainsights.chicagotransitalerts.app"
             target="_blank"
             rel="noopener noreferrer"
           >

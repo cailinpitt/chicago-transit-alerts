@@ -47,27 +47,27 @@ const BOTS = [
   {
     label: 'CTA Alert Insights',
     emoji: '⚠️',
-    href: 'https://bsky.app/profile/ctaalertinsights.bsky.social',
+    href: 'https://bsky.app/profile/ctaalertinsights.chicagotransitalerts.app',
   },
   {
     label: 'CTA Train Insights',
     emoji: '🚇',
-    href: 'https://bsky.app/profile/ctatraininsights.bsky.social',
+    href: 'https://bsky.app/profile/ctatraininsights.chicagotransitalerts.app',
   },
   {
     label: 'CTA Bus Insights',
     emoji: '🚌',
-    href: 'https://bsky.app/profile/ctabusinsights.bsky.social',
+    href: 'https://bsky.app/profile/ctabusinsights.chicagotransitalerts.app',
   },
   {
     label: 'Metra Alert Insights',
     emoji: '🚆',
-    href: 'https://bsky.app/profile/metraalertinsights.bsky.social',
+    href: 'https://bsky.app/profile/metraalertinsights.chicagotransitalerts.app',
   },
   {
     label: 'Metra Insights',
     emoji: '🛤️',
-    href: 'https://bsky.app/profile/metrainsights.bsky.social',
+    href: 'https://bsky.app/profile/metrainsights.chicagotransitalerts.app',
   },
 ];
 

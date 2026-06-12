@@ -104,7 +104,7 @@ Two agencies — CTA and Metra — each with official alerts and independent bot
 
 ### CTA (trains & buses)
 
-- **Official CTA alerts** — significant service alerts published by the CTA, captured via the CTA Alerts API and republished by the [@ctaalertinsights.bsky.social](https://bsky.app/profile/ctaalertinsights.bsky.social) Bluesky bot.
+- **Official CTA alerts** — significant service alerts published by the CTA, captured via the CTA Alerts API and republished by the [@ctaalertinsights.chicagotransitalerts.app](https://bsky.app/profile/ctaalertinsights.chicagotransitalerts.app) Bluesky bot.
 - **Bot-detected observations** — service disruptions inferred from live train and bus positions:
   - **Cold stretch** — no service through a segment for 15+ min (or 2.5× scheduled headway).
   - **Trains held in place** — multiple trains visibly stationary in a 1-mile cluster for 10+ min, with no other train moving through. Single-train holds where GPS goes silent are also caught via an inferred-held path inside the cold detector.
@@ -112,17 +112,17 @@ Two agencies — CTA and Metra — each with official alerts and independent bot
   - **Bunching** — clusters of vehicles arriving stacked.
   - **Missing vehicles ("ghost")** — full hour where fewer vehicles ran than the schedule implies.
   - **Multi-signal roundup** — when several of the above fire on the same line at once.
-  Posted by [@ctatraininsights](https://bsky.app/profile/ctatraininsights.bsky.social) and [@ctabusinsights](https://bsky.app/profile/ctabusinsights.bsky.social).
+  Posted by [@ctatraininsights](https://bsky.app/profile/ctatraininsights.chicagotransitalerts.app) and [@ctabusinsights](https://bsky.app/profile/ctabusinsights.chicagotransitalerts.app).
 
 ### Metra (commuter rail)
 
 Metra runs on a published timetable, so its detectors look different from the CTA's frequency-based ones:
 
-- **Official Metra alerts** — GTFS-realtime service alerts published by Metra, republished by [@metraalertinsights.bsky.social](https://bsky.app/profile/metraalertinsights.bsky.social).
+- **Official Metra alerts** — GTFS-realtime service alerts published by Metra, republished by [@metraalertinsights.chicagotransitalerts.app](https://bsky.app/profile/metraalertinsights.chicagotransitalerts.app).
 - **Cancellations** — a train is either Metra-confirmed cancelled, or **bot-inferred**: a scheduled train that never appears in the real-time feed long after its departure, with no covering alert. Inferred cancellations are suppressed when the whole feed goes quiet, so a data outage isn't mistaken for mass cancellations.
 - **Delays** — a train running materially behind its scheduled arrival (currently 15+ minutes).
 
-  Cancellations, delays, and speed maps are posted by [@metraalertinsights](https://bsky.app/profile/metraalertinsights.bsky.social) and [@metrainsights](https://bsky.app/profile/metrainsights.bsky.social).
+  Cancellations, delays, and speed maps are posted by [@metraalertinsights](https://bsky.app/profile/metraalertinsights.chicagotransitalerts.app) and [@metrainsights](https://bsky.app/profile/metrainsights.chicagotransitalerts.app).
 
 When an official alert and a bot observation describe the same incident on the same line within a couple of hours, they're paired into a single incident rather than double-counted — within each agency (a CTA alert never pairs with a Metra observation). That pairing happens once, server-side in the [cta-insights](https://github.com/cailinpitt/cta-insights) pipeline, so the published data and the site both treat it as one event (see [Data as an API](#data-as-an-api) for the shape). Each bot-detected observation also carries a small evidence payload ("3 trains held · 22 min stationary", "the 6:30 PM Aurora train not seen running") shown as a chip on the incident — a one-line answer to "why does the bot think this happened?".
 
