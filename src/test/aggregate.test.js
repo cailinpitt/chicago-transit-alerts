@@ -5,6 +5,7 @@ import {
   computeDayOfWeekCounts,
   computeDisruptionMinutes,
   computeMetraLeaderboards,
+  computeMetraStatusCounts,
   computeRecentBurst,
   computeRestorationDeltas,
   computeSegmentRecurrence,
@@ -405,6 +406,99 @@ describe('computeMetraLeaderboards', () => {
     expect(out.hasData).toBe(false);
     expect(out.topCancelled).toBeNull();
     expect(out.topDelayed).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeMetraStatusCounts
+// ---------------------------------------------------------------------------
+describe('computeMetraStatusCounts', () => {
+  const metraIncident = (over = {}) => ({
+    id: 'm1',
+    kind: 'metra',
+    routes: ['me'],
+    first_seen_ts: NOW - HOUR,
+    resolved_ts: NOW,
+    active: false,
+    cta: null,
+    observations: [],
+    ...over,
+  });
+
+  it('counts bot delay and cancellation observations for a line', () => {
+    const out = computeMetraStatusCounts(
+      [
+        metraIncident({
+          observations: [
+            { id: 'd1', kind: 'metra', line: 'me', detection_source: 'delay', ts: NOW - HOUR },
+            {
+              id: 'c1',
+              kind: 'metra',
+              line: 'me',
+              detection_source: 'cancellation-inferred',
+              ts: NOW - HOUR,
+            },
+            { id: 'd2', kind: 'metra', line: 'ri', detection_source: 'delay', ts: NOW - HOUR },
+          ],
+        }),
+      ],
+      { now: NOW, windowDays: 90, lineFilter: 'me' },
+    );
+    expect(out).toEqual({ cancellations: 1, delays: 1, total: 2 });
+  });
+
+  it('counts official-only Metra alert status once', () => {
+    const out = computeMetraStatusCounts(
+      [
+        metraIncident({
+          cta: { headline: 'ME train #121 delayed' },
+          metra_status: { source: 'delay', train_number: '121' },
+        }),
+        metraIncident({
+          id: 'm2',
+          cta: { headline: 'ME train #123 will not operate' },
+          metra_status: { source: 'cancellation', train_number: '123' },
+        }),
+      ],
+      { now: NOW, windowDays: 90, lineFilter: 'me' },
+    );
+    expect(out).toEqual({ cancellations: 1, delays: 1, total: 2 });
+  });
+
+  it('does not double-count merged official and bot status', () => {
+    const out = computeMetraStatusCounts(
+      [
+        metraIncident({
+          cta: { headline: 'ME train #121 delayed' },
+          metra_status: { source: 'delay', train_number: '121' },
+          observations: [
+            { id: 'd1', kind: 'metra', line: 'me', detection_source: 'delay', ts: NOW - HOUR },
+          ],
+        }),
+      ],
+      { now: NOW, windowDays: 90, lineFilter: 'me' },
+    );
+    expect(out).toEqual({ cancellations: 0, delays: 1, total: 1 });
+  });
+
+  it('excludes stale official and bot statuses', () => {
+    const old = NOW - 120 * DAY;
+    const out = computeMetraStatusCounts(
+      [
+        metraIncident({
+          first_seen_ts: old,
+          cta: { headline: 'ME train #121 delayed' },
+          metra_status: { source: 'delay', train_number: '121' },
+        }),
+        metraIncident({
+          observations: [
+            { id: 'd1', kind: 'metra', line: 'me', detection_source: 'delay', ts: old },
+          ],
+        }),
+      ],
+      { now: NOW, windowDays: 90, lineFilter: 'me' },
+    );
+    expect(out).toEqual({ cancellations: 0, delays: 0, total: 0 });
   });
 });
 

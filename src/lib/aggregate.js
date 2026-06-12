@@ -5,6 +5,7 @@ import { TRAIN_LINE_ORDER } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
 import {
   mergeMatchingIncidents,
+  metraIncidentStatus,
   observationSignals,
   postUrlRkey,
   SIGNAL_TYPES,
@@ -1600,6 +1601,63 @@ export function computeMetraLeaderboards(
     topDelayed,
     hasData: byLine.length > 0 || alertsCount > 0,
   };
+}
+
+/**
+ * Count Metra train-level delay/cancellation status instances from nested
+ * incidents. Bot observations count individually; official-only Metra alerts
+ * count once through `metra_status` / text fallback.
+ *
+ * @param {import('./incidents.js').Incident[]} incidents
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @param {string | null} [options.lineFilter]
+ * @returns {{ cancellations: number, delays: number, total: number }}
+ */
+export function computeMetraStatusCounts(
+  incidents,
+  { now = Date.now(), windowDays = 90, lineFilter = null } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+  let cancellations = 0;
+  let delays = 0;
+  const observationInLine = (line, routes = []) =>
+    !lineFilter ||
+    line === lineFilter ||
+    (line == null && Array.isArray(routes) && routes.includes(lineFilter));
+
+  for (const inc of incidents || []) {
+    if (inc.kind !== 'metra') continue;
+    const routes = inc.routes || [];
+    if (lineFilter && !routes.includes(lineFilter)) continue;
+
+    let countedObservation = false;
+    for (const o of inc.observations || []) {
+      if (o.ts == null || o.ts < cutoff) continue;
+      if (!observationInLine(o.line, routes)) continue;
+      if (o.detection_source === 'delay') {
+        delays += 1;
+        countedObservation = true;
+      } else if (
+        o.detection_source === 'cancellation' ||
+        o.detection_source === 'cancellation-inferred'
+      ) {
+        cancellations += 1;
+        countedObservation = true;
+      }
+    }
+
+    if (countedObservation) continue;
+    if (!inc.cta) continue;
+    const ts = inc.first_seen_ts ?? inc.cta?.first_seen_ts ?? null;
+    if (ts == null || ts < cutoff) continue;
+    const source = metraIncidentStatus(inc)?.source;
+    if (source === 'delay') delays += 1;
+    else if (source === 'cancellation' || source === 'cancellation-inferred') cancellations += 1;
+  }
+
+  return { cancellations, delays, total: cancellations + delays };
 }
 
 // Recurring segments: bucket train-only bot observations by (line,

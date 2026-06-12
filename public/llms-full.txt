@@ -6,13 +6,13 @@
 
 Official alerts and independent bot detections are combined into unified "incidents." An official alert and the bot observation(s) describing the same disruption on the same line within a couple of hours are paired server-side into one incident — no client-side merging. Pairing is within-agency: a CTA alert never merges with a Metra observation, or vice-versa. The site is a static React app on GitHub Pages; the same JSON it renders is published for reuse (research, journalism, dashboards, training data).
 
-Every incident has a `kind` of `train`, `bus`, or `metra`. Train routes use full line names: `red`, `blue`, `green`, `brown`, `orange`, `pink`, `purple`, `yellow`. Bus routes use route numbers/identifiers (`66`, `X9`, `J14`). Metra lines use lowercase route codes: `bnsf`, `hc`, `md-n`, `md-w`, `me`, `ncs`, `ri`, `sws`, `up-n`, `up-nw`, `up-w`. JSON timestamps are epoch milliseconds; CSV timestamps are ISO 8601 (UTC). Metra incidents are present in alerts.json; the CSV and per-line feeds are CTA-only for now.
+Every incident has a `kind` of `train`, `bus`, or `metra`. Train routes use full line names: `red`, `blue`, `green`, `brown`, `orange`, `pink`, `purple`, `yellow`. Bus routes use route numbers/identifiers (`66`, `X9`, `J14`). Metra lines use lowercase route codes: `bnsf`, `hc`, `md-n`, `md-w`, `me`, `ncs`, `ri`, `sws`, `up-n`, `up-nw`, `up-w`. JSON timestamps are epoch milliseconds; CSV timestamps are ISO 8601 (UTC).
 
 ## Endpoints
 
-- Incidents JSON: https://chicagotransitalerts.app/data/alerts.json
-- Daily counts JSON: https://chicagotransitalerts.app/data/daily-counts.json
-- Incidents CSV: https://chicagotransitalerts.app/data/alerts.csv
+- Incidents JSON: https://data.chicagotransitalerts.app/alerts.json
+- Daily counts JSON: https://data.chicagotransitalerts.app/daily-counts.json
+- Incidents CSV: https://data.chicagotransitalerts.app/alerts.csv
 - Data changelog: https://chicagotransitalerts.app/data/CHANGELOG.md
 - Atom feed: https://chicagotransitalerts.app/feed.xml (per-line/route: /feed/line/<line>.xml, /feed/route/<route>.xml)
 - JSON feed: https://chicagotransitalerts.app/feed.json

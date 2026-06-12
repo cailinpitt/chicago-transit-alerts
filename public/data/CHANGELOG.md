@@ -1,7 +1,7 @@
 # Data API Changelog
 
 Breaking and notable changes to the published data at
-<https://chicagotransitalerts.app/data/> — `alerts.json` and `alerts.csv` — and
+<https://data.chicagotransitalerts.app/> — `alerts.json` and `alerts.csv` — and
 the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.

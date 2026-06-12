@@ -237,6 +237,28 @@ export default function BrowseMenu({ alerts, observations, align = 'right' }) {
               </div>
             </section>
 
+            <section>
+              <h3 className={SUB_LABEL}>More</h3>
+              <a href="/about" role="menuitem" className={ROW_LINK}>
+                <span aria-hidden="true" className="w-5 shrink-0 text-center">
+                  ℹ️
+                </span>
+                About
+              </a>
+              <a href="/subscribe" role="menuitem" className={ROW_LINK}>
+                <span aria-hidden="true" className="w-5 shrink-0 text-center">
+                  🔔
+                </span>
+                Subscribe
+              </a>
+              <a href="/privacy" role="menuitem" className={ROW_LINK}>
+                <span aria-hidden="true" className="w-5 shrink-0 text-center">
+                  🔒
+                </span>
+                Privacy
+              </a>
+            </section>
+
             {/* CTA group — train lines, bus routes, and 'L' stations. */}
             <section>
               <h3 className={AGENCY_LABEL}>CTA</h3>

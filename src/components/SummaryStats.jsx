@@ -3,6 +3,7 @@ import { buildDailyTrend, computeDisruptionMinutes } from '../lib/aggregate.js';
 import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { formatMinutesAsHours } from '../lib/format.js';
+import { METRA_LINE_ORDER } from '../lib/metraLines.js';
 import TrendSparkline from './TrendSparkline.jsx';
 
 // Callout threshold: only surface a "X% busier/quieter than the prior week"
@@ -50,6 +51,7 @@ export default function SummaryStats({
   // status header right above already states it — repeating it here is noise.
   // Other pages (line, system) keep it since they have no such header.
   showActive = true,
+  agency = 'all',
 }) {
   const trend = useMemo(
     () => (alerts && observations ? buildDailyTrend(alerts, observations) : null),
@@ -57,10 +59,9 @@ export default function SummaryStats({
   );
 
   // System-wide disruption-hours over the last 7 days, sized to match the
-  // existing "X incidents in the last 7 days" phrase. Line-hours, summed
-  // across all 8 train lines (buses excluded — bus routes outnumber lines
-  // 100:1 and would warp the denominator without a meaningful baseline).
-  const disruption7d = useMemo(() => {
+  // existing "X incidents in the last 7 days" phrase. Line-hours are summed
+  // across each agency's rail lines, keeping CTA and Metra visually distinct.
+  const ctaDisruption7d = useMemo(() => {
     if (!alerts || !observations) return null;
     return computeDisruptionMinutes(
       alerts.filter((a) => a.kind === 'train'),
@@ -68,6 +69,18 @@ export default function SummaryStats({
       {
         windowDays: 7,
         lines: TRAIN_LINE_ORDER.map((line) => ({ kind: 'train', line })),
+      },
+    );
+  }, [alerts, observations]);
+
+  const metraDisruption7d = useMemo(() => {
+    if (!alerts || !observations) return null;
+    return computeDisruptionMinutes(
+      alerts.filter((a) => a.kind === 'metra'),
+      observations.filter((o) => o.kind === 'metra'),
+      {
+        windowDays: 7,
+        lines: METRA_LINE_ORDER.map((line) => ({ kind: 'metra', line })),
       },
     );
   }, [alerts, observations]);
@@ -136,18 +149,34 @@ export default function SummaryStats({
     />
   );
   const weekCard = <StatCard value={weeklyCount} label="in last 7 days" />;
-  const disruptionCard = (() => {
-    if (!disruption7d || disruption7d.disruptedMinutes <= 0) return null;
-    const pct = disruption7d.ratio * 100;
+  const buildDisruptionCard = (disruption, label, title) => {
+    if (!disruption || disruption.disruptedMinutes <= 0) return null;
+    const pct = disruption.ratio * 100;
     const pctLabel = pct < 1 ? '<1%' : `~${Math.round(pct)}%`;
     return (
       <StatCard
-        value={formatMinutesAsHours(disruption7d.disruptedMinutes, { maxUnit: 'hours' })}
-        label={`trains disrupted in last 7 days · ${pctLabel} of the time`}
-        title="Total train line-hours in a detected disruption over the last 7 days, summed across the 8 lines (overlapping detections on one line are unioned; separate lines are summed). The percentage is that share of scheduled train service hours."
+        value={formatMinutesAsHours(disruption.disruptedMinutes, { maxUnit: 'hours' })}
+        label={`${label} trains disrupted in last 7 days · ${pctLabel} of the time`}
+        title={title}
       />
     );
-  })();
+  };
+  const ctaDisruptionCard =
+    agency !== 'metra'
+      ? buildDisruptionCard(
+          ctaDisruption7d,
+          'CTA',
+          'Total CTA train line-hours in a detected disruption over the last 7 days, summed across the 8 lines (overlapping detections on one line are unioned; separate lines are summed). The percentage is that share of scheduled CTA train service hours.',
+        )
+      : null;
+  const metraDisruptionCard =
+    agency !== 'cta'
+      ? buildDisruptionCard(
+          metraDisruption7d,
+          'Metra',
+          'Total Metra line-hours in a detected disruption over the last 7 days, summed across the 11 lines (overlapping detections on one line are unioned; separate lines are summed). The percentage is that share of estimated Metra service hours.',
+        )
+      : null;
   const trendCard = (() => {
     if (trend?.trendRatio == null) return null;
     const priorTotal = trend.prior7Avg * 7;
@@ -166,13 +195,22 @@ export default function SummaryStats({
       />
     );
   })();
-  const mobileCards = [showActive ? activeCard : null, weekCard, disruptionCard, trendCard].filter(
-    Boolean,
-  );
+  const mobileCards = [
+    showActive ? activeCard : null,
+    weekCard,
+    ctaDisruptionCard,
+    metraDisruptionCard,
+    trendCard,
+  ].filter(Boolean);
   // Desktop strip omits the trend card (rendered as a phrase + sparkline row
   // below) and, like mobile, drops the active card when the host page already
   // shows an active/all-clear status above.
-  const desktopCards = [showActive ? activeCard : null, weekCard, disruptionCard].filter(Boolean);
+  const desktopCards = [
+    showActive ? activeCard : null,
+    weekCard,
+    ctaDisruptionCard,
+    metraDisruptionCard,
+  ].filter(Boolean);
 
   // Two layouts share data but diverge structurally:
   //   - Mobile (<sm): 2x2 grid of stat cards, then the affected/quietest

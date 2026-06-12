@@ -567,6 +567,7 @@ export default function App() {
                     alerts={flat.alerts}
                     observations={flat.observations}
                     showActive={false}
+                    agency={selectedAgency}
                   />
                 )}
               </section>

@@ -7,7 +7,7 @@ import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
 const SITE = 'https://chicagotransitalerts.app';
 const FEED_URL = `${SITE}/feed.xml`;
-const CSV_URL = 'https://chicagotransitalerts.app/data/alerts.csv';
+const CSV_URL = dataUrl('alerts.csv');
 const JSON_URL = dataUrl('alerts.json');
 const CHANGELOG_URL = 'https://chicagotransitalerts.app/data/CHANGELOG.md';
 
@@ -34,8 +34,10 @@ const METRA_FEED_OPTIONS = METRA_LINE_ORDER.map((id) => ({
 
 export default function SubscribeContent() {
   const [copied, setCopied] = useState(null);
-  const [pickedFeed, setPickedFeed] = useState('line/red');
-  const pickedFeedUrl = `${SITE}/feed/${pickedFeed}.xml`;
+  const [pickedCtaFeed, setPickedCtaFeed] = useState('line/red');
+  const [pickedMetraFeed, setPickedMetraFeed] = useState('metra/line/me');
+  const pickedCtaFeedUrl = `${SITE}/feed/${pickedCtaFeed}.xml`;
+  const pickedMetraFeedUrl = `${SITE}/feed/${pickedMetraFeed}.xml`;
 
   useEffect(() => {
     if (!copied) return;
@@ -151,61 +153,52 @@ export default function SubscribeContent() {
         Just one line or route
       </h3>
       <p>
-        Only care about your commute? Pick a line or route to get its own feed — every CTA train
-        line, every bus route, and every Metra line has one at a predictable URL (
-        <code className="text-xs">/feed/line/:line.xml</code>,{' '}
+        Only care about your commute? Pick a CTA line or route, or a Metra line, to get its own
+        feed. Every CTA train line, every bus route, and every Metra line has one at a predictable
+        URL (<code className="text-xs">/feed/line/:line.xml</code>,{' '}
         <code className="text-xs">/feed/route/:route.xml</code>, or{' '}
         <code className="text-xs">/feed/metra/line/:line.xml</code>):
       </p>
-      <div className="space-y-2">
-        <label htmlFor="feed-picker" className="sr-only">
-          Choose a line or route
-        </label>
-        <select
-          id="feed-picker"
-          value={pickedFeed}
-          onChange={(e) => setPickedFeed(e.target.value)}
-          className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200"
+      <div className="grid gap-3 md:grid-cols-2">
+        <FeedPicker
+          id="cta-feed-picker"
+          label="CTA line or route"
+          value={pickedCtaFeed}
+          onChange={setPickedCtaFeed}
+          url={pickedCtaFeedUrl}
+          copied={copied === 'cta-picked'}
+          onCopy={copy('cta-picked', pickedCtaFeedUrl)}
         >
-          <optgroup label="CTA Train Lines">
+          <optgroup label="Train Lines">
             {LINE_FEED_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
           </optgroup>
-          <optgroup label="CTA Bus Routes">
+          <optgroup label="Bus Routes">
             {ROUTE_FEED_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
           </optgroup>
-          <optgroup label="Metra Lines">
-            {METRA_FEED_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </optgroup>
-        </select>
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            readOnly
-            value={pickedFeedUrl}
-            onFocus={(e) => e.target.select()}
-            aria-label="Selected line or route feed URL"
-            className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200"
-          />
-          <button
-            type="button"
-            onClick={copy('picked', pickedFeedUrl)}
-            className="px-3 py-1.5 text-xs font-medium rounded border border-slate-200 dark:border-gh-border text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gh-border transition-colors"
-          >
-            {copied === 'picked' ? 'Copied' : 'Copy'}
-          </button>
-        </div>
+        </FeedPicker>
+        <FeedPicker
+          id="metra-feed-picker"
+          label="Metra line"
+          value={pickedMetraFeed}
+          onChange={setPickedMetraFeed}
+          url={pickedMetraFeedUrl}
+          copied={copied === 'metra-picked'}
+          onCopy={copy('metra-picked', pickedMetraFeedUrl)}
+        >
+          {METRA_FEED_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </FeedPicker>
       </div>
       <p className="text-xs text-slate-500 dark:text-slate-400">
         Feeds exist for every CTA line, every roster route, and every Metra line up front, so you
@@ -297,6 +290,44 @@ export default function SubscribeContent() {
           className="px-3 py-1.5 text-xs font-medium rounded border border-slate-200 dark:border-gh-border text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gh-border transition-colors"
         >
           {copied === 'curl' ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FeedPicker({ id, label, value, onChange, url, copied, onCopy, children }) {
+  return (
+    <div className="space-y-2">
+      <label
+        htmlFor={id}
+        className="block text-xs font-semibold text-slate-600 dark:text-slate-300"
+      >
+        {label}
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-2 py-1.5 text-sm bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200"
+      >
+        {children}
+      </select>
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          readOnly
+          value={url}
+          onFocus={(e) => e.target.select()}
+          aria-label={`${label} feed URL`}
+          className="flex-1 min-w-0 px-2 py-1.5 text-xs font-mono bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border rounded text-slate-700 dark:text-slate-200"
+        />
+        <button
+          type="button"
+          onClick={onCopy}
+          className="px-3 py-1.5 text-xs font-medium rounded border border-slate-200 dark:border-gh-border text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gh-border transition-colors"
+        >
+          {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
     </div>

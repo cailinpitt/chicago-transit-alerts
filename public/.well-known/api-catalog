@@ -11,17 +11,17 @@
       ],
       "item": [
         {
-          "href": "https://chicagotransitalerts.app/data/alerts.json",
+          "href": "https://data.chicagotransitalerts.app/alerts.json",
           "type": "application/json",
           "title": "Incidents — full archive of CTA and Metra alerts and bot-detected disruptions"
         },
         {
-          "href": "https://chicagotransitalerts.app/data/daily-counts.json",
+          "href": "https://data.chicagotransitalerts.app/daily-counts.json",
           "type": "application/json",
           "title": "Daily incident counts"
         },
         {
-          "href": "https://chicagotransitalerts.app/data/alerts.csv",
+          "href": "https://data.chicagotransitalerts.app/alerts.csv",
           "type": "text/csv",
           "title": "Incidents — CSV export"
         },

@@ -13,7 +13,7 @@ describe('SubscribeContent feed picker', () => {
 
   it('updates the feed URL when a bus route is picked', async () => {
     render(<SubscribeContent />);
-    await userEvent.selectOptions(screen.getByLabelText('Choose a line or route'), 'route/66');
+    await userEvent.selectOptions(screen.getByLabelText('CTA line or route'), 'route/66');
     expect(
       screen.getByDisplayValue('https://chicagotransitalerts.app/feed/route/66.xml'),
     ).toBeInTheDocument();
@@ -21,10 +21,7 @@ describe('SubscribeContent feed picker', () => {
 
   it('updates the feed URL when a Metra line is picked', async () => {
     render(<SubscribeContent />);
-    await userEvent.selectOptions(
-      screen.getByLabelText('Choose a line or route'),
-      'metra/line/bnsf',
-    );
+    await userEvent.selectOptions(screen.getByLabelText('Metra line'), 'metra/line/bnsf');
     expect(
       screen.getByDisplayValue('https://chicagotransitalerts.app/feed/metra/line/bnsf.xml'),
     ).toBeInTheDocument();

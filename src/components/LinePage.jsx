@@ -6,6 +6,7 @@ import {
   computeDisruptionMinutes,
   computeDurationHistogram,
   computeLineReliability,
+  computeMetraStatusCounts,
   computeRecentBurst,
   computeSegmentRecurrence,
   computeSummaryStats,
@@ -317,6 +318,15 @@ export default function LinePage({ kind, lineId }) {
     return computeDayOfWeekCounts(lineAlerts, lineObservations, { now, windowDays: 91 });
   }, [data, lineAlerts, lineObservations, now]);
 
+  const metraStatusCounts = useMemo(() => {
+    if (!data || !isMetra) return null;
+    return computeMetraStatusCounts(lineIncidents, {
+      now,
+      windowDays: 90,
+      lineFilter: effectiveLineId,
+    });
+  }, [data, isMetra, lineIncidents, now, effectiveLineId]);
+
   // Worst single day for this line/route in the 90d window. Surfaced as a
   // single-line callout linking to the day-permalink — gives a quick "this
   // is the floor we've sunk to" reference point.
@@ -460,7 +470,8 @@ export default function LinePage({ kind, lineId }) {
             {summary &&
               (summary.weeklyCount > 0 ||
                 (reliability?.currentStreakDays ?? 0) > 0 ||
-                (disruption?.disruptedMinutes ?? 0) > 0) && (
+                (disruption?.disruptedMinutes ?? 0) > 0 ||
+                (metraStatusCounts?.total ?? 0) > 0) && (
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 px-1">
                   <div className="flex-1 min-w-0 space-y-2">
                     {(() => {
@@ -474,6 +485,18 @@ export default function LinePage({ kind, lineId }) {
                             : `${(disruption.ratio * 100).toFixed(disruption.ratio < 0.01 ? 2 : 1)}%`
                           : null;
                       const cells = [{ v: String(summary.weeklyCount), l: 'in last 7 days' }];
+                      if (isMetra && metraStatusCounts) {
+                        cells.push(
+                          {
+                            v: String(metraStatusCounts.cancellations),
+                            l: 'cancellations, 90d',
+                          },
+                          {
+                            v: String(metraStatusCounts.delays),
+                            l: 'delays, 90d',
+                          },
+                        );
+                      }
                       if (disruption && disruption.disruptedMinutes > 0) {
                         cells.push({
                           v: formatMinutesAsHours(disruption.disruptedMinutes),

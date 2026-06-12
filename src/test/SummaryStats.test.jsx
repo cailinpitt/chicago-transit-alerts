@@ -15,6 +15,18 @@ const baseProps = {
   alerts: [],
   observations: [],
 };
+const HOUR = 60 * 60 * 1000;
+
+function railObservation(kind, line) {
+  const now = Date.now();
+  return {
+    id: `${kind}-${line}`,
+    kind,
+    line,
+    ts: now - HOUR,
+    resolved_ts: now,
+  };
+}
 
 describe('SummaryStats', () => {
   it('renders the 7-day volume figure', () => {
@@ -41,5 +53,34 @@ describe('SummaryStats', () => {
   it('renders an "all clear" active label when nothing is active', () => {
     render(<SummaryStats {...baseProps} activeCount={0} showActive />);
     expect(screen.getAllByText(/all clear/i).length).toBeGreaterThan(0);
+  });
+
+  it('labels CTA train disruption hours explicitly', () => {
+    render(<SummaryStats {...baseProps} observations={[railObservation('train', 'red')]} />);
+    expect(screen.getAllByText(/CTA trains disrupted in last 7 days/i).length).toBeGreaterThan(0);
+  });
+
+  it('shows only CTA disruption cards when scoped to CTA', () => {
+    render(
+      <SummaryStats
+        {...baseProps}
+        agency="cta"
+        observations={[railObservation('train', 'red'), railObservation('metra', 'me')]}
+      />,
+    );
+    expect(screen.getAllByText(/CTA trains disrupted in last 7 days/i).length).toBeGreaterThan(0);
+    expect(screen.queryAllByText(/Metra trains disrupted in last 7 days/i)).toHaveLength(0);
+  });
+
+  it('shows only Metra disruption cards when scoped to Metra', () => {
+    render(
+      <SummaryStats
+        {...baseProps}
+        agency="metra"
+        observations={[railObservation('train', 'red'), railObservation('metra', 'me')]}
+      />,
+    );
+    expect(screen.queryAllByText(/CTA trains disrupted in last 7 days/i)).toHaveLength(0);
+    expect(screen.getAllByText(/Metra trains disrupted in last 7 days/i).length).toBeGreaterThan(0);
   });
 });
