@@ -6,6 +6,17 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-12 — Metra planned delay advisories use `planned-delay` status (additive)
+
+Official Metra construction/work-zone alerts that warn of possible delays now
+publish `incidents[].metra_status.source: "planned-delay"` instead of generic
+`"delay"`. This keeps multi-day planned work advisories distinct from
+single-train delay alerts and bot-detected late trains.
+
+- **Compatibility** — `metra_status` remains additive. Existing fields are
+  unchanged, and clients that do not special-case `"planned-delay"` can continue
+  to render the official alert headline and active/resolved lifecycle.
+
 ## 2026-06-11 — Official Metra alert status: `metra_status` (additive)
 
 Official Metra alerts that can be classified as single-train delays or
@@ -15,7 +26,8 @@ This mirrors the existing Metra bot observation vocabulary (`delay`,
 for official-only Metra alerts as well as bot-detected point events.
 
 - **New field** `incidents[].metra_status`, an object (or `null`) with:
-  - `source` — currently `"delay"` or `"cancellation"` for official Metra alerts.
+  - `source` — currently `"delay"`, `"planned-delay"`, or `"cancellation"` for
+    official Metra alerts.
   - `train_number` — the train/run number when known.
   - `delay_min` / `deadline_ts` — present for schedule-anchored delays, when known.
   - `state` — present for schedule-anchored cancellations, matching

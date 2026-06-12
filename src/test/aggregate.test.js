@@ -465,6 +465,23 @@ describe('computeMetraStatusCounts', () => {
     expect(out).toEqual({ cancellations: 1, delays: 1, total: 2 });
   });
 
+  it('does not count planned-work Metra delay advisories as late trains', () => {
+    const out = computeMetraStatusCounts(
+      [
+        metraIncident({
+          cta: {
+            headline: 'Track Construction Saturday, June 13 through Sunday, June 14',
+            short_description:
+              'Track construction will be taking place on Saturday, June 13 through Sunday, June 14. Trains may incur delays enroute up to 20 minutes behind scheduled passing through the work zone.',
+          },
+          metra_status: { source: 'planned-delay', train_number: null },
+        }),
+      ],
+      { now: NOW, windowDays: 90, lineFilter: 'me' },
+    );
+    expect(out).toEqual({ cancellations: 0, delays: 0, total: 0 });
+  });
+
   it('does not double-count merged official and bot status', () => {
     const out = computeMetraStatusCounts(
       [

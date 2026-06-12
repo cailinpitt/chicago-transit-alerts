@@ -682,6 +682,7 @@ describe('metraPointEvent', () => {
 describe('metraPointEventLabel', () => {
   it('maps each kind to its badge label', () => {
     expect(metraPointEventLabel('delay')).toBe('delayed');
+    expect(metraPointEventLabel('planned-delay')).toBe('planned work');
     expect(metraPointEventLabel('cancellation')).toBe('cancelled');
     expect(metraPointEventLabel('cancellation-inferred')).toBe('possible cancellation');
     expect(metraPointEventLabel('gap')).toBeNull();
@@ -745,6 +746,24 @@ describe('metraIncidentStatus', () => {
     };
     expect(metraIncidentStatus(incident)).toEqual({ source: 'delay' });
     expect(incidentHeadlineText(incident)).toBe('Rock Island train #426 delayed');
+  });
+
+  it('treats construction delay advisories as planned work, not train-level delays', () => {
+    const incident = {
+      kind: 'metra',
+      routes: ['md-w'],
+      cta: {
+        headline: 'Track Construction Saturday, June 13 through Sunday, June 14',
+        short_description:
+          'Track construction will be taking place on Saturday, June 13 through Sunday, June 14. Trains may incur delays enroute up to 20 minutes behind scheduled passing through the work zone.',
+      },
+      metra_status: { source: 'delay', train_number: null },
+      observations: [],
+    };
+    expect(metraIncidentStatus(incident)).toEqual({ source: 'planned-delay' });
+    expect(incidentHeadlineText(incident)).toBe(
+      'Track Construction Saturday, June 13 through Sunday, June 14',
+    );
   });
 });
 

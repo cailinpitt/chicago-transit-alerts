@@ -456,17 +456,28 @@ export function metraPointEventTitle(incident) {
 
 function officialMetraStatusSource(incident) {
   if (incident?.kind !== 'metra' || !incident.cta) return null;
+  // Backward-compatible display fallback for already-published data that predates
+  // metra_status, plus a compatibility override for construction advisories that
+  // were briefly exported as generic delays. Keep it text-only and conservative;
+  // the backend remains the source of truth for schedule anchors and train numbers.
+  const text = [incident.cta.headline, incident.cta.short_description].filter(Boolean).join(' \n ');
+  const isPlannedDelay =
+    /\b(track\s+construction|construction|planned\s+work|work\s+zone|maintenance)\b/i.test(text) &&
+    /\bdelay(?:ed|s)?\b|\b\d{1,3}\s*(?:\+|\s*or\s+more)?\s*minutes?\s+(?:late|behind|delay)/i.test(
+      text,
+    );
+
   const exported = incident.metra_status?.source;
+  if (exported === 'planned-delay' || (exported === 'delay' && isPlannedDelay)) {
+    return 'planned-delay';
+  }
   if (isMetraPointSource(exported)) return exported;
   if (incident.cancellation?.state) return 'cancellation';
 
-  // Backward-compatible display fallback for already-published data that predates
-  // metra_status. Keep it text-only and conservative; the backend remains the
-  // source of truth for schedule anchors and train numbers.
-  const text = [incident.cta.headline, incident.cta.short_description].filter(Boolean).join(' \n ');
   if (/\bwill\s+not\s+operate\b|\bcancell?ed\b|\bannull?ed\b|\bnot\s+running\b/i.test(text)) {
     return 'cancellation';
   }
+  if (isPlannedDelay) return 'planned-delay';
   if (
     /\bdelay(?:ed|s)?\b|\b\d{1,3}\s*(?:\+|\s*or\s+more)?\s*minutes?\s+(?:late|behind|delay)/i.test(
       text,
@@ -503,6 +514,8 @@ export function metraPointEventLabel(source) {
   switch (source) {
     case 'delay':
       return 'delayed';
+    case 'planned-delay':
+      return 'planned work';
     case 'cancellation':
       return 'cancelled';
     case 'cancellation-inferred':
