@@ -88,14 +88,18 @@ const GANTT_SPAN_LADDER_MS = [
   12 * 60 * 60 * 1000, // 12h
 ];
 
+// The ladder's top rung — the gantt axis never spans longer than this, and
+// incidents older than it are dropped from the ribbon entirely (see below).
+const GANTT_MAX_SPAN_MS = GANTT_SPAN_LADDER_MS[GANTT_SPAN_LADDER_MS.length - 1];
+
 function ceilToGanttSpan(rawSpanMs) {
   for (const step of GANTT_SPAN_LADDER_MS) {
     if (rawSpanMs <= step) return step;
   }
-  // Past 12h falls through — the gantt only spans the live bands (disruptions
-  // + delays), and planned/scheduled work (the usual multi-day source) is
-  // excluded, so anything older is rare. Cap at the ladder's top rung.
-  return GANTT_SPAN_LADDER_MS[GANTT_SPAN_LADDER_MS.length - 1];
+  // Past 12h falls through — but callers filter out incidents older than
+  // GANTT_MAX_SPAN_MS before computing the span, so this only guards against
+  // float rounding right at the boundary. Cap at the ladder's top rung.
+  return GANTT_MAX_SPAN_MS;
 }
 
 // Don't surface a median when fewer than this many past incidents back it.
@@ -396,10 +400,19 @@ function ActiveRow({ incident, now, isNew, tone = 'disruption', showAgency = fal
 // Skipped when only one incident is active (a single bar has nothing to
 // compare against and the existing card already shows elapsed time).
 function ActiveMiniGantt({ incidents, now }) {
-  if (incidents.length < 2) return null;
+  // The axis tops out at 12h (the ladder's max rung). An incident running
+  // longer than that overshoots the axis — its bar's natural width exceeds
+  // 100%, so it spills past the left edge and renders as a full-width slab
+  // (the "~13h 5m" bars that looked broken). Drop those from the ribbon; they
+  // still appear as cards/rows in the bands below. The ribbon is only for
+  // comparing how long the *recent* live events have been running.
+  const within = incidents.filter((i) => {
+    const start = incidentLifecycle(i).first_seen_ts;
+    return start != null && now - start <= GANTT_MAX_SPAN_MS;
+  });
+  if (within.length < 2) return null;
 
-  const starts = incidents.map((i) => incidentLifecycle(i).first_seen_ts).filter((t) => t != null);
-  if (starts.length === 0) return null;
+  const starts = within.map((i) => incidentLifecycle(i).first_seen_ts);
   const earliest = Math.min(...starts);
   const rawSpan = Math.max(now - earliest, GANTT_MIN_SPAN_MS);
   const span = ceilToGanttSpan(rawSpan);
@@ -410,7 +423,7 @@ function ActiveMiniGantt({ incidents, now }) {
   const leftLabel = formatDuration(span);
 
   // Oldest at top so the eye reads down the list as time progresses.
-  const sorted = [...incidents].sort(
+  const sorted = [...within].sort(
     (a, b) => incidentLifecycle(a).first_seen_ts - incidentLifecycle(b).first_seen_ts,
   );
 
