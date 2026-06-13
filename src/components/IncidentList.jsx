@@ -182,6 +182,29 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
     description = <HighlightedText text={botSummaryText(incident)} query={searchQuery} />;
   }
 
+  // Status badge — pulled out of the inline metadata line and rendered in a
+  // fixed right-hand column (below) so the badges line up vertically across
+  // rows instead of starting wherever the variable-length attribution text
+  // ("via CTA · via auto-detection") happens to end. Schedule and CTA
+  // estimated-end detail text stays inline on the left. Order mirrors the old
+  // inline branches: cancellation → Metra point status → ongoing → duration.
+  const statusBadge = cancel ? (
+    <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+      {cancellationStatusLabel(cancel)}
+    </span>
+  ) : metraStatus ? (
+    <span className="inline-flex items-center gap-1.5">
+      <MetraPointBadge source={metraStatus.source} />
+      {lifecycle.active && <span className="text-xs font-semibold text-red-500">ongoing</span>}
+    </span>
+  ) : lifecycle.active ? (
+    <span className="text-xs font-semibold text-red-500">ongoing</span>
+  ) : duration ? (
+    <span className="text-xs text-slate-500 dark:text-slate-400">{duration} duration</span>
+  ) : !endTs ? (
+    <span className="text-xs text-slate-500 dark:text-slate-400">duration unknown</span>
+  ) : null;
+
   return (
     <div
       className={`cv-auto-row relative flex items-start gap-3 py-3 border-b border-slate-100 dark:border-gh-border last:border-0 ${
@@ -235,49 +258,10 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                 via auto-detection
               </span>
             )}
-            {cancel ? (
-              <>
-                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
-                  {cancellationStatusLabel(cancel)}
-                </span>
-                {cancelPhrase && (
-                  <>
-                    <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      {cancelPhrase}
-                    </span>
-                  </>
-                )}
-              </>
-            ) : metraStatus ? (
+            {cancel && cancelPhrase && (
               <>
                 <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-                <MetraPointBadge source={metraStatus.source} />
-                {lifecycle.active && (
-                  <>
-                    <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-                    <span className="text-xs font-semibold text-red-500">ongoing</span>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                {duration && (
-                  <>
-                    <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      {duration} duration
-                    </span>
-                  </>
-                )}
-                {!endTs && !lifecycle.active && (
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    duration unknown
-                  </span>
-                )}
-                {lifecycle.active && (
-                  <span className="text-xs font-semibold text-red-500">ongoing</span>
-                )}
+                <span className="text-xs text-slate-500 dark:text-slate-400">{cancelPhrase}</span>
               </>
             )}
             {lifecycle.active &&
@@ -465,6 +449,16 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             <ShareLink eventId={eventId} />
           </div>
         </div>
+
+        {/* Status badge in a fixed right-hand column. The wrapper is
+            `items-start`, so it pins to the top of the row and right-aligns
+            against the card's edge — giving every row's badge the same
+            vertical line, regardless of how long the left-side attribution
+            text runs. Non-interactive, so clicks fall through to the row's
+            overlay link. */}
+        {statusBadge && (
+          <div className="flex-shrink-0 text-right whitespace-nowrap">{statusBadge}</div>
+        )}
       </div>
     </div>
   );
