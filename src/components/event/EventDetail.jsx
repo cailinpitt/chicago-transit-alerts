@@ -25,6 +25,7 @@ import {
   formatEvidenceChip,
   formatRoutesLabel,
   incidentLifecycle,
+  isPlannedIncident,
   legacyKind,
   mergeMatchingIncidents,
   metraIncidentStatus,
@@ -223,7 +224,15 @@ export function EventDetail({ incident, incidents, alerts, observations, station
   // Wall-clock ticker (1-minute cadence) so an active incident shows a running
   // "ongoing for…" that advances without waiting on the 5-minute data poll.
   const now = useNow();
-  const elapsedMs = lifecycle.active && startTs != null ? Math.max(0, now - startTs) : null;
+  // Planned/advance-notice work (track construction, multi-day reroutes) is
+  // dated by its scheduled window, not an elapsed clock — the disruption may
+  // not have started yet. So we suppress the "Ongoing for" timer and the red
+  // "ongoing" pill for these and relabel "First seen" as "Announced" (the
+  // moment CTA posted the notice). Mirrors the homepage's planned-work band,
+  // which also drops the timer.
+  const isPlanned = isPlannedIncident(incident, now);
+  const elapsedMs =
+    lifecycle.active && !isPlanned && startTs != null ? Math.max(0, now - startTs) : null;
 
   // ── Severity / context insights ──────────────────────────────────────────
   // All windowed off Date.now() at compute time (no `now` tick dependency) so
@@ -427,16 +436,25 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           </span>
         ) : metraStatus ? (
           <>
+            {/* The Metra status badge already reads "planned work" for planned
+                incidents, so don't also tack on a "planned" pill — just drop
+                the "ongoing" marker, which doesn't apply before the work
+                starts. */}
             <MetraPointBadge source={metraStatus.source} />
-            {lifecycle.active && (
+            {lifecycle.active && !isPlanned && (
               <span className="text-xs font-semibold text-red-500">ongoing</span>
             )}
           </>
         ) : (
           <>
-            {lifecycle.active && (
-              <span className="text-xs font-semibold text-red-500">ongoing</span>
-            )}
+            {lifecycle.active &&
+              (isPlanned ? (
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  planned
+                </span>
+              ) : (
+                <span className="text-xs font-semibold text-red-500">ongoing</span>
+              ))}
             {!lifecycle.active && lifecycle.resolved_ts != null && (
               <span className="text-xs font-semibold text-green-600 dark:text-green-400">
                 resolved
@@ -940,7 +958,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-4">
         <div>
           <dt className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            {startIsScheduledDep ? 'Scheduled departure' : 'First seen'}
+            {startIsScheduledDep ? 'Scheduled departure' : isPlanned ? 'Announced' : 'First seen'}
           </dt>
           <dd className="text-slate-700 dark:text-slate-200">
             {formatDate(startTs)} · {formatTime(startTs)}
@@ -1159,7 +1177,12 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           drawn from the surrounding incident set and only render when they
           clear their notability thresholds, so a one-off in a quiet hour
           shows nothing here. */}
-      {(stretchRecurrence || hourContext) && (
+      {/* Context insights are anchored to when the incident started — which for
+          planned work is just when CTA posted the advance notice, not when the
+          disruption happens. "A quiet hour for disruptions" applied to a 4 AM
+          construction post is noise, so suppress the whole section for planned
+          work. */}
+      {!isPlanned && (stretchRecurrence || hourContext) && (
         <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gh-border">
           <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Context

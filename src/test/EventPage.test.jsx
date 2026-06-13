@@ -340,6 +340,31 @@ const PAYLOAD = {
       },
       observations: [],
     },
+    {
+      // Future planned work (advance-notice track construction). Posted today,
+      // work happens this weekend — so "Ongoing for" counting from first_seen
+      // is meaningless. Should relabel "First seen" → "Announced", drop the
+      // timer, and show a neutral "planned" pill instead of red "ongoing".
+      id: 'metra-planned',
+      kind: 'metra',
+      routes: ['bnsf', 'md-n', 'md-w', 'me', 'ri', 'up-nw', 'up-w'],
+      first_seen_ts: NOW - 60 * 60_000,
+      resolved_ts: null,
+      active: true,
+      sources: ['cta'],
+      cta: ctaBlock({
+        alert_id: 'metra-planned-1',
+        headline: 'Track Construction Saturday, June 13 through Sunday, June 14',
+        short_description:
+          'Track construction will be taking place on Saturday, June 13 through Sunday, June 14. Trains may incur delays enroute up to 15 minutes behind scheduled passing through the work zone.',
+        first_seen_ts: NOW - 60 * 60_000,
+        resolved_ts: null,
+        active: true,
+        post_url: 'https://bsky.app/profile/did:plc:abc/post/metra-planned',
+      }),
+      metra_status: { source: 'planned-delay', train_number: null },
+      observations: [],
+    },
   ].map((inc) => incident(inc)),
 };
 
@@ -532,6 +557,30 @@ describe('EventPage', () => {
       ).toBeInTheDocument();
     });
     expect(screen.getAllByText('delayed').length).toBeGreaterThan(0);
+  });
+
+  it('relabels and de-times a future planned-work alert', async () => {
+    render(<EventPage eventId="metra-planned" />);
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: /Track Construction Saturday/i }),
+      ).toBeInTheDocument();
+    });
+    const article = screen.getByRole('article');
+    // The disruption hasn't started: count-up framing is wrong.
+    expect(within(article).getByText('Announced')).toBeInTheDocument();
+    expect(within(article).queryByText('First seen')).not.toBeInTheDocument();
+    expect(within(article).queryByText('Ongoing for')).not.toBeInTheDocument();
+    // The Metra "planned work" badge carries the status; no redundant "planned"
+    // pill, and no red "ongoing" marker before the work starts.
+    expect(within(article).getByText('planned work')).toBeInTheDocument();
+    expect(within(article).queryByText('ongoing')).not.toBeInTheDocument();
+    expect(within(article).queryByText('planned')).not.toBeInTheDocument();
+    // A multi-line parent can't name one line in the "Surrounding 24 hours"
+    // header — it generalizes to the agency and turns on per-row line pills so
+    // each related row says which line it's on.
+    expect(screen.getByText('Surrounding 24 hours on affected Metra lines')).toBeInTheDocument();
+    expect(screen.queryByText(/Surrounding 24 hours on 7 Metra lines/)).not.toBeInTheDocument();
   });
 
   it('shows a not-found message for an unknown id', async () => {

@@ -8,6 +8,7 @@ import {
   formatRoutesLabel,
   incidentDetections,
   incidentLifecycle,
+  isPlannedIncident,
   legacyKind,
   metraIncidentStatus,
   officialAlert,
@@ -41,6 +42,10 @@ function ContextRow({ other, stationIndex, showLinePill }) {
   // event page show.
   const cancel = cancellationInfo(other);
   const metraStatus = !cancel ? metraIncidentStatus(other) : null;
+  // Planned/advance-notice work isn't "ongoing" — the disruption may not have
+  // started. Suppress the red "ongoing" marker for it (the Metra status badge
+  // already reads "planned work"; non-Metra planned rows show no marker).
+  const planned = isPlannedIncident(other);
   return (
     <div className="relative flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-gh-subtle/40 transition-colors">
       {detailsId && (
@@ -83,7 +88,7 @@ function ContextRow({ other, stationIndex, showLinePill }) {
                 {cancellationStatusLabel(cancel)}
               </span>
             )}
-            {lifecycle.active && (
+            {lifecycle.active && !planned && (
               <span className="text-xs font-semibold text-red-500">ongoing</span>
             )}
           </div>
@@ -149,12 +154,21 @@ export function RelatedIncidents({ incident, incidents, stationIndex }) {
   if (related.length === 0) return null;
   // Routes the parent event affects — used to label the section without
   // re-deriving from each row (all rows share at least one of these).
+  const kind = legacyKind(incident);
   const routes = incidentRoutes(incident);
-  const lineLabel = formatRoutesLabel(legacyKind(incident), routes);
+  // A single-line parent names its line in the header, so per-row pills would be
+  // noise. A multi-line parent (e.g. a system-wide Metra construction notice on
+  // 7 lines) can't name one line — "Surrounding 24 hours on 7 Metra lines" is
+  // both clumsy and drops which line each row is actually on. So for those we
+  // generalize the header to the agency and turn the per-row pills on.
+  const multiLine = routes.length > 1;
+  const heading = multiLine
+    ? `Surrounding 24 hours on affected ${agencyLabel(kind)} lines`
+    : `Surrounding 24 hours on ${formatRoutesLabel(kind, routes)}`;
   return (
     <section className="mt-4">
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-        Surrounding 24 hours on {lineLabel}
+        {heading}
       </h2>
       <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border overflow-hidden">
         {related.map((other) => (
@@ -162,7 +176,7 @@ export function RelatedIncidents({ incident, incidents, stationIndex }) {
             key={rowKey(other)}
             other={other}
             stationIndex={stationIndex}
-            showLinePill={false}
+            showLinePill={multiLine}
           />
         ))}
       </div>
