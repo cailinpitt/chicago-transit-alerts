@@ -257,7 +257,7 @@ function ActiveCard({ incident, now, isNew, typicalDurations, stationIndex, show
           )}
           {cancel ? (
             <span className="text-xs text-slate-500 dark:text-slate-400">
-              <span className="font-semibold text-amber-600 dark:text-amber-400">
+              <span className="font-semibold text-purple-600 dark:text-purple-400">
                 {cancellationStatusLabel(cancel)}
               </span>
               {cancelPhrase && ` · ${cancelPhrase}`}

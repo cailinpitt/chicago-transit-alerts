@@ -237,13 +237,7 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             )}
             {cancel ? (
               <>
-                <span
-                  className={`text-xs font-semibold ${
-                    cancel.isUpcoming
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-slate-500 dark:text-slate-400'
-                  }`}
-                >
+                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
                   {cancellationStatusLabel(cancel)}
                 </span>
                 {cancelPhrase && (
