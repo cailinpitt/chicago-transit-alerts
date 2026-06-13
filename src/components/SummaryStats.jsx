@@ -17,6 +17,14 @@ function Sep() {
   return <span className="mx-2 text-slate-300 dark:text-slate-600">·</span>;
 }
 
+// Leading agency tag on each most-affected / quietest line, so a reader can
+// tell a CTA line from a Metra line at a glance in the combined "All" view.
+function AgencyTag({ children }) {
+  return (
+    <span className="font-semibold text-slate-400 dark:text-slate-500 mr-1.5">{children}</span>
+  );
+}
+
 // One sentence-group worth of inline stat phrases, joined by `·`. The outer
 // element is plain block flow (not flex) — flex containers strip whitespace
 // between children, which would eat the space after `<strong>` tags inside
@@ -100,6 +108,7 @@ export default function SummaryStats({
     const info = TRAIN_LINES[mostAffectedId];
     affectedPhrase = (
       <>
+        <AgencyTag>CTA</AgencyTag>
         <strong style={{ color: info.color }}>{info.label} Line</strong> most affected (last 30
         days)
       </>
@@ -107,6 +116,7 @@ export default function SummaryStats({
   } else if (showCta && mostAffectedKind === 'bus') {
     affectedPhrase = (
       <>
+        <AgencyTag>CTA</AgencyTag>
         <strong className="text-slate-800 dark:text-slate-100">
           {formatBusRoute(mostAffectedId)}
         </strong>{' '}
@@ -121,6 +131,7 @@ export default function SummaryStats({
     const info = METRA_LINES[metraMostAffectedId];
     metraAffectedPhrase = (
       <>
+        <AgencyTag>Metra</AgencyTag>
         <strong style={{ color: info.color }}>{info.label}</strong> most affected (last 30 days)
       </>
     );
@@ -152,6 +163,7 @@ export default function SummaryStats({
     const info = TRAIN_LINES[quietestLineId];
     quietestPhrase = (
       <>
+        <AgencyTag>CTA</AgencyTag>
         <strong style={{ color: info.color }}>{info.label} Line</strong> quietest:{' '}
         {quietestLineDays} days since last incident
       </>
@@ -168,6 +180,7 @@ export default function SummaryStats({
     const info = METRA_LINES[metraQuietestLineId];
     metraQuietestPhrase = (
       <>
+        <AgencyTag>Metra</AgencyTag>
         <strong style={{ color: info.color }}>{info.label}</strong> quietest:{' '}
         {metraQuietestLineDays} days since last incident
       </>
