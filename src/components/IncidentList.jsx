@@ -182,12 +182,20 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
     description = <HighlightedText text={botSummaryText(incident)} query={searchQuery} />;
   }
 
+  const durationDetail =
+    !cancel && !metraStatus && !lifecycle.active
+      ? duration
+        ? `${duration} duration`
+        : !endTs
+          ? 'duration unknown'
+          : null
+      : null;
+
   // Status badge — pulled out of the inline metadata line and rendered in a
   // fixed right-hand column (below) so the badges line up vertically across
   // rows instead of starting wherever the variable-length attribution text
-  // ("via CTA · via auto-detection") happens to end. Schedule and CTA
-  // estimated-end detail text stays inline on the left. Order mirrors the old
-  // inline branches: cancellation → Metra point status → ongoing → duration.
+  // ("via CTA · via auto-detection") happens to end. Schedule, CTA
+  // estimated-end, and plain duration detail text stays inline on the left.
   const statusBadge = cancel ? (
     <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
       {cancellationStatusLabel(cancel)}
@@ -199,10 +207,6 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
     </span>
   ) : lifecycle.active ? (
     <span className="text-xs font-semibold text-red-500">ongoing</span>
-  ) : duration ? (
-    <span className="text-xs text-slate-500 dark:text-slate-400">{duration} duration</span>
-  ) : !endTs ? (
-    <span className="text-xs text-slate-500 dark:text-slate-400">duration unknown</span>
   ) : null;
 
   return (
@@ -257,6 +261,12 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
               <span className="text-xs text-slate-500 dark:text-slate-400 italic">
                 via auto-detection
               </span>
+            )}
+            {durationDetail && (
+              <>
+                <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{durationDetail}</span>
+              </>
             )}
             {cancel && cancelPhrase && (
               <>

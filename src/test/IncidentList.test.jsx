@@ -109,6 +109,13 @@ describe('IncidentList', () => {
     expect(screen.getByText('ongoing')).toBeInTheDocument();
   });
 
+  it('keeps plain durations in the metadata line, not the right-side badge column', () => {
+    const { container } = render(<IncidentList incidents={[obsInc()]} />);
+    expect(screen.getByText('~25m duration')).toBeInTheDocument();
+    const rightBadgeColumn = container.querySelector('.flex-shrink-0.text-right.whitespace-nowrap');
+    expect(rightBadgeColumn).toBeNull();
+  });
+
   it('shows a "delayed" badge and leads with the train number for a Metra delay', () => {
     const delayInc = incident({
       id: 'metra-992',

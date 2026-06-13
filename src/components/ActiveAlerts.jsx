@@ -411,6 +411,7 @@ function ActiveMiniGantt({ incidents, now }) {
     return start != null && now - start <= GANTT_MAX_SPAN_MS;
   });
   if (within.length < 2) return null;
+  const olderCount = incidents.length - within.length;
 
   const starts = within.map((i) => incidentLifecycle(i).first_seen_ts);
   const earliest = Math.min(...starts);
@@ -429,9 +430,16 @@ function ActiveMiniGantt({ incidents, now }) {
 
   return (
     <div className="bg-white dark:bg-gh-surface rounded-lg border border-red-200 dark:border-red-900 px-3 py-2.5 mb-2">
-      <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-        Started
-      </p>
+      <div className="flex items-baseline justify-between gap-3 mb-2">
+        <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          Started in last 12h
+        </p>
+        {olderCount > 0 && (
+          <p className="text-xs text-slate-500 dark:text-slate-400 text-right">
+            {olderCount} older active event{olderCount === 1 ? '' : 's'} listed below
+          </p>
+        )}
+      </div>
       <div className="space-y-1">
         {sorted.map((incident) => {
           const kind = legacyKind(incident);
