@@ -5,7 +5,7 @@ import { dayTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
-import { filterIncidents, flattenIncidents, legacyKind } from '../lib/incidents.js';
+import { filterIncidents, incidentRecords, legacyKind } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc, parseUrlState } from '../lib/urlState.js';
@@ -79,7 +79,7 @@ export default function DayPage({ dateStr }) {
   }, [dayUtc]);
 
   // Flat view for the station index and Header; the list reads nested incidents.
-  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+  const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
 
   // Use the standard filter pipeline pinned to this day — incidents whose
   // [start, end] spans overlap. Active incidents that started before today
@@ -106,7 +106,7 @@ export default function DayPage({ dateStr }) {
 
   const stationIndex = useMemo(() => {
     if (!flat) return null;
-    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+    return buildStationIndex(flat.officialRecords, flat.detectionRecords, { now, windowDays: 90 });
   }, [flat, now]);
 
   // Distinct lines/routes touched on this day — drives the breakdown chip

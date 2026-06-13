@@ -24,9 +24,9 @@ import { breadcrumbJsonLd, eventTrail } from '../src/lib/breadcrumbs.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../src/lib/ctaLines.js';
 import { formatDate, formatTime } from '../src/lib/format.js';
 import {
-  flattenIncidents,
   formatRoutesLabel,
-  mergeMatchingIncidents,
+  groupIncidentRecords,
+  incidentRecords,
   observationSignals,
   summarizeSignals,
 } from '../src/lib/incidents.js';
@@ -198,9 +198,9 @@ function summarize(incident) {
 function pickIncidents(payload) {
   // Mirror what the SPA shows: merged + standalone. We dedupe by event id so a
   // merged incident doesn't also produce a stub for its underlying alert.
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-    payload.alerts ?? [],
-    payload.observations ?? [],
+  const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
+    payload.officialRecords ?? [],
+    payload.detectionRecords ?? [],
   );
   const out = new Map();
   const add = (incident) => {
@@ -463,7 +463,7 @@ async function main() {
   // describeObservation handle kind='metra'), so opt in explicitly — Metra event
   // pages get their own prerendered stub + per-event OG image like CTA events.
   raw.incidents = gateIncidents(raw.incidents || [], true);
-  const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
+  const payload = { ...raw, ...incidentRecords(raw.incidents || []) };
   const shell = readFileSync(SHELL, 'utf8');
   const template = readFileSync(TEMPLATE, 'utf8');
   const templateHash = createHash('sha256').update(template).digest('hex').slice(0, 16);

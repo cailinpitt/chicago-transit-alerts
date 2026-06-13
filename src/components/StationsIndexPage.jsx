@@ -143,7 +143,7 @@ function StationGroups({ groups, hrefBase, Dots }) {
 
 export default function StationsIndexPage() {
   const [dark, toggleDark] = useDarkMode();
-  const { alerts, observations } = useBrowseData();
+  const { officialRecords, detectionRecords } = useBrowseData();
   // null = all lines; otherwise the subset of full line keys to show. Seeded
   // from the URL so a shared filtered link lands pre-narrowed.
   const [selectedLines, setSelectedLines] = useState(() => parseLinesParam(window.location.search));
@@ -209,8 +209,8 @@ export default function StationsIndexPage() {
         onResetFilters={() => {
           window.location.href = '/';
         }}
-        alerts={alerts}
-        observations={observations}
+        alerts={officialRecords}
+        observations={detectionRecords}
       />
       <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>

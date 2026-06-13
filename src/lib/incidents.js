@@ -100,41 +100,33 @@ function legacyDetection(incident, detection) {
   };
 }
 
-// Flatten the published `incidents[]` wire shape into the `{ alerts, observations }`
-// representation the analytics layer (aggregate.js, CSV/feed generators, the
-// station index) still consumes.
-//
-// The fuzzy alert↔observation pairing now happens server-side (cta-insights
-// `export-web.js`); each incident already groups its CTA alert with the bot
-// observations that belong to it. We flatten that back out — one flat alert
-// per `incident.official_alert`, plus every `incident.detections` row — and stamp each
-// record with `_incidentId` so `mergeMatchingIncidents` can regroup by that
-// decision without re-matching. Train line keys arrive already normalized to
-// full names ('green'), so no per-record normalization happens here anymore.
-//
-// View components no longer go through this — they read the nested `incidents[]`
-// directly (see EventPage, findIncidentById). It survives only for the analytics
-// helpers that haven't been moved onto the nested shape.
+// Convert the published `incidents[]` wire shape into incident-derived records
+// for the analytics helpers that still need row-level official-alert and
+// detection inputs. This is not a v1 wire compatibility layer: records are
+// derived from v2 incidents and stamped with `_incidentId`, so regrouping uses
+// the producer's server-side pairing decision instead of fuzzy client matching.
 /**
  * @param {Incident[]} incidents
- * @returns {{ alerts: Alert[], observations: Observation[] }}
+ * @returns {{ officialRecords: Alert[], detectionRecords: Observation[] }}
  */
-export function flattenIncidents(incidents) {
-  const alerts = [];
-  const observations = [];
+export function incidentRecords(incidents) {
+  const officialRecords = [];
+  const detectionRecords = [];
   for (const inc of incidents || []) {
-    if (officialAlert(inc)) alerts.push(flattenIncidentAlert(inc));
+    if (officialAlert(inc)) officialRecords.push(officialRecordFromIncident(inc));
     for (const o of incidentDetections(inc)) {
-      observations.push(inc.detections ? legacyDetection(inc, o) : { ...o, _incidentId: inc.id });
+      detectionRecords.push(
+        inc.detections ? legacyDetection(inc, o) : { ...o, _incidentId: inc.id },
+      );
     }
   }
-  return { alerts, observations };
+  return { officialRecords, detectionRecords };
 }
 
 // Reconstruct the flat Alert shape from an incident's nested `cta` block. The
 // incident carries `kind`/`routes` at the top level and CTA's own lifecycle
 // (first_seen_ts/resolved_ts/active) inside `cta`.
-function flattenIncidentAlert(inc) {
+export function officialRecordFromIncident(inc) {
   const c = officialAlert(inc);
   const scope = officialScope(c);
   const lifecycle = officialLifecycle(c);
@@ -183,7 +175,7 @@ function flattenIncidentAlert(inc) {
 }
 
 /**
- * Top-level v2 payload served by `public/data/alerts.json`.
+ * Top-level v2 payload served by the public data origin as `alerts.json`.
  *
  * @typedef {object} AlertsPayload
  * @property {2} schema_version
@@ -264,7 +256,7 @@ function flattenIncidentAlert(inc) {
 export const SIGNAL_TYPES = ['gap', 'bunching', 'ghost', 'pulse-cold', 'pulse-held', 'thin-gap'];
 
 // Source categories for the filter chip. Each incident falls into exactly
-// one bucket after `mergeMatchingIncidents` runs:
+// one bucket after `groupIncidentRecords` runs:
 //   'cta'    — official agency alert with no matching bot detection
 //   'bot'    — bot detection with no matching official agency alert
 //   'merged' — official agency alert and bot detection that paired up
@@ -883,14 +875,14 @@ export function findContemporaneousOnOtherLines(incident, incidents, windowMs = 
   return out;
 }
 
-// Regroup flat alerts/observations back into the merged / standalone buckets
-// the analytics layer (aggregate.js) and a couple of components still consume.
-// The fuzzy alert↔observation pairing is NOT done here — it happens server-side
-// in cta-insights and is baked into each record's `_incidentId` by
-// `flattenIncidents`. This just groups by that id, so a CTA alert and the bot
-// observations that share its incident reassemble into one merged record, while
-// everything else falls through as standalone. (The view layer reads the nested
-// `incidents[]` directly and never calls this.)
+// Group incident-derived official/detection records into the merged /
+// standalone buckets the analytics layer (aggregate.js) and a couple of
+// components still consume. The fuzzy alert↔observation pairing is NOT done
+// here — it happens server-side in cta-insights and is baked into each record's
+// `_incidentId` by `incidentRecords`. This just groups by that id, so an
+// official alert and the bot detections that share its incident reassemble into
+// one merged record. (The view layer reads the nested `incidents[]` directly and
+// never calls this.)
 //
 // Returns:
 //   merged           — combined alert+observation records (built shape below)
@@ -900,14 +892,14 @@ export function findContemporaneousOnOtherLines(incident, incidents, windowMs = 
 //                      or bot-only incidents
 //
 // Records lacking `_incidentId` (e.g. hand-built in tests, or any object that
-// didn't pass through `flattenIncidents`) fall back to a per-record id so
+// didn't pass through `incidentRecords`) fall back to a per-record id so
 // they never accidentally group together.
 /**
  * @param {Alert[]} alerts
  * @param {Observation[]} observations
  * @returns {{ merged: MergedIncident[], standaloneAlerts: Alert[], standaloneObs: Observation[] }}
  */
-export function mergeMatchingIncidents(alerts, observations) {
+export function groupIncidentRecords(alerts, observations) {
   const groups = new Map();
   const order = [];
   const groupFor = (id) => {
@@ -919,7 +911,7 @@ export function mergeMatchingIncidents(alerts, observations) {
     }
     return g;
   };
-  // Records that never passed through flattenIncidents (e.g. hand-built in
+  // Records that never passed through incidentRecords (e.g. hand-built in
   // tests) have no _incidentId; give each a unique key so they never group.
   for (const a of alerts || []) groupFor(a._incidentId ?? Symbol('alert')).alert = a;
   for (const o of observations || []) groupFor(o._incidentId ?? Symbol('obs')).obs.push(o);
@@ -936,9 +928,8 @@ export function mergeMatchingIncidents(alerts, observations) {
   return { merged, standaloneAlerts, standaloneObs };
 }
 
-// Build the flat MergedIncident the list/event components render, from a CTA
-// alert and its grouped observations. Shape is unchanged from when the merge
-// ran client-side, so every consumer keeps working.
+// Build the legacy display record that older analytics/components render from
+// an official alert and its grouped detections.
 function buildMergedRecord(alert, obsList) {
   // Primary obs = closest in time to the alert (most likely the detection that
   // caught the same onset CTA published). The single-obs fields (obs_post_url,

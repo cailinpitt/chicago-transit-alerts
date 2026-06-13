@@ -23,9 +23,9 @@ import { compareBusRoutes } from './lib/busRoutes.js';
 import { dataUrl } from './lib/dataSource.js';
 import {
   filterIncidents,
-  flattenIncidents,
   incidentAgency,
   incidentLifecycle,
+  incidentRecords,
   observationSignals,
   SOURCE_TYPES,
 } from './lib/incidents.js';
@@ -268,11 +268,11 @@ export default function App() {
     return data.incidents.filter((inc) => incidentAgency(inc) === selectedAgency);
   }, [data, selectedAgency]);
 
-  // Flat { alerts, observations } view of the (agency-scoped) payload — the
-  // analytics layer (summary stats, station index, timeline, ActiveAlerts/Gantt)
-  // reads the flat shape. The incident list path reads `agencyIncidents`.
+  // Incident-derived official/detection records for analytics helpers
+  // (summary stats, station index, timeline, ActiveAlerts/Gantt). The incident
+  // list path reads the nested `agencyIncidents` directly.
   const flat = useMemo(
-    () => (data ? flattenIncidents(agencyIncidents) : null),
+    () => (data ? incidentRecords(agencyIncidents) : null),
     [data, agencyIncidents],
   );
 
@@ -339,8 +339,8 @@ export default function App() {
   const availableBusRoutes = useMemo(() => {
     if (!flat) return [];
     const routes = new Set([
-      ...flat.observations.filter((o) => o.kind === 'bus').map((o) => o.line),
-      ...flat.alerts.filter((a) => a.kind === 'bus').flatMap((a) => a.routes),
+      ...flat.detectionRecords.filter((o) => o.kind === 'bus').map((o) => o.line),
+      ...flat.officialRecords.filter((a) => a.kind === 'bus').flatMap((a) => a.routes),
     ]);
     return [...routes].sort(compareBusRoutes);
   }, [flat]);
@@ -365,32 +365,35 @@ export default function App() {
   // for those.
   const vizAlerts = useMemo(() => {
     if (!flat) return [];
-    if (selectedSignals.length === 0) return flat.alerts;
+    if (selectedSignals.length === 0) return flat.officialRecords;
     return [];
   }, [flat, selectedSignals]);
 
   const vizObservations = useMemo(() => {
     if (!flat) return [];
-    if (selectedSignals.length === 0) return flat.observations;
+    if (selectedSignals.length === 0) return flat.detectionRecords;
     const sigSet = new Set(selectedSignals);
-    return flat.observations.filter((o) => observationSignals(o).some((s) => sigSet.has(s)));
+    return flat.detectionRecords.filter((o) => observationSignals(o).some((s) => sigSet.has(s)));
   }, [flat, selectedSignals]);
 
   const summaryStats = useMemo(() => {
     if (!flat) return null;
-    return computeSummaryStats(flat.alerts, flat.observations, now);
+    return computeSummaryStats(flat.officialRecords, flat.detectionRecords, now);
   }, [flat, now]);
 
   const todaySummary = useMemo(() => {
     if (!flat) return null;
-    return buildTodaySummary(flat.alerts, flat.observations, now);
+    return buildTodaySummary(flat.officialRecords, flat.detectionRecords, now);
   }, [flat, now]);
 
   // 90-day typical-duration cohort lookup, used by ActiveAlerts to surface
   // a "typically ~Xm" hint next to elapsed time on each active card.
   const typicalDurations = useMemo(() => {
     if (!flat) return null;
-    return computeTypicalDurations(flat.alerts, flat.observations, { now, windowDays: 90 });
+    return computeTypicalDurations(flat.officialRecords, flat.detectionRecords, {
+      now,
+      windowDays: 90,
+    });
   }, [flat, now]);
 
   // System-wide burst detector: incidents in the last 3h vs. the 30d baseline
@@ -398,7 +401,7 @@ export default function App() {
   // "Z× typical rate" chip only when things are visibly worse than usual.
   const burst = useMemo(() => {
     if (!flat) return null;
-    return computeRecentBurst(flat.alerts, flat.observations, {
+    return computeRecentBurst(flat.officialRecords, flat.detectionRecords, {
       now,
       windowHours: 3,
       baselineDays: 30,
@@ -409,7 +412,7 @@ export default function App() {
   // /station/:slug links when the destination page is worth visiting.
   const stationIndex = useMemo(() => {
     if (!flat) return null;
-    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+    return buildStationIndex(flat.officialRecords, flat.detectionRecords, { now, windowDays: 90 });
   }, [flat, now]);
 
   const filtered = useMemo(() => {
@@ -567,8 +570,8 @@ export default function App() {
                 {summaryStats && (
                   <SummaryStats
                     {...summaryStats}
-                    alerts={flat.alerts}
-                    observations={flat.observations}
+                    alerts={flat.officialRecords}
+                    observations={flat.detectionRecords}
                     showActive={false}
                     agency={selectedAgency}
                   />
@@ -662,7 +665,7 @@ export default function App() {
                 }
               />
               <HourOfWeekHeatmap alerts={vizAlerts} observations={vizObservations} />
-              <SignalBreakdown observations={flat.observations} />
+              <SignalBreakdown observations={flat.detectionRecords} />
             </CollapsibleSection>
           </>
         )}

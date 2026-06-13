@@ -4,9 +4,9 @@ import { eventTrail } from '../lib/breadcrumbs.js';
 import { dataUrl } from '../lib/dataSource.js';
 import {
   findIncidentById,
-  flattenIncidents,
   formatRoutesLabel,
   incidentLifecycle,
+  incidentRecords,
   legacyKind,
 } from '../lib/incidents.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -69,11 +69,11 @@ export default function EventPage({ eventId }) {
   // Flat { alerts, observations } view of the payload — the station index and
   // BrowseMenu (and, via EventDetail, the cohort stats) still read the flat
   // shape. The view itself renders the nested `incident` directly.
-  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+  const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
 
   const stationIndex = useMemo(() => {
     if (!flat) return null;
-    return buildStationIndex(flat.alerts, flat.observations, { windowDays: 90 });
+    return buildStationIndex(flat.officialRecords, flat.detectionRecords, { windowDays: 90 });
   }, [flat]);
 
   // Set the tab title from the incident so bookmarks and shared links land in
@@ -138,8 +138,8 @@ export default function EventPage({ eventId }) {
             <EventDetail
               incident={incident}
               incidents={data.incidents}
-              alerts={flat.alerts}
-              observations={flat.observations}
+              alerts={flat.officialRecords}
+              observations={flat.detectionRecords}
               stationIndex={stationIndex}
               dark={dark}
             />

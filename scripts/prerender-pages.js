@@ -45,10 +45,10 @@ import {
   formatWeekRange,
 } from '../src/lib/format.js';
 import {
-  flattenIncidents,
   formatRoutesLabel,
+  groupIncidentRecords,
+  incidentRecords,
   legacyKind,
-  mergeMatchingIncidents,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../src/lib/metraLines.js';
@@ -189,7 +189,7 @@ function buildStatsHtml(leaders) {
 }
 
 function statsSubtitle(payload) {
-  const total = (payload.alerts?.length ?? 0) + (payload.observations?.length ?? 0);
+  const total = (payload.officialRecords?.length ?? 0) + (payload.detectionRecords?.length ?? 0);
   if (total === 0) return 'Worst days, hours, stations, and longest incidents on record.';
   return `Worst days, hours, stations, and longest incidents — across ${total} record${total === 1 ? '' : 's'}.`;
 }
@@ -211,12 +211,12 @@ function calendarSubtitle(dailyPayload) {
 function activeRoutesByKind(payload) {
   const trains = new Set();
   const buses = new Set();
-  for (const a of payload.alerts ?? []) {
+  for (const a of payload.officialRecords ?? []) {
     if (!a.active) continue;
     if (a.kind === 'train') for (const r of a.routes ?? []) trains.add(r);
     else if (a.kind === 'bus') for (const r of a.routes ?? []) buses.add(String(r));
   }
-  for (const o of payload.observations ?? []) {
+  for (const o of payload.detectionRecords ?? []) {
     if (!o.active || !o.line) continue;
     if (o.kind === 'train') trains.add(o.line);
     else if (o.kind === 'bus') buses.add(String(o.line));
@@ -235,10 +235,10 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
 
   // Active Metra lines (ungated) — drives the "Active disruption" card variant.
   const activeMetra = new Set();
-  for (const a of metraFlat.alerts ?? []) {
+  for (const a of metraFlat.officialRecords ?? []) {
     if (a.active) for (const r of a.routes ?? []) activeMetra.add(r);
   }
-  for (const o of metraFlat.observations ?? []) {
+  for (const o of metraFlat.detectionRecords ?? []) {
     if (o.active && o.line) activeMetra.add(o.line);
   }
 
@@ -302,11 +302,11 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
     // a visitor sees when they arrive.
     const busRoutesInWindow = new Set();
     const cutoffNinety = now - WINDOW_DAYS * DAY_MS;
-    for (const a of payload.alerts ?? []) {
+    for (const a of payload.officialRecords ?? []) {
       if (a.kind !== 'bus' || (a.first_seen_ts ?? 0) < cutoffNinety) continue;
       for (const r of a.routes ?? []) busRoutesInWindow.add(String(r));
     }
-    for (const o of payload.observations ?? []) {
+    for (const o of payload.detectionRecords ?? []) {
       if (o.kind !== 'bus' || !o.line || (o.ts ?? 0) < cutoffNinety) continue;
       busRoutesInWindow.add(String(o.line));
     }
@@ -386,10 +386,14 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
 
   // Stats / leaderboards — also a singleton. Reuses the same leaderboard
   // function the live page calls so the share image and the page agree.
-  const leaders = computeStatsLeaderboards(payload.alerts ?? [], payload.observations ?? [], {
-    now,
-    windowDays: WINDOW_DAYS,
-  });
+  const leaders = computeStatsLeaderboards(
+    payload.officialRecords ?? [],
+    payload.detectionRecords ?? [],
+    {
+      now,
+      windowDays: WINDOW_DAYS,
+    },
+  );
   const statsHtml = buildStatsHtml(leaders);
   pages.push({
     kind: 'stats',
@@ -502,10 +506,10 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
   // Bus routes with at least one incident in the window. Sorted leading-numeric
   // for deterministic build output (helps caching when nothing's changed).
   const busRoutes = new Set();
-  for (const o of payload.observations || []) {
+  for (const o of payload.detectionRecords || []) {
     if (o.kind === 'bus' && o.line && o.ts >= cutoff) busRoutes.add(o.line);
   }
-  for (const a of payload.alerts || []) {
+  for (const a of payload.officialRecords || []) {
     if (a.kind !== 'bus' || a.first_seen_ts < cutoff) continue;
     for (const r of a.routes || []) busRoutes.add(r);
   }
@@ -540,9 +544,9 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
   // least one incident. Skipped when the merge step yields nothing for that
   // day, so a zero-incident day doesn't claim a share card.
   const DAY_PRERENDER_WINDOW_DAYS = 30;
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-    payload.alerts ?? [],
-    payload.observations ?? [],
+  const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
+    payload.officialRecords ?? [],
+    payload.detectionRecords ?? [],
   );
   const daysWithIncidents = new Map(); // dayUtc → { trainLines: Set, busRoutes: Set, count }
   function bumpDay(ts, kind, routes) {
@@ -621,8 +625,8 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
     const iso = chicagoDayIsoUTC(weekStartUtc);
     const range = formatWeekRange(weekStartUtc, { year: true });
     const summary = buildWeekSummary(
-      payload.alerts ?? [],
-      payload.observations ?? [],
+      payload.officialRecords ?? [],
+      payload.detectionRecords ?? [],
       weekStartUtc,
       now,
     );
@@ -663,7 +667,7 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
   }
 
   // Stations from the index (already filtered to >=1 incident in 90d).
-  const stationIndex = buildStationIndex(payload.alerts, payload.observations, {
+  const stationIndex = buildStationIndex(payload.officialRecords, payload.detectionRecords, {
     now,
     windowDays: WINDOW_DAYS,
   });
@@ -694,10 +698,14 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
   // since the CTA payload above has Metra stripped). They live under the
   // /metra/station/ namespace, so applyDisclaimer's path check gives them the
   // Metra disclaimer automatically.
-  const metraStationIndex = buildMetraStationIndex(metraFlat.alerts, metraFlat.observations, {
-    now,
-    windowDays: WINDOW_DAYS,
-  });
+  const metraStationIndex = buildMetraStationIndex(
+    metraFlat.officialRecords,
+    metraFlat.detectionRecords,
+    {
+      now,
+      windowDays: WINDOW_DAYS,
+    },
+  );
   for (const [slug, rec] of [...metraStationIndex].sort((a, b) => a[0].localeCompare(b[0]))) {
     const linePills = rec.lines
       .map((line) => {
@@ -1017,9 +1025,9 @@ async function main() {
   // those cards. Metra's own roster cards (line pages + /system/metra) are driven
   // by this separate ungated slice so they can show the active-disruption variant.
   const allIncidents = raw.incidents || [];
-  const metraFlat = flattenIncidents(allIncidents.filter((inc) => legacyKind(inc) === 'metra'));
+  const metraFlat = incidentRecords(allIncidents.filter((inc) => legacyKind(inc) === 'metra'));
   raw.incidents = gateIncidents(allIncidents);
-  const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
+  const payload = { ...raw, ...incidentRecords(raw.incidents || []) };
   // daily-counts.json is optional — if it's missing (e.g. during a build
   // before the cron has dropped one in), skip the calendar OG card rather
   // than failing the whole step.

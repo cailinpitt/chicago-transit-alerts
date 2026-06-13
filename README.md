@@ -149,12 +149,13 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 
 ## How it works
 
-The site is a static React app — no backend, no database calls from the browser. All data lives in a single JSON file regenerated server-side and committed to this repo.
+The site is a static React app — no backend, no database calls from the browser. High-churn data lives on the R2 data origin and the static site is rebuilt only to refresh prerendered pages, feeds, CSV, sitemap, and share cards.
 
-1. A cron job on a home server runs [`push-web-data.sh`](https://github.com/cailinpitt/cta-insights/blob/main/bin/push-web-data.sh) every 7 minutes.
-2. The script exports the latest data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database — pairing official CTA and Metra alerts with matching bot observations into unified incidents — to `public/data/alerts.json`, and commits if anything changed.
-3. GitHub Actions builds the Vite app and deploys it to GitHub Pages.
-4. The browser polls `alerts.json` every 5 minutes so the page stays current without a reload.
+1. A cron job on a home server runs [`push-web-data.sh`](https://github.com/cailinpitt/cta-insights/blob/main/bin/push-web-data.sh) every 15 minutes, and posting jobs can also trigger it shortly after new incidents.
+2. The script exports the latest data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database — pairing official CTA and Metra alerts with matching bot observations into unified incidents — then uploads `alerts.json`, `daily-counts.json`, and `alerts.csv` to Cloudflare R2 at `data.chicagotransitalerts.app`.
+3. If those files changed, the script fires a GitHub `repository_dispatch` rebuild. A scheduled Pages rebuild also runs as a catch-up net.
+4. GitHub Actions fetches the current R2 data during `prebuild`, builds the Vite app, prerenders crawler/feed artifacts, and deploys the static site to GitHub Pages.
+5. The browser polls `https://data.chicagotransitalerts.app/alerts.json` every 5 minutes while visible, so the live app stays current independently of static rebuild timing.
 
 ## Data as an API
 
@@ -164,7 +165,7 @@ The same JSON the SPA reads is published at a stable URL:
 https://data.chicagotransitalerts.app/alerts.json
 ```
 
-It's regenerated whenever the underlying data changes (typically every 7 minutes when there's activity) and served from GitHub Pages with no auth. Use it however you like — research, journalism, hobby dashboards, training data. Breaking changes to this shape are recorded in the [data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md) ([source](public/data/CHANGELOG.md)) — check it before pinning to the format.
+It's regenerated whenever the underlying data changes, uploaded to Cloudflare R2, and served at the public data origin with no auth. Use it however you like — research, journalism, hobby dashboards, training data. Breaking changes to this shape are recorded in the [data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md) ([source](public/data/CHANGELOG.md)) — check it before pinning to the format.
 
 The top-level array is `incidents` — **one object per real-world disruption**. An official alert (CTA or Metra) and the bot detection(s) describing the same incident are paired server-side into a single object (no client-side merging needed): `official_alert` carries the agency alert (null for bot-only incidents), and `detections[]` carries bot detections (empty for official-alert-only incidents). `sources` tells you which contributed. A non-exhaustive sketch:
 

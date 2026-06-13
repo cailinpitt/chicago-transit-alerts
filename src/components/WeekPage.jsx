@@ -13,7 +13,7 @@ import {
   formatDuration,
   formatWeekRange,
 } from '../lib/format.js';
-import { flattenIncidents, incidentLifecycle } from '../lib/incidents.js';
+import { incidentLifecycle, incidentRecords } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import { dayStringToUtc } from '../lib/urlState.js';
@@ -63,11 +63,11 @@ export default function WeekPage({ weekParam }) {
       .catch(setError);
   }, [weekStartUtc]);
 
-  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+  const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
 
   const summary = useMemo(() => {
     if (!flat || weekStartUtc == null) return null;
-    return buildWeekSummary(flat.alerts, flat.observations, weekStartUtc, now);
+    return buildWeekSummary(flat.officialRecords, flat.detectionRecords, weekStartUtc, now);
   }, [flat, weekStartUtc, now]);
 
   // Incidents that started in this week, newest first — the list under the
@@ -88,7 +88,7 @@ export default function WeekPage({ weekParam }) {
 
   const stationIndex = useMemo(() => {
     if (!flat) return null;
-    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+    return buildStationIndex(flat.officialRecords, flat.detectionRecords, { now, windowDays: 90 });
   }, [flat, now]);
 
   useEffect(() => {

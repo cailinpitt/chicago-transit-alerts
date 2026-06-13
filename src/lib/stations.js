@@ -144,7 +144,7 @@ export function slugifyStation(name) {
 // at either endpoint. Train-only by design: bus has 0% station coverage on
 // observations and a handful of stop-relocation alerts isn't enough to
 // justify the added scope. Downstream consumers re-merge alerts/obs via
-// `mergeMatchingIncidents`, the same way LinePage and IncidentList do.
+// `groupIncidentRecords`, the same way LinePage and IncidentList do.
 /**
  * @param {import('./incidents.js').Alert[]} alerts
  * @param {import('./incidents.js').Observation[]} observations

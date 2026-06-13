@@ -4,7 +4,7 @@ import { formatRelativeTime } from '../lib/format.js';
 import BrowseMenu from './BrowseMenu.jsx';
 
 const FRESHNESS_NOTE =
-  'This is the last time the alerts changed. We check for new alerts every 7 minutes — an older time here just means nothing new has happened.';
+  'This is the last time the alerts changed. The page checks for new data every 5 minutes while visible — an older time here just means nothing new has happened.';
 
 function InfoPopover({ children, label = 'What does this mean?' }) {
   const [open, setOpen] = useState(false);

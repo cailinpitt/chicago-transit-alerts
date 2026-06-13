@@ -21,13 +21,13 @@ import {
 import {
   affectedLineSegments,
   agencyLabel,
-  flattenIncidents,
   formatEvidenceChip,
   formatRoutesLabel,
+  groupIncidentRecords,
   incidentLifecycle,
+  incidentRecords,
   isPlannedIncident,
   legacyKind,
-  mergeMatchingIncidents,
   metraIncidentStatus,
   metraPointEvent,
   officialAlert,
@@ -182,14 +182,14 @@ function DurationScale({ stats }) {
 }
 
 export function EventDetail({ incident, incidents, alerts, observations, stationIndex, dark }) {
-  // Flat reconstruction of just this incident — reproduces the record the old
-  // client-side merge produced, so the helpers and display branches that still
-  // read the flat shape keep working without mutating the v2 incident.
+  // Reconstruct the older display record for just this incident so helpers and
+  // display branches that read incident-derived rows keep working without
+  // mutating the v2 incident.
   const flatSubject = useMemo(() => {
-    const f = flattenIncidents([incident]);
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      f.alerts,
-      f.observations,
+    const f = incidentRecords([incident]);
+    const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
+      f.officialRecords,
+      f.detectionRecords,
     );
     return merged[0] ?? standaloneAlerts[0] ?? standaloneObs[0] ?? null;
   }, [incident]);

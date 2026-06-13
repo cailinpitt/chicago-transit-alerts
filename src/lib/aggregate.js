@@ -4,10 +4,10 @@
 import { TRAIN_LINE_ORDER } from './ctaLines.js';
 import { chicagoDayUTC } from './format.js';
 import {
+  groupIncidentRecords,
   incidentDetections,
   incidentLifecycle,
   legacyKind,
-  mergeMatchingIncidents,
   metraIncidentStatus,
   observationSignals,
   officialAlert,
@@ -19,15 +19,15 @@ import { buildStationIndex } from './stations.js';
 
 // Identity-based cache so the eight aggregators downstream of a single
 // `data` poll don't re-run the O(alerts × observations) merge in lockstep.
-// flattenIncidents returns fresh array references on every fetch, so the
+// incidentRecords returns fresh array references on every fetch, so the
 // cache hits on the same poll cycle's references and misses cleanly the
 // next time the JSON updates. WeakMap so old payloads are GC'd.
 const _mergeCache = new WeakMap();
 function getMerge(alerts, observations) {
-  if (!alerts || !observations) return mergeMatchingIncidents(alerts, observations);
+  if (!alerts || !observations) return groupIncidentRecords(alerts, observations);
   const entry = _mergeCache.get(alerts);
   if (entry && entry.observations === observations) return entry.result;
-  const result = mergeMatchingIncidents(alerts, observations);
+  const result = groupIncidentRecords(alerts, observations);
   _mergeCache.set(alerts, { observations, result });
   return result;
 }
@@ -89,7 +89,7 @@ export function buildIncidentsByDay(alerts, observations, numDays = 90, now = Da
 
   // Use merge logic to avoid double-counting incidents that have both an alert
   // and a matching observation (e.g. a combined Green line incident).
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+  const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
     alerts.filter((a) => a.kind === 'train'),
     observations.filter((o) => o.kind === 'train'),
   );
@@ -134,7 +134,7 @@ export function buildMetraIncidentsByDay(alerts, observations, numDays = 90, now
     }
   }
 
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+  const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
     alerts.filter((a) => a.kind === 'metra'),
     observations.filter((o) => o.kind === 'metra'),
   );
@@ -199,7 +199,7 @@ export function buildBusIncidentsByDay(
 
   // Merge to avoid double-counting bus incidents that have both a CTA alert
   // and a matching bot observation on the same route.
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+  const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
     alerts.filter((a) => a.kind === 'bus'),
     observations.filter((o) => o.kind === 'bus'),
   );

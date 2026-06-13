@@ -5,7 +5,7 @@ import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { buildCalendarWeeks } from '../lib/calendar.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay } from '../lib/format.js';
-import { flattenIncidents, SOURCE_TYPES } from '../lib/incidents.js';
+import { incidentRecords, SOURCE_TYPES } from '../lib/incidents.js';
 import { buildSearch, parseUrlState } from '../lib/urlState.js';
 import Breadcrumb from './Breadcrumb.jsx';
 import Filters from './Filters.jsx';
@@ -122,16 +122,14 @@ export default function CalendarPage() {
 
   // Also load alerts.json so the Header's Browse menu works on this page,
   // matching the pattern used by LinePage / StationPage. Cheaper than
-  // refactoring Header to make data optional everywhere. The payload is the
-  // unified `{ incidents }` shape, so flatten it to the `{ alerts, observations }`
-  // the Browse menu expects.
+  // refactoring Header to make data optional everywhere.
   const [browseData, setBrowseData] = useState(null);
   useEffect(() => {
     const url = dataUrl('alerts.json');
     fetch(url, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((payload) =>
-        setBrowseData(payload?.incidents ? flattenIncidents(payload.incidents) : null),
+        setBrowseData(payload?.incidents ? incidentRecords(payload.incidents) : null),
       )
       .catch(() => {});
   }, []);
@@ -222,8 +220,8 @@ export default function CalendarPage() {
         onResetFilters={() => {
           window.location.href = '/';
         }}
-        alerts={browseData?.alerts}
-        observations={browseData?.observations}
+        alerts={browseData?.officialRecords}
+        observations={browseData?.detectionRecords}
       />
       <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
         <div>

@@ -14,7 +14,7 @@ import { normalizeTrainLine, TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLin
 import { dataUrl } from '../lib/dataSource.js';
 import { formatGap, formatMinutesAsHours } from '../lib/format.js';
 import {
-  flattenIncidents,
+  incidentRecords,
   observationSignals,
   SIGNAL_LABELS,
   SIGNAL_TYPES,
@@ -50,10 +50,10 @@ function labelFor(kind, key) {
 // (alerts) and `line` (observations); bus routes match on the same fields
 // using the route number as the key.
 function scopeIncidents(payload, kind, key) {
-  const alerts = payload.alerts.filter(
+  const alerts = payload.officialRecords.filter(
     (a) => a.kind === kind && Array.isArray(a.routes) && a.routes.includes(key),
   );
-  const observations = payload.observations.filter((o) => o.kind === kind && o.line === key);
+  const observations = payload.detectionRecords.filter((o) => o.kind === kind && o.line === key);
   return { alerts, observations };
 }
 
@@ -548,14 +548,14 @@ export default function ComparePage() {
     writeUrlState(kind, selected);
   }, [kind, selected]);
 
-  // Analytics here read the flat { alerts, observations } shape.
-  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+  // Analytics here read incident-derived official/detection records.
+  const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
 
   const availableBusRoutes = useMemo(() => {
     if (!flat) return [];
     const routes = new Set([
-      ...flat.observations.filter((o) => o.kind === 'bus').map((o) => String(o.line)),
-      ...flat.alerts
+      ...flat.detectionRecords.filter((o) => o.kind === 'bus').map((o) => String(o.line)),
+      ...flat.officialRecords
         .filter((a) => a.kind === 'bus')
         .flatMap((a) => a.routes ?? [])
         .map(String),

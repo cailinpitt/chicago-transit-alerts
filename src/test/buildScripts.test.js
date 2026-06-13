@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { pickIncidents } from '../../scripts/prerender-events.js';
 import * as incidentsLib from '../lib/incidents.js';
-import { flattenIncidents } from '../lib/incidents.js';
+import { incidentRecords } from '../lib/incidents.js';
 import { incident, officialAlertFromCta } from './v2TestHelpers.js';
 
 // Regression guard for a class of bug that shipped to production once already:
@@ -17,7 +17,7 @@ import { incident, officialAlertFromCta } from './v2TestHelpers.js';
 // lint` but never `npm run build`, so nothing caught it before merge.
 //
 // These tests assert the contract those scripts depend on: every name they
-// import from incidents.js is actually exported, and `flattenIncidents` (the
+// import from incidents.js is actually exported, and `incidentRecords` (the
 // sanctioned wire -> flat bridge they all use) returns the shape they read.
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -69,7 +69,7 @@ describe('build scripts ↔ incidents.js exports', () => {
   });
 });
 
-describe('flattenIncidents wire → flat contract', () => {
+describe('incidentRecords wire → row contract', () => {
   const NOW = 1_000_000_000_000;
   const ALERT_URL = 'https://bsky.app/profile/did:plc:abc/post/3ml5idb536d2c';
   const OBS_URL = 'https://bsky.app/profile/did:plc:xyz/post/3mkuutqcneg2h';
@@ -106,10 +106,10 @@ describe('flattenIncidents wire → flat contract', () => {
     }),
   ];
 
-  it('expands cta blocks into flat alerts the export scripts read', () => {
-    const { alerts } = flattenIncidents(incidents);
-    expect(alerts).toHaveLength(1); // only the incident with a cta block
-    const [alert] = alerts;
+  it('expands cta blocks into official records the export scripts read', () => {
+    const { officialRecords } = incidentRecords(incidents);
+    expect(officialRecords).toHaveLength(1); // only the incident with a cta block
+    const [alert] = officialRecords;
     // Fields the scripts actually consume (csv rows, OG cards, sitemap rkeys).
     expect(alert).toMatchObject({
       kind: 'train',
@@ -120,11 +120,11 @@ describe('flattenIncidents wire → flat contract', () => {
     });
   });
 
-  it('emits one observation row per nested observation, tagged with its incident', () => {
-    const { observations } = flattenIncidents(incidents);
-    expect(observations).toHaveLength(2);
-    expect(observations.map((o) => o._incidentId)).toEqual(['3ml5idb536d2c', '3mkomsa7xhv2i']);
-    expect(observations[0]).toMatchObject({ post_url: OBS_URL, line: 'red' });
+  it('emits one detection record per nested detection, tagged with its incident', () => {
+    const { detectionRecords } = incidentRecords(incidents);
+    expect(detectionRecords).toHaveLength(2);
+    expect(detectionRecords.map((o) => o._incidentId)).toEqual(['3ml5idb536d2c', '3mkomsa7xhv2i']);
+    expect(detectionRecords[0]).toMatchObject({ post_url: OBS_URL, line: 'red' });
   });
 
   it('prerenders official-alert aliases for grouped v2 incidents', () => {
@@ -152,14 +152,14 @@ describe('flattenIncidents wire → flat contract', () => {
         }),
       ],
     });
-    const flat = flattenIncidents([grouped]);
+    const flat = incidentRecords([grouped]);
     const picked = pickIncidents({ incidents: [grouped], ...flat });
     expect([...picked.keys()].sort()).toEqual(['childrkey', 'primaryrkey']);
     expect(picked.get('childrkey')).toBe(picked.get('primaryrkey'));
   });
 
-  it('expands v2 official_alert and detections into the flat compatibility shape', () => {
-    const { alerts, observations } = flattenIncidents([
+  it('expands v2 official_alert and detections into incident-derived records', () => {
+    const { officialRecords, detectionRecords } = incidentRecords([
       {
         id: 'v2',
         agency: 'cta',
@@ -219,7 +219,7 @@ describe('flattenIncidents wire → flat contract', () => {
       },
     ]);
 
-    expect(alerts[0]).toMatchObject({
+    expect(officialRecords[0]).toMatchObject({
       alert_id: 'v2-alert',
       kind: 'train',
       headline: 'Red Line Delays',
@@ -227,7 +227,7 @@ describe('flattenIncidents wire → flat contract', () => {
       affected_to_station: 'Loyola',
       affected_stations: ['Howard', 'Jarvis', 'Morse', 'Loyola'],
     });
-    expect(observations[0]).toMatchObject({
+    expect(detectionRecords[0]).toMatchObject({
       id: 7,
       kind: 'train',
       line: 'red',
@@ -239,7 +239,7 @@ describe('flattenIncidents wire → flat contract', () => {
   });
 
   it('tolerates a missing/empty incidents list', () => {
-    expect(flattenIncidents([])).toEqual({ alerts: [], observations: [] });
-    expect(flattenIncidents(undefined)).toEqual({ alerts: [], observations: [] });
+    expect(incidentRecords([])).toMatchObject({ officialRecords: [], detectionRecords: [] });
+    expect(incidentRecords(undefined)).toMatchObject({ officialRecords: [], detectionRecords: [] });
   });
 });

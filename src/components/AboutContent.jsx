@@ -100,9 +100,9 @@ export default function AboutContent() {
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">Updates</h3>
       <p>
-        Data refreshes every 7 minutes. The "Last data change" timestamp in the header tracks the
-        most recent change to the alerts — not when the system last checked. An older time just
-        means nothing new has happened.
+        The page checks for new data every 5 minutes while visible. The "Last data change" timestamp
+        in the header tracks the most recent change to the alerts — not when the system last
+        checked. An older time just means nothing new has happened.
       </p>
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">How far back</h3>

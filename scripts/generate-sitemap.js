@@ -12,9 +12,9 @@ import { listWeeks } from '../src/lib/aggregate.js';
 import { TRAIN_LINE_ORDER } from '../src/lib/ctaLines.js';
 import { chicagoDayIsoUTC, chicagoDayUTC } from '../src/lib/format.js';
 import {
-  flattenIncidents,
+  groupIncidentRecords,
+  incidentRecords,
   legacyKind,
-  mergeMatchingIncidents,
   postUrlRkey,
 } from '../src/lib/incidents.js';
 import { gateIncidents } from '../src/lib/metraGate.js';
@@ -63,9 +63,9 @@ function main() {
   // `metraFlat` (the un-gated Metra incidents) further down. Metra roster pages
   // (line pages + the system dashboard) are listed via the static blocks.
   const allIncidents = raw.incidents || [];
-  const metraFlat = flattenIncidents(allIncidents.filter((inc) => legacyKind(inc) === 'metra'));
+  const metraFlat = incidentRecords(allIncidents.filter((inc) => legacyKind(inc) === 'metra'));
   raw.incidents = gateIncidents(allIncidents);
-  const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
+  const payload = { ...raw, ...incidentRecords(raw.incidents || []) };
   const generatedAt = payload.generated_at ?? Date.now();
   const generatedIso = isoDate(generatedAt);
   const cutoff = generatedAt - WINDOW_DAYS * DAY_MS;
@@ -108,10 +108,10 @@ function main() {
   // Bus routes with at least one incident in the rolling window. Same scope
   // prerender-pages.js uses, so the sitemap and the OG-card set agree.
   const busRoutes = new Set();
-  for (const o of payload.observations || []) {
+  for (const o of payload.detectionRecords || []) {
     if (o.kind === 'bus' && o.line && o.ts >= cutoff) busRoutes.add(o.line);
   }
-  for (const a of payload.alerts || []) {
+  for (const a of payload.officialRecords || []) {
     if (a.kind !== 'bus' || a.first_seen_ts < cutoff) continue;
     for (const r of a.routes || []) busRoutes.add(r);
   }
@@ -120,18 +120,22 @@ function main() {
   }
 
   // Stations — already gated by buildStationIndex to those with ≥1 incident.
-  const stations = buildStationIndex(payload.alerts ?? [], payload.observations ?? [], {
-    now: generatedAt,
-    windowDays: WINDOW_DAYS,
-  });
+  const stations = buildStationIndex(
+    payload.officialRecords ?? [],
+    payload.detectionRecords ?? [],
+    {
+      now: generatedAt,
+      windowDays: WINDOW_DAYS,
+    },
+  );
   for (const slug of [...stations.keys()].sort()) {
     entries.push(urlEntry(`${SITE}/station/${slug}`, generatedIso, 'weekly', 0.5));
   }
 
   // Metra stations — same ≥1-incident gating, under the /metra/station/ namespace.
   const metraStations = buildMetraStationIndex(
-    metraFlat.alerts ?? [],
-    metraFlat.observations ?? [],
+    metraFlat.officialRecords ?? [],
+    metraFlat.detectionRecords ?? [],
     {
       now: generatedAt,
       windowDays: WINDOW_DAYS,
@@ -157,7 +161,7 @@ function main() {
     merged: dayMerged,
     standaloneAlerts: dayStandaloneAlerts,
     standaloneObs: dayStandaloneObs,
-  } = mergeMatchingIncidents(payload.alerts ?? [], payload.observations ?? []);
+  } = groupIncidentRecords(payload.officialRecords ?? [], payload.detectionRecords ?? []);
   for (const m of dayMerged) offerDay(m.first_seen_ts);
   for (const a of dayStandaloneAlerts) offerDay(a.first_seen_ts);
   for (const o of dayStandaloneObs) offerDay(o.first_seen_ts ?? o.ts);
@@ -191,9 +195,9 @@ function main() {
   // Per-event pages. lastmod uses resolved_ts when available, else the
   // start time — same semantic as the Atom feed. Crawlers use lastmod to
   // decide whether to revisit, and resolved events don't keep changing.
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-    payload.alerts ?? [],
-    payload.observations ?? [],
+  const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
+    payload.officialRecords ?? [],
+    payload.detectionRecords ?? [],
   );
   const eventEntries = [];
   function pushEvent(rkey, lastTs) {
@@ -216,7 +220,10 @@ function main() {
   }
   // Metra events — same posted-only rule (prerender-events keys off the post
   // rkey), so only Metra incidents with a Bluesky post get a sitemap URL.
-  const metraMerge = mergeMatchingIncidents(metraFlat.alerts ?? [], metraFlat.observations ?? []);
+  const metraMerge = groupIncidentRecords(
+    metraFlat.officialRecords ?? [],
+    metraFlat.detectionRecords ?? [],
+  );
   for (const m of metraMerge.merged) {
     pushEvent(
       postUrlRkey(m.post_url) ?? postUrlRkey(m.obs_post_url),

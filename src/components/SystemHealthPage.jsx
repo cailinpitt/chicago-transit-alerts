@@ -16,10 +16,10 @@ import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay, formatMinutesAsHours } from '../lib/format.js';
 import {
   filterIncidents,
-  flattenIncidents,
+  groupIncidentRecords,
   incidentLifecycle,
+  incidentRecords,
   legacyKind,
-  mergeMatchingIncidents,
 } from '../lib/incidents.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -97,7 +97,7 @@ function buildRouteStats({ kind, alerts, observations, now }) {
     const b = buckets.get(route) || { alerts: [], observations: [] };
     // Merge so an alert + corroborating bot observation count as one
     // incident across all per-row stats, matching LinePage's numbers.
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+    const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
       b.alerts,
       b.observations,
     );
@@ -419,7 +419,7 @@ export default function SystemHealthPage({ kind }) {
 
   // Flat view feeds every aggregate on the page; the incident list reads the
   // nested `modeIncidents` slice below.
-  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+  const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
 
   useEffect(() => {
     document.title = `${modeLabel} system health · Chicago Transit Alerts`;
@@ -433,12 +433,12 @@ export default function SystemHealthPage({ kind }) {
   // reports "just trains" or "just buses" without per-call filtering.
   const modeAlerts = useMemo(() => {
     if (!flat) return [];
-    return flat.alerts.filter((a) => a.kind === kind);
+    return flat.officialRecords.filter((a) => a.kind === kind);
   }, [flat, kind]);
 
   const modeObservations = useMemo(() => {
     if (!flat) return [];
-    return flat.observations.filter((o) => o.kind === kind);
+    return flat.detectionRecords.filter((o) => o.kind === kind);
   }, [flat, kind]);
 
   // Nested incidents for this mode — drives the incident list.
@@ -490,7 +490,12 @@ export default function SystemHealthPage({ kind }) {
 
   const routeRows = useMemo(() => {
     if (!flat) return [];
-    return buildRouteStats({ kind, alerts: flat.alerts, observations: flat.observations, now });
+    return buildRouteStats({
+      kind,
+      alerts: flat.officialRecords,
+      observations: flat.detectionRecords,
+      now,
+    });
   }, [flat, kind, now]);
 
   // System-wide disruption hours: feeds the helper the union of every
@@ -513,7 +518,7 @@ export default function SystemHealthPage({ kind }) {
 
   const stationIndex = useMemo(() => {
     if (!flat) return null;
-    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+    return buildStationIndex(flat.officialRecords, flat.detectionRecords, { now, windowDays: 90 });
   }, [flat, now]);
 
   const sortedRows = useMemo(() => sortRows(routeRows, sortKey, kind), [routeRows, sortKey, kind]);

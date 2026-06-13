@@ -12,7 +12,7 @@ import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatDate, formatDuration, formatTime } from '../lib/format.js';
-import { flattenIncidents, formatRoutesLabel } from '../lib/incidents.js';
+import { formatRoutesLabel, incidentRecords } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import Breadcrumb from './Breadcrumb.jsx';
 import Footer from './Footer.jsx';
@@ -133,17 +133,20 @@ export default function StatsPage() {
     };
   }, []);
 
-  // Analytics here read the flat { alerts, observations } shape.
-  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+  // Analytics here read incident-derived official/detection records.
+  const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
 
   const leaders = useMemo(() => {
     if (!flat) return null;
-    return computeStatsLeaderboards(flat.alerts, flat.observations, { now, windowDays: 90 });
+    return computeStatsLeaderboards(flat.officialRecords, flat.detectionRecords, {
+      now,
+      windowDays: 90,
+    });
   }, [flat, now]);
 
   const segments = useMemo(() => {
     if (!flat) return [];
-    return computeSegmentRecurrence(flat.observations, {
+    return computeSegmentRecurrence(flat.detectionRecords, {
       now,
       windowDays: 90,
       limit: 5,
@@ -152,7 +155,7 @@ export default function StatsPage() {
 
   const yoy = useMemo(() => {
     if (!flat) return null;
-    return computeYearOverYear(flat.alerts, flat.observations, {
+    return computeYearOverYear(flat.officialRecords, flat.detectionRecords, {
       now,
       windowDays: 30,
       dataStartTs: data.data_start_ts ?? null,
@@ -161,7 +164,7 @@ export default function StatsPage() {
 
   const restorationDeltas = useMemo(() => {
     if (!flat) return null;
-    return computeRestorationDeltas(flat.alerts, flat.observations, {
+    return computeRestorationDeltas(flat.officialRecords, flat.detectionRecords, {
       now,
       windowDays: 90,
       limit: 3,
@@ -170,7 +173,10 @@ export default function StatsPage() {
 
   const metra = useMemo(() => {
     if (!flat) return null;
-    return computeMetraLeaderboards(flat.alerts, flat.observations, { now, windowDays: 90 });
+    return computeMetraLeaderboards(flat.officialRecords, flat.detectionRecords, {
+      now,
+      windowDays: 90,
+    });
   }, [flat, now]);
 
   const longestRoutesLabel = useMemo(() => {

@@ -6,9 +6,9 @@ import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import {
-  flattenIncidents,
   incidentDetections,
   incidentLifecycle,
+  incidentRecords,
   legacyKind,
   searchFilterIncidents,
 } from '../lib/incidents.js';
@@ -56,13 +56,13 @@ export default function StationPage({ slug, kind = 'train' }) {
 
   // Flat view feeds the station index (and Header); the list reads nested
   // incidents reconstructed from the station's records below.
-  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+  const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
 
   // CTA path uses the activity index (which keys off the train roster). Metra
   // resolves against the Metra roster instead — skip the CTA index entirely.
   const stationIndex = useMemo(() => {
     if (isMetra || !flat) return null;
-    return buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+    return buildStationIndex(flat.officialRecords, flat.detectionRecords, { now, windowDays: 90 });
   }, [isMetra, flat, now]);
 
   // Metra incidents touching this station: any Metra incident whose origin or
@@ -88,12 +88,12 @@ export default function StationPage({ slug, kind = 'train' }) {
     if (isMetra) {
       const roster = metraStationBySlug(slug);
       if (!roster) return null;
-      const f = flattenIncidents(metraStationIncidents);
+      const f = incidentRecords(metraStationIncidents);
       return {
         ...roster,
         count: metraStationIncidents.length,
-        alerts: f.alerts,
-        observations: f.observations,
+        alerts: f.officialRecords,
+        observations: f.detectionRecords,
       };
     }
     return stationIndex?.get(slug) ?? rosterStationBySlug(slug);

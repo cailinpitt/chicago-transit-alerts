@@ -37,9 +37,10 @@ jobs:
   # `npm run build`, so a crash in the postbuild scripts (prerender-events,
   # prerender-pages, generate-feed, generate-sitemap, generate-csv) used to slip
   # through the gate and only surface in deploy.yml after merge — which can
-  # freeze the live site. This mirrors deploy.yml's build: vite copies
-  # the committed public/data/alerts.json into dist/data, then postbuild runs
-  # every script against it, so any crash fails the PR instead of production.
+  # freeze the live site. This mirrors deploy.yml's build: prebuild fetches
+  # current data from the R2 origin into public/data, Vite copies it into
+  # dist/data, then postbuild runs every script against it, so any crash fails
+  # the PR instead of production.
   build:
     runs-on: ubuntu-latest
     steps:

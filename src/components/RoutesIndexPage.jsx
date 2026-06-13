@@ -15,7 +15,7 @@ const BUS_ROUTES = Object.keys(BUS_ROUTE_NAMES).sort(compareBusRoutes);
 
 export default function RoutesIndexPage() {
   const [dark, toggleDark] = useDarkMode();
-  const { alerts, observations } = useBrowseData();
+  const { officialRecords, detectionRecords } = useBrowseData();
   // Free-text filter over both train lines (by label) and bus routes (by number
   // or name), seeded from the same `?q=` param the rest of the site uses.
   const [search, setSearch] = useState(
@@ -72,8 +72,8 @@ export default function RoutesIndexPage() {
         onResetFilters={() => {
           window.location.href = '/';
         }}
-        alerts={alerts}
-        observations={observations}
+        alerts={officialRecords}
+        observations={detectionRecords}
       />
       <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-4 w-full flex-1">
         <div>

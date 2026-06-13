@@ -21,8 +21,8 @@ import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
 import {
-  flattenIncidents,
   incidentLifecycle,
+  incidentRecords,
   legacyKind,
   searchFilterIncidents,
 } from '../lib/incidents.js';
@@ -189,7 +189,7 @@ export default function LinePage({ kind, lineId }) {
 
   // Flat view of the full dataset; the analytics cards still read the flat
   // shape. The incident list reads nested incidents (see lineIncidents).
-  const flat = useMemo(() => (data ? flattenIncidents(data.incidents) : null), [data]);
+  const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
 
   // Nested incidents that touch this line/route — used for the list. Trains and
   // buses both carry the line/route key in the incident's top-level `routes`.
@@ -207,14 +207,14 @@ export default function LinePage({ kind, lineId }) {
   // visualization so each card reflects only this one line's behavior.
   const lineAlerts = useMemo(() => {
     if (!flat) return [];
-    return flat.alerts.filter(
+    return flat.officialRecords.filter(
       (a) => a.kind === kind && Array.isArray(a.routes) && a.routes.includes(effectiveLineId),
     );
   }, [flat, kind, effectiveLineId]);
 
   const lineObservations = useMemo(() => {
     if (!flat) return [];
-    return flat.observations.filter((o) => o.kind === kind && o.line === effectiveLineId);
+    return flat.detectionRecords.filter((o) => o.kind === kind && o.line === effectiveLineId);
   }, [flat, kind, effectiveLineId]);
 
   // Incidents are already unified server-side, so the active set is just the
@@ -349,7 +349,7 @@ export default function LinePage({ kind, lineId }) {
   // cleanly. Empty array on bus pages.
   const segments = useMemo(() => {
     if (!flat || !isTrain) return [];
-    return computeSegmentRecurrence(flat.observations, {
+    return computeSegmentRecurrence(flat.detectionRecords, {
       now,
       windowDays: 90,
       lineFilter: effectiveLineId,
@@ -376,8 +376,8 @@ export default function LinePage({ kind, lineId }) {
   const stationIndex = useMemo(() => {
     if (!flat) return null;
     return isMetra
-      ? buildMetraStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 })
-      : buildStationIndex(flat.alerts, flat.observations, { now, windowDays: 90 });
+      ? buildMetraStationIndex(flat.officialRecords, flat.detectionRecords, { now, windowDays: 90 })
+      : buildStationIndex(flat.officialRecords, flat.detectionRecords, { now, windowDays: 90 });
   }, [flat, now, isMetra]);
 
   // Search-only narrowing for the IncidentList. The line is already locked

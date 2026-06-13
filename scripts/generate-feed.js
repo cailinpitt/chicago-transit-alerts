@@ -1,9 +1,9 @@
 // Generate dist/feed.xml — an Atom feed of the 50 most recent incidents
 // (alerts + bot observations, merged the same way the UI merges them).
 //
-// Runs as a postbuild step, after `dist/data/alerts.json` is in place. The
-// feed regenerates on every Pages deploy, which itself only happens when
-// alerts.json changes — so the feed updates exactly when there's new data.
+// Runs as a postbuild step, after `dist/data/alerts.json` is in place. Data
+// changes trigger a repository_dispatch rebuild, and the scheduled Pages build
+// is the catch-up net if a dispatch is missed.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -12,10 +12,10 @@ import { BUS_ROUTE_NAMES, compareBusRoutes } from '../src/lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../src/lib/ctaLines.js';
 import { formatDuration, formatEstimatedEnd } from '../src/lib/format.js';
 import {
-  flattenIncidents,
   formatEvidenceChip,
   formatRoutesLabel,
-  mergeMatchingIncidents,
+  groupIncidentRecords,
+  incidentRecords,
   observationSignals,
   postUrlRkey,
   SIGNAL_LABELS,
@@ -445,10 +445,10 @@ function main() {
   // (showMetra=true) — the Node-default gate stays CTA-only for the not-yet-Metra
   // build outputs (OG-prerendered event/sitemap pages).
   raw.incidents = gateIncidents(raw.incidents || [], true);
-  const payload = { ...raw, ...flattenIncidents(raw.incidents || []) };
-  const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-    payload.alerts || [],
-    payload.observations || [],
+  const payload = { ...raw, ...incidentRecords(raw.incidents || []) };
+  const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
+    payload.officialRecords || [],
+    payload.detectionRecords || [],
   );
 
   let dropped = 0;

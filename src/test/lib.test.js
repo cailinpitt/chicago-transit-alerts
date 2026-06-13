@@ -22,10 +22,10 @@ import {
   buildSearchMatchers,
   filterIncidents,
   findRelatedIncidents,
+  groupIncidentRecords,
   incidentCategory,
   incidentHeadlineText,
   isPlannedIncident,
-  mergeMatchingIncidents,
   metraIncidentStatus,
   metraPointEvent,
   metraPointEventLabel,
@@ -71,9 +71,9 @@ describe('formatDuration', () => {
 const NOW = 1_000_000_000_000;
 const DAY = 24 * 60 * 60 * 1000;
 
-// Flat alert/observation builders — still used by the analytics tests below
-// (computeSummaryStats, computeYearOverYear, mergeMatchingIncidents, …), which
-// continue to operate on the flat shape.
+// Official/detection record builders — still used by the analytics tests below
+// (computeSummaryStats, computeYearOverYear, groupIncidentRecords, …), which
+// continue to operate on incident-derived row inputs.
 const makeAlert = (overrides = {}) => ({
   alert_id: 1,
   kind: 'train',
@@ -406,10 +406,10 @@ describe('incidentHeadlineText', () => {
 });
 
 // ---------------------------------------------------------------------------
-// mergeMatchingIncidents
+// groupIncidentRecords
 // ---------------------------------------------------------------------------
 // The fuzzy alert↔observation pairing now happens server-side in cta-insights
-// (covered by its export-web test). The frontend's mergeMatchingIncidents only
+// (covered by its export-web test). The frontend's groupIncidentRecords only
 // REGROUPS records by the _incidentId that pairing stamped on them — so these
 // fixtures share an _incidentId to express "same incident."
 const makeAlertForMerge = (overrides = {}) => ({
@@ -440,9 +440,9 @@ const makeObsForMerge = (overrides = {}) => ({
   ...overrides,
 });
 
-describe('mergeMatchingIncidents', () => {
+describe('groupIncidentRecords', () => {
   it('regroups an alert and observation that share an _incidentId', () => {
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+    const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
       [makeAlertForMerge()],
       [makeObsForMerge()],
     );
@@ -454,7 +454,7 @@ describe('mergeMatchingIncidents', () => {
   });
 
   it('keeps an alert with no observation as a standalone alert', () => {
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+    const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
       [makeAlertForMerge()],
       [],
     );
@@ -464,7 +464,7 @@ describe('mergeMatchingIncidents', () => {
   });
 
   it('keeps an observation with a different _incidentId as standalone', () => {
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+    const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
       [makeAlertForMerge({ _incidentId: 'a' })],
       [makeObsForMerge({ _incidentId: 'b' })],
     );
@@ -474,9 +474,9 @@ describe('mergeMatchingIncidents', () => {
   });
 
   it('never groups records that lack an _incidentId', () => {
-    // Defensive: un-stamped records (didn't pass through flattenIncidents)
+    // Defensive: un-stamped records (didn't pass through incidentRecords)
     // each get a unique key so they can't accidentally merge.
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
+    const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords(
       [makeAlertForMerge({ _incidentId: undefined })],
       [makeObsForMerge({ _incidentId: undefined })],
     );
@@ -488,10 +488,7 @@ describe('mergeMatchingIncidents', () => {
   it('regroups a bus alert and observation that share an _incidentId', () => {
     const busAlert = makeAlertForMerge({ kind: 'bus', routes: ['66'] });
     const busObs = makeObsForMerge({ kind: 'bus', line: '66' });
-    const { merged, standaloneAlerts, standaloneObs } = mergeMatchingIncidents(
-      [busAlert],
-      [busObs],
-    );
+    const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords([busAlert], [busObs]);
     expect(merged).toHaveLength(1);
     expect(standaloneAlerts).toHaveLength(0);
     expect(standaloneObs).toHaveLength(0);
@@ -504,7 +501,7 @@ describe('mergeMatchingIncidents', () => {
     // into the alert's card here.
     const obs1 = makeObsForMerge({ id: 1, ts: NOW + 1 * 60_000 });
     const obs2 = makeObsForMerge({ id: 2, ts: NOW + 2 * 60_000 });
-    const { merged, standaloneObs } = mergeMatchingIncidents([makeAlertForMerge()], [obs1, obs2]);
+    const { merged, standaloneObs } = groupIncidentRecords([makeAlertForMerge()], [obs1, obs2]);
     expect(merged).toHaveLength(1);
     expect(standaloneObs).toHaveLength(0);
     // Closest-to-alert wins primary; the rest go onto extra_obs.
@@ -530,7 +527,7 @@ describe('mergeMatchingIncidents', () => {
       active: false,
       resolved_post_url: 'https://bsky.app/obs-resolution',
     });
-    const { merged } = mergeMatchingIncidents([activeAlert], [resolvedObs]);
+    const { merged } = groupIncidentRecords([activeAlert], [resolvedObs]);
     expect(merged).toHaveLength(1);
     expect(merged[0].active).toBe(true);
     expect(merged[0].resolved_ts).toBeNull();

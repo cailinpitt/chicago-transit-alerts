@@ -248,8 +248,7 @@ export default function SubscribeContent() {
         readers will mark them unread again — a quick way to see when something cleared.
       </p>
       <p className="text-xs text-slate-500 dark:text-slate-400">
-        The feed regenerates each time the underlying data changes, roughly every 7 minutes when
-        there's activity.
+        The feed regenerates when the underlying data changes and the static site rebuilds.
       </p>
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-3">Bulk data</h3>
