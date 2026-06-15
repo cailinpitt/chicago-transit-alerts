@@ -510,6 +510,49 @@ describe('groupIncidentRecords', () => {
     expect(merged[0].extra_obs[0].id).toBe(2);
   });
 
+  it('collapses a bot-only incident with multiple detections into one standalone obs', () => {
+    // A roundup commonly carries several detections (e.g. a ghost + a gap) under
+    // one incident with no official alert. The incidents[] list shows it as a
+    // single event, so the count/merge surfaces must too — not one per detector.
+    const ghost = makeObsForMerge({
+      id: 1,
+      ts: NOW + 1 * 60_000,
+      resolved_ts: NOW + 40 * 60_000,
+      active: false,
+      _incidentId: 'bot1',
+    });
+    const gap = makeObsForMerge({
+      id: 2,
+      ts: NOW + 5 * 60_000,
+      resolved_ts: NOW + 50 * 60_000,
+      active: false,
+      _incidentId: 'bot1',
+    });
+    const { merged, standaloneAlerts, standaloneObs } = groupIncidentRecords([], [ghost, gap]);
+    expect(merged).toHaveLength(0);
+    expect(standaloneAlerts).toHaveLength(0);
+    expect(standaloneObs).toHaveLength(1);
+    // Earliest detection represents the incident onset; resolution is the latest.
+    expect(standaloneObs[0].ts).toBe(NOW + 1 * 60_000);
+    expect(standaloneObs[0].resolved_ts).toBe(NOW + 50 * 60_000);
+    expect(standaloneObs[0].active).toBe(false);
+  });
+
+  it('keeps a multi-detection bot-only incident active if any detection is active', () => {
+    const resolved = makeObsForMerge({ id: 1, ts: NOW, active: false, _incidentId: 'bot2' });
+    const open = makeObsForMerge({
+      id: 2,
+      ts: NOW + 5 * 60_000,
+      resolved_ts: null,
+      active: true,
+      _incidentId: 'bot2',
+    });
+    const { standaloneObs } = groupIncidentRecords([], [resolved, open]);
+    expect(standaloneObs).toHaveLength(1);
+    expect(standaloneObs[0].active).toBe(true);
+    expect(standaloneObs[0].resolved_ts).toBeNull();
+  });
+
   it('suppresses resolution fields when alert is still active', () => {
     // Bot observation ended before the CTA alert was even posted (e.g. a
     // leading-edge ghost detection that cleared right before CTA announced

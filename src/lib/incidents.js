@@ -923,7 +923,7 @@ export function groupIncidentRecords(alerts, observations) {
     const { alert, obs } = groups.get(id);
     if (alert && obs.length > 0) merged.push(buildMergedRecord(alert, obs));
     else if (alert) standaloneAlerts.push(alert);
-    else for (const o of obs) standaloneObs.push(o);
+    else standaloneObs.push(collapseStandaloneObs(obs));
   }
   return { merged, standaloneAlerts, standaloneObs };
 }
@@ -995,6 +995,25 @@ function buildMergedRecord(alert, obsList) {
       line: e.line,
     })),
   };
+}
+
+// Collapse a bot-only incident's detections (same _incidentId, no official
+// alert) into ONE standalone record, so the count/merge surfaces in aggregate.js
+// treat the incident as a single event — matching the incidents[] list. Without
+// this a roundup carrying e.g. a ghost + a gap would be counted as two incidents.
+// Detection-level surfaces (SignalBreakdown) read detectionRecords directly and
+// still see every detection; only the grouped/merged path collapses.
+//
+// The representative is the earliest detection (the incident onset), carrying
+// incident-level lifecycle: active if any detection is still active, and the
+// latest resolution once they've all cleared.
+function collapseStandaloneObs(obsList) {
+  if (obsList.length <= 1) return obsList[0];
+  const sorted = [...obsList].sort((a, b) => a.ts - b.ts);
+  const primary = sorted[0];
+  const active = sorted.some((o) => o.active);
+  const resolved_ts = active ? null : Math.max(...sorted.map((o) => o.resolved_ts ?? o.ts));
+  return { ...primary, active, resolved_ts };
 }
 
 // Split a nested incident's observations into a primary and the rest. The
