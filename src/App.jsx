@@ -7,6 +7,7 @@ import HomeFilters from './components/HomeFilters.jsx';
 import HourOfWeekHeatmap from './components/HourOfWeekHeatmap.jsx';
 import IncidentList from './components/IncidentList.jsx';
 import { LONG_RUNNING_THRESHOLD_MS } from './components/LongRunningBanner.jsx';
+import MetraUpcomingCancellations from './components/MetraUpcomingCancellations.jsx';
 import RecentActivityGantt from './components/RecentActivityGantt.jsx';
 import SignalBreakdown from './components/SignalBreakdown.jsx';
 import SummaryStats from './components/SummaryStats.jsx';
@@ -20,6 +21,7 @@ import {
   computeTypicalDurations,
 } from './lib/aggregate.js';
 import { compareBusRoutes } from './lib/busRoutes.js';
+import { cancellationInfo, collectUpcomingCancellations } from './lib/cancellation.js';
 import { dataUrl } from './lib/dataSource.js';
 import {
   filterIncidents,
@@ -292,12 +294,24 @@ export default function App() {
     const recent = [];
     const longRunning = [];
     for (const i of activeIncidents) {
+      // Upcoming single-train cancellations are forward-looking, not live
+      // disruptions — they get their own strip, not the "active disruptions"
+      // cards (and never the long-running "Day N" framing).
+      if (cancellationInfo(i)) continue;
       const startTs = incidentLifecycle(i).first_seen_ts;
       if (startTs != null && now - startTs >= LONG_RUNNING_THRESHOLD_MS) longRunning.push(i);
       else recent.push(i);
     }
     return { recentActive: recent, longRunningActive: longRunning };
   }, [activeIncidents, now]);
+
+  // Forward-looking cancellations announced for departures still ahead of now.
+  // Drives the amber strip and suppresses the green "all clear" banner — a
+  // pending cancellation isn't an active disruption, but it isn't "all clear".
+  const upcomingCancellations = useMemo(
+    () => collectUpcomingCancellations(activeIncidents, { now }),
+    [activeIncidents, now],
+  );
 
   // Surface the active count in the tab title so a pinned tab tells the user
   // something is wrong without them having to switch to it.
@@ -500,6 +514,11 @@ export default function App() {
               </div>
             </div>
 
+            {/* Forward-looking strip: trains Metra has announced won't run but
+                haven't yet reached their scheduled departure. Sits above the
+                status block, separate from the live-disruption cards. */}
+            <MetraUpcomingCancellations incidents={activeIncidents} now={now} showLine />
+
             {/* Status, top of page: live alerts when something's active, or a
                 friendly all-clear banner on a quiet day — so a first-time
                 visitor always lands on a clear answer to "is anything wrong
@@ -514,7 +533,7 @@ export default function App() {
                 stationIndex={stationIndex}
                 burst={burst}
               />
-            ) : (
+            ) : upcomingCancellations.length > 0 ? null : (
               <section className="flex items-center gap-3 rounded-lg border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30 px-4 py-3">
                 <span
                   aria-hidden="true"
