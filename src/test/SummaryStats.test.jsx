@@ -50,6 +50,33 @@ describe('SummaryStats', () => {
     expect(screen.getAllByText(/most affected \(last 30 days\)/i).length).toBeGreaterThan(0);
   });
 
+  it('links the most-affected and quietest line names to their pages', () => {
+    render(
+      <SummaryStats
+        {...baseProps}
+        metraMostAffectedId="bnsf"
+        metraQuietestLineId="up-n"
+        metraQuietestLineDays={9}
+      />,
+    );
+    expect(screen.getAllByRole('link', { name: /Red Line/ })[0]).toHaveAttribute(
+      'href',
+      '/line/red',
+    );
+    expect(screen.getAllByRole('link', { name: /Yellow Line/ })[0]).toHaveAttribute(
+      'href',
+      '/line/yellow',
+    );
+    expect(screen.getAllByRole('link', { name: /BNSF/ })[0]).toHaveAttribute(
+      'href',
+      '/metra/line/bnsf',
+    );
+    expect(screen.getAllByRole('link', { name: /Union Pacific North/ })[0]).toHaveAttribute(
+      'href',
+      '/metra/line/up-n',
+    );
+  });
+
   it('renders separate CTA and Metra most-affected / quietest lines', () => {
     render(
       <SummaryStats

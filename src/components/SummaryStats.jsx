@@ -109,17 +109,21 @@ export default function SummaryStats({
     affectedPhrase = (
       <>
         <AgencyTag>CTA</AgencyTag>
-        <strong style={{ color: info.color }}>{info.label} Line</strong> most affected (last 30
-        days)
+        <a href={`/line/${mostAffectedId}`} className="hover:underline">
+          <strong style={{ color: info.color }}>{info.label} Line</strong>
+        </a>{' '}
+        most affected (last 30 days)
       </>
     );
   } else if (showCta && mostAffectedKind === 'bus') {
     affectedPhrase = (
       <>
         <AgencyTag>CTA</AgencyTag>
-        <strong className="text-slate-800 dark:text-slate-100">
-          {formatBusRoute(mostAffectedId)}
-        </strong>{' '}
+        <a href={`/route/${mostAffectedId}`} className="hover:underline">
+          <strong className="text-slate-800 dark:text-slate-100">
+            {formatBusRoute(mostAffectedId)}
+          </strong>
+        </a>{' '}
         most affected (last 30 days)
       </>
     );
@@ -132,7 +136,10 @@ export default function SummaryStats({
     metraAffectedPhrase = (
       <>
         <AgencyTag>Metra</AgencyTag>
-        <strong style={{ color: info.color }}>{info.label}</strong> most affected (last 30 days)
+        <a href={`/metra/line/${metraMostAffectedId}`} className="hover:underline">
+          <strong style={{ color: info.color }}>{info.label}</strong>
+        </a>{' '}
+        most affected (last 30 days)
       </>
     );
   }
@@ -164,8 +171,10 @@ export default function SummaryStats({
     quietestPhrase = (
       <>
         <AgencyTag>CTA</AgencyTag>
-        <strong style={{ color: info.color }}>{info.label} Line</strong> quietest:{' '}
-        {quietestLineDays} days since last incident
+        <a href={`/line/${quietestLineId}`} className="hover:underline">
+          <strong style={{ color: info.color }}>{info.label} Line</strong>
+        </a>{' '}
+        quietest: {quietestLineDays} days since last incident
       </>
     );
   }
@@ -181,8 +190,10 @@ export default function SummaryStats({
     metraQuietestPhrase = (
       <>
         <AgencyTag>Metra</AgencyTag>
-        <strong style={{ color: info.color }}>{info.label}</strong> quietest:{' '}
-        {metraQuietestLineDays} days since last incident
+        <a href={`/metra/line/${metraQuietestLineId}`} className="hover:underline">
+          <strong style={{ color: info.color }}>{info.label}</strong>
+        </a>{' '}
+        quietest: {metraQuietestLineDays} days since last incident
       </>
     );
   }
