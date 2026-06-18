@@ -104,6 +104,22 @@ describe('IncidentList', () => {
     expect(screen.getByText('95th/Dan Ryan')).toBeInTheDocument();
   });
 
+  it('shows the affected station segment as a subtitle for a pure official train alert', () => {
+    const seg = alertInc({
+      cta: {
+        alert_id: 'a1',
+        headline: 'Red Line reroute',
+        post_url: 'https://bsky.app/alert',
+        first_seen_ts: NOW - 60 * 60_000,
+        from_station: 'Howard',
+        to_station: '95th/Dan Ryan',
+      },
+    });
+    render(<IncidentList incidents={[seg]} />);
+    expect(screen.getByText('Howard')).toBeInTheDocument();
+    expect(screen.getByText('95th/Dan Ryan')).toBeInTheDocument();
+  });
+
   it('shows "ongoing" badge for active incidents', () => {
     render(<IncidentList incidents={[alertInc({ resolved_ts: null, active: true })]} />);
     expect(screen.getByText('ongoing')).toBeInTheDocument();

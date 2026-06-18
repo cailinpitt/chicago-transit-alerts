@@ -182,6 +182,16 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
     description = <HighlightedText text={botSummaryText(incident)} query={searchQuery} />;
   }
 
+  // Pure official train alert: surface the affected station segment as a
+  // "Howard → Belmont" subtitle — the same treatment merged/bot train events
+  // get — so the rider sees the WHERE without opening the event. Skipped for
+  // cancellations / Metra schedule statuses (their title already names the
+  // stop) and bus alerts (cross-streets, not stations).
+  const alertSegment =
+    isAlert && kind === 'train' && !cancel && !metraStatus
+      ? (affectedLineSegments(incident).find((s) => s.from && s.to) ?? null)
+      : null;
+
   const durationDetail =
     !cancel && !metraStatus && !lifecycle.active
       ? duration
@@ -384,6 +394,25 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
                 searchQuery={searchQuery}
               />
               {directionLabel && <span className="ml-1.5">({directionLabel})</span>}
+            </p>
+          )}
+
+          {/* Pure official train alert: the affected station segment as a subtitle. */}
+          {alertSegment && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <StationName
+                name={alertSegment.from}
+                kind={kind}
+                stationIndex={stationIndex}
+                searchQuery={searchQuery}
+              />{' '}
+              →{' '}
+              <StationName
+                name={alertSegment.to}
+                kind={kind}
+                stationIndex={stationIndex}
+                searchQuery={searchQuery}
+              />
             </p>
           )}
 
