@@ -212,9 +212,11 @@ function pickIncidents(payload) {
   standaloneAlerts.forEach(add);
   standaloneObs.forEach(add);
 
-  // Grouped v2 incidents can carry multiple official alerts. The canonical
-  // card is rendered from the primary official alert above; add the remaining
-  // official post rkeys as aliases so older per-line URLs keep resolving.
+  // Every post URL exposed by findIncidentById is shareable. Emit the same
+  // prerendered page/card under the grouped incident id and every official or
+  // detection post rkey, not only under the canonical primary post. Resolution
+  // replies link by their own thread root rkey, which may become a non-primary
+  // alias after producer-side grouping changes.
   for (const inc of payload.incidents ?? []) {
     const officialAlerts =
       Array.isArray(inc.official_alerts) && inc.official_alerts.length > 0
@@ -222,8 +224,11 @@ function pickIncidents(payload) {
         : inc.official_alert
           ? [inc.official_alert]
           : [];
-    if (officialAlerts.length <= 1) continue;
-    const aliases = officialAlerts.map((alert) => postUrlRkey(alert?.post_url)).filter(Boolean);
+    const aliases = [
+      inc.id,
+      ...officialAlerts.map((alert) => postUrlRkey(alert?.post_url)),
+      ...(inc.detections ?? []).map((detection) => postUrlRkey(detection?.post_url)),
+    ].filter(Boolean);
     if (aliases.length === 0) continue;
     const canonicalId =
       aliases.find((id) => out.has(id)) ??

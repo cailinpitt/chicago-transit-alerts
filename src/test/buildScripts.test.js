@@ -130,6 +130,7 @@ describe('incidentRecords wire → row contract', () => {
   it('prerenders official-alert aliases for grouped v2 incidents', () => {
     const primaryUrl = 'https://bsky.app/profile/did:plc:abc/post/primaryrkey';
     const childUrl = 'https://bsky.app/profile/did:plc:abc/post/childrkey';
+    const detectionUrl = 'https://bsky.app/profile/did:plc:def/post/detectionrkey';
     const grouped = incident({
       id: 'primaryrkey',
       kind: 'metra',
@@ -151,11 +152,13 @@ describe('incidentRecords wire → row contract', () => {
           post_url: childUrl,
         }),
       ],
+      observations: [{ post_url: detectionUrl }],
     });
     const flat = incidentRecords([grouped]);
     const picked = pickIncidents({ incidents: [grouped], ...flat });
-    expect([...picked.keys()].sort()).toEqual(['childrkey', 'primaryrkey']);
+    expect([...picked.keys()].sort()).toEqual(['childrkey', 'detectionrkey', 'primaryrkey']);
     expect(picked.get('childrkey')).toBe(picked.get('primaryrkey'));
+    expect(picked.get('detectionrkey')).toBe(picked.get('primaryrkey'));
   });
 
   it('expands v2 official_alert and detections into incident-derived records', () => {
