@@ -169,8 +169,35 @@ export function officialRecordFromIncident(inc) {
         : null,
     _incidentId: inc.id,
   };
-  // versions only present when CTA edited the alert (>1 version on the wire).
-  if (c.versions && c.versions.length > 1) alert.versions = c.versions;
+  // Build the update timeline across EVERY official alert on the incident.
+  // Incidents can carry several official alerts (official_alerts[]) when the
+  // producer groups related entities into one event; fold each member's
+  // versions into one chronological list so the timeline shows the whole chain,
+  // not just the primary. A member without in-place edits contributes a single
+  // synthesized entry. Original version fields are preserved (station/direction
+  // data the timeline renders); `short_description` is normalized for fallback.
+  const versions = [];
+  for (const member of officialAlerts(inc)) {
+    const memberLifecycle = officialLifecycle(member);
+    const memberVersions =
+      Array.isArray(member.versions) && member.versions.length > 0
+        ? member.versions
+        : [
+            {
+              ts: memberLifecycle.first_seen_ts,
+              headline: member.headline ?? null,
+              short_description: member.short_description ?? member.description ?? null,
+            },
+          ];
+    for (const v of memberVersions) {
+      versions.push({
+        ...v,
+        ts: v.ts ?? memberLifecycle.first_seen_ts,
+        short_description: v.short_description ?? v.description ?? null,
+      });
+    }
+  }
+  if (versions.length > 1) alert.versions = versions;
   return alert;
 }
 
