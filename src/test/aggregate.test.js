@@ -4,6 +4,7 @@ import {
   computeCohortDurationStats,
   computeDayOfWeekCounts,
   computeDisruptionMinutes,
+  computeMetraCancellationDelayStats,
   computeMetraLeaderboards,
   computeMetraStatusCounts,
   computeRecentBurst,
@@ -518,6 +519,119 @@ describe('computeMetraStatusCounts', () => {
       { now: NOW, windowDays: 90, lineFilter: 'me' },
     );
     expect(out).toEqual({ cancellations: 0, delays: 0, total: 0 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeMetraCancellationDelayStats
+// ---------------------------------------------------------------------------
+describe('computeMetraCancellationDelayStats', () => {
+  const metraIncident = (over = {}) =>
+    incident({
+      id: 'm1',
+      kind: 'metra',
+      routes: ['me'],
+      first_seen_ts: NOW - HOUR,
+      resolved_ts: NOW,
+      active: false,
+      cta: null,
+      observations: [],
+      ...over,
+    });
+  const cancelObs = ({ id = 'c', depTs = NOW - DAY, origin = 'Chicago Union' } = {}) => ({
+    id,
+    kind: 'metra',
+    line: 'me',
+    detection_source: 'cancellation',
+    ts: depTs,
+    onset_ts: depTs,
+    from_station: origin,
+  });
+  const delayObs = ({ id = 'd', ts = NOW - DAY } = {}) => ({
+    id,
+    kind: 'metra',
+    line: 'me',
+    detection_source: 'delay',
+    ts,
+  });
+
+  it('counts cancellations (incl. inferred) and delays with per-week rates', () => {
+    const out = computeMetraCancellationDelayStats(
+      [
+        metraIncident({
+          id: 'm1',
+          observations: [
+            cancelObs({ id: 'c1', depTs: NOW - DAY }),
+            {
+              ...delayObs({ id: 'd1' }),
+              detection_source: 'cancellation-inferred',
+              onset_ts: NOW - 2 * DAY,
+            },
+          ],
+        }),
+        metraIncident({ id: 'm2', observations: [delayObs({ id: 'd2' }), delayObs({ id: 'd3' })] }),
+      ],
+      { now: NOW, windowDays: 90, lineFilter: 'me' },
+    );
+    expect(out.cancellations.count).toBe(2);
+    expect(out.delays.count).toBe(2);
+    expect(out.total).toBe(4);
+    expect(out.cancellations.perWeek).toBeCloseTo(2 / (90 / 7), 5);
+    expect(out.delays.perWeek).toBeCloseTo(2 / (90 / 7), 5);
+  });
+
+  it('breaks cancellations down by origin terminal, busiest first', () => {
+    const out = computeMetraCancellationDelayStats(
+      [
+        metraIncident({
+          observations: [
+            cancelObs({ id: 'c1', origin: 'Chicago Union', depTs: NOW - DAY }),
+            cancelObs({ id: 'c2', origin: 'Chicago Union', depTs: NOW - 2 * DAY }),
+            cancelObs({ id: 'c3', origin: 'Aurora', depTs: NOW - 3 * DAY }),
+          ],
+        }),
+      ],
+      { now: NOW, windowDays: 90, lineFilter: 'me' },
+    );
+    expect(out.cancellations.byOrigin).toEqual([
+      { origin: 'Chicago Union', count: 2 },
+      { origin: 'Aurora', count: 1 },
+    ]);
+    const partTotal = out.cancellations.byPartOfDay.reduce((s, p) => s + p.count, 0);
+    expect(partTotal).toBe(out.cancellations.count);
+  });
+
+  it('reports recency of the most recent cancelled departure in hours', () => {
+    const out = computeMetraCancellationDelayStats(
+      [metraIncident({ observations: [cancelObs({ depTs: NOW - 5 * HOUR })] })],
+      { now: NOW, windowDays: 90, lineFilter: 'me' },
+    );
+    expect(out.cancellations.hoursSinceLast).toBe(5);
+  });
+
+  it('excludes planned-delay advisories', () => {
+    const out = computeMetraCancellationDelayStats(
+      [
+        metraIncident({
+          cta: { headline: 'Track work this weekend' },
+          metra_status: { source: 'planned-delay', train_number: null },
+        }),
+      ],
+      { now: NOW, windowDays: 90, lineFilter: 'me' },
+    );
+    expect(out.total).toBe(0);
+  });
+
+  it('returns an empty, renderable shape with no Metra history', () => {
+    const out = computeMetraCancellationDelayStats([], {
+      now: NOW,
+      windowDays: 90,
+      lineFilter: 'me',
+    });
+    expect(out.total).toBe(0);
+    expect(out.cancellations.hoursSinceLast).toBeNull();
+    expect(out.cancellations.byOrigin).toEqual([]);
+    expect(out.delays.count).toBe(0);
   });
 });
 

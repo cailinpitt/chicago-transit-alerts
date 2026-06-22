@@ -6,7 +6,7 @@ import {
   computeDisruptionMinutes,
   computeDurationHistogram,
   computeLineReliability,
-  computeMetraStatusCounts,
+  computeMetraCancellationDelayStats,
   computeRecentBurst,
   computeSegmentRecurrence,
   computeSummaryStats,
@@ -37,6 +37,7 @@ import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
 import IncidentList from './IncidentList.jsx';
 import LineMap from './LineMap.jsx';
 import { LONG_RUNNING_THRESHOLD_MS } from './LongRunningBanner.jsx';
+import MetraCancellationDelayStats from './MetraCancellationDelayStats.jsx';
 import MetraUpcomingCancellations from './MetraUpcomingCancellations.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
 import { SignalBreakdownSingleRoute } from './SignalBreakdown.jsx';
@@ -327,9 +328,13 @@ export default function LinePage({ kind, lineId }) {
     return computeDayOfWeekCounts(lineAlerts, lineObservations, { now, windowDays: 91 });
   }, [data, lineAlerts, lineObservations, now]);
 
-  const metraStatusCounts = useMemo(() => {
+  // Cancellation + delay analytics for this Metra line — counts (consistent
+  // with the rest of the site), per-week rates, recency, the originating-
+  // terminal breakdown, and time-of-day. Drives the dedicated section below;
+  // Metra only.
+  const metraCancelDelay = useMemo(() => {
     if (!data || !isMetra) return null;
-    return computeMetraStatusCounts(lineIncidents, {
+    return computeMetraCancellationDelayStats(lineIncidents, {
       now,
       windowDays: 90,
       lineFilter: effectiveLineId,
@@ -480,7 +485,7 @@ export default function LinePage({ kind, lineId }) {
               (summary.weeklyCount > 0 ||
                 (reliability?.currentStreakDays ?? 0) > 0 ||
                 (disruption?.disruptedMinutes ?? 0) > 0 ||
-                (metraStatusCounts?.total ?? 0) > 0) && (
+                (metraCancelDelay?.total ?? 0) > 0) && (
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 px-1">
                   <div className="flex-1 min-w-0 space-y-2">
                     {(() => {
@@ -493,19 +498,10 @@ export default function LinePage({ kind, lineId }) {
                             ? '<0.1%'
                             : `${(disruption.ratio * 100).toFixed(disruption.ratio < 0.01 ? 2 : 1)}%`
                           : null;
+                      // Metra cancellation/delay counts moved to their own
+                      // dedicated section below (rates, recency, breakdowns), so
+                      // they're no longer duplicated as summary cells here.
                       const cells = [{ v: String(summary.weeklyCount), l: 'in last 7 days' }];
-                      if (isMetra && metraStatusCounts) {
-                        cells.push(
-                          {
-                            v: String(metraStatusCounts.cancellations),
-                            l: 'cancellations, 90d',
-                          },
-                          {
-                            v: String(metraStatusCounts.delays),
-                            l: 'delays, 90d',
-                          },
-                        );
-                      }
                       if (disruption && disruption.disruptedMinutes > 0) {
                         cells.push({
                           v: formatMinutesAsHours(disruption.disruptedMinutes),
@@ -588,6 +584,8 @@ export default function LinePage({ kind, lineId }) {
                   <TrendSparkline alerts={lineAlerts} observations={lineObservations} />
                 </div>
               )}
+
+            {isMetra && <MetraCancellationDelayStats stats={metraCancelDelay} />}
 
             {/* Geographic station heatmap — rail only (CTA L + Metra), which
                 have line/station geometry. Hidden on bus pages. */}

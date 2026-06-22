@@ -1690,6 +1690,123 @@ export function computeMetraStatusCounts(
   return { cancellations, delays, total: cancellations + delays };
 }
 
+// Per-line Metra cancellation + delay analytics for the line page — the richer
+// companion to computeMetraStatusCounts (which returns only flat counts). It
+// reuses the SAME counting model (each train-level detection 'cancellation' /
+// 'cancellation-inferred' / 'delay' counts once, with an official-alert
+// fallback for incidents that have no detections; planned-delay is excluded) so
+// the headline numbers stay consistent with the rest of the site. On top of the
+// counts it adds, for cancellations:
+//   - byOrigin: the originating terminal (detection scope.from_station, or the
+//     incident's cancellation block) so the page can show which terminal sheds
+//     the most trains. Inferred cancellations with no named origin still count
+//     but drop out of the breakdown.
+//   - byPartOfDay: the scheduled departure (detection lifecycle.onset_ts)
+//     bucketed into PART_OF_DAY.
+//   - hoursSinceLast: recency of the most recent cancelled departure.
+// Metra delays carry no minutes-late magnitude and are point events here (no
+// resolved span), so unlike the MARTA analog there is no "typical delay length".
+/**
+ * @param {import('./incidents.js').Incident[]} incidents
+ * @param {object} [options]
+ * @param {number} [options.now]
+ * @param {number} [options.windowDays]
+ * @param {string | null} [options.lineFilter]
+ * @returns {{windowDays:number,total:number,cancellations:{count:number,perWeek:number,hoursSinceLast:number|null,byOrigin:Array<{origin:string,count:number}>,byPartOfDay:Array<{key:string,label:string,range:string,count:number}>},delays:{count:number,perWeek:number}}}
+ */
+export function computeMetraCancellationDelayStats(
+  incidents,
+  { now = Date.now(), windowDays = 90, lineFilter = null } = {},
+) {
+  const cutoff = now - windowDays * DAY_MS;
+  const weeks = windowDays / 7;
+  const observationInLine = (line, routes = []) =>
+    !lineFilter ||
+    line === lineFilter ||
+    (line == null && Array.isArray(routes) && routes.includes(lineFilter));
+
+  const originCounts = new Map();
+  const partCounts = new Map(PART_OF_DAY.map((p) => [p.key, 0]));
+  let cancelCount = 0;
+  let delayCount = 0;
+  let lastCancelTs = null;
+
+  const recordCancellation = (depTs, origin) => {
+    cancelCount += 1;
+    if (depTs != null) {
+      if (lastCancelTs == null || depTs > lastCancelTs) lastCancelTs = depTs;
+      const { hour } = chicagoWeekdayHour(depTs);
+      if (hour != null) {
+        const part = PART_OF_DAY.find((p) => hour >= p.lo && hour <= p.hi);
+        if (part) partCounts.set(part.key, partCounts.get(part.key) + 1);
+      }
+    }
+    if (origin) originCounts.set(origin, (originCounts.get(origin) || 0) + 1);
+  };
+
+  for (const inc of incidents || []) {
+    if (legacyKind(inc) !== 'metra') continue;
+    const routes = inc.routes || [];
+    if (lineFilter && !routes.includes(lineFilter)) continue;
+
+    let countedObservation = false;
+    for (const o of incidentDetections(inc)) {
+      const lifecycle = o.lifecycle ?? {};
+      const scope = o.scope ?? {};
+      if (lifecycle.first_seen_ts == null || lifecycle.first_seen_ts < cutoff) continue;
+      if (!observationInLine(scope.route, routes)) continue;
+      if (o.source === 'delay') {
+        delayCount += 1;
+        countedObservation = true;
+      } else if (o.source === 'cancellation' || o.source === 'cancellation-inferred') {
+        recordCancellation(
+          lifecycle.onset_ts ?? lifecycle.first_seen_ts,
+          scope.from_station || null,
+        );
+        countedObservation = true;
+      }
+    }
+    if (countedObservation) continue;
+
+    if (!officialAlert(inc)) continue;
+    const ts = incidentLifecycle(inc).first_seen_ts;
+    if (ts == null || ts < cutoff) continue;
+    const source = metraIncidentStatus(inc)?.source;
+    if (source === 'delay') {
+      delayCount += 1;
+    } else if (source === 'cancellation' || source === 'cancellation-inferred') {
+      const block = inc.status ?? {};
+      recordCancellation(block.scheduled_departure_ts ?? ts, block.origin || null);
+    }
+  }
+
+  const byOrigin = [...originCounts.entries()]
+    .map(([origin, count]) => ({ origin, count }))
+    .sort((a, b) => b.count - a.count || a.origin.localeCompare(b.origin));
+  const byPartOfDay = PART_OF_DAY.map((p) => ({
+    key: p.key,
+    label: p.label,
+    range: p.range,
+    count: partCounts.get(p.key) || 0,
+  }));
+
+  return {
+    windowDays,
+    total: cancelCount + delayCount,
+    cancellations: {
+      count: cancelCount,
+      perWeek: cancelCount / weeks,
+      hoursSinceLast: lastCancelTs != null ? (now - lastCancelTs) / (60 * 60 * 1000) : null,
+      byOrigin,
+      byPartOfDay,
+    },
+    delays: {
+      count: delayCount,
+      perWeek: delayCount / weeks,
+    },
+  };
+}
+
 // Recurring segments: bucket train-only bot observations by (line,
 // from_station → to_station) and rank by raw count. The point is to surface
 // chokepoints — a stretch of track that disrupts often — which the per-
