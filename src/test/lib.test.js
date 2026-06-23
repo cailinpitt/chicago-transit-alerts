@@ -1833,6 +1833,21 @@ describe('computeYearOverYear', () => {
     expect(r.enoughData).toBe(false);
   });
 
+  it('still counts the current window when there is not enough data for YoY', () => {
+    const obs = [
+      makeObs({ id: 1, ts: NOW - 5 * DAY, first_seen_ts: NOW - 5 * DAY }),
+      makeObs({ id: 2, ts: NOW - 10 * DAY, first_seen_ts: NOW - 10 * DAY }),
+    ];
+    const r = computeYearOverYear([], obs, {
+      now: NOW,
+      windowDays: 30,
+      dataStartTs: NOW - 60 * DAY, // dataset younger than a year
+    });
+    expect(r.enoughData).toBe(false);
+    expect(r.currentCount).toBe(2); // current count is still valid…
+    expect(r.pctChange).toBeNull(); // …but the YoY comparison is suppressed
+  });
+
   it('counts current vs prior 30-day windows separately', () => {
     const obs = [
       // 3 incidents in the current window (last 30 days)

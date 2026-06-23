@@ -2045,19 +2045,13 @@ export function computeYearOverYear(
   const priorEndTs = now - yearMs;
   const priorStartTs = priorEndTs - windowMs;
 
+  // `enoughData` gates only the year-over-year comparison (priorCount /
+  // pctChange), which needs a full prior window. `currentCount` — the
+  // trailing-`windowDays` count — is always well-defined, so we count it
+  // regardless and never early-return a hardcoded 0. Callers that show the
+  // current count alone (e.g. the compare table's "Last 30 days" row) rely
+  // on this; YoY callers still gate on `enoughData`.
   const enoughData = dataStartTs == null || dataStartTs <= priorStartTs;
-  if (!enoughData) {
-    return {
-      enoughData: false,
-      currentCount: 0,
-      priorCount: 0,
-      pctChange: null,
-      currentStartTs,
-      currentEndTs,
-      priorStartTs,
-      priorEndTs,
-    };
-  }
 
   const { merged, standaloneAlerts, standaloneObs } = getMerge(alerts, observations);
   let currentCount = 0;
@@ -2071,9 +2065,9 @@ export function computeYearOverYear(
   for (const a of standaloneAlerts) bump(a.first_seen_ts);
   for (const o of standaloneObs) bump(o.first_seen_ts ?? o.ts);
 
-  const pctChange = priorCount > 0 ? (currentCount - priorCount) / priorCount : null;
+  const pctChange = enoughData && priorCount > 0 ? (currentCount - priorCount) / priorCount : null;
   return {
-    enoughData: true,
+    enoughData,
     currentCount,
     priorCount,
     pctChange,
