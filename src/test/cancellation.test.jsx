@@ -38,7 +38,15 @@ const UPCOMING = {
   train_number: '67',
   origin: 'Chicago OTC',
 };
-const CANCELLED = { ...UPCOMING, state: 'cancelled' };
+// A finalized cancellation: its scheduled departure is in the PAST relative to
+// NOW, which is what now makes it read as 'cancelled' (the state is re-derived
+// from the departure time, not trusted from the server stamp).
+const CANCELLED = {
+  ...UPCOMING,
+  state: 'cancelled',
+  scheduled_departure_ts: NOW - 60 * 60_000,
+  scheduled_arrival_ts: NOW - 5 * 60_000,
+};
 
 describe('cancellation helpers', () => {
   it('returns null for an incident with no cancellation block', () => {
@@ -48,33 +56,51 @@ describe('cancellation helpers', () => {
   });
 
   it('normalizes the cancellation block', () => {
-    const info = cancellationInfo(cancelInc(UPCOMING));
+    const info = cancellationInfo(cancelInc(UPCOMING), NOW);
     expect(info.isUpcoming).toBe(true);
     expect(info.isCancelled).toBe(false);
     expect(info.trainNumber).toBe('67');
     expect(info.origin).toBe('Chicago OTC');
   });
 
+  it('re-derives cancelled once the departure passes, ignoring a stale upcoming state', () => {
+    // The producer stamped 'upcoming' at export time; the wall clock has since
+    // crossed the scheduled departure. The label must flip without waiting for
+    // the next export.
+    const info = cancellationInfo(cancelInc(UPCOMING), UPCOMING.scheduled_departure_ts + 60_000);
+    expect(info.isCancelled).toBe(true);
+    expect(info.isUpcoming).toBe(false);
+    expect(info.state).toBe('cancelled');
+  });
+
   it('labels each state', () => {
-    expect(cancellationStatusLabel(cancellationInfo(cancelInc(UPCOMING)))).toBe(
+    expect(cancellationStatusLabel(cancellationInfo(cancelInc(UPCOMING), NOW))).toBe(
       'upcoming cancellation',
     );
-    expect(cancellationStatusLabel(cancellationInfo(cancelInc(CANCELLED)))).toBe('cancelled');
+    expect(cancellationStatusLabel(cancellationInfo(cancelInc(CANCELLED), NOW))).toBe('cancelled');
     expect(cancellationStatusLabel(null)).toBeNull();
   });
 
   it('builds the schedule phrase (full run, departure-only, none)', () => {
-    expect(cancellationSchedulePhrase(cancellationInfo(cancelInc(UPCOMING)))).toMatch(/→/);
-    const depOnly = cancellationInfo(cancelInc({ ...UPCOMING, scheduled_arrival_ts: null }));
+    expect(cancellationSchedulePhrase(cancellationInfo(cancelInc(UPCOMING), NOW))).toMatch(/→/);
+    const depOnly = cancellationInfo(cancelInc({ ...UPCOMING, scheduled_arrival_ts: null }), NOW);
     expect(cancellationSchedulePhrase(depOnly)).toMatch(/departure$/);
-    const noTimes = cancellationInfo(cancelInc({ ...UPCOMING, scheduled_departure_ts: null }));
+    const noTimes = cancellationInfo(cancelInc({ ...UPCOMING, scheduled_departure_ts: null }), NOW);
     expect(cancellationSchedulePhrase(noTimes)).toBeNull();
   });
 });
 
 describe('IncidentList cancellation rendering', () => {
   it('shows an "upcoming cancellation" badge, not "ongoing", for an upcoming cancellation', () => {
-    render(<IncidentList incidents={[cancelInc(UPCOMING)]} />);
+    // IncidentList reads the badge against the real clock (no injected now), so
+    // the departure must be genuinely ahead of it to read as upcoming.
+    const futureDep = Date.now() + 60 * 60_000;
+    const upcomingInc = cancelInc({
+      ...UPCOMING,
+      scheduled_departure_ts: futureDep,
+      scheduled_arrival_ts: futureDep + 88 * 60_000,
+    });
+    render(<IncidentList incidents={[upcomingInc]} />);
     expect(screen.getByText('upcoming cancellation')).toBeInTheDocument();
     expect(screen.queryByText('ongoing')).not.toBeInTheDocument();
   });
