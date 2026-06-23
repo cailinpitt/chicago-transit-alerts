@@ -369,6 +369,18 @@ export function summarizeSignals(signals, kind) {
  */
 export function formatEvidenceChip(incident) {
   if (!incident) return null;
+  // Cancellation surge (roundup): give canceled-trips events the same scannable
+  // subtitle that cold/ghost detections get. The rider-facing count ("8 of 14
+  // scheduled trips canceled this past hour") is pre-rendered into the roundup's
+  // bullet list upstream and isn't reconstructable from evidence.details (which
+  // only carries the signal mix), so reuse that bullet verbatim. Fires for any
+  // roundup whose signal mix includes a cancellation surge.
+  if (Array.isArray(incident.signals) && incident.signals.includes('cancellation')) {
+    const bullet = (incident.bot_evidence_bullets || []).find(
+      (b) => typeof b === 'string' && /scheduled trips? canceled/i.test(b),
+    );
+    if (bullet) return bullet;
+  }
   const ev = incident.evidence;
   if (!ev || typeof ev !== 'object') return null;
   // Train pulse evidence has the canonical fields. The held subtree exists
