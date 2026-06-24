@@ -6,22 +6,12 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
-## 2026-06-24 — standard.site manifest (additive)
+## 2026-06-24 — `standard-site.json` removed
 
-New endpoint: `standard-site.json`, a [standard.site](https://standard.site)
-(AT Protocol) manifest that lets Bluesky render enhanced link cards for the
-site. Shape:
-
-```json
-{
-  "publication": "at://<did>/site.standard.publication/self",
-  "documents": { "<eventId>": "at://<did>/site.standard.document/<eventId>" }
-}
-```
-
-`documents` maps each `/event/<id>` slug to its `site.standard.document` record's
-AT-URI; `publication` is the site's `site.standard.publication` record (or `null`
-until records are minted). Additive — existing payloads are unchanged.
+The `standard-site.json` standard.site (AT Protocol) enhanced-link-card manifest
+has been dropped. Links now use standard Open Graph image cards only; consumers
+should stop fetching this endpoint. `alerts.json`, `alerts.csv`, and the feeds
+are unchanged.
 
 ## 2026-06-24 — Accessibility outage archive (additive)
 

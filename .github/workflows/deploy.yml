@@ -136,9 +136,8 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
-          # Include dotfiles so /.well-known/site.standard.publication ships;
-          # the action excludes hidden paths by default (only .git/.github are
-          # excluded regardless). Required for standard.site verification.
+          # Ship dotfiles so /.well-known/ (security.txt, api-catalog) deploys;
+          # the action excludes hidden paths by default.
           include-hidden-files: true
 
   deploy:

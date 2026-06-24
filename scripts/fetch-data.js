@@ -22,7 +22,7 @@ const ORIGIN = (process.env.DATA_ORIGIN_URL || 'https://data.chicagotransitalert
   '',
 );
 const OUT_DIR = resolve(__dirname, '..', 'public', 'data');
-const FILES = ['alerts.json', 'daily-counts.json', 'accessibility.json', 'standard-site.json'];
+const FILES = ['alerts.json', 'daily-counts.json', 'accessibility.json'];
 
 mkdirSync(OUT_DIR, { recursive: true });
 
@@ -67,15 +67,4 @@ if (!existsSync(resolve(OUT_DIR, 'accessibility.json'))) {
     )}\n`,
   );
   console.warn('fetch-data: wrote empty accessibility.json fallback');
-}
-
-// standard.site manifest: publication AT-URI + per-event document AT-URIs. Empty
-// until the insights backend mints records; the prerender no-ops on a null
-// publication, so the site still builds.
-if (!existsSync(resolve(OUT_DIR, 'standard-site.json'))) {
-  writeFileSync(
-    resolve(OUT_DIR, 'standard-site.json'),
-    `${JSON.stringify({ publication: null, documents: {} }, null, 2)}\n`,
-  );
-  console.warn('fetch-data: wrote empty standard-site.json fallback');
 }

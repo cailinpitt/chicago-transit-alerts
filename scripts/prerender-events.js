@@ -38,19 +38,6 @@ const ROOT = resolve(__dirname, '..');
 const DIST = resolve(ROOT, 'dist');
 const DATA = resolve(DIST, 'data', 'alerts.json');
 const SHELL = resolve(DIST, 'index.html');
-// standard.site manifest. Canonical event pages get both the publication and
-// document hints so the record's `path` (/event/:id) matches the page URL and
-// the enhanced card verifies. The shell/homepage deliberately does not carry the
-// publication hint, so the bare site URL keeps its normal OG image card.
-const STANDARD_SITE = (() => {
-  try {
-    return JSON.parse(readFileSync(resolve(DIST, 'data', 'standard-site.json'), 'utf8'));
-  } catch (_) {
-    return { publication: null, documents: {} };
-  }
-})();
-const STANDARD_SITE_DOCS = STANDARD_SITE.documents || {};
-const STANDARD_SITE_PUBLICATION = STANDARD_SITE.publication || null;
 const TEMPLATE = resolve(__dirname, 'og-event-template.html');
 // Image cache survives across builds via actions/cache. Only the PNG and its
 // signature live here — the HTML stub is regenerated every build because it
@@ -73,27 +60,6 @@ function escAttr(s) {
 
 function escHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-// standard.site document <link> tag for an event page. Canonical /event/:id only
-// (its record path matches the page); the /resolved variant carries the document
-// via the post's associatedRefs instead, so it gets no tag. Empty string when no
-// record exists for the id. Exported for tests.
-export function documentLinkTag(id, variant, docs = STANDARD_SITE_DOCS) {
-  const uri = variant === 'canonical' ? docs?.[id] : null;
-  return uri ? `\n    <link rel="site.standard.document" href="${escAttr(uri)}" />` : '';
-}
-
-export function publicationLinkTag(
-  id,
-  variant,
-  docs = STANDARD_SITE_DOCS,
-  publication = STANDARD_SITE_PUBLICATION,
-) {
-  const hasDocument = variant === 'canonical' && docs?.[id];
-  return hasDocument && publication
-    ? `\n    <link rel="site.standard.publication" href="${escAttr(publication)}" />`
-    : '';
 }
 
 function softColor(hex, alpha = 0.18) {
@@ -355,8 +321,6 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant =
   const ldTag =
     `<script type="application/ld+json">${jsonLd}</script>` +
     `\n    <script type="application/ld+json">${breadcrumbLd}</script>`;
-  const docTag = documentLinkTag(id, variant);
-  const pubTag = publicationLinkTag(id, variant);
   // canonical always points at the bare URL even on the /resolved variant —
   // search engines should treat /resolved as a duplicate, not a separate page.
   let html = shell
@@ -405,7 +369,7 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant =
       /<meta name="twitter:image:alt"[^>]*>/,
       `<meta name="twitter:image:alt" content="${escAttr(ogTitle)}" />`,
     )
-    .replace('</head>', `${ldTag}${pubTag}${docTag}\n  </head>`);
+    .replace('</head>', `${ldTag}\n  </head>`);
   if (variant === 'resolved') {
     // noindex the variant — it's a Bluesky-card-cache target, not a destination
     // page. Without this, search engines see /event/:id and /event/:id/resolved
