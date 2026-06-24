@@ -49,7 +49,7 @@ function StationLines({ outage }) {
   return (
     <span className="flex flex-wrap gap-1">
       {(outage.station?.lines || []).map((line) => (
-        <LinePill key={`${outage.agency}-${line}`} kind={lineKind} line={line} linked={false} />
+        <LinePill key={`${outage.agency}-${line}`} kind={lineKind} line={line} />
       ))}
     </span>
   );
@@ -74,7 +74,7 @@ function RecentNoticeRow({ outage }) {
               : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200'
           }`}
         >
-          {active ? 'Out now' : 'Restored'}
+          {active ? 'Active' : 'Restored'}
         </span>
       </div>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
@@ -251,7 +251,7 @@ export default function AccessibilityPage() {
             <section className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border">
               <div className="p-4 border-b border-slate-100 dark:border-gh-border">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Currently out of service ({activeOutages.length})
+                  Active outages ({activeOutages.length})
                 </h2>
               </div>
               {activeOutages.length === 0 ? (
@@ -337,7 +337,7 @@ export default function AccessibilityPage() {
                               <AgencyTag agency={row.agency} />
                               {row.currentlyOut > 0 && (
                                 <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">
-                                  {row.currentlyOut} current
+                                  {row.currentlyOut} active
                                 </span>
                               )}
                             </span>

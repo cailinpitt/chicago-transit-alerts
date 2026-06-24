@@ -84,6 +84,19 @@ export function outagesForStation(
     .slice(0, limit);
 }
 
+export function outagesForLine(outages = [], { agency, line, now = Date.now(), limit = 8 } = {}) {
+  if (!agency || !line) return [];
+  return outages
+    .filter((o) => o.agency === agency)
+    .filter((o) => outageHasLine(o, line))
+    .map((o) => ({ ...o, durationMs: outageDuration(o, now) }))
+    .sort((a, b) => {
+      if (a.lifecycle?.active !== b.lifecycle?.active) return a.lifecycle?.active ? -1 : 1;
+      return (b.lifecycle?.first_seen_ts || 0) - (a.lifecycle?.first_seen_ts || 0);
+    })
+    .slice(0, limit);
+}
+
 export function stationReliability(
   outages = [],
   { now = Date.now(), windowDays = 90, agency = null, line = null } = {},

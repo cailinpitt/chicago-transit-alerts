@@ -3,6 +3,7 @@ import {
   currentlyOut,
   outageDuration,
   outageHasLine,
+  outagesForLine,
   outagesForStation,
   stationHref,
   stationReliability,
@@ -76,5 +77,27 @@ describe('accessibility helpers', () => {
       outageCount: 2,
       currentlyOut: 1,
     });
+  });
+
+  it('finds line-specific rows with active rows first', () => {
+    const restored = outage({
+      id: 'cta-restored',
+      lifecycle: {
+        first_seen_ts: NOW - 4 * HOUR,
+        last_seen_ts: NOW - 3 * HOUR,
+        restored_ts: NOW - 3 * HOUR,
+        active: false,
+      },
+    });
+    const blue = outage({
+      id: 'cta-blue',
+      station: { slug: 'clark-lake', name: 'Clark/Lake', lines: ['blue'] },
+    });
+    const rows = outagesForLine([restored, blue, outage()], {
+      agency: 'cta',
+      line: 'brown',
+      now: NOW,
+    });
+    expect(rows.map((row) => row.id)).toEqual(['cta-1', 'cta-restored']);
   });
 });

@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
+import { fetchAccessibilityData, outagesForLine, stationHref } from '../lib/accessibility.js';
 import {
   computeDayOfWeekCounts,
   computeDisruptionMinutes,
@@ -19,7 +20,13 @@ import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { cancellationInfo } from '../lib/cancellation.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
-import { formatChicagoDay, formatGap, formatMinutesAsHours } from '../lib/format.js';
+import {
+  formatChicagoDay,
+  formatDate,
+  formatDuration,
+  formatGap,
+  formatMinutesAsHours,
+} from '../lib/format.js';
 import {
   incidentLifecycle,
   incidentRecords,
@@ -143,6 +150,75 @@ function DurationHistogram({ histogram }) {
   );
 }
 
+function AccessibilityOutagesSection({ outages }) {
+  if (!outages || outages.length === 0) return null;
+  const activeCount = outages.filter((o) => o.lifecycle?.active).length;
+  return (
+    <section>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          Accessibility
+        </h2>
+        <a
+          href="/accessibility"
+          className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
+        >
+          View all
+        </a>
+      </div>
+      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border">
+        <div className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
+          <strong className="text-slate-800 dark:text-slate-100 tabular-nums">{activeCount}</strong>{' '}
+          active accessibility outage{activeCount === 1 ? '' : 's'} on this line
+        </div>
+        {outages.map((outage) => {
+          const stationName = outage.station?.name || 'Unmatched station';
+          const href = stationHref(outage);
+          return (
+            <div key={outage.id} className="px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {href ? (
+                  <a
+                    href={href}
+                    className="font-semibold text-slate-800 hover:underline dark:text-slate-100"
+                  >
+                    {stationName}
+                  </a>
+                ) : (
+                  <span className="font-semibold text-slate-800 dark:text-slate-100">
+                    {stationName}
+                  </span>
+                )}
+                {outage.lifecycle?.active ? (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">
+                    Active
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500 dark:bg-gh-subtle dark:text-slate-300">
+                    Restored
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                <span className="capitalize">{outage.unit_type}</span>
+                {outage.unit_label ? ` · ${outage.unit_label}` : ''}
+              </p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                First seen {formatDate(outage.lifecycle.first_seen_ts)}
+                {outage.lifecycle.active
+                  ? ` · out ${formatDuration(outage.durationMs) || 'just now'}`
+                  : outage.lifecycle.restored_ts
+                    ? ` · restored ${formatDate(outage.lifecycle.restored_ts)}`
+                    : ''}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 // LinePage — `/line/:id` for trains, `/route/:id` for buses. Renders the
 // same data-rich blocks as the homepage but pre-filtered to a single line
 // or bus route, with a permalink-friendly URL. Reuses existing components
@@ -152,6 +228,7 @@ export default function LinePage({ kind, lineId }) {
   const [dark, toggleDark] = useDarkMode();
   const now = useNow();
   const [data, setData] = useState(null);
+  const [accessibilityData, setAccessibilityData] = useState(null);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
 
@@ -186,6 +263,11 @@ export default function LinePage({ kind, lineId }) {
       })
       .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
+    fetchAccessibilityData()
+      .then(setAccessibilityData)
+      .catch(() => {
+        // Accessibility data is supplemental; line pages still render without it.
+      });
   }, []);
 
   // Flat view of the full dataset; the analytics cards still read the flat
@@ -384,6 +466,19 @@ export default function LinePage({ kind, lineId }) {
       ? buildMetraStationIndex(flat.officialRecords, flat.detectionRecords, { now, windowDays: 90 })
       : buildStationIndex(flat.officialRecords, flat.detectionRecords, { now, windowDays: 90 });
   }, [flat, now, isMetra]);
+
+  const lineOutages = useMemo(
+    () =>
+      isRail
+        ? outagesForLine(accessibilityData?.outages || [], {
+            agency: isMetra ? 'metra' : 'cta',
+            line: effectiveLineId,
+            now,
+            limit: 8,
+          })
+        : [],
+    [accessibilityData, isRail, isMetra, effectiveLineId, now],
+  );
 
   // Search-only narrowing for the IncidentList. The line is already locked
   // by the pre-filter above; only free-text search remains. Reuse the same
@@ -596,6 +691,8 @@ export default function LinePage({ kind, lineId }) {
                 stationIndex={stationIndex}
               />
             )}
+
+            {isRail && <AccessibilityOutagesSection outages={lineOutages} />}
 
             {segments.length > 0 && (
               <section>

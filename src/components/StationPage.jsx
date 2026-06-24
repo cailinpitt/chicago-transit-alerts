@@ -286,7 +286,7 @@ export default function StationPage({ slug, kind = 'train' }) {
                                 : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
                             }`}
                           >
-                            {active ? 'Out now' : 'Restored'}
+                            {active ? 'Active' : 'Restored'}
                           </span>
                         </div>
                         <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
