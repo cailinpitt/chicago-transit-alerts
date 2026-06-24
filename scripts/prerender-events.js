@@ -2,7 +2,7 @@
 // (Twitter, Bluesky, Slack, etc.) get event-specific cards. Crawlers don't run
 // JS; they just read meta tags from whatever HTML the URL serves. This script
 // emits `dist/event/<id>/index.html` (clone of the SPA shell with rewritten
-// OG meta) plus `dist/event/<id>/og.png` (1200x630, Playwright-rendered).
+// OG meta) plus `dist/event/<id>/og.jpg` (1200x630, Playwright-rendered).
 //
 // Runs as a postbuild step. Requires `dist/data/alerts.json` to be present —
 // it's copied from `public/data/` by Vite at build time.
@@ -318,10 +318,10 @@ function buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant =
   // right, so search engines should fold it back to canonical and skip indexing.
   const canonicalUrl = `${SITE}/event/${id}`;
   const url = variant === 'resolved' ? `${canonicalUrl}/resolved` : canonicalUrl;
-  // og.png is served alongside index.html in the same directory, so a relative
-  // path is fine here. Use the variant's directory so /event/:id/resolved/og.png
+  // og.jpg is served alongside index.html in the same directory, so a relative
+  // path is fine here. Use the variant's directory so /event/:id/resolved/og.jpg
   // (the variant's own image) ships with the variant stub.
-  const image = `${url}/og.png`;
+  const image = `${url}/og.jpg`;
   // Link/unfurl title leads with the line/route. For bot events the card title
   // ends with the line (it's also a chip), so build the meta title from the bare
   // impact to avoid repeating it ("Red Line · Disruption detected"). CTA titles
@@ -456,9 +456,13 @@ function signatureFor({ id, title, subtitle, badge, date, accent, templateHash, 
 
 async function renderPng(page, html, outPath) {
   await page.setContent(html, { waitUntil: 'load' });
+  // JPEG (not PNG): the per-event cards are gradient+text, and at ~1457 events ×
+  // 2 variants the PNGs (~440KB each) pushed the Pages artifact past the 1GB
+  // limit. JPEG q82 is ~6x smaller with no visible loss on these cards.
   await page.screenshot({
     path: outPath,
-    type: 'png',
+    type: 'jpeg',
+    quality: 82,
     clip: { x: 0, y: 0, width: 1200, height: 630 },
   });
 }
@@ -539,14 +543,14 @@ async function main() {
       buildHtmlStub(shell, { id, title, subtitle, accent, incident, variant: 'canonical' }),
     );
     const cacheDir = resolve(CACHE, id);
-    const cachedPng = resolve(cacheDir, 'og.png');
+    const cachedPng = resolve(cacheDir, 'og.jpg');
     const cachedSig = resolve(cacheDir, 'sig');
     const canonicalCached =
       existsSync(cachedPng) &&
       existsSync(cachedSig) &&
       readFileSync(cachedSig, 'utf8') === canonicalSig;
     if (canonicalCached) {
-      copyFileSync(cachedPng, resolve(canonicalDir, 'og.png'));
+      copyFileSync(cachedPng, resolve(canonicalDir, 'og.jpg'));
     } else {
       renders.push({
         id,
@@ -606,7 +610,7 @@ async function main() {
         existsSync(resolvedCachedSig) &&
         readFileSync(resolvedCachedSig, 'utf8') === resolvedSig;
       if (resolvedCacheHit) {
-        copyFileSync(resolvedCachedPng, resolve(resolvedDir, 'og.png'));
+        copyFileSync(resolvedCachedPng, resolve(resolvedDir, 'og.jpg'));
       } else {
         renders.push({
           id: `${id}/resolved`,
@@ -650,7 +654,7 @@ async function main() {
     let i = 0;
     await workerPool(realRenders, pages.length, async (item) => {
       const page = pages[i++ % pages.length];
-      const out = resolve(item.outDir, 'og.png');
+      const out = resolve(item.outDir, 'og.jpg');
       await renderPng(page, item.html, out);
       mkdirSync(item.cacheDir, { recursive: true });
       copyFileSync(out, item.cachedPng);
@@ -662,8 +666,8 @@ async function main() {
       // Mirror = canonical was Archived already, so /resolved's PNG is identical.
       // The canonical PNG is now on disk (either freshly rendered above or copied
       // from cache earlier in the planning loop), so just copy it across.
-      const src = resolve(item.mirrorFrom, 'og.png');
-      const dst = resolve(item.outDir, 'og.png');
+      const src = resolve(item.mirrorFrom, 'og.jpg');
+      const dst = resolve(item.outDir, 'og.jpg');
       if (existsSync(src)) copyFileSync(src, dst);
     }
 

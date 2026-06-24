@@ -96,7 +96,7 @@ function entryLink(incident) {
 function entryThumbnail(incident, updatedTs) {
   const rkey = postUrlRkey(incident.post_url) ?? postUrlRkey(incident.obs_post_url);
   if (!rkey) return null;
-  return updatedTs ? `${SITE}/event/${rkey}/og.png?v=${updatedTs}` : `${SITE}/event/${rkey}/og.png`;
+  return updatedTs ? `${SITE}/event/${rkey}/og.jpg?v=${updatedTs}` : `${SITE}/event/${rkey}/og.jpg`;
 }
 
 function blueskyPostUrl(incident) {

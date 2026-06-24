@@ -128,7 +128,7 @@ describe('buildEntryRecord', () => {
     expect(rec.updatedMs).toBe(NOW); // resolved → bumped
     // The OG thumbnail is cache-busted on the same key, so it flips when the
     // entry's <updated> bumps (ongoing → resolved).
-    expect(rec.thumb).toContain('/event/r1/og.png?v=' + NOW);
+    expect(rec.thumb).toContain('/event/r1/og.jpg?v=' + NOW);
   });
 });
 
