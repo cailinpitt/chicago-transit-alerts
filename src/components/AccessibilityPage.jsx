@@ -8,7 +8,6 @@ import {
   outageDuration,
   outageHasLine,
   stationHref,
-  stationLabel,
   stationReliability,
 } from '../lib/accessibility.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
@@ -26,102 +25,143 @@ const FILTERS = [
   { key: 'metra', label: 'Metra' },
 ];
 
-function unitLabel(outage) {
-  return outage.unit_label || outage.unit_type || 'Accessibility unit';
+function StationLink({ outage }) {
+  const name = outage.station?.name || 'Unmatched station';
+  const href = stationHref(outage);
+  if (!href) return <span>{name}</span>;
+  return (
+    <a href={href} className="hover:underline">
+      {name}
+    </a>
+  );
 }
 
-function OutageRow({ outage, now }) {
-  const href = stationHref(outage);
-  const duration = formatDuration(outageDuration(outage, now)) || 'just now';
-  const active = !!outage.lifecycle?.active;
+function AgencyTag({ agency }) {
+  return (
+    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+      {agencyLabel(agency)}
+    </span>
+  );
+}
+
+function StationLines({ outage }) {
   const lineKind = outage.agency === 'metra' ? 'metra' : 'train';
   return (
-    <li className="rounded-lg border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface p-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            {href ? (
-              <a
-                href={href}
-                className="font-semibold text-slate-800 dark:text-slate-100 hover:underline"
-              >
-                {stationLabel(outage)}
-              </a>
-            ) : (
-              <span className="font-semibold text-slate-800 dark:text-slate-100">
-                {stationLabel(outage)}
-              </span>
-            )}
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              {agencyLabel(outage.agency)}
-            </span>
-          </div>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{unitLabel(outage)}</p>
-          {outage.headline && (
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
-              {outage.headline}
-            </p>
-          )}
+    <span className="flex flex-wrap gap-1">
+      {(outage.station?.lines || []).map((line) => (
+        <LinePill key={`${outage.agency}-${line}`} kind={lineKind} line={line} linked={false} />
+      ))}
+    </span>
+  );
+}
+
+function RecentNoticeRow({ outage }) {
+  const active = !!outage.lifecycle?.active;
+  return (
+    <div className="p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="font-semibold text-slate-800 dark:text-slate-100">
+            <StationLink outage={outage} />
+          </span>
+          <AgencyTag agency={outage.agency} />
+          <StationLines outage={outage} />
         </div>
-        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
-          {(outage.station?.lines || []).map((line) => (
-            <LinePill key={`${outage.agency}-${line}`} kind={lineKind} line={line} />
-          ))}
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
         <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 font-semibold ${
+          className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
             active
-              ? 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300'
-              : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+              ? 'bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200'
+              : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200'
           }`}
         >
           {active ? 'Out now' : 'Restored'}
         </span>
-        <span>{active ? `${duration} so far` : `Lasted ${duration}`}</span>
-        {outage.lifecycle?.first_seen_ts && (
-          <span>Seen {formatDate(outage.lifecycle.first_seen_ts)}</span>
-        )}
-        {outage.source_url && (
-          <a href={outage.source_url} className="text-blue-600 dark:text-blue-400 hover:underline">
-            Source
-          </a>
-        )}
       </div>
-    </li>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+        <span className="capitalize">{outage.unit_type}</span>
+        {outage.unit_label ? ` · ${outage.unit_label}` : ''} ·{' '}
+        {active
+          ? `out ${formatDuration(outage.durationMs) || 'just now'}`
+          : `down ${formatDuration(outage.durationMs) || 'briefly'}`}
+      </p>
+      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+        {active
+          ? `Reported ${formatDate(outage.lifecycle?.first_seen_ts)}`
+          : `Restored ${formatDate(outage.lifecycle?.restored_ts)}`}
+      </p>
+      {outage.headline && (
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{outage.headline}</p>
+      )}
+    </div>
   );
 }
 
-function StationRow({ row }) {
-  const href =
-    row.slug == null
-      ? null
-      : row.agency === 'metra'
-        ? `/metra/station/${row.slug}`
-        : `/station/${row.slug}`;
-  const lineKind = row.agency === 'metra' ? 'metra' : 'train';
+function Sparkline({ values }) {
+  const max = Math.max(...values, 1);
   return (
-    <li className="flex flex-wrap items-start justify-between gap-3 py-2 border-b border-slate-100 dark:border-gh-border last:border-0">
-      <div className="min-w-0 flex-1">
-        {href ? (
-          <a href={href} className="font-medium text-slate-700 dark:text-slate-200 hover:underline">
-            {row.name}
-          </a>
-        ) : (
-          <span className="font-medium text-slate-700 dark:text-slate-200">{row.name}</span>
-        )}
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          {agencyLabel(row.agency)} · {row.outageCount} outage{row.outageCount === 1 ? '' : 's'}
-          {row.currentlyOut > 0 ? ` · ${row.currentlyOut} active` : ''}
-        </p>
-      </div>
-      <div className="flex max-w-full flex-wrap justify-start gap-1.5 sm:justify-end">
-        {(row.lines || []).map((line) => (
-          <LinePill key={`${row.agency}-${line}`} kind={lineKind} line={line} />
+    <span className="inline-flex h-8 items-end gap-0.5" aria-hidden="true">
+      {values.map((v, i) => (
+        <span
+          // biome-ignore lint/suspicious/noArrayIndexKey: fixed weekly buckets
+          key={i}
+          className="w-1.5 rounded-sm bg-blue-500/70 dark:bg-blue-400/70"
+          style={{ height: `${Math.max(2, (v / max) * 28)}px` }}
+        />
+      ))}
+    </span>
+  );
+}
+
+function Filters({ agency, line, onAgency, onLine }) {
+  const showLines = agency === 'cta' || agency === 'metra';
+  const lineOrder = agency === 'cta' ? TRAIN_LINE_ORDER : METRA_LINE_ORDER;
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => onAgency(f.key)}
+            aria-pressed={agency === f.key}
+            className={`inline-flex min-h-[28px] items-center rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+              agency === f.key
+                ? 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900'
+                : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-gh-surface dark:text-slate-300 dark:ring-gh-border dark:hover:bg-gh-subtle'
+            }`}
+          >
+            {f.label}
+          </button>
         ))}
       </div>
-    </li>
+      {showLines && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onLine(null)}
+            aria-pressed={line === null}
+            className={`inline-flex min-h-[28px] items-center rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+              line === null
+                ? 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900'
+                : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-gh-surface dark:text-slate-300 dark:ring-gh-border dark:hover:bg-gh-subtle'
+            }`}
+          >
+            All lines
+          </button>
+          {lineOrder.map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onLine(key)}
+              aria-pressed={line === key}
+              className={`rounded-full transition-opacity ${line && line !== key ? 'opacity-45' : ''}`}
+            >
+              <LinePill kind={agency === 'cta' ? 'train' : 'metra'} line={key} linked={false} />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -157,24 +197,13 @@ export default function AccessibilityPage() {
         .filter((o) => outageHasLine(o, line))
         .map((o) => ({ ...o, durationMs: outageDuration(o, now) }))
         .sort((a, b) => (b.lifecycle?.first_seen_ts || 0) - (a.lifecycle?.first_seen_ts || 0))
-        .slice(0, 24),
+        .slice(0, 20),
     [outages, now, agencyFilter, line],
   );
-  const stationRows = useMemo(
-    () => stationReliability(outages, { now, agency: agencyFilter, line }).slice(0, 12),
+  const reliability = useMemo(
+    () => stationReliability(outages, { now, windowDays: 90, agency: agencyFilter, line }),
     [outages, now, agencyFilter, line],
   );
-
-  const ctaActive = agency === 'cta';
-  const metraActive = agency === 'metra';
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gh-canvas">
-        <p className="text-red-600 text-sm">Failed to load accessibility data.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
@@ -186,127 +215,148 @@ export default function AccessibilityPage() {
           window.location.href = '/';
         }}
       />
-      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-6 w-full flex-1">
+      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-4 py-6 space-y-5 w-full flex-1">
         <div>
           <Breadcrumb items={topLevelTrail('Accessibility')} className="mb-3" />
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                Accessibility outages
-              </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-                Elevator, escalator, entrance, and ADA notices for CTA rail stations and Metra
-                stations, archived separately from general service disruptions.
-              </p>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {data ? `${outages.length} records · ${data.window_days || 180}d window` : 'Loading…'}
-            </p>
-          </div>
+          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+            Accessibility outages
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Elevator, escalator, entrance, and ADA notices for CTA rail and Metra stations, archived
+            separately from general service disruptions.
+          </p>
         </div>
 
-        <section className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {FILTERS.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => {
-                  setAgency(f.key);
-                  setLine(null);
-                }}
-                aria-pressed={agency === f.key}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                  agency === f.key
-                    ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-                    : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-          {(ctaActive || metraActive) && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setLine(null)}
-                aria-pressed={line === null}
-                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
-                  line === null
-                    ? 'bg-slate-700 text-white'
-                    : 'bg-slate-100 dark:bg-gh-subtle text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border'
-                }`}
-              >
-                All lines
-              </button>
-              {(ctaActive ? TRAIN_LINE_ORDER : METRA_LINE_ORDER).map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setLine(key)}
-                  aria-pressed={line === key}
-                  className={`rounded-full transition-opacity ${line && line !== key ? 'opacity-45' : ''}`}
-                >
-                  <LinePill kind={ctaActive ? 'train' : 'metra'} line={key} linked={false} />
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
+        <Filters
+          agency={agency}
+          line={line}
+          onAgency={(key) => {
+            setAgency(key);
+            setLine(null);
+          }}
+          onLine={setLine}
+        />
 
-        {!data && (
+        {error && <p className="text-red-600 text-sm">Failed to load accessibility data.</p>}
+
+        {!error && !data && (
           <div className="space-y-3 animate-pulse">
-            <div className="h-24 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
-            <div className="h-44 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
+            <div className="h-32 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
+            <div className="h-48 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border" />
           </div>
         )}
 
         {data && (
           <>
-            <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
-                Out now
-              </h2>
+            <section className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border">
+              <div className="p-4 border-b border-slate-100 dark:border-gh-border">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Currently out of service ({activeOutages.length})
+                </h2>
+              </div>
               {activeOutages.length === 0 ? (
-                <div className="rounded-lg border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface p-4 text-sm text-slate-500 dark:text-slate-400">
-                  No active accessibility outages in this view.
-                </div>
+                <p className="p-4 text-sm text-slate-500 dark:text-slate-400">
+                  No accessibility outages in this view right now.
+                </p>
               ) : (
-                <ul className="space-y-3">
+                <div className="divide-y divide-slate-100 dark:divide-gh-border">
                   {activeOutages.map((outage) => (
-                    <OutageRow key={outage.id} outage={outage} now={now} />
+                    <div key={outage.id} className="p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-slate-800 dark:text-slate-100">
+                          <StationLink outage={outage} />
+                        </span>
+                        <AgencyTag agency={outage.agency} />
+                        <StationLines outage={outage} />
+                      </div>
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                        <span className="capitalize">{outage.unit_type}</span>
+                        {outage.unit_label ? ` · ${outage.unit_label}` : ''} · out{' '}
+                        {formatDuration(outage.durationMs) || 'just now'}
+                      </p>
+                      {outage.headline && (
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          {outage.headline}
+                        </p>
+                      )}
+                    </div>
                   ))}
-                </ul>
+                </div>
               )}
             </section>
 
-            <section className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem] gap-4">
-              <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+            <section className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border">
+              <div className="p-4 border-b border-slate-100 dark:border-gh-border">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Recent notices
                 </h2>
-                <ul className="space-y-3">
-                  {recentOutages.map((outage) => (
-                    <OutageRow key={outage.id} outage={outage} now={now} />
-                  ))}
-                  {recentOutages.length === 0 && (
-                    <li className="rounded-lg border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface p-4 text-sm text-slate-500 dark:text-slate-400">
-                      No accessibility notices in this view yet.
-                    </li>
-                  )}
-                </ul>
               </div>
-              <aside className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border p-4 h-fit">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                  Most affected stations
-                </h2>
-                <ul>
-                  {stationRows.map((row) => (
-                    <StationRow key={`${row.agency}:${row.slug || row.name}`} row={row} />
+              {recentOutages.length === 0 ? (
+                <p className="p-4 text-sm text-slate-500 dark:text-slate-400">
+                  No accessibility notices in this view yet.
+                </p>
+              ) : (
+                <div className="divide-y divide-slate-100 dark:divide-gh-border">
+                  {recentOutages.map((outage) => (
+                    <RecentNoticeRow key={outage.id} outage={outage} />
                   ))}
-                </ul>
-              </aside>
+                </div>
+              )}
+            </section>
+
+            <section className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border overflow-hidden">
+              <div className="p-4 border-b border-slate-100 dark:border-gh-border">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Reliability over the last 90 days
+                </h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    <tr className="border-b border-slate-100 dark:border-gh-border">
+                      <th className="text-left font-semibold p-3">Station</th>
+                      <th className="text-right font-semibold p-3">Outages</th>
+                      <th className="text-right font-semibold p-3">Total downtime</th>
+                      <th className="text-left font-semibold p-3">Weekly</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-gh-border">
+                    {reliability.map((row) => {
+                      const href = stationHref(row);
+                      return (
+                        <tr key={`${row.agency}:${row.slug || row.name}`}>
+                          <td className="p-3 text-slate-800 dark:text-slate-100">
+                            <span className="flex flex-wrap items-center gap-2">
+                              {href ? (
+                                <a href={href} className="font-medium hover:underline">
+                                  {row.name}
+                                </a>
+                              ) : (
+                                <span className="font-medium">{row.name}</span>
+                              )}
+                              <AgencyTag agency={row.agency} />
+                              {row.currentlyOut > 0 && (
+                                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">
+                                  {row.currentlyOut} current
+                                </span>
+                              )}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right tabular-nums text-slate-600 dark:text-slate-300">
+                            {row.outageCount}
+                          </td>
+                          <td className="p-3 text-right tabular-nums text-slate-600 dark:text-slate-300">
+                            {formatDuration(row.totalDownMs) || '0m'}
+                          </td>
+                          <td className="p-3">
+                            <Sparkline values={row.weeklyDownMs} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </section>
           </>
         )}

@@ -9,6 +9,7 @@ const SITE = 'https://chicagotransitalerts.app';
 const FEED_URL = `${SITE}/feed.xml`;
 const CSV_URL = dataUrl('alerts.csv');
 const JSON_URL = dataUrl('alerts.json');
+const ACCESSIBILITY_URL = dataUrl('accessibility.json');
 const CHANGELOG_URL = 'https://chicagotransitalerts.app/data/CHANGELOG.md';
 
 const CURL_CMD = `curl -s ${JSON_URL} | jq '.incidents | length'`;
@@ -269,6 +270,16 @@ export default function SubscribeContent() {
             {CSV_URL}
           </a>{' '}
           — flat CSV, one row per alert or observation.
+        </li>
+        <li>
+          <a className={LINK} href={ACCESSIBILITY_URL} target="_blank" rel="noopener noreferrer">
+            {ACCESSIBILITY_URL}
+          </a>{' '}
+          — elevator, escalator, and ADA outages, the same data behind the{' '}
+          <a className={LINK} href="/accessibility">
+            accessibility
+          </a>{' '}
+          page.
         </li>
       </ul>
       <p className="text-xs text-slate-500 dark:text-slate-400">

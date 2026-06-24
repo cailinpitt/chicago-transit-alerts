@@ -107,10 +107,21 @@ export default function AboutContent() {
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">How far back</h3>
       <p>
-        The CTA archive starts on April 26, 2026 — anything earlier than that predates the bots.
-        Metra coverage began June 9, 2026. Stats, calendar, and leaderboard views all draw from this
-        window.
+        Anything earlier than these dates predates the bots. Each data source started on its own
+        day:
       </p>
+      <ul className="list-disc list-outside ml-5 space-y-1">
+        <li>
+          <strong>CTA service alerts</strong> — April 26, 2026
+        </li>
+        <li>
+          <strong>Metra service alerts</strong> — June 9, 2026
+        </li>
+        <li>
+          <strong>Accessibility outages</strong> (elevators, escalators, ADA) — June 23, 2026
+        </li>
+      </ul>
+      <p>Stats, calendar, and leaderboard views all draw from these windows.</p>
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-2">Privacy</h3>
       <p>
