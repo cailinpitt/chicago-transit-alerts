@@ -13,6 +13,7 @@ on:
       - 'package-lock.json'
       - 'vite.config.*'
       - 'tailwind.config.*'
+      - '.github/workflows/deploy.yml'
   # Data refreshes. The high-churn data files live in R2, not the repo, so a
   # data change no longer creates a commit. The server fires `data-updated`
   # right after a new incident (mirrors the old event-driven web push), and the
@@ -27,16 +28,56 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
+  should-deploy:
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.gate.outputs.proceed }}
+    steps:
+      - id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "push" ] || [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          runs_json="$(gh api "repos/$REPO/actions/workflows/deploy.yml/runs?event=push&branch=main&per_page=20")"
+          recent_push_id="$(
+            printf '%s' "$runs_json" \
+              | jq -r --arg sha "$SHA" '
+                  now as $now
+                  | .workflow_runs[]
+                  | select(.head_sha == $sha)
+                  | select(($now - (.created_at | fromdateiso8601)) < 1800)
+                  | .id
+                ' \
+              | head -n 1
+          )"
+
+          if [ -n "$recent_push_id" ]; then
+            echo "Skipping $EVENT_NAME rebuild: push run $recent_push_id already handled SHA $SHA in the last 30 minutes."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
+    needs: should-deploy
+    if: needs.should-deploy.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -102,6 +143,7 @@ jobs:
 
   deploy:
     needs: build
+    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
