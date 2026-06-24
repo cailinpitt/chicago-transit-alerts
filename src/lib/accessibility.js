@@ -6,9 +6,17 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * DAY_MS;
 
 export async function fetchAccessibilityData() {
-  const res = await fetch(dataUrl('accessibility.json'), { cache: 'no-store' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(dataUrl('accessibility.json'), { cache: 'no-store' });
+    if (res.ok) return res.json();
+  } catch {
+    // The accessibility feed is additive and may not exist on the data origin
+    // during the first deploy. Fall through to the bundled empty payload.
+  }
+
+  const fallback = await fetch('/data/accessibility.json', { cache: 'no-store' });
+  if (!fallback.ok) throw new Error(`HTTP ${fallback.status}`);
+  return fallback.json();
 }
 
 export function stationHref(outageOrRow) {
