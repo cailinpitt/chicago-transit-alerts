@@ -12,6 +12,7 @@ Every incident has a `kind` of `train`, `bus`, or `metra`. Train routes use full
 
 - Incidents JSON: https://data.chicagotransitalerts.app/alerts.json
 - Daily counts JSON: https://data.chicagotransitalerts.app/daily-counts.json
+- Accessibility outages JSON: https://data.chicagotransitalerts.app/accessibility.json
 - Incidents CSV: https://data.chicagotransitalerts.app/alerts.csv
 - Data changelog: https://chicagotransitalerts.app/data/CHANGELOG.md
 - Atom feed: https://chicagotransitalerts.app/feed.xml (per-line/route: /feed/line/<line>.xml, /feed/route/<route>.xml)
@@ -19,6 +20,44 @@ Every incident has a `kind` of `train`, `bus`, or `metra`. Train routes use full
 - API catalog (RFC 9264 linkset): https://chicagotransitalerts.app/.well-known/api-catalog
 
 Regenerated whenever the underlying data changes (typically every ~7 minutes when there's activity).
+
+## accessibility.json shape
+
+CTA rail and Metra station accessibility notices are published separately from
+the main service-disruption incident archive. The feed covers elevator,
+escalator, entrance, ADA, and accessibility notices from the official CTA and
+Metra alert sources.
+
+```jsonc
+{
+  "schema_version": 1,
+  "generated_at": 1715200000000,
+  "data_start_ts": 1699648000000,
+  "window_days": 180,
+  "outages": [
+    {
+      "id": "cta-12345",
+      "agency": "cta",                 // "cta" or "metra"
+      "station": {
+        "slug": "belmont-red-brown-purple",
+        "name": "Belmont (Red/Brown/Purple)",
+        "lines": ["red", "brn", "p"]  // CTA source codes or Metra lowercase route codes
+      },
+      "unit_type": "elevator",         // elevator, escalator, entrance, or accessibility
+      "unit_label": "to platform",
+      "headline": "Elevator temporarily out of service",
+      "description": "Plain-text agency alert body",
+      "lifecycle": {
+        "first_seen_ts": 1715199000000,
+        "last_seen_ts": 1715202600000,
+        "restored_ts": null,
+        "active": true
+      },
+      "source_url": "https://..."
+    }
+  ]
+}
+```
 
 ## alerts.json shape
 

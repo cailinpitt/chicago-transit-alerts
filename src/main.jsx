@@ -15,6 +15,7 @@ installStaleAssetReload();
 // in both the SPA shell and the prerendered stubs, so there's no prerendered
 // content for the Suspense fallback to flash over.
 const App = lazy(() => import('./App.jsx'));
+const AccessibilityPage = lazy(() => import('./components/AccessibilityPage.jsx'));
 const AboutPage = lazy(() => import('./components/AboutPage.jsx'));
 const CalendarPage = lazy(() => import('./components/CalendarPage.jsx'));
 const ComparePage = lazy(() => import('./components/ComparePage.jsx'));
@@ -52,6 +53,7 @@ const WeekPage = lazy(() => import('./components/WeekPage.jsx'));
 //   /calendar      → 12-month calendar heatmap of daily incident counts
 //   /stats         → leaderboard of worst day/hour/station/longest incident
 //   /compare       → side-by-side comparison of up to 3 train lines or bus routes
+//   /accessibility → CTA + Metra elevator/escalator/accessibility outage archive
 //   /system/trains → mode-wide health dashboard for the L
 //   /system/buses  → mode-wide health dashboard for buses
 const path = window.location.pathname;
@@ -68,6 +70,7 @@ const weekMatch = /^\/week(?:\/([^/?#]+))?\/?$/.exec(path);
 const calendarMatch = /^\/calendar\/?$/.exec(path);
 const statsMatch = /^\/stats\/?$/.exec(path);
 const compareMatch = /^\/compare\/?$/.exec(path);
+const accessibilityMatch = /^\/accessibility\/?$/.exec(path);
 const systemMatch = /^\/system\/(trains|buses|metra)\/?$/.exec(path);
 const aboutMatch = /^\/about\/?$/.exec(path);
 const subscribeMatch = /^\/subscribe\/?$/.exec(path);
@@ -100,6 +103,8 @@ if (eventMatch) {
   page = <StatsPage />;
 } else if (compareMatch) {
   page = <ComparePage />;
+} else if (accessibilityMatch) {
+  page = <AccessibilityPage />;
 } else if (systemMatch) {
   page = (
     <SystemHealthPage

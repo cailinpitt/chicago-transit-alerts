@@ -67,6 +67,7 @@ const STATION_TPL = resolve(__dirname, 'og-station-template.html');
 const CALENDAR_TPL = resolve(__dirname, 'og-calendar-template.html');
 const STATS_TPL = resolve(__dirname, 'og-stats-template.html');
 const COMPARE_TPL = resolve(__dirname, 'og-compare-template.html');
+const ACCESSIBILITY_TPL = resolve(__dirname, 'og-accessibility-template.html');
 const DAY_TPL = resolve(__dirname, 'og-day-template.html');
 const WEEK_TPL = resolve(__dirname, 'og-week-template.html');
 const SYSTEM_TPL = resolve(__dirname, 'og-system-template.html');
@@ -275,6 +276,20 @@ function planPages(payload, dailyPayload, metraFlat = { alerts: [], observations
       ogTitle: 'Compare CTA lines · Chicago Transit Alerts',
       desc: 'Side-by-side reliability, signal mix, and resolution time for up to 3 CTA train lines or bus routes — archived on chicagotransitalerts.app.',
       subtitle: '',
+    });
+  }
+
+  if (existsSync(ACCESSIBILITY_TPL)) {
+    pages.push({
+      kind: 'accessibility',
+      slug: 'accessibility',
+      outDir: resolve(DIST, 'accessibility'),
+      url: `${SITE}/accessibility`,
+      path: '/accessibility',
+      ogTitle: 'Accessibility · Chicago Transit Alerts',
+      desc: 'CTA and Metra elevator, escalator, entrance, and ADA outage status and recent station accessibility history — archived on chicagotransitalerts.app.',
+      subtitle:
+        'CTA and Metra elevator, escalator, entrance, and ADA outage status, archived separately from service disruptions.',
     });
   }
 
@@ -748,6 +763,8 @@ function trailFor(page) {
       return topLevelTrail('Calendar');
     case 'compare':
       return topLevelTrail('Compare');
+    case 'accessibility':
+      return topLevelTrail('Accessibility');
     case 'stats':
       return topLevelTrail('Stats');
     case 'index':
@@ -900,6 +917,10 @@ function fillCompareTemplate(tpl) {
   return tpl;
 }
 
+function fillAccessibilityTemplate(tpl, page) {
+  return tpl.replaceAll('__SUBTITLE__', escHtml(page.subtitle));
+}
+
 function fillSystemTemplate(tpl, page) {
   const html = tpl
     .replaceAll('__BG_GRADIENT__', page.bgGradient)
@@ -960,6 +981,8 @@ function signatureFor(page, templateHash) {
     // Static template — content is fully baked in. The template hash
     // (mixed in below) is the only thing that can change the PNG.
     payload = { kind: 'compare' };
+  } else if (page.kind === 'accessibility') {
+    payload = { kind: 'accessibility', sub: page.subtitle };
   } else if (page.kind === 'index') {
     payload = { kind: 'index', title: page.title, sub: page.subtitle, pills: page.pillHtml };
   } else if (page.kind === 'day') {
@@ -1038,6 +1061,9 @@ async function main() {
   const calendarTpl = existsSync(CALENDAR_TPL) ? readFileSync(CALENDAR_TPL, 'utf8') : null;
   const statsTpl = existsSync(STATS_TPL) ? readFileSync(STATS_TPL, 'utf8') : null;
   const compareTpl = existsSync(COMPARE_TPL) ? readFileSync(COMPARE_TPL, 'utf8') : null;
+  const accessibilityTpl = existsSync(ACCESSIBILITY_TPL)
+    ? readFileSync(ACCESSIBILITY_TPL, 'utf8')
+    : null;
   // DAY_TPL is required (ships in the repo). Treat like LINE_TPL/STATION_TPL.
   const dayTpl = readFileSync(DAY_TPL, 'utf8');
   const weekTpl = readFileSync(WEEK_TPL, 'utf8');
@@ -1053,6 +1079,9 @@ async function main() {
     : '';
   const compareHash = compareTpl
     ? createHash('sha256').update(compareTpl).digest('hex').slice(0, 16)
+    : '';
+  const accessibilityHash = accessibilityTpl
+    ? createHash('sha256').update(accessibilityTpl).digest('hex').slice(0, 16)
     : '';
   const dayHash = createHash('sha256').update(dayTpl).digest('hex').slice(0, 16);
   const weekHash = createHash('sha256').update(weekTpl).digest('hex').slice(0, 16);
@@ -1076,6 +1105,7 @@ async function main() {
     else if (page.kind === 'calendar') tplHash = calendarHash;
     else if (page.kind === 'stats') tplHash = statsHash;
     else if (page.kind === 'compare') tplHash = compareHash;
+    else if (page.kind === 'accessibility') tplHash = accessibilityHash;
     else if (page.kind === 'day') tplHash = dayHash;
     else if (page.kind === 'week') tplHash = weekHash;
     else if (page.kind === 'system') tplHash = systemHash;
@@ -1102,6 +1132,8 @@ async function main() {
     else if (page.kind === 'calendar') html = fillCalendarTemplate(calendarTpl, page);
     else if (page.kind === 'stats') html = fillStatsTemplate(statsTpl, page);
     else if (page.kind === 'compare') html = fillCompareTemplate(compareTpl);
+    else if (page.kind === 'accessibility')
+      html = fillAccessibilityTemplate(accessibilityTpl, page);
     else if (page.kind === 'day') html = fillDayTemplate(dayTpl, page);
     else if (page.kind === 'week') html = fillWeekTemplate(weekTpl, page);
     else if (page.kind === 'system') html = fillSystemTemplate(systemTpl, page);

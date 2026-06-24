@@ -7,6 +7,7 @@ Each incident pairs an official alert with bot observations (gap, bunching, ghos
 ## Data API
 - [Incidents (JSON)](https://data.chicagotransitalerts.app/alerts.json): Full archive. Top-level `incidents[]`, one object per real-world disruption; `cta` block is the official alert (null for bot-only), `observations[]` are bot detections (empty for CTA-only), `sources` lists which contributed.
 - [Daily counts (JSON)](https://data.chicagotransitalerts.app/daily-counts.json): Per-day train/bus incident counts behind the calendar heatmap.
+- [Accessibility outages (JSON)](https://data.chicagotransitalerts.app/accessibility.json): CTA rail and Metra elevator, escalator, entrance, and ADA notices, separated from the general incident archive.
 - [Incidents (CSV)](https://data.chicagotransitalerts.app/alerts.csv): Flat mirror, one row per alert or observation, with an explicit `type` column.
 - [Data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md): Breaking changes to the data shape — check before pinning to the format.
 - [Atom feed](https://chicagotransitalerts.app/feed.xml) and [JSON feed](https://chicagotransitalerts.app/feed.json): Recent incidents. Per-line/route feeds live at `/feed/line/<line>.xml` and `/feed/route/<route>.xml`, each with a JSON-feed twin.
@@ -18,6 +19,7 @@ Each incident pairs an official alert with bot observations (gap, bunching, ghos
 - [This week](https://chicagotransitalerts.app/week): Recap of the current Sun–Sat week — counts, per-day breakdown, most-affected lines, and the longest incident. Archived weeks live at `https://chicagotransitalerts.app/week/<YYYY-MM-DD>` (the week's Sunday).
 - [Stats](https://chicagotransitalerts.app/stats): Worst day, worst hour, most-affected station, longest incident, plus year-over-year.
 - [Compare](https://chicagotransitalerts.app/compare): Side-by-side reliability for up to 3 lines or routes (`?trains=red,blue` / `?buses=66,X9` / `?metra=up-n,bnsf`).
+- [Accessibility](https://chicagotransitalerts.app/accessibility): CTA rail and Metra station accessibility outages and recent history.
 - [Train system health](https://chicagotransitalerts.app/system/trains), [Bus system health](https://chicagotransitalerts.app/system/buses), and [Metra system health](https://chicagotransitalerts.app/system/metra): Mode-wide dashboards.
 - Line pages: `https://chicagotransitalerts.app/line/<line>` (e.g. `/line/red`).
 - Metra line pages: `https://chicagotransitalerts.app/metra/line/<line>` (e.g. `/metra/line/up-n`).

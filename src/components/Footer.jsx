@@ -27,6 +27,12 @@ export default function Footer() {
           Subscribe
         </a>
         <a
+          href="/accessibility"
+          className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+        >
+          Accessibility
+        </a>
+        <a
           href="/privacy"
           className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
         >

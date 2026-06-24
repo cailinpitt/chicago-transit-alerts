@@ -209,6 +209,12 @@ export default function BrowseMenu({ alerts, observations, align = 'right' }) {
                 </span>
                 Compare
               </a>
+              <a href="/accessibility" role="menuitem" className={ROW_LINK}>
+                <span aria-hidden="true" className="w-5 shrink-0 text-center">
+                  ♿
+                </span>
+                Accessibility
+              </a>
               {/* One "System health" label with three compact links, instead of
                   three rows that each repeat the noun. */}
               <div className="flex flex-wrap items-center gap-1.5 mt-1 px-2 py-1">

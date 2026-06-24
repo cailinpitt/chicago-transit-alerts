@@ -21,6 +21,11 @@
           "title": "Daily incident counts"
         },
         {
+          "href": "https://data.chicagotransitalerts.app/accessibility.json",
+          "type": "application/json",
+          "title": "Accessibility outages — CTA and Metra elevator, escalator, entrance, and ADA notices"
+        },
+        {
           "href": "https://data.chicagotransitalerts.app/alerts.csv",
           "type": "text/csv",
           "title": "Incidents — CSV export"

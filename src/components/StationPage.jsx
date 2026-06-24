@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
+import { fetchAccessibilityData, outageDuration, outagesForStation } from '../lib/accessibility.js';
 import { computeTypicalDurations } from '../lib/aggregate.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
 import { dataUrl } from '../lib/dataSource.js';
+import { formatDate, formatDuration } from '../lib/format.js';
 import {
   incidentDetections,
   incidentLifecycle,
@@ -22,6 +24,7 @@ import {
 } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Breadcrumb from './Breadcrumb.jsx';
+import CollapsibleSection from './CollapsibleSection.jsx';
 import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
@@ -40,6 +43,7 @@ export default function StationPage({ slug, kind = 'train' }) {
   const [dark, toggleDark] = useDarkMode();
   const now = useNow();
   const [data, setData] = useState(null);
+  const [accessibilityData, setAccessibilityData] = useState(null);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
 
@@ -52,6 +56,12 @@ export default function StationPage({ slug, kind = 'train' }) {
       })
       .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
+  }, []);
+
+  useEffect(() => {
+    fetchAccessibilityData()
+      .then(setAccessibilityData)
+      .catch(() => setAccessibilityData(null));
   }, []);
 
   // Flat view feeds the station index (and Header); the list reads nested
@@ -131,6 +141,18 @@ export default function StationPage({ slug, kind = 'train' }) {
     [stationIncidents, search],
   );
 
+  const stationOutages = useMemo(
+    () =>
+      outagesForStation(accessibilityData?.outages || [], {
+        agency: isMetra ? 'metra' : 'cta',
+        slug,
+        now,
+        limit: 8,
+      }),
+    [accessibilityData, isMetra, slug, now],
+  );
+  const activeStationOutages = stationOutages.filter((o) => o.lifecycle?.active);
+
   useEffect(() => {
     const base = 'Chicago Transit Alerts';
     if (!station) {
@@ -195,6 +217,15 @@ export default function StationPage({ slug, kind = 'train' }) {
                   );
                 })}
               </div>
+              {activeStationOutages.length > 0 && (
+                <a
+                  href="/accessibility"
+                  className="inline-flex items-center rounded-full bg-red-50 dark:bg-red-950/40 px-2.5 py-1 text-xs font-semibold text-red-700 dark:text-red-300 hover:underline"
+                >
+                  {activeStationOutages.length} accessibility outage
+                  {activeStationOutages.length === 1 ? '' : 's'}
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -221,6 +252,55 @@ export default function StationPage({ slug, kind = 'train' }) {
               <strong className="text-slate-800 dark:text-slate-100">{station.count}</strong>{' '}
               incident{station.count === 1 ? '' : 's'} on record (last 90 days)
             </p>
+
+            {stationOutages.length > 0 && (
+              <CollapsibleSection
+                title="Accessibility"
+                subtitle={`${activeStationOutages.length} active · ${stationOutages.length} recent`}
+                defaultOpen={activeStationOutages.length > 0}
+              >
+                <ul className="space-y-2">
+                  {stationOutages.map((outage) => {
+                    const active = !!outage.lifecycle?.active;
+                    const duration = formatDuration(outageDuration(outage, now)) || 'just now';
+                    return (
+                      <li
+                        key={outage.id}
+                        className="rounded-lg border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface p-3"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                              {outage.unit_label || outage.unit_type || 'Accessibility unit'}
+                            </p>
+                            {outage.headline && (
+                              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                {outage.headline}
+                              </p>
+                            )}
+                          </div>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                              active
+                                ? 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300'
+                                : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                            }`}
+                          >
+                            {active ? 'Out now' : 'Restored'}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                          {active ? `${duration} so far` : `Lasted ${duration}`}
+                          {outage.lifecycle?.first_seen_ts
+                            ? ` · Seen ${formatDate(outage.lifecycle.first_seen_ts)}`
+                            : ''}
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CollapsibleSection>
+            )}
 
             <HourOfWeekHeatmap alerts={station.alerts} observations={station.observations} />
 

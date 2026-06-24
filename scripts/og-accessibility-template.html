@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>OG accessibility card</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        background: #f8fafc;
+      }
+      .card {
+        width: 1200px;
+        height: 630px;
+        padding: 56px 72px 48px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        background:
+          linear-gradient(125deg, rgba(198, 12, 48, 0.11), rgba(41, 194, 51, 0.12) 52%, rgba(0, 66, 168, 0.10)),
+          #f8fafc;
+      }
+      .accent-bar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 14px;
+        background: linear-gradient(180deg, #C60C30 0%, #00A1DE 20%, #009B3A 40%, #29C233 62%, #EB5C00 80%, #0042A8 100%);
+      }
+      .eyebrow {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin: 0 0 22px;
+      }
+      .title {
+        font-size: 76px;
+        line-height: 1;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.03em;
+        margin: 0 0 22px;
+      }
+      .subtitle {
+        font-size: 28px;
+        line-height: 1.35;
+        color: #475569;
+        font-weight: 500;
+        margin: 0;
+        max-width: 960px;
+      }
+      .badges {
+        display: flex;
+        gap: 16px;
+        margin-top: 48px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 22px;
+        border-radius: 9999px;
+        font-size: 28px;
+        font-weight: 800;
+        color: #0f172a;
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+      }
+      .footer {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+      .url {
+        font-size: 22px;
+        font-weight: 600;
+        color: #0f172a;
+        letter-spacing: -0.01em;
+      }
+      .url .scheme { color: #94a3b8; font-weight: 400; }
+      .url .path { color: #64748b; }
+      .tag {
+        font-size: 14px;
+        color: #64748b;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="accent-bar"></div>
+      <p class="eyebrow">Chicago Transit Alerts</p>
+      <h1 class="title">Accessibility outages</h1>
+      <p class="subtitle">__SUBTITLE__</p>
+      <div class="badges" aria-hidden="true">
+        <div class="badge">CTA rail</div>
+        <div class="badge">Metra</div>
+        <div class="badge">Elevators + escalators</div>
+      </div>
+      <div class="footer">
+        <div class="url">
+          <span class="scheme">https://</span>chicagotransitalerts.app<span class="path">/accessibility</span>
+        </div>
+        <div class="tag">Unofficial · Not affiliated with CTA or Metra</div>
+      </div>
+    </div>
+  </body>
+</html>

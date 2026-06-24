@@ -6,6 +6,21 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-24 — Accessibility outage archive (additive)
+
+New endpoint: `accessibility.json`, a separate CTA rail + Metra station archive
+for elevator, escalator, entrance, ADA, and accessibility notices. This keeps
+minor station-accessibility notices out of the general disruption incident feed
+while still publishing active outage status and recent history.
+
+- **Payload** — `schema_version: 1`, `generated_at`, `data_start_ts`,
+  `window_days`, and `outages[]`.
+- **Outage rows** — each row includes `id`, `agency`, `station { slug, name,
+  lines }`, `unit_type`, `unit_label`, `headline`, `description`, `lifecycle {
+  first_seen_ts, last_seen_ts, restored_ts, active }`, and `source_url`.
+- **Compatibility** — additive. `alerts.json`, `alerts.csv`, and feeds are
+  unchanged.
+
 ## 2026-06-12 — `schema_version: 2` incident model (breaking)
 
 `alerts.json`, `alerts.csv`, and the Atom/JSON feeds now use an agency-neutral

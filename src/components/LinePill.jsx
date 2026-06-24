@@ -1,5 +1,5 @@
 import { formatBusRoute } from '../lib/busRoutes.js';
-import { TRAIN_LINES } from '../lib/ctaLines.js';
+import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
 import { metraLineInfo, normalizeMetraLine } from '../lib/metraLines.js';
 
 // Each pill is a link to the relevant /line/:id or /route/:id page. Brand
@@ -50,9 +50,10 @@ export default function LinePill({ kind, line, routes, linked = true }) {
             </span>
           );
         }
-        const info = kind === 'train' ? TRAIN_LINES[key] : null;
+        const trainKey = kind === 'train' ? normalizeTrainLine(key) : key;
+        const info = kind === 'train' ? TRAIN_LINES[trainKey] : null;
         if (info) {
-          return renderChip(key, `/line/${key}`, chipClass, `${info.label} Line`, {
+          return renderChip(key, `/line/${trainKey}`, chipClass, `${info.label} Line`, {
             style: { backgroundColor: info.color, color: info.textColor },
           });
         }

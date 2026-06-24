@@ -22,7 +22,7 @@ const ORIGIN = (process.env.DATA_ORIGIN_URL || 'https://data.chicagotransitalert
   '',
 );
 const OUT_DIR = resolve(__dirname, '..', 'public', 'data');
-const FILES = ['alerts.json', 'daily-counts.json'];
+const FILES = ['alerts.json', 'daily-counts.json', 'accessibility.json'];
 
 mkdirSync(OUT_DIR, { recursive: true });
 
@@ -49,4 +49,22 @@ if (!existsSync(resolve(OUT_DIR, 'alerts.json'))) {
     'fetch-data: no alerts.json available (origin down, no local copy) — aborting build',
   );
   process.exit(1);
+}
+
+if (!existsSync(resolve(OUT_DIR, 'accessibility.json'))) {
+  writeFileSync(
+    resolve(OUT_DIR, 'accessibility.json'),
+    `${JSON.stringify(
+      {
+        schema_version: 1,
+        generated_at: Date.now(),
+        data_start_ts: null,
+        window_days: 180,
+        outages: [],
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  console.warn('fetch-data: wrote empty accessibility.json fallback');
 }

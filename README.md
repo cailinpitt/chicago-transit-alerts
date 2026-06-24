@@ -21,6 +21,7 @@ A public archive of Chicago Transit Authority (CTA) and Metra service alerts and
 - **Incident history** — chronological day-grouped list of every captured alert and observation. Filterable by CTA line, bus route, Metra line, agency, time window (7d / 30d / 90d / all), single pinned day, signal type, and free-text search across headlines, station names, route numbers, and route names ("Howard", "Aurora", "Red Line", "UP-N", "headway gaps", etc). Search matches are highlighted in the list as you type.
 - **Per-line page** — `/line/:line` (CTA), `/metra/line/:line` (Metra), and `/route/:routeId` (bus) show reliability stats, year-over-year delta (when ≥1y of data exists), resolution-time histogram, and a per-station heatmap on a geographic line map (CTA trains + Metra lines).
 - **Compare** — `/compare` puts up to three CTA train lines, bus routes, or Metra lines side-by-side with a stat table, overlaid duration histograms, signal-mix rows, and a row of mini hour-of-week heatmaps. State round-trips through the URL (`?trains=red,blue,green` / `?buses=66,X9,77` / `?metra=up-n,bnsf`).
+- **Accessibility outages** — `/accessibility` tracks CTA rail and Metra elevator, escalator, entrance, and ADA notices separately from general service disruptions, with current outages and recent station history.
 - **Per-event detail page** — every captured incident gets a permalink at `/event/:id`. Alongside the timeline of CTA/bot updates it surfaces severity badges ("longest Blue Line incident in 30 days", "top 10% by duration"), a recurring-stretch callout ("this stretch has had N disruptions in 90 days"), a busy/quiet hour-of-day note, a live-ticking "ongoing for…" counter on active incidents, surrounding-24h context on the same line, ±1h cross-line context, a 14-day mini timeline whose day cells deep-link to that day (filtered to the line), prev/next navigation (same line and system-wide), and a "copy summary" button.
 
 Filter state, the pinned day, and the search query all round-trip through the URL — any view is a shareable link.
@@ -145,6 +146,7 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 | `/calendar`             | 12-month calendar heatmap of daily incident counts. Click a day to drill into it.       |
 | `/stats`                | Worst-day / worst-hour / worst-station / longest-incident leaderboards, plus year-over-year and a Metra cancellations/delays section. |
 | `/compare`              | Side-by-side reliability, signal mix, and resolution-time comparison for up to 3 CTA train lines, bus routes, or Metra lines. State round-trips through `?trains=red,blue,green`, `?buses=66,X9,77`, or `?metra=up-n,bnsf`. |
+| `/accessibility`        | CTA rail and Metra station elevator, escalator, entrance, and ADA outage status and recent history. |
 | `/week`, `/week/:date`  | Sunday–Saturday recap of one week — counts, per-day breakdown, most-affected lines, longest incident, and a week-over-week delta. `/week` is the current week; `/week/<YYYY-MM-DD>` is the archived week containing that date (the canonical permalink uses the week's Sunday). |
 
 ## How it works
@@ -152,7 +154,7 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 The site is a static React app — no backend, no database calls from the browser. High-churn data lives on the R2 data origin and the static site is rebuilt only to refresh prerendered pages, feeds, CSV, sitemap, and share cards.
 
 1. A cron job on a home server runs [`push-web-data.sh`](https://github.com/cailinpitt/cta-insights/blob/main/bin/push-web-data.sh) every 15 minutes, and posting jobs can also trigger it shortly after new incidents.
-2. The script exports the latest data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database — pairing official CTA and Metra alerts with matching bot observations into unified incidents — then uploads `alerts.json`, `daily-counts.json`, and `alerts.csv` to Cloudflare R2 at `data.chicagotransitalerts.app`.
+2. The script exports the latest data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database — pairing official CTA and Metra alerts with matching bot observations into unified incidents, plus the separate CTA/Metra accessibility outage archive — then uploads `alerts.json`, `accessibility.json`, `daily-counts.json`, and `alerts.csv` to Cloudflare R2 at `data.chicagotransitalerts.app`.
 3. If those files changed, the script fires a GitHub `repository_dispatch` rebuild. A scheduled Pages rebuild also runs as a catch-up net.
 4. GitHub Actions fetches the current R2 data during `prebuild`, builds the Vite app, prerenders crawler/feed artifacts, and deploys the static site to GitHub Pages.
 5. The browser polls `https://data.chicagotransitalerts.app/alerts.json` every 5 minutes while visible, so the live app stays current independently of static rebuild timing.
@@ -163,11 +165,17 @@ The same JSON the SPA reads is published at a stable URL:
 
 ```
 https://data.chicagotransitalerts.app/alerts.json
+https://data.chicagotransitalerts.app/accessibility.json
 ```
 
 It's regenerated whenever the underlying data changes, uploaded to Cloudflare R2, and served at the public data origin with no auth. Use it however you like — research, journalism, hobby dashboards, training data. Breaking changes to this shape are recorded in the [data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md) ([source](public/data/CHANGELOG.md)) — check it before pinning to the format.
 
 The top-level array is `incidents` — **one object per real-world disruption**. An official alert (CTA or Metra) and the bot detection(s) describing the same incident are paired server-side into a single object (no client-side merging needed): `official_alert` carries the agency alert (null for bot-only incidents), and `detections[]` carries bot detections (empty for official-alert-only incidents). `sources` tells you which contributed. A non-exhaustive sketch:
+
+`accessibility.json` is a separate `schema_version: 1` feed with `outages[]`, where
+each row has `agency`, `station { slug, name, lines }`, `unit_type`,
+`unit_label`, `headline`, `description`, `lifecycle { first_seen_ts,
+last_seen_ts, restored_ts, active }`, and `source_url`.
 
 ```jsonc
 {

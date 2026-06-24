@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useBrowseData } from '../hooks/useBrowseData.js';
 import { useDarkMode } from '../hooks/useDarkMode.js';
+import { fetchAccessibilityData } from '../lib/accessibility.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { normalizeTrainLine, TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
 import { METRA_LINES } from '../lib/metraLines.js';
@@ -118,7 +119,7 @@ function MetraLineDots({ lines }) {
 // A–Z station list rendered as grouped letter sections. Shared by the CTA and
 // Metra blocks; `hrefBase` is `/station` or `/metra/station` and `Dots` is the
 // agency's line-square component.
-function StationGroups({ groups, hrefBase, Dots }) {
+function StationGroups({ groups, hrefBase, Dots, agency, activeOutageCounts }) {
   return groups.map(([letter, stations]) => (
     <section key={letter}>
       <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
@@ -127,13 +128,29 @@ function StationGroups({ groups, hrefBase, Dots }) {
       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-0.5">
         {stations.map((s) => (
           <li key={s.slug ?? s.name}>
-            <a
-              href={`${hrefBase}/${s.slug ?? slugifyStation(s.name)}`}
-              className="flex items-center justify-between gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
-            >
-              <span className="truncate">{s.name}</span>
-              <Dots lines={s.lines} />
-            </a>
+            {(() => {
+              const stationSlug = s.slug ?? slugifyStation(s.name);
+              const outageCount = activeOutageCounts.get(`${agency}:${stationSlug}`) || 0;
+              return (
+                <a
+                  href={`${hrefBase}/${stationSlug}`}
+                  className="flex items-center justify-between gap-2 px-2 py-1 rounded text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-gh-border transition-colors"
+                >
+                  <span className="truncate">{s.name}</span>
+                  <span className="inline-flex shrink-0 items-center gap-1.5">
+                    {outageCount > 0 && (
+                      <span
+                        title={`${outageCount} active accessibility outage${outageCount === 1 ? '' : 's'}`}
+                        className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-50 px-1 text-[11px] font-bold text-red-700 dark:bg-red-950/40 dark:text-red-300"
+                      >
+                        ♿
+                      </span>
+                    )}
+                    <Dots lines={s.lines} />
+                  </span>
+                </a>
+              );
+            })()}
           </li>
         ))}
       </ul>
@@ -144,6 +161,7 @@ function StationGroups({ groups, hrefBase, Dots }) {
 export default function StationsIndexPage() {
   const [dark, toggleDark] = useDarkMode();
   const { officialRecords, detectionRecords } = useBrowseData();
+  const [accessibilityData, setAccessibilityData] = useState(null);
   // null = all lines; otherwise the subset of full line keys to show. Seeded
   // from the URL so a shared filtered link lands pre-narrowed.
   const [selectedLines, setSelectedLines] = useState(() => parseLinesParam(window.location.search));
@@ -158,6 +176,12 @@ export default function StationsIndexPage() {
     return () => {
       document.title = 'Chicago Transit Alerts';
     };
+  }, []);
+
+  useEffect(() => {
+    fetchAccessibilityData()
+      .then(setAccessibilityData)
+      .catch(() => setAccessibilityData(null));
   }, []);
 
   // Mirror both filters into the URL so any filtered view is a shareable link
@@ -199,6 +223,15 @@ export default function StationsIndexPage() {
 
   const isFiltered = selectedLines !== null || search.trim() !== '';
   const nothingMatches = total === 0 && (!showMetra || metra.total === 0);
+  const activeOutageCounts = useMemo(() => {
+    const counts = new Map();
+    for (const outage of accessibilityData?.outages || []) {
+      if (!outage.lifecycle?.active || !outage.station?.slug) continue;
+      const key = `${outage.agency}:${outage.station.slug}`;
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    return counts;
+  }, [accessibilityData]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gh-canvas flex flex-col">
@@ -309,7 +342,13 @@ export default function StationsIndexPage() {
                   <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                     CTA &lsquo;L&rsquo; stations
                   </h2>
-                  <StationGroups groups={groups} hrefBase="/station" Dots={LineDots} />
+                  <StationGroups
+                    groups={groups}
+                    hrefBase="/station"
+                    Dots={LineDots}
+                    agency="cta"
+                    activeOutageCounts={activeOutageCounts}
+                  />
                 </div>
               )}
               {showMetra && metra.total > 0 && (
@@ -321,6 +360,8 @@ export default function StationsIndexPage() {
                     groups={metra.groups}
                     hrefBase="/metra/station"
                     Dots={MetraLineDots}
+                    agency="metra"
+                    activeOutageCounts={activeOutageCounts}
                   />
                 </div>
               )}
