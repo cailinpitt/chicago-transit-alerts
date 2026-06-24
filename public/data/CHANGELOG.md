@@ -6,6 +6,23 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-24 — standard.site manifest (additive)
+
+New endpoint: `standard-site.json`, a [standard.site](https://standard.site)
+(AT Protocol) manifest that lets Bluesky render enhanced link cards for the
+site. Shape:
+
+```json
+{
+  "publication": "at://<did>/site.standard.publication/self",
+  "documents": { "<eventId>": "at://<did>/site.standard.document/<eventId>" }
+}
+```
+
+`documents` maps each `/event/<id>` slug to its `site.standard.document` record's
+AT-URI; `publication` is the site's `site.standard.publication` record (or `null`
+until records are minted). Additive — existing payloads are unchanged.
+
 ## 2026-06-24 — Accessibility outage archive (additive)
 
 New endpoint: `accessibility.json`, a separate CTA rail + Metra station archive
