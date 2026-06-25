@@ -178,7 +178,17 @@ describe('getIncidentWithContext', () => {
     mockFiles({
       // Archived: not in the recent slice, so it resolves via the index → month.
       'alerts-recent.json': { generated_at: 1, incidents: [] },
-      'alerts-index.json': { months: [], lines: [], id_month: { e2: '2026-05' }, rkey_month: {} },
+      'alerts-index.json': {
+        // Newest-first; e2's month (2026-05) sits between two existing months.
+        months: [
+          { key: '2026-06', url: 'alerts/2026-06.json', count: 1, min_ts: 0, max_ts: 0 },
+          { key: '2026-05', url: 'alerts/2026-05.json', count: 1, min_ts: 0, max_ts: 0 },
+          { key: '2026-04', url: 'alerts/2026-04.json', count: 1, min_ts: 0, max_ts: 0 },
+        ],
+        lines: [],
+        id_month: { e2: '2026-05' },
+        rkey_month: {},
+      },
       'alerts/2026-05.json': { month: '2026-05', incidents: [e2] },
       'alerts/2026-04.json': { month: '2026-04', incidents: [incident('apr')] },
       'alerts/2026-06.json': { month: '2026-06', incidents: [incident('jun')] },
@@ -188,6 +198,37 @@ describe('getIncidentWithContext', () => {
     const res = await getIncidentWithContext('e2');
     expect(res.incident.id).toBe('e2');
     expect(res.incidents.map((i) => i.id).sort()).toEqual(['apr', 'e2', 'jun', 'lineOld']);
+  });
+
+  it('only requests adjacent months that exist in the index (no future-month 404)', async () => {
+    const jun = Date.parse('2026-06-10T12:00:00Z');
+    const e3 = {
+      id: 'e3',
+      mode: 'train',
+      routes: ['red'],
+      lifecycle: { first_seen_ts: jun, resolved_ts: jun, active: false },
+      detections: [],
+    };
+    const calls = mockFiles({
+      'alerts-recent.json': { generated_at: 1, incidents: [] },
+      'alerts-index.json': {
+        // 2026-06 is the newest month — there is no newer neighbor to fetch.
+        months: [
+          { key: '2026-06', url: 'alerts/2026-06.json', count: 1, min_ts: 0, max_ts: 0 },
+          { key: '2026-05', url: 'alerts/2026-05.json', count: 1, min_ts: 0, max_ts: 0 },
+        ],
+        lines: [],
+        id_month: { e3: '2026-06' },
+        rkey_month: {},
+      },
+      'alerts/2026-06.json': { month: '2026-06', incidents: [e3] },
+      'alerts/2026-05.json': { month: '2026-05', incidents: [incident('may')] },
+      'incidents/by-line/red.json': { line: 'red', incidents: [e3] },
+    });
+    const res = await getIncidentWithContext('e3');
+    expect(res.incidents.map((i) => i.id).sort()).toEqual(['e3', 'may']);
+    // The non-existent next month must never be requested.
+    expect(calls.some((c) => c.path === 'alerts/2026-07.json')).toBe(false);
   });
 
   it('returns null for an unresolvable id', async () => {

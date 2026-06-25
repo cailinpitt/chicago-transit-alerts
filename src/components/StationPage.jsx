@@ -57,22 +57,24 @@ export default function StationPage({ slug, kind = 'train' }) {
   }, [isMetra, slug]);
 
   useEffect(() => {
-    // Pull generated_at / data_start_ts from the index (the per-line files don't
-    // carry them) and union the station's line files, de-duped by id. A line
-    // with no incidents yet has no file (404) → treat as empty.
-    Promise.all([
-      Promise.all(stationLineKeys.map((key) => loadLine(key).catch(() => []))),
-      loadIndex(),
-    ])
-      .then(([perLine, index]) => {
-        const byId = new Map();
-        for (const arr of perLine) {
-          for (const inc of arr) byId.set(inc.id, inc);
-        }
-        setData({
-          incidents: [...byId.values()],
-          generated_at: index.generated_at,
-          data_start_ts: index.data_start_ts,
+    // Load the index first (for generated_at / data_start_ts, which the per-line
+    // files don't carry, and for the list of which line files exist), then union
+    // only the station's serving lines that actually have a file — a line with no
+    // incidents yet has no file, so skipping it avoids a needless 404.
+    loadIndex()
+      .then((index) => {
+        const existing = new Set((index.lines ?? []).map((l) => l.key));
+        const keys = stationLineKeys.filter((k) => existing.has(k));
+        return Promise.all(keys.map((key) => loadLine(key))).then((perLine) => {
+          const byId = new Map();
+          for (const arr of perLine) {
+            for (const inc of arr) byId.set(inc.id, inc);
+          }
+          setData({
+            incidents: [...byId.values()],
+            generated_at: index.generated_at,
+            data_start_ts: index.data_start_ts,
+          });
         });
       })
       .catch(setError);

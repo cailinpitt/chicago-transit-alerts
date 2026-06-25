@@ -153,12 +153,18 @@ export async function getIncidentById(id) {
   return incident ? { incident, incidents: monthIncidents } : null;
 }
 
-// Shift a "YYYY-MM" month key by `delta` months (UTC-based; month keys are
-// just calendar labels, so no timezone subtlety here).
-function shiftMonth(monthKey, delta) {
-  const [y, m] = monthKey.split('-').map(Number);
-  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+// The keys of the months immediately newer/older than `monthKey` that actually
+// have a shard, read from the index's `months[]` (newest-first). Returns only
+// existing neighbors, so we never request a month with no shard — e.g. next
+// month before it exists, or a gap month with no incidents.
+function adjacentMonthKeys(index, monthKey) {
+  const months = index?.months ?? [];
+  const i = months.findIndex((m) => m.key === monthKey);
+  if (i === -1) return [];
+  const keys = [];
+  if (i - 1 >= 0) keys.push(months[i - 1].key); // newer neighbor
+  if (i + 1 < months.length) keys.push(months[i + 1].key); // older neighbor
+  return keys;
 }
 
 // Resolve an event id to its incident plus a context set wide enough for the
@@ -173,9 +179,10 @@ export async function getIncidentWithContext(id) {
   if (!found) return null;
   const { incident, incidents: slice } = found;
 
+  const index = await loadIndex();
   const ts = incident?.lifecycle?.first_seen_ts;
   const monthKey = typeof ts === 'number' && Number.isFinite(ts) ? chicagoMonthKey(ts) : null;
-  const adjacentMonths = monthKey ? [shiftMonth(monthKey, -1), shiftMonth(monthKey, 1)] : [];
+  const adjacentMonths = monthKey ? adjacentMonthKeys(index, monthKey) : [];
 
   const [monthArrays, lineArrays] = await Promise.all([
     Promise.all(adjacentMonths.map((k) => loadMonth(k).catch(() => []))),
