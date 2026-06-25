@@ -438,18 +438,11 @@ function IncidentRow({ incident, isNew, stationIndex, searchQuery = '' }) {
             );
           })()}
 
-          {/* Links — Details is the primary action and leads. A single
-            Bluesky source renders inline; 2+ collapse into a Sources
-            disclosure so the row doesn't sprout three trailing links. */}
+          {/* Links — the whole row already navigates to /event/:id via the
+            overlay link, so no explicit "Details →" is needed here (it was a
+            redundant third trailing link on every row). A single Bluesky source
+            renders inline; 2+ collapse into a Sources disclosure. */}
           <div className="flex flex-wrap items-center gap-3 mt-1.5">
-            {eventId && (
-              <a
-                href={`/event/${eventId}`}
-                className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
-              >
-                Details →
-              </a>
-            )}
             {sources.length === 1 && (
               <a
                 href={sources[0].url}

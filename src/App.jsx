@@ -9,6 +9,7 @@ import IncidentList from './components/IncidentList.jsx';
 import { LONG_RUNNING_THRESHOLD_MS } from './components/LongRunningBanner.jsx';
 import MetraUpcomingCancellations from './components/MetraUpcomingCancellations.jsx';
 import RecentActivityGantt from './components/RecentActivityGantt.jsx';
+import RightNow from './components/RightNow.jsx';
 import SignalBreakdown from './components/SignalBreakdown.jsx';
 import SummaryStats from './components/SummaryStats.jsx';
 import Timeline from './components/Timeline.jsx';
@@ -289,6 +290,19 @@ export default function App() {
     return { recentActive: recent, longRunningActive: longRunning };
   }, [activeIncidents, now]);
 
+  // Per-agency split of the active sets, for the All view's two-lane "Right
+  // now" block (CTA lane | Metra lane, never interleaved). When a single agency
+  // is selected the page is already scoped, so these just mirror the full set.
+  const lanes = useMemo(
+    () => ({
+      ctaRecent: recentActive.filter((i) => incidentAgency(i) !== 'metra'),
+      ctaLong: longRunningActive.filter((i) => incidentAgency(i) !== 'metra'),
+      metraRecent: recentActive.filter((i) => incidentAgency(i) === 'metra'),
+      metraLong: longRunningActive.filter((i) => incidentAgency(i) === 'metra'),
+    }),
+    [recentActive, longRunningActive],
+  );
+
   // Forward-looking cancellations announced for departures still ahead of now.
   // Drives the amber strip and suppresses the green "all clear" banner — a
   // pending cancellation isn't an active disruption, but it isn't "all clear".
@@ -498,46 +512,57 @@ export default function App() {
               </div>
             </div>
 
-            {/* Forward-looking strip: trains Metra has announced won't run but
-                haven't yet reached their scheduled departure. Sits above the
-                status block, separate from the live-disruption cards. */}
-            <MetraUpcomingCancellations incidents={activeIncidents} now={now} showLine />
-
-            {/* Status, top of page: live alerts when something's active, or a
-                friendly all-clear banner on a quiet day — so a first-time
-                visitor always lands on a clear answer to "is anything wrong
-                right now?" rather than a filter bar. */}
-            {recentActive.length > 0 || longRunningActive.length > 0 ? (
-              <ActiveAlerts
-                incidents={recentActive}
-                longRunningIncidents={longRunningActive}
+            {/* Status, top of page: always a clear answer to "is anything
+                wrong right now?". The All view splits it into a CTA lane and a
+                Metra lane so the two systems never blur into one stream; a
+                single selected agency renders one focused ActiveAlerts. */}
+            {selectedAgency === 'all' ? (
+              <RightNow
+                ctaRecent={lanes.ctaRecent}
+                ctaLong={lanes.ctaLong}
+                metraRecent={lanes.metraRecent}
+                metraLong={lanes.metraLong}
+                activeIncidents={activeIncidents}
+                upcomingCount={upcomingCancellations.length}
                 now={now}
                 highlightedIds={highlightedIds}
                 typicalDurations={typicalDurations}
                 stationIndex={stationIndex}
                 burst={burst}
               />
-            ) : upcomingCancellations.length > 0 ? null : (
-              <section className="flex items-center gap-3 rounded-lg border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30 px-4 py-3">
-                <span
-                  aria-hidden="true"
-                  className="flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-green-500"
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-green-800 dark:text-green-300">
-                    All clear
-                  </p>
-                  <p className="text-xs text-green-700/80 dark:text-green-400/80">
-                    No active{' '}
-                    {selectedAgency === 'cta'
-                      ? 'CTA'
-                      : selectedAgency === 'metra'
-                        ? 'Metra'
-                        : 'CTA or Metra'}{' '}
-                    disruptions right now.
-                  </p>
-                </div>
-              </section>
+            ) : (
+              <>
+                {/* Forward-looking strip: trains Metra has announced won't run
+                    but haven't yet reached their scheduled departure. */}
+                <MetraUpcomingCancellations incidents={activeIncidents} now={now} showLine />
+                {recentActive.length > 0 || longRunningActive.length > 0 ? (
+                  <ActiveAlerts
+                    incidents={recentActive}
+                    longRunningIncidents={longRunningActive}
+                    now={now}
+                    highlightedIds={highlightedIds}
+                    typicalDurations={typicalDurations}
+                    stationIndex={stationIndex}
+                    burst={burst}
+                  />
+                ) : upcomingCancellations.length > 0 ? null : (
+                  <section className="flex items-center gap-3 rounded-lg border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30 px-4 py-3">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-green-500"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-green-800 dark:text-green-300">
+                        All clear
+                      </p>
+                      <p className="text-xs text-green-700/80 dark:text-green-400/80">
+                        No active {selectedAgency === 'cta' ? 'CTA' : 'Metra'} disruptions right
+                        now.
+                      </p>
+                    </div>
+                  </section>
+                )}
+              </>
             )}
 
             {/* Overview: today's narrative plus the headline stats, grouped
@@ -577,6 +602,7 @@ export default function App() {
                     observations={flat.detectionRecords}
                     showActive={false}
                     agency={selectedAgency}
+                    showLineCallouts={false}
                   />
                 )}
               </section>

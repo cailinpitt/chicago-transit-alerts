@@ -736,6 +736,13 @@ export default function ActiveAlerts({
   typicalDurations,
   stationIndex,
   burst,
+  // Lane mode (the homepage's All view renders one ActiveAlerts per agency
+  // side-by-side, so CTA and Metra never interleave). The caller supplies its
+  // own lane header, so we drop the page-level "Active Now" heading and the
+  // cross-agency mini-gantt, and render `emptyState` when the lane is quiet.
+  showHeader = true,
+  showGantt = true,
+  emptyState = null,
 }) {
   const burstActive =
     burst != null &&
@@ -776,29 +783,35 @@ export default function ActiveAlerts({
   const compactRows = disruptions.slice(fullCount);
   const mixedAgencies = new Set(live.map((i) => legacyKind(i))).size > 1;
 
+  // Lane mode with nothing live: render the caller's all-clear node in place of
+  // an empty section, so each agency lane always shows a definite answer.
+  if (!showHeader && totalActive === 0) return emptyState;
+
   return (
     <section>
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
-        <div aria-hidden="true" className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+      {showHeader && (
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <div aria-hidden="true" className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+          </div>
+          <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wider">
+            Active Now
+            <span className="ml-2 normal-case font-normal text-slate-500 dark:text-slate-400">
+              ({totalActive})
+            </span>
+          </h2>
+          {burstActive && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 normal-case tracking-normal"
+              title="Recent incident rate vs. the 30-day baseline rate over the same window length."
+            >
+              {`${burst.recentCount} in ${burst.windowHours}h · ${burst.ratio.toFixed(1)}× typical rate`}
+            </span>
+          )}
         </div>
-        <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wider">
-          Active Now
-          <span className="ml-2 normal-case font-normal text-slate-500 dark:text-slate-400">
-            ({totalActive})
-          </span>
-        </h2>
-        {burstActive && (
-          <span
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 normal-case tracking-normal"
-            title="Recent incident rate vs. the 30-day baseline rate over the same window length."
-          >
-            {`${burst.recentCount} in ${burst.windowHours}h · ${burst.ratio.toFixed(1)}× typical rate`}
-          </span>
-        )}
-      </div>
-      <ActiveMiniGantt incidents={live} now={now} />
+      )}
+      {showGantt && <ActiveMiniGantt incidents={live} now={now} />}
       <div className="space-y-4">
         {disruptions.length > 0 && (
           <CollapsibleBand

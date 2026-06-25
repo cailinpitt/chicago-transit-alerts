@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { cancellationInfo, cancellationStatusLabel } from '../../lib/cancellation.js';
 import { formatDate, formatTime } from '../../lib/format.js';
 import {
@@ -95,16 +95,9 @@ function ContextRow({ other, stationIndex, showLinePill }) {
           <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
             {describe(other, stationIndex)}
           </p>
-          {detailsId && (
-            <div className="mt-1">
-              <a
-                href={`/event/${detailsId}`}
-                className="text-xs text-blue-500 hover:text-blue-400 hover:underline"
-              >
-                Details →
-              </a>
-            </div>
-          )}
+          {/* No explicit "Details →" link — the whole row is already a stretched
+              link to /event/:id (the overlay anchor above), so a second link to
+              the same place was redundant chrome on every row. */}
         </div>
       </div>
     </div>
@@ -113,6 +106,40 @@ function ContextRow({ other, stationIndex, showLinePill }) {
 
 function rowKey(other) {
   return other.id;
+}
+
+// Surrounding/cross-line lists can run long on a busy line (a Metra trunk can
+// surface ~20 same-line incidents in a 24h window). Cap the visible rows so the
+// event page doesn't end in a wall, with a "Show all N" toggle to expand. The
+// cap is generous enough that quiet incidents show every row without a toggle.
+const CONTEXT_ROW_LIMIT = 6;
+
+function ContextList({ rows, stationIndex, showLinePill }) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? rows : rows.slice(0, CONTEXT_ROW_LIMIT);
+  const hiddenCount = rows.length - CONTEXT_ROW_LIMIT;
+  return (
+    <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border overflow-hidden">
+      {visible.map((other) => (
+        <ContextRow
+          key={rowKey(other)}
+          other={other}
+          stationIndex={stationIndex}
+          showLinePill={showLinePill}
+        />
+      ))}
+      {hiddenCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded((e) => !e)}
+          aria-expanded={expanded}
+          className="w-full px-4 py-2.5 text-center text-xs font-medium text-blue-500 hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-gh-subtle/40 transition-colors"
+        >
+          {expanded ? 'Show fewer' : `Show all ${rows.length}`}
+        </button>
+      )}
+    </div>
+  );
 }
 
 // Companion to RelatedIncidents (which stays scoped to the same line) so a
@@ -135,16 +162,7 @@ export function CrossLineContext({ incident, incidents, stationIndex }) {
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
         Elsewhere on the system (±1h)
       </h2>
-      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border overflow-hidden">
-        {others.map((other) => (
-          <ContextRow
-            key={rowKey(other)}
-            other={other}
-            stationIndex={stationIndex}
-            showLinePill={true}
-          />
-        ))}
-      </div>
+      <ContextList rows={others} stationIndex={stationIndex} showLinePill={true} />
     </section>
   );
 }
@@ -170,16 +188,7 @@ export function RelatedIncidents({ incident, incidents, stationIndex }) {
       <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
         {heading}
       </h2>
-      <div className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border divide-y divide-slate-100 dark:divide-gh-border overflow-hidden">
-        {related.map((other) => (
-          <ContextRow
-            key={rowKey(other)}
-            other={other}
-            stationIndex={stationIndex}
-            showLinePill={multiLine}
-          />
-        ))}
-      </div>
+      <ContextList rows={related} stationIndex={stationIndex} showLinePill={multiLine} />
     </section>
   );
 }

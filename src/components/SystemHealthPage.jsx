@@ -24,6 +24,7 @@ import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
 import ActiveAlerts from './ActiveAlerts.jsx';
 import Breadcrumb from './Breadcrumb.jsx';
+import CollapsibleSection from './CollapsibleSection.jsx';
 import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import HourOfWeekHeatmap from './HourOfWeekHeatmap.jsx';
@@ -696,37 +697,47 @@ export default function SystemHealthPage({ kind }) {
               />
             </section>
 
-            <section>
-              <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                Leaderboards (30d)
-              </h2>
-              <div className="grid sm:grid-cols-2 gap-3">
-                <Leaderboard
-                  kind={kind}
-                  title="Most incidents"
-                  rows={[...routeRows].sort((a, b) => b.monthlyCount - a.monthlyCount)}
-                  metric="monthly"
-                  formatValue={(row) =>
-                    `${row.monthlyCount} incident${row.monthlyCount === 1 ? '' : 's'}`
-                  }
-                  emptyLabel={`No ${modeLabel.toLowerCase()} incidents in the last 30 days.`}
-                />
-                <Leaderboard
-                  kind={kind}
-                  title="Most disrupted time"
-                  rows={[...routeRows].sort((a, b) => b.disruptionMinutes - a.disruptionMinutes)}
-                  metric="disruption"
-                  formatValue={(row) => formatMinutesAsHours(row.disruptionMinutes)}
-                  emptyLabel={`No disruption time logged for ${modeLabel.toLowerCase()} in the last 30 days.`}
-                />
-              </div>
-            </section>
+            {/* Leaderboards + heatmap are retrospective views — and the
+                leaderboards just re-rank the sortable grid above — so they're
+                collapsed by default, matching the homepage and line page. The
+                live status board (grid) and the incident list stay primary. */}
+            <CollapsibleSection
+              title="Trends & history"
+              subtitle="Leaderboards · when incidents happen"
+              className="pt-4 mt-2 border-t border-slate-200 dark:border-gh-border"
+            >
+              <section>
+                <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                  Leaderboards (30d)
+                </h2>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Leaderboard
+                    kind={kind}
+                    title="Most incidents"
+                    rows={[...routeRows].sort((a, b) => b.monthlyCount - a.monthlyCount)}
+                    metric="monthly"
+                    formatValue={(row) =>
+                      `${row.monthlyCount} incident${row.monthlyCount === 1 ? '' : 's'}`
+                    }
+                    emptyLabel={`No ${modeLabel.toLowerCase()} incidents in the last 30 days.`}
+                  />
+                  <Leaderboard
+                    kind={kind}
+                    title="Most disrupted time"
+                    rows={[...routeRows].sort((a, b) => b.disruptionMinutes - a.disruptionMinutes)}
+                    metric="disruption"
+                    formatValue={(row) => formatMinutesAsHours(row.disruptionMinutes)}
+                    emptyLabel={`No disruption time logged for ${modeLabel.toLowerCase()} in the last 30 days.`}
+                  />
+                </div>
+              </section>
 
-            <HourOfWeekHeatmap
-              alerts={modeAlerts}
-              observations={modeObservations}
-              title={`When do ${modeLabel.toLowerCase()} incidents happen?`}
-            />
+              <HourOfWeekHeatmap
+                alerts={modeAlerts}
+                observations={modeObservations}
+                title={`When do ${modeLabel.toLowerCase()} incidents happen?`}
+              />
+            </CollapsibleSection>
 
             <section>
               <div className="flex flex-wrap items-center gap-1.5 mb-3">

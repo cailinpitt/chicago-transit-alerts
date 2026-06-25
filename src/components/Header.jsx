@@ -43,34 +43,6 @@ function InfoPopover({ children, label = 'What does this mean?' }) {
   );
 }
 
-const BOTS = [
-  {
-    label: 'CTA Alert Insights',
-    emoji: '⚠️',
-    href: 'https://bsky.app/profile/ctaalertinsights.chicagotransitalerts.app',
-  },
-  {
-    label: 'CTA Train Insights',
-    emoji: '🚇',
-    href: 'https://bsky.app/profile/ctatraininsights.chicagotransitalerts.app',
-  },
-  {
-    label: 'CTA Bus Insights',
-    emoji: '🚌',
-    href: 'https://bsky.app/profile/ctabusinsights.chicagotransitalerts.app',
-  },
-  {
-    label: 'Metra Alert Insights',
-    emoji: '🚆',
-    href: 'https://bsky.app/profile/metraalertinsights.chicagotransitalerts.app',
-  },
-  {
-    label: 'Metra Insights',
-    emoji: '🛤️',
-    href: 'https://bsky.app/profile/metrainsights.chicagotransitalerts.app',
-  },
-];
-
 export default function Header({
   generatedAt,
   dark,
@@ -134,30 +106,15 @@ export default function Header({
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
           Major CTA &amp; Metra alerts and service observations
         </p>
-        {/* Meta row: bot links, plus the last-updated note on mobile. */}
-        <div className="relative flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs text-slate-500 dark:text-slate-400 mr-1">Bluesky bots</span>
-            {BOTS.map((bot) => (
-              <a
-                key={bot.href}
-                href={bot.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 min-h-[24px] px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gh-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-gh-border transition-colors"
-              >
-                <span>{bot.emoji}</span>
-                <span className="hidden sm:inline">{bot.label}</span>
-              </a>
-            ))}
+        {/* Last-updated note on mobile (sm+ shows it beside the controls above).
+            The bot links moved into the Browse menu's "Follow on Bluesky"
+            section so the header opens straight onto the page's content. */}
+        {updatedRel && (
+          <div className="sm:hidden relative flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+            <span title={updatedAbs ?? undefined}>Last data change: {updatedRel}</span>
+            <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
           </div>
-          {updatedRel && (
-            <div className="sm:hidden flex items-center text-xs text-slate-500 dark:text-slate-400">
-              <span title={updatedAbs ?? undefined}>Last data change: {updatedRel}</span>
-              <InfoPopover>{FRESHNESS_NOTE}</InfoPopover>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </header>
   );
