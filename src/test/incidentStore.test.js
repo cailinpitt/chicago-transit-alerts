@@ -3,6 +3,7 @@ import {
   __resetStoreCaches,
   chicagoMonthKey,
   getIncidentById,
+  getIncidentWithContext,
   loadIndex,
   loadLine,
   loadMonth,
@@ -130,13 +131,69 @@ describe('getIncidentById', () => {
     expect(res.incidents.map((i) => i.id)).toEqual(['gone']);
   });
 
+  it('resolves an archived non-canonical post rkey via rkey_month', async () => {
+    const canon = {
+      id: 'canon',
+      mode: 'train',
+      routes: ['red'],
+      lifecycle: { first_seen_ts: 0, resolved_ts: 0, active: false },
+      detections: [{ post_url: 'https://bsky.app/profile/did/post/botrkey' }],
+    };
+    mockFiles({
+      'alerts-recent.json': { generated_at: 1, incidents: [incident('recent')] },
+      'alerts-index.json': {
+        months: [],
+        lines: [],
+        id_month: {},
+        rkey_month: { botrkey: '2020-01' },
+      },
+      'alerts/2020-01.json': { month: '2020-01', incidents: [canon] },
+    });
+    const res = await getIncidentById('botrkey');
+    expect(res.incident.id).toBe('canon');
+  });
+
   it('returns null when the id resolves nowhere', async () => {
     mockFiles({
       'alerts-recent.json': { generated_at: 1, incidents: [incident('recent')] },
-      'alerts-index.json': { months: [], lines: [], id_month: {} },
+      'alerts-index.json': { months: [], lines: [], id_month: {}, rkey_month: {} },
     });
     expect(await getIncidentById('missing')).toBeNull();
     expect(await getIncidentById('')).toBeNull();
+  });
+});
+
+describe('getIncidentWithContext', () => {
+  it('unions the incident slice with adjacent months and its line files', async () => {
+    const may = Date.parse('2026-05-10T12:00:00Z');
+    const e2 = {
+      id: 'e2',
+      mode: 'train',
+      routes: ['red'],
+      lifecycle: { first_seen_ts: may, resolved_ts: may, active: false },
+      detections: [],
+    };
+    mockFiles({
+      // Archived: not in the recent slice, so it resolves via the index → month.
+      'alerts-recent.json': { generated_at: 1, incidents: [] },
+      'alerts-index.json': { months: [], lines: [], id_month: { e2: '2026-05' }, rkey_month: {} },
+      'alerts/2026-05.json': { month: '2026-05', incidents: [e2] },
+      'alerts/2026-04.json': { month: '2026-04', incidents: [incident('apr')] },
+      'alerts/2026-06.json': { month: '2026-06', incidents: [incident('jun')] },
+      // Same-line neighbor that sits outside the ±1 month window.
+      'incidents/by-line/red.json': { line: 'red', incidents: [e2, incident('lineOld')] },
+    });
+    const res = await getIncidentWithContext('e2');
+    expect(res.incident.id).toBe('e2');
+    expect(res.incidents.map((i) => i.id).sort()).toEqual(['apr', 'e2', 'jun', 'lineOld']);
+  });
+
+  it('returns null for an unresolvable id', async () => {
+    mockFiles({
+      'alerts-recent.json': { generated_at: 1, incidents: [] },
+      'alerts-index.json': { months: [], lines: [], id_month: {}, rkey_month: {} },
+    });
+    expect(await getIncidentWithContext('nope')).toBeNull();
   });
 });
 

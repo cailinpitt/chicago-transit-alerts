@@ -5,8 +5,8 @@ import { fetchAccessibilityData, outageDuration, outagesForStation } from '../li
 import { computeTypicalDurations } from '../lib/aggregate.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { dataUrl } from '../lib/dataSource.js';
 import { formatDate, formatDuration } from '../lib/format.js';
+import { loadIndex, loadLine } from '../lib/incidentStore.js';
 import {
   incidentDetections,
   incidentLifecycle,
@@ -47,16 +47,36 @@ export default function StationPage({ slug, kind = 'train' }) {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
 
+  // A station's incidents all live in its serving lines' files: an incident only
+  // touches a station if that station sits on the incident's route's segment, so
+  // the station is served by that route. Resolve the serving lines from the
+  // static roster (no data needed), then load just those bounded per-line files.
+  const stationLineKeys = useMemo(() => {
+    const roster = isMetra ? metraStationBySlug(slug) : rosterStationBySlug(slug);
+    return roster?.lines ?? [];
+  }, [isMetra, slug]);
+
   useEffect(() => {
-    const url = dataUrl('alerts.json');
-    fetch(url, { cache: 'no-store' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
+    // Pull generated_at / data_start_ts from the index (the per-line files don't
+    // carry them) and union the station's line files, de-duped by id. A line
+    // with no incidents yet has no file (404) → treat as empty.
+    Promise.all([
+      Promise.all(stationLineKeys.map((key) => loadLine(key).catch(() => []))),
+      loadIndex(),
+    ])
+      .then(([perLine, index]) => {
+        const byId = new Map();
+        for (const arr of perLine) {
+          for (const inc of arr) byId.set(inc.id, inc);
+        }
+        setData({
+          incidents: [...byId.values()],
+          generated_at: index.generated_at,
+          data_start_ts: index.data_start_ts,
+        });
       })
-      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
-  }, []);
+  }, [stationLineKeys]);
 
   useEffect(() => {
     fetchAccessibilityData()

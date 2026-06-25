@@ -137,12 +137,51 @@ export async function getIncidentById(id) {
   const inRecent = findIncidentById(recent.incidents, id);
   if (inRecent) return { incident: inRecent, incidents: recent.incidents };
 
+  // Canonical incident.id is in id_month; a non-canonical post rkey (a secondary
+  // bot post of the incident) resolves via rkey_month.
   const index = await loadIndex();
-  const monthKey = index.id_month?.[id];
+  const monthKey = index.id_month?.[id] ?? index.rkey_month?.[id];
   if (!monthKey) return null;
   const monthIncidents = await loadMonth(monthKey);
   const incident = findIncidentById(monthIncidents, id);
   return incident ? { incident, incidents: monthIncidents } : null;
+}
+
+// Shift a "YYYY-MM" month key by `delta` months (UTC-based; month keys are
+// just calendar labels, so no timezone subtlety here).
+function shiftMonth(monthKey, delta) {
+  const [y, m] = monthKey.split('-').map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+// Resolve an event id to its incident plus a context set wide enough for the
+// event page's prev/next nav and ±24h/±1h callouts to be correct across shard
+// boundaries: the incident's own slice (from getIncidentById), the months on
+// either side (so a chronological neighbor that fell into an adjacent month
+// shard is present), and each of the incident's lines' all-time files (so
+// same-line prev/next is complete even when the neighbor is many months back on
+// a quiet line). De-duped by id, preferring the slice's (freshest) copy.
+export async function getIncidentWithContext(id) {
+  const found = await getIncidentById(id);
+  if (!found) return null;
+  const { incident, incidents: slice } = found;
+
+  const ts = incident?.lifecycle?.first_seen_ts;
+  const monthKey = typeof ts === 'number' && Number.isFinite(ts) ? chicagoMonthKey(ts) : null;
+  const adjacentMonths = monthKey ? [shiftMonth(monthKey, -1), shiftMonth(monthKey, 1)] : [];
+
+  const [monthArrays, lineArrays] = await Promise.all([
+    Promise.all(adjacentMonths.map((k) => loadMonth(k).catch(() => []))),
+    Promise.all((incident.routes || []).map((r) => loadLine(r).catch(() => []))),
+  ]);
+
+  const byId = new Map();
+  for (const inc of slice) byId.set(inc.id, inc);
+  for (const arr of [...monthArrays, ...lineArrays]) {
+    for (const inc of arr) if (!byId.has(inc.id)) byId.set(inc.id, inc);
+  }
+  return { incident, incidents: [...byId.values()] };
 }
 
 // --- Time-range union --------------------------------------------------------

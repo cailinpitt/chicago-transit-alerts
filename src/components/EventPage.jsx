@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode.js';
 import { eventTrail } from '../lib/breadcrumbs.js';
-import { dataUrl } from '../lib/dataSource.js';
+import { getIncidentWithContext } from '../lib/incidentStore.js';
 import {
-  findIncidentById,
   formatRoutesLabel,
   incidentLifecycle,
   incidentRecords,
@@ -21,35 +20,34 @@ import NotFoundPage from './NotFoundPage.jsx';
 
 export default function EventPage({ eventId }) {
   const [dark, toggleDark] = useDarkMode();
-  const [data, setData] = useState(null);
+  // `result` is { incident, incidents } from the store: the resolved incident
+  // plus a context set spanning its month ± the adjacent months and its lines'
+  // all-time files — wide enough that prev/next nav and the ±24h/±1h callouts
+  // stay correct across shard boundaries. `notFound` distinguishes "resolved to
+  // nothing" from "still loading". Deep links resolve by canonical incident.id
+  // or any of the incident's post rkeys (the index carries both).
+  const [result, setResult] = useState(null);
+  const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState(null);
 
-  // Initial fetch + 5-minute poll. Matches App.jsx's cadence so an event
+  // Initial resolve + 5-minute poll. Matches App.jsx's cadence so an event
   // page left open on an active incident updates its duration / "ongoing"
-  // chip / resolution status without a reload. Only the initial fetch
-  // surfaces a hard error — silent failures after that keep the existing
-  // data visible rather than yanking the page out from under the reader.
+  // chip / resolution status without a reload. Only the initial load surfaces a
+  // hard error — silent failures after that keep the existing data visible
+  // rather than yanking the page out from under the reader.
   useEffect(() => {
-    const url = dataUrl('alerts.json');
+    let cancelled = false;
 
     function fetchData() {
-      fetch(url, { cache: 'no-store' })
-        .then((r) => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.json();
-        })
-        .then((fresh) => {
-          const normalized = {
-            ...fresh,
-            incidents: fresh.incidents || [],
-          };
-          setData((prev) => {
-            if (!prev || normalized.generated_at !== prev.generated_at) return normalized;
-            return prev;
-          });
+      getIncidentWithContext(eventId)
+        .then((res) => {
+          if (cancelled) return;
+          setNotFound(!res);
+          if (res) setResult(res);
         })
         .catch((err) => {
-          setData((prev) => {
+          if (cancelled) return;
+          setResult((prev) => {
             if (!prev) setError(err);
             return prev;
           });
@@ -58,18 +56,19 @@ export default function EventPage({ eventId }) {
 
     fetchData();
     const id = setInterval(fetchData, 5 * 60 * 1000);
-    return () => clearInterval(id);
-  }, []);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [eventId]);
 
-  const incident = useMemo(() => {
-    if (!data) return null;
-    return findIncidentById(data.incidents, eventId);
-  }, [data, eventId]);
+  const incident = result?.incident ?? null;
+  const incidents = result?.incidents ?? null;
 
-  // Flat { alerts, observations } view of the payload — the station index and
+  // Flat { alerts, observations } view of the slice — the station index and
   // BrowseMenu (and, via EventDetail, the cohort stats) still read the flat
   // shape. The view itself renders the nested `incident` directly.
-  const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
+  const flat = useMemo(() => (incidents ? incidentRecords(incidents) : null), [incidents]);
 
   const stationIndex = useMemo(() => {
     if (!flat) return null;
@@ -95,7 +94,7 @@ export default function EventPage({ eventId }) {
     };
   }, [incident]);
 
-  if (data && !incident) {
+  if (notFound) {
     return <NotFoundPage />;
   }
 
@@ -129,7 +128,7 @@ export default function EventPage({ eventId }) {
 
         {error && <p className="text-red-600 text-sm">Failed to load alert data.</p>}
 
-        {!error && !data && (
+        {!error && !result && (
           <div className="h-32 bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border animate-pulse" />
         )}
 
@@ -137,7 +136,7 @@ export default function EventPage({ eventId }) {
           <>
             <EventDetail
               incident={incident}
-              incidents={data.incidents}
+              incidents={incidents}
               alerts={flat.officialRecords}
               observations={flat.detectionRecords}
               stationIndex={stationIndex}
@@ -145,15 +144,15 @@ export default function EventPage({ eventId }) {
             />
             <RelatedIncidents
               incident={incident}
-              incidents={data.incidents}
+              incidents={incidents}
               stationIndex={stationIndex}
             />
             <CrossLineContext
               incident={incident}
-              incidents={data.incidents}
+              incidents={incidents}
               stationIndex={stationIndex}
             />
-            <EventNav incident={incident} incidents={data.incidents} />
+            <EventNav incident={incident} incidents={incidents} />
           </>
         )}
       </main>

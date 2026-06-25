@@ -19,7 +19,6 @@ import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { cancellationInfo } from '../lib/cancellation.js';
 import { normalizeTrainLine, TRAIN_LINES } from '../lib/ctaLines.js';
-import { dataUrl } from '../lib/dataSource.js';
 import {
   formatChicagoDay,
   formatDate,
@@ -27,6 +26,7 @@ import {
   formatGap,
   formatMinutesAsHours,
 } from '../lib/format.js';
+import { loadIndex, loadLine } from '../lib/incidentStore.js';
 import {
   incidentLifecycle,
   incidentRecords,
@@ -255,22 +255,28 @@ export default function LinePage({ kind, lineId }) {
   const isRail = isTrain || isMetra;
 
   useEffect(() => {
-    const url = dataUrl('alerts.json');
-    fetch(url, { cache: 'no-store' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
+    // Load this line's all-time history from its bounded per-line file (every
+    // incident touching the line, the only scope this page needs), plus the
+    // index for the generated_at / data_start_ts the full file used to carry.
+    // Skip unknown lines — they render the not-found card without fetching.
+    if (!isKnown) return;
+    Promise.all([loadLine(effectiveLineId), loadIndex()])
+      .then(([incidents, index]) =>
+        setData({
+          incidents,
+          generated_at: index.generated_at,
+          data_start_ts: index.data_start_ts,
+        }),
+      )
       .catch(setError);
     fetchAccessibilityData()
       .then(setAccessibilityData)
       .catch(() => {
         // Accessibility data is supplemental; line pages still render without it.
       });
-  }, []);
+  }, [isKnown, effectiveLineId]);
 
-  // Flat view of the full dataset; the analytics cards still read the flat
+  // Flat view of this line's all-time set; the analytics cards read the flat
   // shape. The incident list reads nested incidents (see lineIncidents).
   const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
 
@@ -456,10 +462,10 @@ export default function LinePage({ kind, lineId }) {
     });
   }, [data, lineAlerts, lineObservations, now]);
 
-  // Station index built from the full dataset, not just this line. A station
-  // can appear on multiple lines (Howard is on Red + Yellow; Damen on Blue +
-  // Brown), and clicking it should land on the cross-line station page —
-  // not be gated on whether this particular line meets the threshold.
+  // Station index over this line's incidents (its all-time per-line file), so
+  // station counts reflect this line's activity. A station shared with other
+  // lines (Howard on Red + Yellow; Damen on Blue + Brown) still links to the
+  // cross-line station page, which loads its own data.
   const stationIndex = useMemo(() => {
     if (!flat) return null;
     return isMetra

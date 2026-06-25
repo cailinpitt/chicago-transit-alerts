@@ -5,7 +5,6 @@ import { buildWeekSummary, weekStartUTC } from '../lib/aggregate.js';
 import { weekTrail } from '../lib/breadcrumbs.js';
 import { formatBusRoute } from '../lib/busRoutes.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { dataUrl } from '../lib/dataSource.js';
 import {
   chicagoDayIsoUTC,
   chicagoDayUTC,
@@ -13,6 +12,7 @@ import {
   formatDuration,
   formatWeekRange,
 } from '../lib/format.js';
+import { loadIndex, loadRange } from '../lib/incidentStore.js';
 import { incidentLifecycle, incidentRecords } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -53,13 +53,13 @@ export default function WeekPage({ weekParam }) {
 
   useEffect(() => {
     if (weekStartUtc == null) return;
-    const url = dataUrl('alerts.json');
-    fetch(url, { cache: 'no-store' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
+    // Load this week plus the prior week (buildWeekSummary's week-over-week needs
+    // it) from the monthly shards overlapping that span; the index supplies the
+    // generated_at the full file used to carry.
+    const from = weekStartUtc - WEEK_MS;
+    const to = weekStartUtc + 7 * DAY_MS;
+    Promise.all([loadRange(from, to), loadIndex()])
+      .then(([incidents, index]) => setData({ incidents, generated_at: index.generated_at }))
       .catch(setError);
   }, [weekStartUtc]);
 

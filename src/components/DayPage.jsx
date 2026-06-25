@@ -3,8 +3,8 @@ import { useDarkMode } from '../hooks/useDarkMode.js';
 import { useNow } from '../hooks/useNow.js';
 import { dayTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay } from '../lib/format.js';
+import { loadIndex, loadRange, loadRecent } from '../lib/incidentStore.js';
 import { filterIncidents, incidentRecords, legacyKind } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import { buildStationIndex } from '../lib/stations.js';
@@ -68,13 +68,19 @@ export default function DayPage({ dateStr }) {
 
   useEffect(() => {
     if (dayUtc == null) return;
-    const url = dataUrl('alerts.json');
-    fetch(url, { cache: 'no-store' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
+    // A day's view includes active incidents that started before it (their span
+    // extends forward), so a day inside the recent window loads the recent slice
+    // (which carries active-of-any-age); an older day loads its monthly shard,
+    // where a span reaching in from an earlier month is the rare accepted gap.
+    // The index supplies recent_from_ts (the window boundary) + generated_at.
+    loadIndex()
+      .then((index) => {
+        const inRecentWindow = dayUtc >= (index.recent_from_ts ?? 0);
+        const load = inRecentWindow
+          ? loadRecent().then((payload) => payload.incidents)
+          : loadRange(dayUtc, dayUtc + DAY_MS);
+        return load.then((incidents) => setData({ incidents, generated_at: index.generated_at }));
       })
-      .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
   }, [dayUtc]);
 
