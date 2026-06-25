@@ -361,23 +361,28 @@ function ActiveRow({ incident, now, isNew, tone = 'disruption', showAgency = fal
   } ${isNew ? 'animate-fade-highlight' : ''}`;
   const inner = (
     <>
-      <span className="flex items-center gap-1 flex-shrink-0">
+      {/* The pill group shrinks (min-w-0) so a long route name truncates rather
+          than shoving the elapsed-time chip off a phone screen. The agency
+          label and "+N" chip stay fixed (flex-shrink-0) — only the pill gives. */}
+      <span className="flex items-center gap-1 min-w-0">
         {showAgency && (
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-0.5">
+          <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-0.5">
             {modeLabel(kind)}
           </span>
         )}
         <LinePill kind={kind} routes={shownRoutes} linked={false} />
         {overflowCount > 0 && (
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
+          <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-gh-subtle text-slate-600 dark:text-slate-300">
             +{overflowCount}
           </span>
         )}
       </span>
-      <span className="flex-1 min-w-0 truncate whitespace-nowrap text-slate-700 dark:text-slate-200">
+      {/* Title is dropped on very narrow screens — the pill + elapsed time carry
+          the row, and the full title lives on /event/:id. */}
+      <span className="hidden min-[400px]:block flex-1 min-w-0 truncate whitespace-nowrap text-slate-700 dark:text-slate-200">
         {descriptionText}
       </span>
-      <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 tabular-nums inline-flex items-center gap-1.5">
+      <span className="ml-auto text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 tabular-nums inline-flex items-center gap-1.5">
         {metraStatus && <MetraPointBadge source={metraStatus.source} />}
         <span>{elapsedText}</span>
       </span>

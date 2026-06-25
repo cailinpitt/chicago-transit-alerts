@@ -7,19 +7,23 @@ import { metraLineInfo, normalizeMetraLine } from '../lib/metraLines.js';
 // dim) rather than a competing visual cue. Multi-route alerts render one
 // pill per route, each with its own destination.
 const PILL_BASE =
-  'inline-flex items-center min-h-[24px] px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity';
+  'inline-flex items-center min-w-0 max-w-full min-h-[24px] px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity';
 
 export default function LinePill({ kind, line, routes, linked = true }) {
   const keys = routes?.length > 0 ? routes : [line];
   const chipClass = linked ? PILL_BASE : PILL_BASE.replace('cursor-pointer hover:opacity-80', '');
-  const renderChip = (key, href, className, children, props = {}) =>
+  // Every pill caps at its container width and truncates its label — a long
+  // route name (e.g. "#114 Columbia Dr / Snapfinger Woods Dr" or "Milwaukee
+  // District West") otherwise blows the compact row's width and pushes the
+  // elapsed-time chip off a phone screen.
+  const renderChip = (key, href, className, label, props = {}) =>
     linked ? (
-      <a key={key} href={href} className={className} {...props}>
-        {children}
+      <a key={key} href={href} className={className} title={label} {...props}>
+        <span className="min-w-0 truncate">{label}</span>
       </a>
     ) : (
-      <span key={key} className={className} {...props}>
-        {children}
+      <span key={key} className={className} title={label} {...props}>
+        <span className="min-w-0 truncate">{label}</span>
       </span>
     );
   return (
@@ -61,9 +65,8 @@ export default function LinePill({ kind, line, routes, linked = true }) {
         return renderChip(
           key,
           kind === 'bus' ? `/route/${key}` : '/',
-          `${chipClass} bg-slate-700 text-white max-w-full`,
-          <span className="min-w-0 truncate">{busLabel}</span>,
-          { title: kind === 'bus' ? busLabel : undefined },
+          `${chipClass} bg-slate-700 text-white`,
+          busLabel,
         );
       })}
     </>
