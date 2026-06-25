@@ -6,12 +6,11 @@ import {
   computeRestorationDeltas,
   computeSegmentRecurrence,
   computeStatsLeaderboards,
-  computeYearOverYear,
 } from '../lib/aggregate.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINES } from '../lib/ctaLines.js';
-import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay, formatDate, formatDuration, formatTime } from '../lib/format.js';
+import { loadAggregates, loadRecent } from '../lib/incidentStore.js';
 import { formatRoutesLabel, incidentRecords } from '../lib/incidents.js';
 import { METRA_LINES } from '../lib/metraLines.js';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -113,17 +112,19 @@ export default function StatsPage() {
   const [dark, toggleDark] = useDarkMode();
   const now = useNow();
   const [data, setData] = useState(null);
+  const [aggregates, setAggregates] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const url = dataUrl('alerts.json');
-    fetch(url, { cache: 'no-store' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
+    // The recent slice powers every ≤90d leaderboard here; YoY (the one >90d
+    // computation) comes precomputed from aggregates.json since the recent
+    // window can't supply the prior-year comparison.
+    loadRecent()
       .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
+    loadAggregates()
+      .then(setAggregates)
+      .catch(() => setAggregates(null));
   }, []);
 
   useEffect(() => {
@@ -153,14 +154,10 @@ export default function StatsPage() {
     });
   }, [flat, now]);
 
-  const yoy = useMemo(() => {
-    if (!flat) return null;
-    return computeYearOverYear(flat.officialRecords, flat.detectionRecords, {
-      now,
-      windowDays: 30,
-      dataStartTs: data.data_start_ts ?? null,
-    });
-  }, [flat, data, now]);
+  // System-wide year-over-year, precomputed server-side. Its `enoughData`
+  // gating + window math run against the producer's clock; the few-minutes skew
+  // from the client `now` is immaterial for a 30-day-vs-a-year-ago comparison.
+  const yoy = aggregates?.yoy?.overall ?? null;
 
   const restorationDeltas = useMemo(() => {
     if (!flat) return null;

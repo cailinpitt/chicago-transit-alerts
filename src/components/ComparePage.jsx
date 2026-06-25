@@ -11,8 +11,8 @@ import {
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, formatBusRoute } from '../lib/busRoutes.js';
 import { normalizeTrainLine, TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
-import { dataUrl } from '../lib/dataSource.js';
 import { formatGap, formatMinutesAsHours } from '../lib/format.js';
+import { loadLine, loadRecent } from '../lib/incidentStore.js';
 import {
   incidentRecords,
   observationSignals,
@@ -104,11 +104,11 @@ function writeUrlState(kind, selected) {
   }
 }
 
-function StatTable({ kind, selected, perLine, now, dataStartTs }) {
-  const yoyByLine = perLine.map(({ alerts, observations }) =>
-    computeYearOverYear(alerts, observations, { now, windowDays: 30, dataStartTs }),
-  );
-  const haveYoy = yoyByLine.some((r) => r.enoughData);
+// `yoyByLine` is aligned to `selected`/`perLine` by index; each entry is the
+// precomputed-style YoY for that line (from its all-time per-line file) or null
+// while that file is still loading.
+function StatTable({ kind, selected, perLine, yoyByLine }) {
+  const haveYoy = yoyByLine.some((r) => r?.enoughData);
 
   // Helper to render a single value cell for a line.
   const cell = (text, idx) => (
@@ -185,7 +185,7 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
             >
               Last 30 days
             </th>
-            {yoyByLine.map((y, idx) => cell(`${y.currentCount}`, idx))}
+            {yoyByLine.map((y, idx) => cell(y ? `${y.currentCount}` : '—', idx))}
           </tr>
           <tr title="Severity-weighted: total line-time spent in a detected disruption over the last 30 days, against an assumed 21h/day service window.">
             <th
@@ -216,7 +216,7 @@ function StatTable({ kind, selected, perLine, now, dataStartTs }) {
                 YoY (vs 1y ago)
               </th>
               {yoyByLine.map((y, idx) => {
-                if (!y.enoughData || y.pctChange == null) return cell('—', idx);
+                if (!y?.enoughData || y.pctChange == null) return cell('—', idx);
                 const pct = Math.round(y.pctChange * 100);
                 const cls =
                   pct > 0
@@ -521,6 +521,10 @@ export default function ComparePage() {
   const now = useNow();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  // All-time per-line records for the selected lines, keyed `${kind}:${key}` —
+  // the only input needing >90d history (for YoY). Loaded lazily from the
+  // bounded per-line files; everything else reads the recent slice.
+  const [lineData, setLineData] = useState({});
   const initial = useMemo(() => readUrlState(), []);
   const [kind, setKind] = useState(initial.kind);
   const [selected, setSelected] = useState(initial.selected);
@@ -533,15 +537,31 @@ export default function ComparePage() {
   }, []);
 
   useEffect(() => {
-    const url = dataUrl('alerts.json');
-    fetch(url, { cache: 'no-store' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
+    // The recent slice powers the picker + every ≤90d stat; per-line YoY needs
+    // year-old data, loaded separately from the all-time per-line files below.
+    loadRecent()
       .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
   }, []);
+
+  // Lazily load each selected line's all-time file (memoized in the store, so a
+  // re-selection or now-tick won't refetch). Keyed by `${kind}:${key}` so a
+  // bus route and a train line that share a key never collide.
+  useEffect(() => {
+    let alive = true;
+    for (const key of selected) {
+      const id = `${kind}:${key}`;
+      loadLine(key)
+        .then((incidents) => {
+          if (!alive) return;
+          setLineData((prev) => (prev[id] ? prev : { ...prev, [id]: incidentRecords(incidents) }));
+        })
+        .catch(() => {});
+    }
+    return () => {
+      alive = false;
+    };
+  }, [kind, selected]);
 
   // Mirror selection to the URL so views are shareable.
   useEffect(() => {
@@ -550,6 +570,25 @@ export default function ComparePage() {
 
   // Analytics here read incident-derived official/detection records.
   const flat = useMemo(() => (data ? incidentRecords(data.incidents) : null), [data]);
+
+  // Per-line YoY, computed from each line's all-time file (or null until it
+  // loads). The global producer `data_start_ts` gates `enoughData`, matching the
+  // pre-shard behavior. Aligned to `selected` by index for StatTable.
+  const dataStartTs = data?.data_start_ts ?? null;
+  const yoyByLine = useMemo(
+    () =>
+      selected.map((key) => {
+        const records = lineData[`${kind}:${key}`];
+        if (!records) return null;
+        const scoped = scopeIncidents(records, kind, key);
+        return computeYearOverYear(scoped.alerts, scoped.observations, {
+          now,
+          windowDays: 30,
+          dataStartTs,
+        });
+      }),
+    [selected, kind, lineData, now, dataStartTs],
+  );
 
   const availableBusRoutes = useMemo(() => {
     if (!flat) return [];
@@ -679,13 +718,7 @@ export default function ComparePage() {
 
         {selected.length > 0 && data && (
           <>
-            <StatTable
-              kind={kind}
-              selected={selected}
-              perLine={perLine}
-              now={now}
-              dataStartTs={data.data_start_ts ?? null}
-            />
+            <StatTable kind={kind} selected={selected} perLine={perLine} yoyByLine={yoyByLine} />
             <CompareSignalMix kind={kind} selected={selected} perLine={perLine} />
             <CompareDurationHistogram kind={kind} selected={selected} perLine={perLine} />
             <CompareHourHeatmaps kind={kind} selected={selected} perLine={perLine} />

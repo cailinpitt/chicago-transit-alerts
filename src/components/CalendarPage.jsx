@@ -5,6 +5,7 @@ import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { buildCalendarWeeks } from '../lib/calendar.js';
 import { dataUrl } from '../lib/dataSource.js';
 import { formatChicagoDay } from '../lib/format.js';
+import { loadRecent } from '../lib/incidentStore.js';
 import { incidentRecords, SOURCE_TYPES } from '../lib/incidents.js';
 import { buildSearch, parseUrlState } from '../lib/urlState.js';
 import Breadcrumb from './Breadcrumb.jsx';
@@ -120,14 +121,13 @@ export default function CalendarPage() {
       .catch(setError);
   }, []);
 
-  // Also load alerts.json so the Header's Browse menu works on this page,
-  // matching the pattern used by LinePage / StationPage. Cheaper than
-  // refactoring Header to make data optional everywhere.
+  // Also load the recent slice so the Header's Browse menu works on this page
+  // (the menu is 90d-windowed, so the recent file covers it), matching the
+  // pattern used by LinePage / StationPage. Cheaper than refactoring Header to
+  // make data optional everywhere.
   const [browseData, setBrowseData] = useState(null);
   useEffect(() => {
-    const url = dataUrl('alerts.json');
-    fetch(url, { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : null))
+    loadRecent()
       .then((payload) =>
         setBrowseData(payload?.incidents ? incidentRecords(payload.incidents) : null),
       )

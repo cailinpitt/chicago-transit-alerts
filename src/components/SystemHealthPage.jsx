@@ -6,14 +6,13 @@ import {
   computeDisruptionMinutes,
   computeSummaryStats,
   computeWorstDay,
-  computeYearOverYear,
 } from '../lib/aggregate.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
 import { cancellationInfo } from '../lib/cancellation.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
-import { dataUrl } from '../lib/dataSource.js';
 import { chicagoDayUTC, formatChicagoDay, formatMinutesAsHours } from '../lib/format.js';
+import { loadAggregates, loadRecent } from '../lib/incidentStore.js';
 import {
   filterIncidents,
   groupIncidentRecords,
@@ -395,6 +394,7 @@ export default function SystemHealthPage({ kind }) {
   const [dark, toggleDark] = useDarkMode();
   const now = useNow();
   const [data, setData] = useState(null);
+  const [aggregates, setAggregates] = useState(null);
   const [error, setError] = useState(null);
   const [sortKey, setSortKey] = useState('default');
   const [search, setSearch] = useState('');
@@ -407,14 +407,14 @@ export default function SystemHealthPage({ kind }) {
   const modeLabel = kind === 'train' ? 'Trains' : kind === 'metra' ? 'Metra' : 'Buses';
 
   useEffect(() => {
-    const url = dataUrl('alerts.json');
-    fetch(url, { cache: 'no-store' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
+    // Recent slice powers every ≤90d aggregate on the page; per-mode YoY (the
+    // one >90d computation) comes precomputed from aggregates.json.
+    loadRecent()
       .then((fresh) => setData({ ...fresh, incidents: fresh.incidents || [] }))
       .catch(setError);
+    loadAggregates()
+      .then(setAggregates)
+      .catch(() => setAggregates(null));
   }, []);
 
   // Flat view feeds every aggregate on the page; the incident list reads the
@@ -474,14 +474,10 @@ export default function SystemHealthPage({ kind }) {
     return computeSummaryStats(modeAlerts, modeObservations, now);
   }, [data, modeAlerts, modeObservations, now]);
 
-  const yoy = useMemo(() => {
-    if (!data) return null;
-    return computeYearOverYear(modeAlerts, modeObservations, {
-      now,
-      windowDays: 30,
-      dataStartTs: data.data_start_ts ?? null,
-    });
-  }, [data, modeAlerts, modeObservations, now]);
+  // Per-mode year-over-year, precomputed server-side (the recent slice can't
+  // supply the prior-year window). `kind` is already the train/bus/metra key
+  // aggregates.by_mode is keyed on.
+  const yoy = aggregates?.yoy?.by_mode?.[kind] ?? null;
 
   const worstDay = useMemo(() => {
     if (!data) return null;
