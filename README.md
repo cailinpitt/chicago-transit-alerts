@@ -97,7 +97,7 @@ Each entry carries `<media:thumbnail>`, `<media:content>`, and a small HTML `<co
 
 A feed exists for every train line, **every** bus route, and **every** Metra line in the roster up front — not just ones with a prior incident — so you can subscribe to your route today and it simply stays quiet until something happens. Each line and route page links its feed (the “🔔 Subscribe (RSS)” control), and prerendered pages advertise it via `<link rel="alternate" type="application/atom+xml">` for reader autodiscovery. Every feed also has a JSON Feed twin at the same path with a `.json` extension.
 
-The feeds are regenerated as a postbuild step from the same `alerts.json` the SPA reads, so they update whenever the underlying data does.
+The feeds are regenerated as a postbuild step from the same incident data the SPA reads, so they update whenever the underlying data does.
 
 ## What's tracked
 
@@ -154,21 +154,29 @@ Client-side routing only — every path renders the SPA from the same `index.htm
 The site is a static React app — no backend, no database calls from the browser. High-churn data lives on the R2 data origin and the static site is rebuilt only to refresh prerendered pages, feeds, CSV, sitemap, and share cards.
 
 1. A cron job on a home server runs [`push-web-data.sh`](https://github.com/cailinpitt/cta-insights/blob/main/bin/push-web-data.sh) every 15 minutes, and posting jobs can also trigger it shortly after new incidents.
-2. The script exports the latest data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database — pairing official CTA and Metra alerts with matching bot observations into unified incidents, plus the separate CTA/Metra accessibility outage archive — then uploads `alerts.json`, `accessibility.json`, `daily-counts.json`, and `alerts.csv` to Cloudflare R2 at `data.chicagotransitalerts.app`.
+2. The script exports the latest data from the [cta-insights](https://github.com/cailinpitt/cta-insights) SQLite database — pairing official CTA and Metra alerts with matching bot observations into unified incidents, plus the separate CTA/Metra accessibility outage archive — then uploads the bounded data files (`alerts-recent.json`, the monthly `alerts/<YYYY-MM>.json` shards, the per-line files, `alerts-index.json`, `aggregates.json`), plus `accessibility.json`, `daily-counts.json`, and `alerts.csv`, to Cloudflare R2 at `data.chicagotransitalerts.app`.
 3. If those files changed, the script fires a GitHub `repository_dispatch` rebuild. A scheduled Pages rebuild also runs as a catch-up net.
-4. GitHub Actions fetches the current R2 data during `prebuild`, builds the Vite app, prerenders crawler/feed artifacts, and deploys the static site to GitHub Pages.
-5. The browser polls `https://data.chicagotransitalerts.app/alerts.json` every 5 minutes while visible, so the live app stays current independently of static rebuild timing.
+4. GitHub Actions fetches the current R2 data during `prebuild` (reassembling the all-time set from the shards for the prerender/feed/sitemap/CSV steps), builds the Vite app, prerenders crawler/feed artifacts, and deploys the static site to GitHub Pages.
+5. The browser polls `https://data.chicagotransitalerts.app/alerts-recent.json` every 5 minutes while visible, so the live app stays current independently of static rebuild timing.
 
 ## Data as an API
 
-The same JSON the SPA reads is published at a stable URL:
+The same JSON the SPA reads is published at stable URLs under the public data origin, with no auth. The incident data is served as **bounded files** so a client never has to fetch the whole archive at once:
 
 ```
-https://data.chicagotransitalerts.app/alerts.json
-https://data.chicagotransitalerts.app/accessibility.json
+https://data.chicagotransitalerts.app/alerts-recent.json          # active + last 93 days
+https://data.chicagotransitalerts.app/alerts-index.json           # manifest: months, lines, id→month
+https://data.chicagotransitalerts.app/alerts/<YYYY-MM>.json       # one Chicago month of history
+https://data.chicagotransitalerts.app/incidents/by-line/<key>.json # all-time history for one line/route
+https://data.chicagotransitalerts.app/aggregates.json             # precomputed year-over-year
+https://data.chicagotransitalerts.app/accessibility.json          # accessibility outage archive
 ```
 
-It's regenerated whenever the underlying data changes, uploaded to Cloudflare R2, and served at the public data origin with no auth. Use it however you like — research, journalism, hobby dashboards, training data. Breaking changes to this shape are recorded in the [data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md) ([source](public/data/CHANGELOG.md)) — check it before pinning to the format.
+Every incident-bearing file uses the **same `incidents[]` object shape** sketched below; only the array's scope differs (`alerts-recent.json` = the rolling window, a monthly shard = one month, a by-line file = one route all-time). `alerts-index.json` ties them together — its `months[]` lists every shard, so you can reconstruct the full archive by unioning their `incidents[]` (each incident lives in exactly one monthly shard, by its `first_seen` month). Full field-by-field notes on each file are in the [data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md) ([source](public/data/CHANGELOG.md)) — check it before pinning to the format.
+
+> **Deprecation:** the original full-history `alerts.json` is still published but **deprecated** and will be retired in a future release. For current data poll `alerts-recent.json`; for all-time data union the monthly shards listed in `alerts-index.json`. Watch the changelog for the retirement date.
+
+Everything is regenerated whenever the underlying data changes, uploaded to Cloudflare R2, and free to use however you like — research, journalism, hobby dashboards, training data.
 
 The top-level array is `incidents` — **one object per real-world disruption**. An official alert (CTA or Metra) and the bot detection(s) describing the same incident are paired server-side into a single object (no client-side merging needed): `official_alert` carries the agency alert (null for bot-only incidents), and `detections[]` carries bot detections (empty for official-alert-only incidents). `sources` tells you which contributed. A non-exhaustive sketch:
 

@@ -8,11 +8,13 @@ const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
 const SITE = 'https://chicagotransitalerts.app';
 const FEED_URL = `${SITE}/feed.xml`;
 const CSV_URL = dataUrl('alerts.csv');
-const JSON_URL = dataUrl('alerts.json');
+const RECENT_URL = dataUrl('alerts-recent.json');
+const INDEX_URL = dataUrl('alerts-index.json');
+const LEGACY_JSON_URL = dataUrl('alerts.json');
 const ACCESSIBILITY_URL = dataUrl('accessibility.json');
 const CHANGELOG_URL = 'https://chicagotransitalerts.app/data/CHANGELOG.md';
 
-const CURL_CMD = `curl -s ${JSON_URL} | jq '.incidents | length'`;
+const CURL_CMD = `curl -s ${RECENT_URL} | jq '.incidents | length'`;
 
 // Picker options for the per-line/route feed chooser. Values are the feed path
 // segment after `/feed/` (e.g. `line/red`, `route/66`).
@@ -254,16 +256,25 @@ export default function SubscribeContent() {
 
       <h3 className="font-semibold text-slate-700 dark:text-slate-200 pt-3">Bulk data</h3>
       <p>
-        Building a dashboard or doing analysis? The same data is published as JSON (a unified{' '}
-        <code className="text-xs">incidents[]</code> array) and as a flat CSV (one row per alert or
-        observation). No auth, no rate-limit beyond reasonable polling.
+        Building a dashboard or doing analysis? The incident data is published as bounded JSON files
+        — a unified <code className="text-xs">incidents[]</code> array in each — so you never fetch
+        the whole archive at once. There's also a flat CSV (one row per alert or observation). No
+        auth, no rate-limit beyond reasonable polling.
       </p>
       <ul className="list-disc list-outside ml-5 space-y-1 text-xs">
         <li>
-          <a className={LINK} href={JSON_URL} target="_blank" rel="noopener noreferrer">
-            {JSON_URL}
+          <a className={LINK} href={RECENT_URL} target="_blank" rel="noopener noreferrer">
+            {RECENT_URL}
           </a>{' '}
-          — unified incidents, the same shape the SPA reads.
+          — current incidents (active, plus the last 93 days); the same data the live site reads.
+          Poll this.
+        </li>
+        <li>
+          <a className={LINK} href={INDEX_URL} target="_blank" rel="noopener noreferrer">
+            {INDEX_URL}
+          </a>{' '}
+          — manifest of the monthly archive shards and per-line files. Union the monthly shards it
+          lists for the full all-time history.
         </li>
         <li>
           <a className={LINK} href={CSV_URL} target="_blank" rel="noopener noreferrer">
@@ -283,7 +294,12 @@ export default function SubscribeContent() {
         </li>
       </ul>
       <p className="text-xs text-slate-500 dark:text-slate-400">
-        Format changes are tracked in the{' '}
+        The original full-history{' '}
+        <a className={LINK} href={LEGACY_JSON_URL} target="_blank" rel="noopener noreferrer">
+          alerts.json
+        </a>{' '}
+        is still available but <strong>deprecated</strong> and will be retired — migrate to the
+        files above. Format changes (and the retirement date) are tracked in the{' '}
         <a className={LINK} href={CHANGELOG_URL} target="_blank" rel="noopener noreferrer">
           data changelog
         </a>{' '}
