@@ -81,13 +81,19 @@ export function loadIndex() {
 }
 
 // --- Monthly archive shards --------------------------------------------------
-// Closed months are immutable → force-cache + memoize. The current Chicago month
-// still grows each tick, so it must revalidate (no-cache) and is never memoized.
+// A closed month is *almost* immutable: a long-running incident first seen that
+// month but resolving after it ends rewrites that shard's bytes. The producer
+// therefore gives closed months a 1-day TTL (not `immutable`), so `default`
+// caching is correct here — served straight from cache for a day (no network),
+// then revalidated, so a late-resolution rewrite is picked up within ~24h. (Not
+// `force-cache`, which would pin the stale copy indefinitely.) The current
+// Chicago month still grows each tick → `no-cache` (always revalidate). Closed
+// months are memoized for the session; the current month never is.
 const monthCache = new Map(); // closed-month key → Promise<Incident[]>
 export function loadMonth(key) {
   const closed = key < chicagoMonthKey(Date.now());
   if (closed && monthCache.has(key)) return monthCache.get(key);
-  const promise = fetchJson(`alerts/${key}.json`, closed ? 'force-cache' : 'no-cache')
+  const promise = fetchJson(`alerts/${key}.json`, closed ? 'default' : 'no-cache')
     .then((payload) => gate(payload.incidents))
     .catch((err) => {
       if (closed) monthCache.delete(key);

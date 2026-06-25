@@ -79,7 +79,9 @@ describe('loadMonth', () => {
     expect(first.map((i) => i.id)).toEqual(['old']);
     expect(second).toBe(first); // memoized promise result
     expect(calls).toHaveLength(1);
-    expect(calls[0].cache).toBe('force-cache');
+    // `default` (not force-cache): honors the shard's 1-day TTL so a late
+    // resolution that rewrites a closed month is picked up within ~24h.
+    expect(calls[0].cache).toBe('default');
   });
 
   it('revalidates the current month and does not memoize it', async () => {
