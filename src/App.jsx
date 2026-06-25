@@ -22,7 +22,7 @@ import {
 } from './lib/aggregate.js';
 import { compareBusRoutes } from './lib/busRoutes.js';
 import { cancellationInfo, collectUpcomingCancellations } from './lib/cancellation.js';
-import { dataUrl } from './lib/dataSource.js';
+import { loadRecent } from './lib/incidentStore.js';
 import {
   filterIncidents,
   incidentAgency,
@@ -31,7 +31,6 @@ import {
   observationSignals,
   SOURCE_TYPES,
 } from './lib/incidents.js';
-import { gateIncidents } from './lib/metraGate.js';
 import { buildStationIndex } from './lib/stations.js';
 import {
   buildSearch,
@@ -185,8 +184,6 @@ export default function App() {
   ]);
 
   useEffect(() => {
-    const url = dataUrl('alerts.json');
-
     // Don't refetch on every unhide — a quick alt-tab away and back shouldn't
     // fire a request. Only revalidate on focus if it's been at least this long
     // since the last fetch; shorter toggles ride the data we already have.
@@ -195,27 +192,14 @@ export default function App() {
 
     function fetchData() {
       lastFetchedAt = Date.now();
-      // 'no-cache' (not 'no-store'): always revalidate, but send the stored
-      // ETag so an unchanged file comes back 304 with no body — skipping the
-      // ~800KB re-parse on the common quiet poll. R2 only changes the bytes
-      // when incidents change (push-web-data byte-compares before upload), so
-      // the ETag is stable during quiet periods and most polls cost nothing.
-      fetch(url, { cache: 'no-cache' })
-        .then((r) => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.json();
-        })
+      // loadRecent() fetches the bounded 93-day-∪-active recent slice (not the
+      // full history) with revalidation, and applies the Metra/CTA gate at that
+      // single boundary. A quiet poll still comes back 304 with no body.
+      loadRecent()
         .then((fresh) => {
-          // In the browser gateIncidents is a pass-through (Metra is launched);
-          // it only strips Metra in the Node build scripts. Kept here as the
-          // single load boundary so the split lives in exactly one place.
-          const gated = {
-            ...fresh,
-            incidents: gateIncidents(fresh.incidents),
-          };
           setData((prev) => {
             // Only update if generated_at changed (or on first load).
-            if (!prev || gated.generated_at !== prev.generated_at) return gated;
+            if (!prev || fresh.generated_at !== prev.generated_at) return fresh;
             return prev;
           });
         })
