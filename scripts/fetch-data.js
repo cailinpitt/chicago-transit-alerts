@@ -1,8 +1,16 @@
-// Fetch the published data files from the R2 data origin into public/data/
-// *before* the build, so the deployed snapshot + the postbuild steps
-// (prerender-events, generate-feed, generate-sitemap, generate-csv) have
-// current data without it being committed to the repo. Runs automatically as
-// the npm `prebuild` hook.
+// Fetch the published data into public/data/ *before* the build, so the
+// deployed snapshot + the postbuild steps (prerender-events, prerender-pages,
+// generate-feed, generate-sitemap, generate-csv) have current data without it
+// being committed to the repo. Runs automatically as the npm `prebuild` hook.
+//
+// alerts.json is no longer a published artifact — the data origin now serves the
+// bounded shards (alerts-recent.json + monthly alerts/<YYYY-MM>.json + the
+// index). The build still needs the *all-time* set (per-event OG cards, the
+// sitemap, the full CSV), so we reassemble it here from the shards: every
+// monthly archive shard is the complete partition of history by first_seen
+// month, unioned with any active-but-unarchived incident the recent slice
+// carries. The result is byte-compatible with the old alerts.json shape, so the
+// postbuild scripts read it unchanged.
 //
 // Resilience: if the origin is unreachable but a local copy already exists
 // (e.g. during local development, or a transient R2 hiccup), we keep the
@@ -22,29 +30,84 @@ const ORIGIN = (process.env.DATA_ORIGIN_URL || 'https://data.chicagotransitalert
   '',
 );
 const OUT_DIR = resolve(__dirname, '..', 'public', 'data');
-const FILES = ['alerts.json', 'daily-counts.json', 'accessibility.json'];
+// Files still published verbatim by the producer.
+const PLAIN_FILES = ['daily-counts.json', 'accessibility.json'];
 
 mkdirSync(OUT_DIR, { recursive: true });
 
-for (const file of FILES) {
-  const url = `${ORIGIN}/${file}`;
+async function getJson(file) {
+  const res = await fetch(`${ORIGIN}/${file}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// Reassemble the all-time alerts.json from the published shards. The monthly
+// shards partition every archived incident by first_seen month; the recent
+// slice supplies any active incident that has no first_seen (so isn't archived).
+async function assembleAlerts() {
+  const index = await getJson('alerts-index.json');
+  const months = index.months ?? [];
+  const shards = await Promise.all(months.map((m) => getJson(m.url)));
+
+  const incidents = [];
+  const seen = new Set();
+  // index.months is newest-first and each shard preserves first_seen-DESC order,
+  // so concatenating in index order reproduces the old global newest-first order.
+  for (const shard of shards) {
+    for (const inc of shard.incidents ?? []) {
+      incidents.push(inc);
+      seen.add(inc.id);
+    }
+  }
+  // Active-but-unarchived incidents (no first_seen) ride only the recent slice.
+  const recent = await getJson('alerts-recent.json');
+  for (const inc of recent.incidents ?? []) {
+    if (!seen.has(inc.id)) incidents.unshift(inc);
+  }
+
+  return {
+    schema_version: index.schema_version ?? recent.schema_version ?? 2,
+    generated_at: index.generated_at ?? recent.generated_at ?? Date.now(),
+    data_start_ts: index.data_start_ts ?? null,
+    incidents,
+  };
+}
+
+const alertsDest = resolve(OUT_DIR, 'alerts.json');
+try {
+  const assembled = await assembleAlerts();
+  writeFileSync(alertsDest, `${JSON.stringify(assembled)}\n`);
+  console.log(
+    `fetch-data: assembled alerts.json from shards (${assembled.incidents.length} incidents)`,
+  );
+} catch (err) {
+  if (existsSync(alertsDest)) {
+    console.warn(
+      `fetch-data: shard assembly failed (${err.message}); using existing ${alertsDest}`,
+    );
+  } else {
+    console.error(`fetch-data: shard assembly failed (${err.message}) and no local copy`);
+  }
+}
+
+for (const file of PLAIN_FILES) {
   const dest = resolve(OUT_DIR, file);
   try {
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(`${ORIGIN}/${file}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = Buffer.from(await res.arrayBuffer());
     writeFileSync(dest, body);
-    console.log(`fetch-data: ${file} <- ${url} (${body.length} bytes)`);
+    console.log(`fetch-data: ${file} <- ${ORIGIN}/${file} (${body.length} bytes)`);
   } catch (err) {
     if (existsSync(dest)) {
       console.warn(`fetch-data: ${file} fetch failed (${err.message}); using existing ${dest}`);
     } else {
-      console.error(`fetch-data: ${file} fetch failed (${err.message}) and no local copy`);
+      console.warn(`fetch-data: ${file} fetch failed (${err.message}) and no local copy`);
     }
   }
 }
 
-if (!existsSync(resolve(OUT_DIR, 'alerts.json'))) {
+if (!existsSync(alertsDest)) {
   console.error(
     'fetch-data: no alerts.json available (origin down, no local copy) — aborting build',
   );
