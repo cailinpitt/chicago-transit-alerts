@@ -1,0 +1,174 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  __resetStoreCaches,
+  chicagoMonthKey,
+  getIncidentById,
+  loadIndex,
+  loadLine,
+  loadMonth,
+  loadRange,
+  loadRecent,
+} from '../lib/incidentStore.js';
+
+// Build a minimal v2 incident. The store only touches id/mode/routes for
+// gating + id resolution; lifecycle is enough for the rest.
+function incident(id, { mode = 'train', routes = ['red'] } = {}) {
+  return {
+    id,
+    mode,
+    routes,
+    lifecycle: { first_seen_ts: 0, resolved_ts: 0, active: false },
+    detections: [],
+  };
+}
+
+// A fetch mock keyed by the trailing path of the requested URL, so each test
+// declares exactly the files it expects to be hit and asserts on cache modes.
+function mockFiles(files) {
+  const calls = [];
+  globalThis.fetch = vi.fn((url, opts) => {
+    const path = String(url).replace(/^https?:\/\/[^/]+\//, '');
+    calls.push({ path, cache: opts?.cache });
+    if (!(path in files)) {
+      return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve(null) });
+    }
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(files[path]) });
+  });
+  return calls;
+}
+
+beforeEach(() => {
+  __resetStoreCaches();
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe('chicagoMonthKey', () => {
+  it('honors the Chicago timezone boundary', () => {
+    // 2026-06-01T03:00Z is still 2026-05-31 22:00 in Chicago (CDT, -5).
+    expect(chicagoMonthKey(Date.parse('2026-06-01T03:00:00Z'))).toBe('2026-05');
+    expect(chicagoMonthKey(Date.parse('2026-06-01T06:00:00Z'))).toBe('2026-06');
+  });
+});
+
+describe('loadRecent', () => {
+  it('fetches the recent file with revalidation and applies the gate', async () => {
+    const calls = mockFiles({
+      'alerts-recent.json': {
+        generated_at: 5,
+        incidents: [incident('a'), incident('m', { mode: 'commuter_rail' })],
+      },
+    });
+    const out = await loadRecent();
+    expect(out.generated_at).toBe(5);
+    // Browser gate is a pass-through (Metra launched) → both kept.
+    expect(out.incidents.map((i) => i.id)).toEqual(['a', 'm']);
+    expect(calls[0]).toEqual({ path: 'alerts-recent.json', cache: 'no-cache' });
+  });
+});
+
+describe('loadMonth', () => {
+  it('force-caches + memoizes a closed month (one fetch for repeat calls)', async () => {
+    const calls = mockFiles({
+      'alerts/2020-01.json': { month: '2020-01', incidents: [incident('old')] },
+    });
+    const first = await loadMonth('2020-01');
+    const second = await loadMonth('2020-01');
+    expect(first.map((i) => i.id)).toEqual(['old']);
+    expect(second).toBe(first); // memoized promise result
+    expect(calls).toHaveLength(1);
+    expect(calls[0].cache).toBe('force-cache');
+  });
+
+  it('revalidates the current month and does not memoize it', async () => {
+    const key = chicagoMonthKey(Date.now());
+    const calls = mockFiles({
+      [`alerts/${key}.json`]: { month: key, incidents: [incident('cur')] },
+    });
+    await loadMonth(key);
+    await loadMonth(key);
+    expect(calls).toHaveLength(2); // not memoized
+    expect(calls[0].cache).toBe('no-cache');
+  });
+});
+
+describe('loadLine', () => {
+  it('encodes the key, memoizes, and gates', async () => {
+    const calls = mockFiles({
+      'incidents/by-line/72%20North%20Ave.json': {
+        line: '72 North Ave',
+        incidents: [incident('x', { routes: ['72 North Ave'] })],
+      },
+    });
+    await loadLine('72 North Ave');
+    await loadLine('72 North Ave');
+    expect(calls).toHaveLength(1); // memoized
+    expect(calls[0].cache).toBe('no-cache');
+  });
+});
+
+describe('getIncidentById', () => {
+  it('resolves from the recent slice without touching the index', async () => {
+    const calls = mockFiles({
+      'alerts-recent.json': { generated_at: 1, incidents: [incident('here')] },
+    });
+    const res = await getIncidentById('here');
+    expect(res.incident.id).toBe('here');
+    expect(res.incidents.map((i) => i.id)).toEqual(['here']);
+    expect(calls.map((c) => c.path)).toEqual(['alerts-recent.json']);
+  });
+
+  it('falls back to the id→month shard via the index for archived ids', async () => {
+    mockFiles({
+      'alerts-recent.json': { generated_at: 1, incidents: [incident('recent')] },
+      'alerts-index.json': { months: [], lines: [], id_month: { gone: '2020-01' } },
+      'alerts/2020-01.json': { month: '2020-01', incidents: [incident('gone')] },
+    });
+    const res = await getIncidentById('gone');
+    expect(res.incident.id).toBe('gone');
+    expect(res.incidents.map((i) => i.id)).toEqual(['gone']);
+  });
+
+  it('returns null when the id resolves nowhere', async () => {
+    mockFiles({
+      'alerts-recent.json': { generated_at: 1, incidents: [incident('recent')] },
+      'alerts-index.json': { months: [], lines: [], id_month: {} },
+    });
+    expect(await getIncidentById('missing')).toBeNull();
+    expect(await getIncidentById('')).toBeNull();
+  });
+});
+
+describe('loadRange', () => {
+  it('unions only the months overlapping the range, de-duped by id', async () => {
+    mockFiles({
+      'alerts-index.json': {
+        months: [
+          { key: '2020-01', url: 'alerts/2020-01.json', count: 1, min_ts: 100, max_ts: 200 },
+          { key: '2020-02', url: 'alerts/2020-02.json', count: 1, min_ts: 300, max_ts: 400 },
+          { key: '2020-03', url: 'alerts/2020-03.json', count: 1, min_ts: 500, max_ts: 600 },
+        ],
+        lines: [],
+        id_month: {},
+      },
+      'alerts/2020-02.json': { month: '2020-02', incidents: [incident('feb')] },
+      'alerts/2020-03.json': { month: '2020-03', incidents: [incident('mar')] },
+    });
+    // Range [350, 550] overlaps Feb (300-400) and Mar (500-600), not Jan.
+    const out = await loadRange(350, 550);
+    expect(out.map((i) => i.id).sort()).toEqual(['feb', 'mar']);
+  });
+});
+
+describe('loadIndex', () => {
+  it('memoizes across calls', async () => {
+    const calls = mockFiles({
+      'alerts-index.json': { months: [], lines: [], id_month: {} },
+    });
+    await loadIndex();
+    await loadIndex();
+    expect(calls).toHaveLength(1);
+    expect(calls[0].cache).toBe('no-cache');
+  });
+});
