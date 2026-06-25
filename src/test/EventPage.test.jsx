@@ -445,6 +445,62 @@ const V2_PAYLOAD = {
       ],
       status: null,
     },
+    {
+      id: 'v2thingap',
+      agency: 'cta',
+      mode: 'bus',
+      routes: ['22'],
+      sources: ['bot'],
+      lifecycle: {
+        first_seen_ts: NOW - 3 * 60 * 60_000,
+        resolved_ts: NOW - 4 * 60_000,
+        active: false,
+        duration_ms: 3 * 60 * 60_000 - 4 * 60_000,
+      },
+      official_alert: null,
+      detections: [
+        {
+          id: 'd-22',
+          source: 'thin-gap',
+          scope: { route: '22' },
+          lifecycle: {
+            first_seen_ts: NOW - 3 * 60 * 60_000,
+            onset_ts: null,
+            resolved_ts: NOW - 4 * 60_000,
+            active: false,
+            duration_ms: 3 * 60 * 60_000 - 4 * 60_000,
+          },
+          post_url: 'https://bsky.app/profile/did:plc:bus/post/thin22',
+          resolved_post_url: 'https://bsky.app/profile/did:plc:bus/post/thin22clear',
+          description: 'Route 22 thin-service gap',
+          evidence: {
+            signals: ['thin-gap'],
+            details: { headwayMin: 30 },
+            bullets: [],
+            onset_description: null,
+            resolved_description:
+              'Buses observed on Route 22 again — earlier thin-service gap has cleared.',
+            updates: [
+              {
+                ts: NOW - 2 * 60 * 60_000,
+                description:
+                  '🚌 Route 22 · still no buses observed — ~1h in, ~2 scheduled trips missed so far.',
+                post_url: null,
+                evidence: { elapsedMin: 60, headwayMin: 30, missedTrips: 2 },
+              },
+              {
+                ts: NOW - 60 * 60_000,
+                description:
+                  '🚌 Route 22 · still no buses observed — ~2h in, ~4 scheduled trips missed so far.',
+                post_url: null,
+                evidence: { elapsedMin: 120, headwayMin: 30, missedTrips: 4 },
+              },
+            ],
+          },
+        },
+      ],
+      status: null,
+    },
   ],
 };
 
@@ -508,6 +564,23 @@ describe('EventPage', () => {
     expect(screen.getAllByText(/Per CTA/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Per bot/).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Loyola' }).length).toBeGreaterThan(0);
+  });
+
+  it('renders hourly progress updates on a bot-only absence incident timeline', async () => {
+    globalThis.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve(V2_PAYLOAD) }),
+    );
+    render(<EventPage eventId="v2thingap" />);
+    await waitFor(() => {
+      expect(screen.getByText(/Route 22 thin-service gap/)).toBeInTheDocument();
+    });
+    // Each hourly update is its own entry on the Per bot rail, between the
+    // detection and the resolution.
+    expect(
+      screen.getByText(/still no buses observed — ~1h in, ~2 scheduled trips missed/),
+    ).toBeInTheDocument();
+    // resolution + 2 updates + detection = 4 entries (no onset for this fixture).
+    expect(screen.getByText(/Per bot · 4 updates/)).toBeInTheDocument();
   });
 
   it('renders a standalone observation by id', async () => {

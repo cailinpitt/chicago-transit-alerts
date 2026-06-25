@@ -6,6 +6,34 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-06-25 — Incident progress updates (`detections[].evidence.updates[]`)
+
+**Additive, backward-compatible.** Long-running bot-detected absence incidents
+(thin-service gaps and pulse blackouts) now carry an hourly progress timeline.
+A detection's `evidence` object gains an optional `updates` array:
+
+```json
+"evidence": {
+  "updates": [
+    {
+      "ts": 1715202600000,
+      "description": "🚌 #22 Clark · still no buses observed — ~3h in, ~6 scheduled trips missed.",
+      "post_url": "https://bsky.app/profile/.../post/...",
+      "evidence": { "elapsedMin": 180, "headwayMin": 30, "missedTrips": 6 }
+    }
+  ]
+}
+```
+
+- `ts` — epoch ms of the update.
+- `description` — the rider-facing sentence (pre-rendered).
+- `post_url` — the threaded Bluesky reply, or `null` for backfilled updates
+  (reconstructed for historical incidents; no retroactive post was made).
+- `evidence` — a small structured snapshot (shape varies by detection source).
+
+`updates` is **omitted/`null`** when an incident has none, so existing consumers
+are unaffected. Only thin-service and pulse-blackout detections populate it today.
+
 ## 2026-06-24 — Sharded data files + index + aggregates; `alerts.json` deprecated
 
 The full-history `alerts.json` is being replaced by a set of **bounded files** so

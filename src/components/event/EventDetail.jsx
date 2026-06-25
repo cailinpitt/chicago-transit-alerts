@@ -652,6 +652,12 @@ export function EventDetail({ incident, incidents, alerts, observations, station
         const bullets = isObsOnly ? primary?.bot_evidence_bullets : null;
         const onsetText = isObsOnly ? (primary?.onset_description ?? null) : null;
         const onsetTs = isObsOnly ? (primary?.onset_ts ?? null) : null;
+        // Hourly progress updates posted while the incident was still open
+        // ("still no buses — ~3h in"). They sit between the detection and the
+        // resolution on the rail; absent for short or pre-feature incidents.
+        const updates = (
+          isObsOnly && Array.isArray(primary?.bot_updates) ? primary.bot_updates : []
+        ).filter((u) => u?.description && u.ts != null);
         if (!detection) return null;
         const joinBullets = (items) => items.map((b) => b.replace(/\.\s*$/, '')).join('; ') + '.';
         const bulletsBlock =
@@ -672,7 +678,7 @@ export function EventDetail({ incident, incidents, alerts, observations, station
           onsetTs != null &&
           primary?.ts != null &&
           primary.ts - onsetTs >= 5 * 60 * 1000;
-        if (!resolution && !hasOnset) {
+        if (!resolution && !hasOnset && updates.length === 0) {
           return (
             <blockquote className="mt-4 border-l-2 border-slate-300 dark:border-gh-border pl-4 py-1">
               <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
@@ -685,14 +691,20 @@ export function EventDetail({ incident, incidents, alerts, observations, station
             </blockquote>
           );
         }
-        // Newest first: resolution (if cleared), detection, onset (if known).
-        // Bullets only belong on the detection entry — the resolution post is a
-        // single "back to normal" sentence and the onset is a one-line marker.
+        // Newest first: resolution (if cleared), progress updates, detection,
+        // onset (if known). Bullets only belong on the detection entry — the
+        // resolution post is a single "back to normal" sentence, the onset is a
+        // one-line marker, and each update is its own one-line "still going" beat.
         const entries = [];
         if (resolution)
           entries.push({ key: 'resolved', ts: lifecycle.resolved_ts, text: resolution });
+        for (const u of updates)
+          entries.push({ key: `update-${u.ts}`, ts: u.ts, text: u.description });
         entries.push({ key: 'detect', ts: primary.ts, text: detection, bullets });
         if (hasOnset) entries.push({ key: 'onset', ts: onsetTs, text: onsetText });
+        // Updates and resolution all sit after detection in time; sort the whole
+        // rail strictly newest-first so an out-of-order update can't jump the line.
+        entries.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0));
         return (
           <section className="mt-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">

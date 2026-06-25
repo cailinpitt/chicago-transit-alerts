@@ -96,6 +96,7 @@ function legacyDetection(incident, detection) {
     bot_resolved_description: evidence.resolved_description ?? null,
     bot_evidence_bullets: evidence.bullets ?? [],
     onset_description: evidence.onset_description ?? null,
+    bot_updates: evidence.updates ?? [],
     _incidentId: incident?.id,
   };
 }
