@@ -69,6 +69,43 @@ export function currentlyOut(outages = [], { now = Date.now(), agency = null, li
     );
 }
 
+export function summarizeOutages(outages = []) {
+  const stations = new Set();
+  let cta = 0;
+  let metra = 0;
+  for (const o of outages) {
+    stations.add(`${o.agency}:${o.station?.slug || stationLabel(o)}`);
+    if (o.agency === 'metra') metra += 1;
+    else cta += 1;
+  }
+  return { total: outages.length, stations: stations.size, cta, metra };
+}
+
+// Collapses active outages into one group per station so a stop with several
+// out-of-service units (e.g. two elevators) reads as a single card. Stations
+// keep the order of their first outage in the input, so a list pre-sorted by
+// duration surfaces the longest-out station first. A station belongs to several
+// lines, so we group by station rather than line to avoid an arbitrary
+// primary-line pick or duplicating one outage across line sections.
+export function groupOutagesByStation(outages = []) {
+  const groups = new Map();
+  for (const o of outages) {
+    const key = `${o.agency}:${o.station?.slug || stationLabel(o)}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        key,
+        agency: o.agency,
+        name: stationLabel(o),
+        slug: o.station?.slug ?? null,
+        lines: o.station?.lines || [],
+        outages: [],
+      });
+    }
+    groups.get(key).outages.push(o);
+  }
+  return [...groups.values()];
+}
+
 export function outagesForStation(
   outages = [],
   { agency, slug, now = Date.now(), limit = 8 } = {},

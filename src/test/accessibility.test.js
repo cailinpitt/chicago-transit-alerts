@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   currentlyOut,
+  groupOutagesByStation,
   outageDuration,
   outageHasLine,
   outagesForLine,
   outagesForStation,
   stationHref,
   stationReliability,
+  summarizeOutages,
 } from '../lib/accessibility.js';
 
 const NOW = 1_700_000_000_000;
@@ -77,6 +79,59 @@ describe('accessibility helpers', () => {
       outageCount: 2,
       currentlyOut: 1,
     });
+  });
+
+  it('summarizes active outages by station and agency', () => {
+    const rows = [
+      outage(),
+      outage({ id: 'cta-2' }),
+      outage({
+        id: 'metra-1',
+        agency: 'metra',
+        station: { slug: 'aurora', name: 'Aurora', lines: ['bnsf'] },
+      }),
+    ];
+    // two outages share the Belmont station, so it counts once.
+    expect(summarizeOutages(rows)).toEqual({ total: 3, stations: 2, cta: 2, metra: 1 });
+  });
+
+  it('collapses multiple units at one station into a single group', () => {
+    const rows = [
+      outage({ id: 'cta-1', unit_label: 'to platform' }),
+      outage({ id: 'cta-2', unit_label: 'to street' }),
+      outage({
+        id: 'cta-blue',
+        station: { slug: 'clark-lake', name: 'Clark/Lake', lines: ['blue'] },
+      }),
+    ];
+    const groups = groupOutagesByStation(rows);
+    expect(groups.map((g) => g.key)).toEqual(['cta:belmont-red-brown-purple', 'cta:clark-lake']);
+    expect(groups[0]).toMatchObject({
+      agency: 'cta',
+      name: 'Belmont',
+      slug: 'belmont-red-brown-purple',
+      lines: ['red', 'brn', 'p'],
+    });
+    expect(groups[0].outages.map((o) => o.id)).toEqual(['cta-1', 'cta-2']);
+  });
+
+  it('keeps stations in input order so the longest-out station leads', () => {
+    const rows = currentlyOut(
+      [
+        outage({
+          id: 'short',
+          station: { slug: 'a', name: 'A', lines: ['red'] },
+          lifecycle: { ...outage().lifecycle, first_seen_ts: NOW - HOUR },
+        }),
+        outage({
+          id: 'long',
+          station: { slug: 'b', name: 'B', lines: ['blue'] },
+          lifecycle: { ...outage().lifecycle, first_seen_ts: NOW - 5 * HOUR },
+        }),
+      ],
+      { now: NOW },
+    );
+    expect(groupOutagesByStation(rows).map((g) => g.name)).toEqual(['B', 'A']);
   });
 
   it('finds line-specific rows with active rows first', () => {

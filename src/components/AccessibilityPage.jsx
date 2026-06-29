@@ -5,10 +5,12 @@ import {
   agencyLabel,
   currentlyOut,
   fetchAccessibilityData,
+  groupOutagesByStation,
   outageDuration,
   outageHasLine,
   stationHref,
   stationReliability,
+  summarizeOutages,
 } from '../lib/accessibility.js';
 import { topLevelTrail } from '../lib/breadcrumbs.js';
 import { TRAIN_LINE_ORDER } from '../lib/ctaLines.js';
@@ -52,6 +54,94 @@ function StationLines({ outage }) {
         <LinePill key={`${outage.agency}-${line}`} kind={lineKind} line={line} />
       ))}
     </span>
+  );
+}
+
+function UnitDetail({ outage }) {
+  return (
+    <>
+      <span className="capitalize">{outage.unit_type}</span>
+      {outage.unit_label ? ` · ${outage.unit_label}` : ''} · out{' '}
+      {formatDuration(outage.durationMs) || 'just now'}
+    </>
+  );
+}
+
+function StationOutageGroup({ group }) {
+  const href = stationHref(group);
+  const lineKind = group.agency === 'metra' ? 'metra' : 'train';
+  const multi = group.outages.length > 1;
+  return (
+    <div className="px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="font-semibold text-slate-800 dark:text-slate-100">
+          {href ? (
+            <a href={href} className="hover:underline">
+              {group.name}
+            </a>
+          ) : (
+            <span>{group.name}</span>
+          )}
+        </span>
+        {group.lines.length > 0 ? (
+          <span className="flex flex-wrap items-center gap-1">
+            {group.lines.map((line) => (
+              <LinePill key={`${group.agency}-${line}`} kind={lineKind} line={line} compact />
+            ))}
+          </span>
+        ) : (
+          <AgencyTag agency={group.agency} />
+        )}
+        {multi ? (
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">
+            {group.outages.length} out
+          </span>
+        ) : (
+          <span className="text-sm text-slate-500 dark:text-slate-400">
+            · <UnitDetail outage={group.outages[0]} />
+          </span>
+        )}
+      </div>
+      {multi && (
+        <ul className="mt-1 space-y-0.5 text-sm text-slate-500 dark:text-slate-400">
+          {group.outages.map((outage) => (
+            <li key={outage.id}>
+              <UnitDetail outage={outage} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function SummaryBar({ summary, agency }) {
+  if (summary.total === 0) {
+    return (
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200">
+        No accessibility outages in this view right now.
+      </div>
+    );
+  }
+  const parts = [];
+  if (!agency || agency === 'cta') parts.push(`CTA ${summary.cta}`);
+  if (!agency || agency === 'metra') parts.push(`Metra ${summary.metra}`);
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">
+      <span className="font-semibold">
+        {summary.total} {summary.total === 1 ? 'unit' : 'units'} out
+      </span>
+      <span className="text-amber-700/70 dark:text-amber-200/70">·</span>
+      <span>
+        {summary.stations} {summary.stations === 1 ? 'station' : 'stations'}
+      </span>
+      {agency == null && (
+        <>
+          <span className="text-amber-700/70 dark:text-amber-200/70">·</span>
+          <span>{parts.join(' / ')}</span>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -190,6 +280,8 @@ export default function AccessibilityPage() {
     () => currentlyOut(outages, { now, agency: agencyFilter, line }),
     [outages, now, agencyFilter, line],
   );
+  const activeSummary = useMemo(() => summarizeOutages(activeOutages), [activeOutages]);
+  const activeGroups = useMemo(() => groupOutagesByStation(activeOutages), [activeOutages]);
   const recentOutages = useMemo(
     () =>
       outages
@@ -222,7 +314,7 @@ export default function AccessibilityPage() {
             Accessibility outages
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Elevator, escalator, entrance, and ADA notices for CTA rail and Metra stations, archived
+            Elevator outages plus entrance and ADA notices for CTA rail and Metra stations, archived
             separately from general service disruptions.
           </p>
         </div>
@@ -248,42 +340,22 @@ export default function AccessibilityPage() {
 
         {data && (
           <>
-            <section className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border">
-              <div className="p-4 border-b border-slate-100 dark:border-gh-border">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Active outages ({activeOutages.length})
-                </h2>
-              </div>
-              {activeOutages.length === 0 ? (
-                <p className="p-4 text-sm text-slate-500 dark:text-slate-400">
-                  No accessibility outages in this view right now.
-                </p>
-              ) : (
+            <SummaryBar summary={activeSummary} agency={agencyFilter} />
+
+            {activeOutages.length > 0 && (
+              <section className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border overflow-hidden">
+                <div className="p-4 border-b border-slate-100 dark:border-gh-border">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Active outages ({activeOutages.length})
+                  </h2>
+                </div>
                 <div className="divide-y divide-slate-100 dark:divide-gh-border">
-                  {activeOutages.map((outage) => (
-                    <div key={outage.id} className="p-4">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold text-slate-800 dark:text-slate-100">
-                          <StationLink outage={outage} />
-                        </span>
-                        <AgencyTag agency={outage.agency} />
-                        <StationLines outage={outage} />
-                      </div>
-                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                        <span className="capitalize">{outage.unit_type}</span>
-                        {outage.unit_label ? ` · ${outage.unit_label}` : ''} · out{' '}
-                        {formatDuration(outage.durationMs) || 'just now'}
-                      </p>
-                      {outage.headline && (
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          {outage.headline}
-                        </p>
-                      )}
-                    </div>
+                  {activeGroups.map((group) => (
+                    <StationOutageGroup key={group.key} group={group} />
                   ))}
                 </div>
-              )}
-            </section>
+              </section>
+            )}
 
             <section className="bg-white dark:bg-gh-surface rounded-lg border border-slate-200 dark:border-gh-border">
               <div className="p-4 border-b border-slate-100 dark:border-gh-border">
@@ -357,6 +429,32 @@ export default function AccessibilityPage() {
                   </tbody>
                 </table>
               </div>
+            </section>
+
+            <section className="rounded-lg border border-slate-200 dark:border-gh-border bg-white dark:bg-gh-surface p-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300 space-y-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                What's captured
+              </h2>
+              <p>
+                CTA publishes <strong>elevator</strong> outages as a structured real-time feed, so
+                each one is archived here as an outage with start and restore times. Entrance
+                closures and other ADA notices are captured when they appear in the CTA or Metra
+                alert feeds; Metra accessibility issues come from GTFS-realtime alerts.
+              </p>
+              <p>
+                <strong>Escalators aren't included.</strong> CTA doesn't report individual escalator
+                outages in real time — it only publishes monthly escalator availability in its{' '}
+                <a
+                  className="text-blue-500 hover:text-blue-400 hover:underline"
+                  href="https://www.transitchicago.com/performance/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  performance dashboard
+                </a>
+                . An empty escalator history would reflect the data CTA makes public, not an
+                outage-free system.
+              </p>
             </section>
           </>
         )}

@@ -118,7 +118,7 @@ export default function AboutContent() {
           <strong>Metra service alerts</strong> — June 9, 2026
         </li>
         <li>
-          <strong>Accessibility outages</strong> (elevators, escalators, ADA) — June 23, 2026
+          <strong>Accessibility outages</strong> (elevators + ADA notices) — June 23, 2026
         </li>
       </ul>
       <p>Stats, calendar, and leaderboard views all draw from these windows.</p>
