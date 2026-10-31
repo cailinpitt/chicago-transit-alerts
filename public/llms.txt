@@ -9,6 +9,7 @@ Each incident pairs an official alert with bot observations (gap, bunching, ghos
 - [Daily counts (JSON)](https://data.chicagotransitalerts.app/daily-counts.json): Per-day train/bus incident counts behind the calendar heatmap.
 - [Accessibility outages (JSON)](https://data.chicagotransitalerts.app/accessibility.json): CTA rail and Metra elevator, escalator, entrance, and ADA notices, separated from the general incident archive.
 - [Incidents (CSV)](https://data.chicagotransitalerts.app/alerts.csv): Flat mirror, one row per alert or observation, with an explicit `type` column.
+- [Vehicle positions (index)](https://data.chicagotransitalerts.app/positions/index.json): Every polled bus, train, metra position, one gzipped NDJSON file per mode per Chicago day since 2026-09-28. The index lists each file with row count, size, sha256, and per-mode fields.
 - [Data changelog](https://chicagotransitalerts.app/data/CHANGELOG.md): Breaking changes to the data shape — check before pinning to the format.
 - [Atom feed](https://chicagotransitalerts.app/feed.xml) and [JSON feed](https://chicagotransitalerts.app/feed.json): Recent incidents. Per-line/route feeds live at `/feed/line/<line>.xml` and `/feed/route/<route>.xml`, each with a JSON-feed twin.
 - [API catalog](https://chicagotransitalerts.app/.well-known/api-catalog): Machine-readable index of these endpoints (RFC 9264 linkset).

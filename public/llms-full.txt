@@ -14,6 +14,7 @@ Every incident has a `kind` of `train`, `bus`, or `metra`. Train routes use full
 - Daily counts JSON: https://data.chicagotransitalerts.app/daily-counts.json
 - Accessibility outages JSON: https://data.chicagotransitalerts.app/accessibility.json
 - Incidents CSV: https://data.chicagotransitalerts.app/alerts.csv
+- Vehicle positions index: https://data.chicagotransitalerts.app/positions/index.json (one gzipped NDJSON file per mode per Chicago day since 2026-09-28: https://data.chicagotransitalerts.app/positions/<mode>/YYYY/MM/YYYY-MM-DD.ndjson.gz, modes bus, train, metra; fields per mode in the index `schema`)
 - Data changelog: https://chicagotransitalerts.app/data/CHANGELOG.md
 - Atom feed: https://chicagotransitalerts.app/feed.xml (per-line/route: /feed/line/<line>.xml, /feed/route/<route>.xml)
 - JSON feed: https://chicagotransitalerts.app/feed.json

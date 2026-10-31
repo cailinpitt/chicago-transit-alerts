@@ -31,6 +31,11 @@
           "title": "Incidents — CSV export"
         },
         {
+          "href": "https://data.chicagotransitalerts.app/positions/index.json",
+          "type": "application/json",
+          "title": "Vehicle positions — index of daily gzipped NDJSON files (bus, train, metra)"
+        },
+        {
           "href": "https://chicagotransitalerts.app/data/CHANGELOG.md",
           "type": "text/markdown",
           "title": "Data API changelog"
