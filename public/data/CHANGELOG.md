@@ -37,7 +37,9 @@ for the previous day; published days never change.
 - **metra:** `route`, `vehicle_id`, `lat`, `lon`, `heading`, `vehicle_ts`,
   `trip_id` (joins to the Metra static GTFS).
 
-Each mode is polled about once a minute.
+Buses are polled about once a minute, Metra about every 30 seconds, and trains at least
+every 30 seconds (other jobs poll trains in between, so train snapshots are often closer
+together).
 
 ## 2026-06-25 — Incident progress updates (`detections[].evidence.updates[]`)
 

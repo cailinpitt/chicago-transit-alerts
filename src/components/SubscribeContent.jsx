@@ -264,8 +264,9 @@ export default function SubscribeContent() {
           <p className={NOTE}>
             Files are gzipped NDJSON (one JSON object per line, in poll order) at{' '}
             <code className="break-all">{POSITIONS_FILE_PATTERN}</code>. Days run midnight to
-            midnight Chicago time, each mode is polled about once a minute, and a busy day of bus
-            positions is roughly 40 MB compressed.
+            midnight Chicago time. Buses are polled about once a minute, Metra about every 30
+            seconds, and trains at least every 30 seconds. A busy day of bus positions is roughly 40
+            MB compressed.
           </p>
           <CopyField
             value={POSITIONS_CMD}
