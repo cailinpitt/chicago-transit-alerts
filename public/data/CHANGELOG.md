@@ -6,6 +6,39 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-10-31 — Daily vehicle position archive (`positions/`)
+
+**New dataset, additive.** Every CTA bus, CTA train and Metra position the bots
+poll is now published as one file per mode per Chicago service day (midnight to
+midnight `America/Chicago`), starting 2026-09-28. A new file appears each night
+for the previous day; published days never change.
+
+- **`positions/index.json`** — every published day, with each file's `path`,
+  `rows`, `bytes` and `sha256`, plus a `schema` object describing each mode's
+  fields.
+- **`positions/{bus,train,metra}/YYYY/MM/YYYY-MM-DD.ndjson.gz`** — gzipped
+  NDJSON, one JSON object per line, ordered by `ts`. Served as a plain `.gz`
+  download (`Content-Type: application/gzip`).
+
+```json
+{"ts":1793336400000,"route":"66","pid":"5424","vehicle_id":"8123","destination":"Navy Pier","lat":41.8961,"lon":-87.6682,"pdist":1200,"heading":90,"vehicle_ts":1793336395000,"sched_start_sec":30000,"sched_start_date":"20261030"}
+```
+
+- `ts` — when we polled the feed (epoch ms). `vehicle_ts`, where present, is the
+  feed's own timestamp for the position (epoch ms).
+- **bus:** `route`, `pid` (pattern id: route variant + direction),
+  `vehicle_id`, `destination`, `lat`, `lon`, `pdist` (feet along the pattern),
+  `heading`, `vehicle_ts`, `sched_start_sec`, `sched_start_date`.
+- **train:** `route` (line code), `direction` (Train Tracker `trDr`, 1 or 5),
+  `vehicle_id` (run number), `destination`, `lat`, `lon`, `approx`,
+  `next_station`. `approx: 1` means the feed had no usable lat/lon and the
+  position was filled in from the next station; leave those rows out of
+  anything that depends on exact positions.
+- **metra:** `route`, `vehicle_id`, `lat`, `lon`, `heading`, `vehicle_ts`,
+  `trip_id` (joins to the Metra static GTFS).
+
+Each mode is polled about once a minute.
+
 ## 2026-06-25 — Incident progress updates (`detections[].evidence.updates[]`)
 
 **Additive, backward-compatible.** Long-running bot-detected absence incidents
