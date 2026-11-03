@@ -283,11 +283,11 @@ export default function SubscribeContent() {
           <p className={NOTE}>
             Files are Parquet, sorted by route, vehicle, and time, at{' '}
             <code className="break-all">{POSITIONS_FILE_PATTERN}</code>. File names include a
-            checksum: read <code>index.json</code>, follow its{' '}
-            <code>path</code> to the manifest, and take each day's file <code>path</code> from
-            there. Pin a manifest URL for repeatable analysis. Days run midnight to midnight Chicago
-            time. Buses and Metra are polled about every 30 seconds (older bus files about once a
-            minute), and trains at least every 30 seconds.
+            checksum: read <code>index.json</code>, follow its <code>path</code> to the manifest,
+            and take each day's file <code>path</code> from there. Pin a manifest URL for repeatable
+            analysis. Days run midnight to midnight Chicago time. Buses and Metra are polled about
+            every 30 seconds (older bus files about once a minute), and trains at least every 30
+            seconds.
           </p>
           <CopyField
             value={POSITIONS_CMD}
