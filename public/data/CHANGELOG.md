@@ -6,6 +6,46 @@ the syndication feeds at <https://chicagotransitalerts.app/feed.xml> (and the
 per-line/route feeds under `/feed/`). Newest first. If you build on this data,
 watch this file before pinning to the format.
 
+## 2026-11-03 — Vehicle positions move to Parquet (`positions/`)
+
+**Breaking.** The daily position archive switches from gzipped NDJSON to
+Parquet, and `positions/index.json` changes shape. Days, fields and rows are
+unchanged; every existing day is converted.
+
+- **`positions/index.json`** — now a small latest pointer (short cache) to an
+  immutable manifest, instead of the list of days:
+
+```json
+{"manifest_version":2,"path":"positions/manifests/<sha256>.json","sha256":"<sha256>","bytes":12345}
+```
+
+- **`positions/manifests/<sha256>.json`** — what `index.json` used to hold:
+  `days` (newest first, each with per-mode `rows` and `files`), `coverage`,
+  `feeds` (fields with type, unit and nullability), `known_gaps`, plus
+  `format: "parquet"`, `sort_order` and `previous_manifest`. Each file has
+  `path`, `rows`, `bytes`, `sha256` and min/max timestamps. Manifests never
+  change; pin one for repeatable analysis.
+- **`positions/{bus,train,metra}/YYYY/MM/YYYY-MM-DD.<sha256>.parquet`** — ZSTD
+  Parquet sorted by `route, vehicle_id, ts`, with typed columns. Names include
+  the file's checksum, so they can't be guessed: go through `index.json` →
+  manifest → `path`. A correction gets a new path; old ones stay available.
+- About a third the size of the gzipped NDJSON (a busy bus day drops from
+  roughly 39 MB to 13 MB), and reads directly in DuckDB, pandas (with pyarrow)
+  or Polars, including just the columns you need.
+- Metra `vehicle_ts` is epoch milliseconds throughout. Bus `sched_start_date`
+  is `YYYY-MM-DD`, as in the data all along (the 2026-10-31 entry's example
+  showed `YYYYMMDD` by mistake).
+- The `.ndjson.gz` files are no longer produced and will be removed later.
+  Switch to the manifest paths.
+
+```sh
+BASE=https://data.chicagotransitalerts.app
+MANIFEST=$(curl -s $BASE/positions/index.json | jq -r .path)
+FILE=$(curl -s $BASE/$MANIFEST | jq -r '.days[0].files.train.path')
+curl -so train.parquet $BASE/$FILE
+duckdb -c "SELECT route, count(*) FROM 'train.parquet' GROUP BY route"
+```
+
 ## 2026-10-31 — Daily vehicle position archive (`positions/`)
 
 **New dataset, additive.** Every CTA bus, CTA train and Metra position the bots

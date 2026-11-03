@@ -33,7 +33,7 @@
         {
           "href": "https://data.chicagotransitalerts.app/positions/index.json",
           "type": "application/json",
-          "title": "Vehicle positions — index of daily gzipped NDJSON files (bus, train, metra)"
+          "title": "Vehicle positions — latest pointer to the manifest of daily Parquet files (bus, train, metra)"
         },
         {
           "href": "https://chicagotransitalerts.app/data/CHANGELOG.md",

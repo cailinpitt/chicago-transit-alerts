@@ -14,7 +14,7 @@ Every incident has a `kind` of `train`, `bus`, or `metra`. Train routes use full
 - Daily counts JSON: https://data.chicagotransitalerts.app/daily-counts.json
 - Accessibility outages JSON: https://data.chicagotransitalerts.app/accessibility.json
 - Incidents CSV: https://data.chicagotransitalerts.app/alerts.csv
-- Vehicle positions index: https://data.chicagotransitalerts.app/positions/index.json (one gzipped NDJSON file per mode per Chicago day since 2026-09-28: https://data.chicagotransitalerts.app/positions/<mode>/YYYY/MM/YYYY-MM-DD.ndjson.gz, modes bus, train, metra; fields per mode in the index `schema`)
+- Vehicle positions index: https://data.chicagotransitalerts.app/positions/index.json (a small pointer: its `path` names the current immutable manifest, https://data.chicagotransitalerts.app/positions/manifests/<sha256>.json. The manifest lists `days` newest first, each with one Parquet file per mode, https://data.chicagotransitalerts.app/positions/<mode>/YYYY/MM/YYYY-MM-DD.<sha256>.parquet, modes bus, train, metra, with `path`, `rows`, `bytes`, `sha256`; fields per mode in `feeds`, plus `coverage` and `known_gaps`. Daily files since 2026-09-28, sorted by route, vehicle_id, ts. Take file paths from the manifest; they can't be guessed)
 - Data changelog: https://chicagotransitalerts.app/data/CHANGELOG.md
 - Atom feed: https://chicagotransitalerts.app/feed.xml (per-line/route: /feed/line/<line>.xml, /feed/route/<route>.xml)
 - JSON feed: https://chicagotransitalerts.app/feed.json

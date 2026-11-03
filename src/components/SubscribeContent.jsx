@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BUS_ROUTE_NAMES, compareBusRoutes } from '../lib/busRoutes.js';
 import { TRAIN_LINE_ORDER, TRAIN_LINES } from '../lib/ctaLines.js';
-import { dataUrl } from '../lib/dataSource.js';
+import { DATA_ORIGIN, dataUrl } from '../lib/dataSource.js';
 import { METRA_LINE_ORDER, METRA_LINES } from '../lib/metraLines.js';
 
 const LINK = 'text-blue-500 hover:text-blue-400 hover:underline';
@@ -18,10 +18,29 @@ const FEED_URL = `${SITE}/feed.xml`;
 const RECENT_URL = dataUrl('alerts-recent.json');
 const LEGACY_JSON_URL = dataUrl('alerts.json');
 const CHANGELOG_URL = 'https://chicagotransitalerts.app/data/CHANGELOG.md';
-const POSITIONS_FILE_PATTERN = dataUrl('positions/{bus,train,metra}/YYYY/MM/YYYY-MM-DD.ndjson.gz');
+const POSITIONS_FILE_PATTERN = 'positions/{bus,train,metra}/YYYY/MM/YYYY-MM-DD.<sha256>.parquet';
 
 const CURL_CMD = `curl -s ${RECENT_URL} | jq '.incidents | length'`;
-const POSITIONS_CMD = `curl -s ${dataUrl('positions/train/2026/10/2026-10-30.ndjson.gz')} | gunzip | head -3`;
+const POSITIONS_CMD = `BASE=${DATA_ORIGIN}
+MANIFEST=$(curl -s $BASE/positions/index.json | jq -r .path)
+FILE=$(curl -s $BASE/$MANIFEST | jq -r '.days[0].files.train.path')
+curl -so train.parquet $BASE/$FILE
+duckdb -c "SELECT route, count(*) FROM 'train.parquet' GROUP BY route"`;
+const POSITIONS_PY = `import json
+from urllib.request import Request, urlopen
+import pandas as pd
+
+base = "${DATA_ORIGIN}/"
+def fetch(path):
+    req = Request(base + path, headers={"User-Agent": "positions-example/1"})
+    with urlopen(req) as res:
+        return res.read()
+
+pointer = json.loads(fetch("positions/index.json"))
+manifest = json.loads(fetch(pointer["path"]))
+file = manifest["days"][0]["files"]["bus"]
+open("bus.parquet", "wb").write(fetch(file["path"]))
+df = pd.read_parquet("bus.parquet", columns=["route", "vehicle_id", "ts", "lat", "lon"])`;
 
 const BLUESKY_ACCOUNTS = [
   ['ctaalertinsights', 'official CTA alerts plus full-line/route blackouts and roundups.'],
@@ -54,7 +73,7 @@ const POSITION_FILES = [
   {
     name: 'Positions index',
     file: 'positions/index.json',
-    desc: "Every published day with each file's path, row count, size, and checksum, plus the fields for each mode.",
+    desc: 'A small pointer to the current manifest, which lists every published day with each file’s path, row count, size, and checksum, plus the fields for each mode and known gaps.',
   },
 ];
 
@@ -262,17 +281,26 @@ export default function SubscribeContent() {
         <DataFileList items={POSITION_FILES} />
         <Details>
           <p className={NOTE}>
-            Files are gzipped NDJSON (one JSON object per line, in poll order) at{' '}
-            <code className="break-all">{POSITIONS_FILE_PATTERN}</code>. Days run midnight to
-            midnight Chicago time. Buses are polled about once a minute, Metra about every 30
-            seconds, and trains at least every 30 seconds. A busy day of bus positions is roughly 40
-            MB compressed.
+            Files are Parquet, sorted by route, vehicle, and time, at{' '}
+            <code className="break-all">{POSITIONS_FILE_PATTERN}</code>. File names include a
+            checksum: read <code>index.json</code>, follow its{' '}
+            <code>path</code> to the manifest, and take each day's file <code>path</code> from
+            there. Pin a manifest URL for repeatable analysis. Days run midnight to midnight Chicago
+            time. Buses and Metra are polled about every 30 seconds (older bus files about once a
+            minute), and trains at least every 30 seconds.
           </p>
           <CopyField
             value={POSITIONS_CMD}
             label="Example command"
             copied={copied === 'positions'}
             onCopy={copy('positions', POSITIONS_CMD)}
+            multiline
+          />
+          <CopyField
+            value={POSITIONS_PY}
+            label="Python example"
+            copied={copied === 'positions-py'}
+            onCopy={copy('positions-py', POSITIONS_PY)}
             multiline
           />
         </Details>
